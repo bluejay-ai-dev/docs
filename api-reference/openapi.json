@@ -1,72 +1,119 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Bluejay API",
+    "version": "0.1.0"
   },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
+    "/v1/api-keys": {
+      "post": {
+        "summary": "Create Api Key",
+        "operationId": "create_api_key_v1_api_keys_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "title": "X-Api-Key"
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKeyIn"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                  "$ref": "#/components/schemas/KeyOut"
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/v1/api-keys/{key_id}": {
+      "delete": {
+        "summary": "Revoke Key",
+        "operationId": "revoke_key_v1_api_keys__key_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/log-evaluation": {
       "post": {
-        "description": "Creates a new plant in the store",
+        "summary": "Upload Audio",
+        "operationId": "upload_audio_v1_log_evaluation_post",
         "requestBody": {
-          "description": "Plant to add to the store",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/Body_upload_audio_v1_log_evaluation_post"
               }
             }
           },
@@ -74,21 +121,19 @@
         },
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
+                "schema": {}
               }
             }
           },
-          "400": {
-            "description": "unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -96,57 +141,193 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/v1/generate-test-scenarios": {
+      "post": {
+        "summary": "Generate Test Scenarios",
+        "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n}",
+        "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "title": "X-Api-Key"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           },
-          "400": {
-            "description": "unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
         }
       }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    },
+    "/v1/queue-simulation": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "summary": "Queue Simulation",
+        "description": "Queue a simulation with test cases for execution",
+        "operationId": "queue_simulation_v1_queue_simulation_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "X-Api-Key"
+            }
+          }
+        ],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/QueueSimulationRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evaluate-call": {
+      "post": {
+        "summary": "Eval Call",
+        "description": "Submit a call for evaluation.\n\nReturns a call ID that can be used to track evaluation status.",
+        "operationId": "eval_call_v1_evaluate_call_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ping": {
+      "get": {
+        "summary": "Pong",
+        "operationId": "pong_v1_ping_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
         }
       }
@@ -154,61 +335,710 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
+      "Body_upload_audio_v1_log_evaluation_post": {
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "title": "Org Id"
+          },
+          "eval_id": {
+            "type": "string",
+            "title": "Eval Id"
+          },
+          "eval_name": {
+            "type": "string",
+            "title": "Eval Name"
+          },
+          "agent_description": {
+            "type": "string",
+            "title": "Agent Description"
+          },
+          "knowledge_base": {
+            "type": "string",
+            "title": "Knowledge Base"
+          },
+          "custom_questions": {
+            "type": "string",
+            "title": "Custom Questions"
+          },
+          "transcript": {
+            "type": "string",
+            "title": "Transcript"
+          },
+          "audio_file": {
+            "type": "string",
+            "format": "binary",
+            "title": "Audio File"
+          }
+        },
+        "type": "object",
         "required": [
+          "org_id",
+          "eval_id",
+          "eval_name",
+          "agent_description",
+          "knowledge_base",
+          "custom_questions",
+          "transcript",
+          "audio_file"
+        ],
+        "title": "Body_upload_audio_v1_log_evaluation_post"
+      },
+      "CallDirection": {
+        "type": "string",
+        "enum": [
+          "INBOUND",
+          "OUTBOUND"
+        ],
+        "title": "CallDirection",
+        "description": "Enum representing the direction of a call."
+      },
+      "CallInterface": {
+        "type": "string",
+        "enum": [
+          "PHONE"
+        ],
+        "title": "CallInterface",
+        "description": "Enum representing the interface used for a call."
+      },
+      "CallRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent associated with the call"
+          },
+          "recording_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Recording Url",
+            "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
+          },
+          "start_time_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time Utc",
+            "description": "When the call started, in UTC ([python] log: datetime.now(timezone.utc) at call start)"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipantRequest"
+            },
+            "type": "array",
+            "title": "Participants",
+            "description": "List of call participants"
+          },
+          "call_direction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CallDirection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)",
+            "default": "INBOUND"
+          },
+          "interface": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CallInterface"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Interface used for the call",
+            "default": "PHONE"
+          },
+          "transcript_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Url",
+            "description": "URL to the transcript file (supported formats: .txt, .json)"
+          },
+          "tool_calls": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ToolCallRequest"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Calls",
+            "description": "List of tool calls made during the call"
+          },
+          "events": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EventRequest"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Events",
+            "description": "List of events that occurred during the call"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "List of tags associated with the call"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "When this request was created (defaults to now in UTC)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "recording_url",
+          "start_time_utc",
+          "participants"
+        ],
+        "title": "CallRequest",
+        "description": "Pydantic model for incoming call evaluation requests"
+      },
+      "CreateKeyIn": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scope"
+        ],
+        "title": "CreateKeyIn"
+      },
+      "EventRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "start_offset_ms": {
+            "type": "integer",
+            "title": "Start Offset Ms"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "end_offset_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Offset Ms"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "start_offset_ms"
+        ],
+        "title": "EventRequest",
+        "description": "Pydantic model for event data in request"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "KeyOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "api_key": {
+            "type": "string",
+            "title": "Api Key"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "revoked": {
+            "type": "boolean",
+            "title": "Revoked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "api_key",
+          "scope",
+          "name",
+          "created_at",
+          "revoked"
+        ],
+        "title": "KeyOut"
+      },
+      "ParticipantRequest": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ParticipantRole"
+          },
+          "spoke_first": {
+            "type": "boolean",
+            "title": "Spoke First"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "spoke_first"
+        ],
+        "title": "ParticipantRequest",
+        "description": "Pydantic model for participant data in request"
+      },
+      "ParticipantRole": {
+        "type": "string",
+        "enum": [
+          "AGENT",
+          "USER"
+        ],
+        "title": "ParticipantRole",
+        "description": "Enum representing the role of a participant in a call."
+      },
+      "QueueSimulationRequest": {
+        "properties": {
+          "new_simulation": {
+            "type": "boolean",
+            "title": "New Simulation",
+            "description": "Whether this is a new simulation or adding to an existing one"
+          },
+          "simulation": {
+            "$ref": "#/components/schemas/SimulationData",
+            "description": "Simulation data"
+          },
+          "test_cases": {
+            "items": {
+              "$ref": "#/components/schemas/TestCaseRequest"
+            },
+            "type": "array",
+            "title": "Test Cases",
+            "description": "List of test cases for the simulation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_simulation",
+          "simulation",
+          "test_cases"
+        ],
+        "title": "QueueSimulationRequest",
+        "description": "Pydantic model for queue simulation requests"
+      },
+      "SimulationData": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent associated with the simulation"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the simulation"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "ID of the simulation"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description of the simulation"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "Tags associated with the simulation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
           "name"
         ],
+        "title": "SimulationData",
+        "description": "Pydantic model for simulation data in request"
+      },
+      "TestCaseRequest": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Description of the test case"
+          },
+          "success_criteria": {
+            "type": "string",
+            "title": "Success Criteria",
+            "description": "Success criteria for the test case"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent associated with the test case"
+          },
+          "human_name": {
+            "type": "string",
+            "title": "Human Name",
+            "description": "Name of the human participant"
+          },
+          "human_picture": {
+            "type": "string",
+            "title": "Human Picture",
+            "description": "Picture URL of the human participant"
+          },
+          "phone_number": {
+            "type": "string",
+            "title": "Phone Number",
+            "description": "Phone number for the test call"
+          },
+          "accent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accent",
+            "description": "Accent to use for voice generation"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language",
+            "description": "Language to use for voice generation",
+            "default": "en"
+          },
+          "background_noise": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Background Noise",
+            "description": "Whether to include background noise",
+            "default": false
+          },
+          "num_runs": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Runs",
+            "description": "Number of runs for this test case",
+            "default": 1
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "ID of the test case (required for existing test cases)"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "Tags associated with the test case"
+          }
+        },
         "type": "object",
+        "required": [
+          "description",
+          "success_criteria",
+          "agent_id",
+          "human_name",
+          "human_picture",
+          "phone_number"
+        ],
+        "title": "TestCaseRequest",
+        "description": "Pydantic model for test case data in simulation request"
+      },
+      "ToolCallRequest": {
         "properties": {
           "name": {
-            "description": "The name of the plant",
-            "type": "string"
+            "type": "string",
+            "title": "Name"
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
+          "start_offset_ms": {
             "type": "integer",
-            "format": "int32"
+            "title": "Start Offset Ms"
           },
-          "message": {
-            "type": "string"
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
           }
-        }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "start_offset_ms"
+        ],
+        "title": "ToolCallRequest",
+        "description": "Pydantic model for tool call data in request"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
+      "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"
       }
