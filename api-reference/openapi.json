@@ -2,6 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Bluejay API",
+    "description": "Bluejay API",
     "version": "0.1.0"
   },
   "paths": {
@@ -18,11 +19,11 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "required": false,
+            "required": true,
             "schema": {
-              "type": "string",
-              "title": "X-Api-Key"
-            }
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
           }
         ],
         "requestBody": {
@@ -81,11 +82,11 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "required": false,
+            "required": true,
             "schema": {
-              "type": "string",
-              "title": "X-Api-Key"
-            }
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
@@ -138,7 +139,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ]
       }
     },
     "/v1/generate-test-scenarios": {
@@ -155,11 +167,11 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "required": false,
+            "required": true,
             "schema": {
-              "type": "string",
-              "title": "X-Api-Key"
-            }
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
@@ -187,7 +199,6 @@
     "/v1/queue-simulation": {
       "post": {
         "summary": "Queue Simulation",
-        "description": "Queue a simulation with test cases for execution",
         "operationId": "queue_simulation_v1_queue_simulation_post",
         "security": [
           {
@@ -198,23 +209,13 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "required": false,
+            "required": true,
             "schema": {
-              "type": "string",
-              "title": "X-Api-Key"
-            }
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/QueueSimulationRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -251,11 +252,11 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "required": false,
+            "required": true,
             "schema": {
-              "type": "string",
-              "title": "X-Api-Key"
-            }
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
           }
         ],
         "requestBody": {
@@ -273,7 +274,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluateCallResponse"
+                }
               }
             }
           },
@@ -303,11 +306,11 @@
           {
             "name": "X-API-Key",
             "in": "header",
-            "required": false,
+            "required": true,
             "schema": {
-              "type": "string",
-              "title": "X-Api-Key"
-            }
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
@@ -555,6 +558,29 @@
         ],
         "title": "CreateKeyIn"
       },
+      "EvaluateCallResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "call_id": {
+            "type": "string",
+            "title": "Call Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "call_id",
+          "message"
+        ],
+        "title": "EvaluateCallResponse"
+      },
       "EventRequest": {
         "properties": {
           "title": {
@@ -710,242 +736,6 @@
         "title": "ParticipantRole",
         "description": "Enum representing the role of a participant in a call."
       },
-      "QueueSimulationRequest": {
-        "properties": {
-          "new_simulation": {
-            "type": "boolean",
-            "title": "New Simulation",
-            "description": "Whether this is a new simulation or adding to an existing one"
-          },
-          "simulation": {
-            "$ref": "#/components/schemas/SimulationData",
-            "description": "Simulation data"
-          },
-          "test_cases": {
-            "items": {
-              "$ref": "#/components/schemas/TestCaseRequest"
-            },
-            "type": "array",
-            "title": "Test Cases",
-            "description": "List of test cases for the simulation"
-          }
-        },
-        "type": "object",
-        "required": [
-          "new_simulation",
-          "simulation",
-          "test_cases"
-        ],
-        "title": "QueueSimulationRequest",
-        "description": "Pydantic model for queue simulation requests"
-      },
-      "SimulationData": {
-        "properties": {
-          "agent_id": {
-            "type": "string",
-            "title": "Agent Id",
-            "description": "ID of the agent associated with the simulation"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "description": "Name of the simulation"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id",
-            "description": "ID of the simulation"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description",
-            "description": "Description of the simulation"
-          },
-          "created_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created At",
-            "description": "Creation timestamp"
-          },
-          "tags": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tags",
-            "description": "Tags associated with the simulation"
-          }
-        },
-        "type": "object",
-        "required": [
-          "agent_id",
-          "name"
-        ],
-        "title": "SimulationData",
-        "description": "Pydantic model for simulation data in request"
-      },
-      "TestCaseRequest": {
-        "properties": {
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "description": "Description of the test case"
-          },
-          "success_criteria": {
-            "type": "string",
-            "title": "Success Criteria",
-            "description": "Success criteria for the test case"
-          },
-          "agent_id": {
-            "type": "string",
-            "title": "Agent Id",
-            "description": "ID of the agent associated with the test case"
-          },
-          "human_name": {
-            "type": "string",
-            "title": "Human Name",
-            "description": "Name of the human participant"
-          },
-          "human_picture": {
-            "type": "string",
-            "title": "Human Picture",
-            "description": "Picture URL of the human participant"
-          },
-          "phone_number": {
-            "type": "string",
-            "title": "Phone Number",
-            "description": "Phone number for the test call"
-          },
-          "accent": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Accent",
-            "description": "Accent to use for voice generation"
-          },
-          "language": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Language",
-            "description": "Language to use for voice generation",
-            "default": "en"
-          },
-          "background_noise": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Background Noise",
-            "description": "Whether to include background noise",
-            "default": false
-          },
-          "num_runs": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Num Runs",
-            "description": "Number of runs for this test case",
-            "default": 1
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id",
-            "description": "ID of the test case (required for existing test cases)"
-          },
-          "created_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created At",
-            "description": "Creation timestamp"
-          },
-          "tags": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tags",
-            "description": "Tags associated with the test case"
-          }
-        },
-        "type": "object",
-        "required": [
-          "description",
-          "success_criteria",
-          "agent_id",
-          "human_name",
-          "human_picture",
-          "phone_number"
-        ],
-        "title": "TestCaseRequest",
-        "description": "Pydantic model for test case data in simulation request"
-      },
       "ToolCallRequest": {
         "properties": {
           "name": {
@@ -1038,10 +828,23 @@
       }
     },
     "securitySchemes": {
-      "HTTPBearer": {
-        "type": "http",
-        "scheme": "bearer"
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key required to authenticate requests."
       }
     }
-  }
+  },
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.getbluejay.ai",
+      "description": "Production server"
+    }
+  ]
 }
