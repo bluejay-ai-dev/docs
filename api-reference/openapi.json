@@ -293,6 +293,168 @@
         }
       }
     },
+    "/v1/retrieve-call-logs": {
+      "get": {
+        "summary": "Retrieve Call Logs",
+        "operationId": "retrieve_call_logs_v1_retrieve_call_logs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ]
+      }
+    },
+    "/v1/retrieve-call-logs/{agent_id}": {
+      "get": {
+        "summary": "Retrieve Call Logs",
+        "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
+        "operationId": "retrieve_call_logs_v1_retrieve_call_logs__agent_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrieveCallLogsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/retrieve-call-log": {
+      "get": {
+        "summary": "Retrieve Call Log",
+        "operationId": "retrieve_call_log_v1_retrieve_call_log_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ]
+      }
+    },
+    "/v1/retrieve-call-log/{call_id}": {
+      "get": {
+        "summary": "Retrieve Call Log",
+        "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
+        "operationId": "retrieve_call_log_v1_retrieve_call_log__call_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Call Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrieveCallLogResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/ping": {
       "get": {
         "summary": "Pong",
@@ -403,6 +565,153 @@
         ],
         "title": "CallInterface",
         "description": "Enum representing the interface used for a call."
+      },
+      "CallLog": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique identifier for the call"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent associated with the call"
+          },
+          "recording_url": {
+            "type": "string",
+            "title": "Recording Url",
+            "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
+          },
+          "start_time_utc": {
+            "type": "string",
+            "title": "Start Time Utc",
+            "description": "When the call started, in UTC"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipantResponse"
+            },
+            "type": "array",
+            "title": "Participants",
+            "description": "List of call participants"
+          },
+          "call_direction": {
+            "$ref": "#/components/schemas/CallDirection",
+            "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)",
+            "default": "INBOUND"
+          },
+          "interface": {
+            "$ref": "#/components/schemas/CallInterface",
+            "description": "Interface used for the call",
+            "default": "PHONE"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CallStatus",
+            "description": "Current status of the call"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When this request was created (defaults to now in UTC)"
+          },
+          "transcript_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Url",
+            "description": "URL to the transcript file (supported formats: .txt, .json)"
+          },
+          "tool_calls": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ToolCallResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Calls",
+            "description": "List of tool calls made during the call"
+          },
+          "events": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Event"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Events",
+            "description": "List of events that occurred during the call"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "List of tags associated with the call"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms",
+            "description": "Duration of the call in milliseconds",
+            "default": 0
+          },
+          "evaluations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Evaluation"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluations",
+            "description": "List of evaluations associated with the call"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent_id",
+          "recording_url",
+          "start_time_utc",
+          "participants",
+          "status"
+        ],
+        "title": "CallLog"
       },
       "CallRequest": {
         "properties": {
@@ -541,6 +850,18 @@
         "title": "CallRequest",
         "description": "Pydantic model for incoming call evaluation requests"
       },
+      "CallStatus": {
+        "type": "string",
+        "enum": [
+          "INITIALIZING",
+          "QUEUED",
+          "EVALUATING",
+          "COMPLETED",
+          "INCOMPLETED"
+        ],
+        "title": "CallStatus",
+        "description": "Enum representing the possible states of a call."
+      },
       "CreateKeyIn": {
         "properties": {
           "scope": {
@@ -580,6 +901,205 @@
           "message"
         ],
         "title": "EvaluateCallResponse"
+      },
+      "Evaluation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique identifier for the evaluation result"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When this evaluation result was created (defaults to now in UTC)"
+          },
+          "hallucination": {
+            "type": "boolean",
+            "title": "Hallucination",
+            "description": "Whether the agent exhibited hallucination during the call"
+          },
+          "hallucination_reasoning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hallucination Reasoning",
+            "description": "Reasoning behind the hallucination, if applicable"
+          },
+          "redundancy": {
+            "type": "boolean",
+            "title": "Redundancy",
+            "description": "Whether the agent exhibited redundancy during the call"
+          },
+          "redundancy_reasoning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redundancy Reasoning",
+            "description": "Reasoning behind the redundancy, if applicable"
+          },
+          "agent_speak_percentage": {
+            "type": "number",
+            "title": "Agent Speak Percentage",
+            "description": "Percentage of the call where the agent was speaking"
+          },
+          "avg_agent_latency": {
+            "type": "number",
+            "title": "Avg Agent Latency",
+            "description": "Average latency of the agent's responses during the call"
+          },
+          "num_turns": {
+            "type": "integer",
+            "title": "Num Turns",
+            "description": "Total number of turns taken by the agent during the call"
+          },
+          "call_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Call Summary",
+            "description": "Summary of the call, if applicable"
+          },
+          "custom_evals": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Evals",
+            "description": "List of custom evaluations performed during the call"
+          },
+          "custom_evals_success_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Evals Success Rate",
+            "description": "Success rate of the custom evaluations performed during the call"
+          },
+          "pronunciation_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pronunciation Score",
+            "description": "Pronunciation score of the agent during the call"
+          },
+          "pronunciation_reasoning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pronunciation Reasoning",
+            "description": "Reasoning behind the pronunciation score, if applicable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hallucination",
+          "redundancy",
+          "agent_speak_percentage",
+          "avg_agent_latency",
+          "num_turns"
+        ],
+        "title": "Evaluation",
+        "description": "Pydantic model for evaluation result"
+      },
+      "Event": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Title of the event"
+          },
+          "start_offset_ms": {
+            "type": "integer",
+            "title": "Start Offset Ms",
+            "description": "Start offset of the event in milliseconds"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description of the event"
+          },
+          "end_offset_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Offset Ms",
+            "description": "End offset of the event in milliseconds"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "List of tags associated with the event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "start_offset_ms"
+        ],
+        "title": "Event",
+        "description": "Pydantic model for event data"
       },
       "EventRequest": {
         "properties": {
@@ -727,6 +1247,50 @@
         "title": "ParticipantRequest",
         "description": "Pydantic model for participant data in request"
       },
+      "ParticipantResponse": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ParticipantRole",
+            "description": "Role of the participant in the call"
+          },
+          "spoke_first": {
+            "type": "boolean",
+            "title": "Spoke First",
+            "description": "Whether the participant spoke first in the call"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Name of the participant"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number",
+            "description": "Phone number of the participant (if applicable)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "spoke_first"
+        ],
+        "title": "ParticipantResponse",
+        "description": "Pydantic model for participant data"
+      },
       "ParticipantRole": {
         "type": "string",
         "enum": [
@@ -735,6 +1299,45 @@
         ],
         "title": "ParticipantRole",
         "description": "Enum representing the role of a participant in a call."
+      },
+      "RetrieveCallLogResponse": {
+        "properties": {
+          "call_log": {
+            "$ref": "#/components/schemas/CallLog",
+            "description": "Details of the retrieved call log"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "call_log"
+        ],
+        "title": "RetrieveCallLogResponse"
+      },
+      "RetrieveCallLogsResponse": {
+        "properties": {
+          "call_logs": {
+            "items": {
+              "$ref": "#/components/schemas/CallLog"
+            },
+            "type": "array",
+            "title": "Call Logs",
+            "description": "List of calls retrieved from the database"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "title": "RetrieveCallLogsResponse"
       },
       "ToolCallRequest": {
         "properties": {
@@ -792,6 +1395,68 @@
         ],
         "title": "ToolCallRequest",
         "description": "Pydantic model for tool call data in request"
+      },
+      "ToolCallResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the tool called"
+          },
+          "start_offset_ms": {
+            "type": "integer",
+            "title": "Start Offset Ms",
+            "description": "Start offset of the tool call in milliseconds"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description of the tool call"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters",
+            "description": "Parameters passed to the tool call"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output",
+            "description": "Output returned by the tool call"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "start_offset_ms"
+        ],
+        "title": "ToolCallResponse",
+        "description": "Pydantic model for tool call data"
       },
       "ValidationError": {
         "properties": {
