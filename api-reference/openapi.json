@@ -374,6 +374,87 @@
         }
       }
     },
+    "/v1/retrieve-call-log": {
+      "get": {
+        "summary": "Retrieve Call Log",
+        "operationId": "retrieve_call_log_v1_retrieve_call_log_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ]
+      }
+    },
+    "/v1/retrieve-call-log/{call_id}": {
+      "get": {
+        "summary": "Retrieve Call Log",
+        "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
+        "operationId": "retrieve_call_log_v1_retrieve_call_log__call_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Call Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrieveCallLogResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/ping": {
       "get": {
         "summary": "Pong",
@@ -898,11 +979,12 @@
           "custom_evals": {
             "anyOf": [
               {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
@@ -1217,6 +1299,25 @@
         ],
         "title": "ParticipantRole",
         "description": "Enum representing the role of a participant in a call."
+      },
+      "RetrieveCallLogResponse": {
+        "properties": {
+          "call_log": {
+            "$ref": "#/components/schemas/CallLog",
+            "description": "Details of the retrieved call log"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "call_log"
+        ],
+        "title": "RetrieveCallLogResponse"
       },
       "RetrieveCallLogsResponse": {
         "properties": {
