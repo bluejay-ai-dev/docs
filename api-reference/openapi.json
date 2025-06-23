@@ -455,6 +455,226 @@
         }
       }
     },
+    "/v1/add-agent": {
+      "post": {
+        "summary": "Add Agent",
+        "description": "Add a new agent to the system.\n\nReturns the agent id and a status code.",
+        "operationId": "add_agent_v1_add_agent_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/create-simulation": {
+      "post": {
+        "summary": "Create Simulation",
+        "description": "Create a new simulation with the provided details.\n\nReturns the simulation id and a status code.",
+        "operationId": "create_simulation_v1_create_simulation_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate-digital-humans": {
+      "post": {
+        "summary": "Generate Digital Humans",
+        "description": "Generate digital humans based on the provided simulation details.\n\nReturns a list of generated digital humans.",
+        "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DigitalHumanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigitalHumanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/queue-simulation-run": {
+      "post": {
+        "summary": "Queue Simulation Run",
+        "description": "Queue a simulation run for processing.",
+        "operationId": "queue_simulation_run_v1_queue_simulation_run_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/ping": {
       "get": {
         "summary": "Pong",
@@ -500,6 +720,88 @@
   },
   "components": {
     "schemas": {
+      "AgentRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the agent"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt",
+            "description": "System prompt for the agent"
+          },
+          "knowledge_base": {
+            "type": "string",
+            "title": "Knowledge Base",
+            "description": "Knowledge base of the agent"
+          },
+          "phone_number": {
+            "type": "string",
+            "title": "Phone Number",
+            "description": "Phone number associated with the agent"
+          },
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Goals",
+            "description": "List of goals for the agent"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers",
+            "default": "INBOUND"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "system_prompt",
+          "knowledge_base",
+          "phone_number",
+          "goals"
+        ],
+        "title": "AgentRequest"
+      },
+      "AgentResponse": {
+        "properties": {
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id",
+            "description": "ID of the created agent"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "AgentResponse"
+      },
+      "AgentType": {
+        "type": "string",
+        "enum": [
+          "INBOUND",
+          "OUTBOUND"
+        ],
+        "title": "AgentType",
+        "description": "Enum representing the type of agent"
+      },
       "Body_upload_audio_v1_log_evaluation_post": {
         "properties": {
           "org_id": {
@@ -879,6 +1181,215 @@
         ],
         "title": "CreateKeyIn"
       },
+      "CustomerPersonaRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the customer persona"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Description of the customer persona"
+          },
+          "goal": {
+            "type": "string",
+            "title": "Goal",
+            "description": "Goal or objective of the customer persona"
+          },
+          "num_calls": {
+            "type": "integer",
+            "title": "Num Calls",
+            "description": "Number of calls that matched the customer persona"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "goal",
+          "num_calls"
+        ],
+        "title": "CustomerPersonaRequest",
+        "description": "Pydantic model for customer persona in simulation"
+      },
+      "DigitalHumanRequest": {
+        "properties": {
+          "simulation_id": {
+            "type": "string",
+            "title": "Simulation Id",
+            "description": "ID of the simulation to be used for the digital human"
+          },
+          "goal_adherence": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/GoalAdherence"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal Adherence",
+            "description": "List of goal adherence scenarios"
+          },
+          "customer_personas": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CustomerPersonaRequest"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Personas",
+            "description": "List of customer personas to be used in the simulation"
+          },
+          "load_testing": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Load Testing",
+            "description": "Number of load testing calls",
+            "default": 0
+          },
+          "red_teaming": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Red Teaming",
+            "description": "Number of red teaming calls",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_id"
+        ],
+        "title": "DigitalHumanRequest",
+        "description": "Pydantic model for digital humans (simulation type) request"
+      },
+      "DigitalHumanResponse": {
+        "properties": {
+          "digital_humans": {
+            "items": {
+              "$ref": "#/components/schemas/TestCase"
+            },
+            "type": "array",
+            "title": "Digital Humans",
+            "description": "List of digital humans created for the simulation"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "title": "DigitalHumanResponse"
+      },
+      "DigitalHumansSettings": {
+        "properties": {
+          "default_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Name",
+            "description": "Default name for the digital human",
+            "default": "random"
+          },
+          "default_caller_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Caller Number",
+            "description": "Default caller phone number for the digital human",
+            "default": "random"
+          },
+          "default_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Language",
+            "description": "Default language for the digital human",
+            "default": "random"
+          },
+          "default_background_noise": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Background Noise",
+            "description": "Background noise to be used in the simulation",
+            "default": "none"
+          },
+          "speaks_first": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaks First",
+            "description": "Whether the digital human speaks first in the call",
+            "default": false
+          },
+          "first_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Message",
+            "description": "First message to be spoken by the digital human",
+            "default": "ai_generated"
+          }
+        },
+        "type": "object",
+        "title": "DigitalHumansSettings",
+        "description": "Pydantic model for digital humans settings in simulation"
+      },
       "EvaluateCallResponse": {
         "properties": {
           "status": {
@@ -1156,6 +1667,27 @@
         "title": "EventRequest",
         "description": "Pydantic model for event data in request"
       },
+      "GoalAdherence": {
+        "properties": {
+          "goal": {
+            "type": "string",
+            "title": "Goal",
+            "description": "Description of the goal"
+          },
+          "num_calls": {
+            "type": "integer",
+            "title": "Num Calls",
+            "description": "Number of calls that adhered to the goal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "goal",
+          "num_calls"
+        ],
+        "title": "GoalAdherence",
+        "description": "Pydantic model for goal adherence in simulation"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1338,6 +1870,165 @@
         },
         "type": "object",
         "title": "RetrieveCallLogsResponse"
+      },
+      "SimulationRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent to be used in the simulation"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Name of the simulation"
+          },
+          "sequential_calling": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sequential Calling",
+            "description": "Whether to run the simulation with sequential calling",
+            "default": false
+          },
+          "hang_up_on_transfer": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hang Up On Transfer",
+            "description": "Whether to hang up the call on transfer",
+            "default": false
+          },
+          "max_call_duration": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Call Duration",
+            "description": "Maximum duration of each call in minutes (default is 10 minutes)",
+            "default": 10
+          },
+          "digital_humans_settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DigitalHumansSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Settings for digital humans in the simulation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "SimulationRequest",
+        "description": "Pydantic model for simulation request"
+      },
+      "SimulationResponse": {
+        "properties": {
+          "simulation_id": {
+            "type": "integer",
+            "title": "Simulation Id",
+            "description": "ID of the created simulation"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_id"
+        ],
+        "title": "SimulationResponse"
+      },
+      "SimulationRunRequest": {
+        "properties": {
+          "simulation_id": {
+            "type": "string",
+            "title": "Simulation Id",
+            "description": "ID of the simulation to be run"
+          },
+          "digital_human_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Digital Human Ids",
+            "description": "Digital human IDs to be used in the simulation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_id"
+        ],
+        "title": "SimulationRunRequest",
+        "description": "Pydantic model for simulation run request"
+      },
+      "SimulationRunResponse": {
+        "properties": {
+          "simulation_run_id": {
+            "type": "string",
+            "title": "Simulation Run Id",
+            "description": "ID of the created simulation run"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent associated with the simulation run"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_run_id",
+          "agent_id"
+        ],
+        "title": "SimulationRunResponse"
+      },
+      "TestCase": {
+        "properties": {},
+        "type": "object",
+        "title": "TestCase",
+        "description": "TestCase class representing tests associated with experiments."
       },
       "ToolCallRequest": {
         "properties": {
