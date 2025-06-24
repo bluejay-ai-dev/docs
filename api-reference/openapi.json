@@ -491,8 +491,61 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentResponse"
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/update-agent": {
+      "post": {
+        "summary": "Update Agent",
+        "description": "Update an existing agent in the system.",
+        "operationId": "update_agent_v1_update_agent_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentUpdateResponse"
                 }
               }
             }
@@ -720,6 +773,14 @@
   },
   "components": {
     "schemas": {
+      "AgentMode": {
+        "type": "string",
+        "enum": [
+          "VOICE",
+          "TEXT"
+        ],
+        "title": "AgentMode"
+      },
       "AgentRequest": {
         "properties": {
           "name": {
@@ -773,12 +834,119 @@
         ],
         "title": "AgentRequest"
       },
-      "AgentResponse": {
+      "AgentType": {
+        "type": "string",
+        "enum": [
+          "INBOUND",
+          "OUTBOUND"
+        ],
+        "title": "AgentType",
+        "description": "Enum representing the type of agent"
+      },
+      "AgentUpdateRequest": {
         "properties": {
           "agent_id": {
-            "type": "integer",
+            "type": "string",
             "title": "Agent Id",
-            "description": "ID of the created agent"
+            "description": "ID of the agent to be updated"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Name of the agent"
+          },
+          "system_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Prompt",
+            "description": "System prompt for the agent"
+          },
+          "knowledge_base": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Knowledge Base",
+            "description": "Knowledge base of the agent"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number",
+            "description": "Phone number associated with the agent"
+          },
+          "goals": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goals",
+            "description": "List of goals for the agent"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentMode"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Modality of the agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "AgentUpdateRequest"
+      },
+      "AgentUpdateResponse": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentUpdateRequest",
+            "description": "Updated agent details"
           },
           "status": {
             "type": "string",
@@ -789,18 +957,9 @@
         },
         "type": "object",
         "required": [
-          "agent_id"
+          "agent"
         ],
-        "title": "AgentResponse"
-      },
-      "AgentType": {
-        "type": "string",
-        "enum": [
-          "INBOUND",
-          "OUTBOUND"
-        ],
-        "title": "AgentType",
-        "description": "Enum representing the type of agent"
+        "title": "AgentUpdateResponse"
       },
       "Body_upload_audio_v1_log_evaluation_post": {
         "properties": {
