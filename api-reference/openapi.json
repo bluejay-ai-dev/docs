@@ -240,9 +240,64 @@
     },
     "/v1/evaluate-call": {
       "post": {
-        "summary": "Eval Call",
-        "description": "Submit a call for evaluation.\n\nReturns a call ID that can be used to track evaluation status.",
-        "operationId": "eval_call_v1_evaluate_call_post",
+        "summary": "Evaluate",
+        "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
+        "operationId": "evaluate_v1_evaluate_call_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluateCallResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evaluate": {
+      "post": {
+        "summary": "Evaluate",
+        "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
+        "operationId": "evaluate_v1_evaluate_post",
         "security": [
           {
             "HTTPBearer": []
@@ -779,7 +834,8 @@
           "VOICE",
           "TEXT"
         ],
-        "title": "AgentMode"
+        "title": "AgentMode",
+        "description": "Enum representing the mode of agent"
       },
       "AgentRequest": {
         "properties": {
@@ -822,6 +878,18 @@
             ],
             "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers",
             "default": "INBOUND"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentMode"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Modality of the agent",
+            "default": "VOICE"
           }
         },
         "type": "object",
@@ -1182,10 +1250,17 @@
             "description": "ID of the agent associated with the call"
           },
           "recording_url": {
-            "type": "string",
-            "maxLength": 2083,
-            "minLength": 1,
-            "format": "uri",
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Recording Url",
             "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
           },
@@ -1304,7 +1379,6 @@
         "type": "object",
         "required": [
           "agent_id",
-          "recording_url",
           "start_time_utc",
           "participants"
         ],
