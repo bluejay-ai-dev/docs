@@ -546,7 +546,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AgentResponse"
+                }
               }
             }
           },
@@ -901,6 +903,26 @@
           "goals"
         ],
         "title": "AgentRequest"
+      },
+      "AgentResponse": {
+        "properties": {
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id",
+            "description": "ID of the created agent"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "AgentResponse"
       },
       "AgentType": {
         "type": "string",
@@ -1374,6 +1396,19 @@
             ],
             "title": "Created At",
             "description": "When this request was created (defaults to now in UTC)"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata",
+            "description": "Additional metadata associated with the evaluation"
           }
         },
         "type": "object",
@@ -1521,9 +1556,7 @@
       "DigitalHumanResponse": {
         "properties": {
           "digital_humans": {
-            "items": {
-              "$ref": "#/components/schemas/TestCase"
-            },
+            "items": {},
             "type": "array",
             "title": "Digital Humans",
             "description": "List of digital humans created for the simulation"
@@ -1890,6 +1923,19 @@
               }
             ],
             "title": "Tags"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata",
+            "description": "Additional metadata associated with the event"
           }
         },
         "type": "object",
@@ -2256,12 +2302,6 @@
           "agent_id"
         ],
         "title": "SimulationRunResponse"
-      },
-      "TestCase": {
-        "properties": {},
-        "type": "object",
-        "title": "TestCase",
-        "description": "TestCase class representing tests associated with experiments."
       },
       "ToolCallRequest": {
         "properties": {
