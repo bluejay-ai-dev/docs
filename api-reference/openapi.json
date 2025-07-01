@@ -785,6 +785,60 @@
         }
       }
     },
+    "/v1/retrieve-simulation-results/{simulation_run_id}": {
+      "get": {
+        "summary": "Retrieve Simulation Results",
+        "description": "Retrieve the results of a simulation run.\n\nReturns the simulation run details and associated test cases.",
+        "operationId": "retrieve_simulation_results_v1_retrieve_simulation_results__simulation_run_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "simulation_run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Simulation Run Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResultsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/ping": {
       "get": {
         "summary": "Pong",
@@ -2306,6 +2360,118 @@
         ],
         "title": "SimulationResponse"
       },
+      "SimulationResultResponse": {
+        "properties": {
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result",
+            "description": "Result of the simulation run"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Current status of the simulation result"
+          },
+          "latency": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency",
+            "description": "Average latency of the simulation run"
+          },
+          "transcript_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Url",
+            "description": "URL to the transcript file of the simulation run"
+          },
+          "audio_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio Url",
+            "description": "URL to the audio file of the simulation run"
+          },
+          "vapi_call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vapi Call Id",
+            "description": "ID of the VAPI call associated with the simulation run"
+          }
+        },
+        "type": "object",
+        "title": "SimulationResultResponse"
+      },
+      "SimulationResultsResponse": {
+        "properties": {
+          "simulation_run": {
+            "$ref": "#/components/schemas/SimulationRunResultResponse",
+            "description": "Details of the simulation run"
+          },
+          "simulation_results": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SimulationResultResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulation Results",
+            "description": "List of results from the simulation run"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_run"
+        ],
+        "title": "SimulationResultsResponse",
+        "description": ""
+      },
       "SimulationRunRequest": {
         "properties": {
           "simulation_id": {
@@ -2361,6 +2527,120 @@
           "agent_id"
         ],
         "title": "SimulationRunResponse"
+      },
+      "SimulationRunResultResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "ID of the simulation run"
+          },
+          "simulation_id": {
+            "type": "string",
+            "title": "Simulation Id",
+            "description": "ID of the simulation associated with the run"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "Summary of the simulation run"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SimulationStatus",
+            "description": "Current status of the simulation run"
+          },
+          "total_tests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Tests",
+            "description": "Total number of tests in the simulation run"
+          },
+          "tests_passed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Passed",
+            "description": "Number of tests that passed in the simulation run"
+          },
+          "tests_failed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Failed",
+            "description": "Number of tests that failed in the simulation run"
+          },
+          "tests_completed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Completed",
+            "description": "Number of tests that were completed in the simulation run"
+          },
+          "tests_incompleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Incompleted",
+            "description": "Number of tests that were not completed in the simulation run"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When the simulation run was created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "simulation_id",
+          "created_at"
+        ],
+        "title": "SimulationRunResultResponse"
+      },
+      "SimulationStatus": {
+        "type": "string",
+        "enum": [
+          "INITIALIZING",
+          "RUNNING",
+          "COMPLETED",
+          "INCOMPLETED"
+        ],
+        "title": "SimulationStatus",
+        "description": "Enum representing the possible states of a simulation run."
       },
       "ToolCallRequest": {
         "properties": {
