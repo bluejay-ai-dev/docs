@@ -1439,6 +1439,21 @@
             "title": "Transcript Url",
             "description": "URL to the transcript file (supported formats: .txt, .json)"
           },
+          "transcript": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TranscriptEntryRequest"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript",
+            "description": "Transcript of the call in text format"
+          },
           "tool_calls": {
             "anyOf": [
               {
@@ -2764,6 +2779,38 @@
         ],
         "title": "ToolCallResponse",
         "description": "Pydantic model for tool call data"
+      },
+      "TranscriptEntryRequest": {
+        "properties": {
+          "start_offset_ms": {
+            "type": "integer",
+            "title": "Start Offset Ms",
+            "description": "Start offset of the utterance in milliseconds"
+          },
+          "end_offset_ms": {
+            "type": "integer",
+            "title": "End Offset Ms",
+            "description": "End offset of the utterance in milliseconds"
+          },
+          "speaker": {
+            "type": "string",
+            "title": "Speaker",
+            "description": "Identifier for the speaker (e.g., 'AGENT', 'USER')"
+          },
+          "utterance": {
+            "type": "string",
+            "title": "Utterance",
+            "description": "Transcribed text of the utterance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_offset_ms",
+          "end_offset_ms",
+          "speaker",
+          "utterance"
+        ],
+        "title": "TranscriptEntryRequest"
       },
       "ValidationError": {
         "properties": {
