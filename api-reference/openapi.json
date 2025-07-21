@@ -785,6 +785,167 @@
         }
       }
     },
+    "/v1/update-simulation-result": {
+      "post": {
+        "summary": "Update Simulation Result",
+        "operationId": "update_simulation_result_v1_update_simulation_result_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSimulationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/create-cron-job": {
+      "post": {
+        "summary": "Create Cron Job",
+        "operationId": "create_cron_job_v1_create_cron_job_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCronJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCronJobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/delete-cron-job/{cron_job_id}": {
+      "delete": {
+        "summary": "Delete Cron Job",
+        "operationId": "delete_cron_job_v1_delete_cron_job__cron_job_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cron_job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cron Job Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteCronJobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/retrieve-simulation-results/{simulation_run_id}": {
       "get": {
         "summary": "Retrieve Simulation Results",
@@ -1547,6 +1708,93 @@
         "title": "CallStatus",
         "description": "Enum representing the possible states of a call."
       },
+      "CreateCronJobRequest": {
+        "properties": {
+          "simulation_id": {
+            "type": "string",
+            "title": "Simulation Id",
+            "description": "The unique identifier for the associated simulation."
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EveryNMinutesSchedule"
+              },
+              {
+                "$ref": "#/components/schemas/DailySchedule"
+              },
+              {
+                "$ref": "#/components/schemas/WeeklySchedule"
+              },
+              {
+                "$ref": "#/components/schemas/MonthlySchedule"
+              },
+              {
+                "$ref": "#/components/schemas/CronSchedule"
+              }
+            ],
+            "title": "Schedule",
+            "description": "The schedule for the cron job."
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled",
+            "description": "Whether the cron job should be enabled upon creation.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_id",
+          "schedule"
+        ],
+        "title": "CreateCronJobRequest"
+      },
+      "CreateCronJobResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "The unique identifier for the created cron job."
+          },
+          "experiment_id": {
+            "type": "string",
+            "title": "Experiment Id",
+            "description": "The unique identifier for the associated experiment."
+          },
+          "cron_expression": {
+            "type": "string",
+            "title": "Cron Expression",
+            "description": "The cron expression defining the job schedule."
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled",
+            "description": "Whether the cron job is enabled."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "experiment_id",
+          "cron_expression"
+        ],
+        "title": "CreateCronJobResponse"
+      },
       "CreateKeyIn": {
         "properties": {
           "scope": {
@@ -1563,6 +1811,26 @@
           "scope"
         ],
         "title": "CreateKeyIn"
+      },
+      "CronSchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "const": "cron",
+            "title": "Frequency"
+          },
+          "expression": {
+            "type": "string",
+            "title": "Expression",
+            "description": "Cron expression"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency",
+          "expression"
+        ],
+        "title": "CronSchedule"
       },
       "CustomerPersonaRequest": {
         "properties": {
@@ -1596,6 +1864,51 @@
         ],
         "title": "CustomerPersonaRequest",
         "description": "Pydantic model for customer persona in simulation"
+      },
+      "DailySchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "const": "daily",
+            "title": "Frequency"
+          },
+          "time": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}$",
+            "title": "Time",
+            "description": "HH:MM 24hr time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency",
+          "time"
+        ],
+        "title": "DailySchedule"
+      },
+      "DeleteCronJobResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ],
+            "title": "Status",
+            "description": "The status of the delete operation."
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "A message providing additional details about the operation."
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "title": "DeleteCronJobResponse"
       },
       "DigitalHumanRequest": {
         "properties": {
@@ -2085,6 +2398,27 @@
         "title": "EventRequest",
         "description": "Pydantic model for event data in request"
       },
+      "EveryNMinutesSchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "const": "every_n_minutes",
+            "title": "Frequency"
+          },
+          "interval": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Interval",
+            "description": "Repeat every N minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency",
+          "interval"
+        ],
+        "title": "EveryNMinutesSchedule"
+      },
       "GoalAdherence": {
         "properties": {
           "goal": {
@@ -2198,6 +2532,33 @@
         },
         "type": "object",
         "title": "Latency"
+      },
+      "MonthlySchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "const": "monthly",
+            "title": "Frequency"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Day Of Month"
+          },
+          "time": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}$",
+            "title": "Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency",
+          "day_of_month",
+          "time"
+        ],
+        "title": "MonthlySchedule"
       },
       "ParticipantRequest": {
         "properties": {
@@ -2865,6 +3226,102 @@
         ],
         "title": "TranscriptEntryRequest"
       },
+      "UpdateSimulationRequest": {
+        "properties": {
+          "simulation_result_id": {
+            "type": "string",
+            "title": "Simulation Result Id",
+            "description": "Simulation result ID provided via SIP for the specific call"
+          },
+          "events": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Event"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Events",
+            "description": "List of events that occurred during the call"
+          },
+          "tool_calls": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ToolCallResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Calls",
+            "description": "List of tool calls made during the call"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "List of tags associated with the call"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata",
+            "description": "Additional metadata associated with the call"
+          }
+        },
+        "type": "object",
+        "required": [
+          "simulation_result_id"
+        ],
+        "title": "UpdateSimulationRequest"
+      },
+      "UpdateSimulationResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "success"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message",
+            "description": "Optional message providing additional information about the response"
+          }
+        },
+        "type": "object",
+        "title": "UpdateSimulationResponse"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -2897,6 +3354,40 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WeeklySchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "const": "weekly",
+            "title": "Frequency"
+          },
+          "day_of_week": {
+            "type": "string",
+            "enum": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday",
+              "saturday",
+              "sunday"
+            ],
+            "title": "Day Of Week"
+          },
+          "time": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}$",
+            "title": "Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency",
+          "day_of_week",
+          "time"
+        ],
+        "title": "WeeklySchedule"
       }
     },
     "securitySchemes": {
