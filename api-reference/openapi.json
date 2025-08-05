@@ -196,6 +196,147 @@
         }
       }
     },
+    "/v1/generate-workflow-graph": {
+      "post": {
+        "summary": "Generate Workflow Graph",
+        "description": "Generate a workflow graph from a system prompt.\n\nAccepts a WorkflowGenerationRequest with the following structure:\n{\n    system_prompt: string;\n}\n\nReturns a workflow graph with nodes and edges representing the conversational flow.",
+        "operationId": "generate_workflow_graph_v1_generate_workflow_graph_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowGenerationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGenerationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/move-regen-test-scenarios": {
+      "post": {
+        "summary": "Move Regen Test Scenarios Endpoint",
+        "description": "Regenerates test scenarios with a new goal while preserving scenario descriptions.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    scenarios: TestScenario[];\n    newGoal: string;\n}",
+        "operationId": "move_regen_test_scenarios_endpoint_v1_move_regen_test_scenarios_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/regen-test-scenarios": {
+      "post": {
+        "summary": "Regen Test Scenarios Endpoint",
+        "description": "Regenerates test scenarios based on custom instructions while preserving style and structure.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    scenarios: TestScenario[];\n    instructions: string;\n    persona?: CustomerPersona;\n}",
+        "operationId": "regen_test_scenarios_endpoint_v1_regen_test_scenarios_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/queue-simulation": {
       "post": {
         "summary": "Queue Simulation",
@@ -236,6 +377,34 @@
             }
           }
         }
+      }
+    },
+    "/v1/queue-sequential-sim": {
+      "post": {
+        "summary": "Queue Sequential Sim",
+        "description": "Queues sims for a specific simulation run and step_id.\nReturns all sims with the specified step_id for the given simulation run.",
+        "operationId": "queue_sequential_sim_v1_queue_sequential_sim_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ]
       }
     },
     "/v1/evaluate-call": {
@@ -1000,6 +1169,164 @@
         }
       }
     },
+    "/v1/generate-translated-transcript/{test_result_id}": {
+      "post": {
+        "summary": "Generate Translated Transcript",
+        "description": "Generate a translated transcript for a given audio file.",
+        "operationId": "generate_translated_transcript_v1_generate_translated_transcript__test_result_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "test_result_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Test Result Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate-custom-metrics": {
+      "post": {
+        "summary": "Generate Custom Metrics",
+        "description": "Generate custom metrics for a given agent based on its description and knowledge base.",
+        "operationId": "generate_custom_metrics_v1_generate_custom_metrics_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateCustomMetricsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/generate-customer-personas": {
+      "post": {
+        "summary": "Generate Customer Personas",
+        "description": "Generate custom personas for a given agent based on its description and knowledge base.",
+        "operationId": "generate_customer_personas_v1_generate_customer_personas_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateCustomPersonasRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/ping": {
       "get": {
         "summary": "Pong",
@@ -1026,6 +1353,355 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/compare-experiment-runs": {
+      "post": {
+        "summary": "Compare Experiment Runs",
+        "description": "Compare multiple experiment runs and generate a summary of differences",
+        "operationId": "compare_experiment_runs_v1_compare_experiment_runs_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComparisonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComparisonResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/create-custom-metric": {
+      "post": {
+        "tags": [
+          "Custom Metrics"
+        ],
+        "summary": "Create Custom Metric",
+        "description": "Create a new custom metric for an agent.\n\nArgs:\n    metric_request: Custom metric creation data\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricResponse: The created custom metric",
+        "operationId": "create_custom_metric_v1_create_custom_metric_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomMetricRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomMetricResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/custom-metric/{metric_id}": {
+      "get": {
+        "tags": [
+          "Custom Metrics"
+        ],
+        "summary": "Get Custom Metric",
+        "description": "Get a specific custom metric by ID.\n\nArgs:\n    metric_id: ID of the custom metric to retrieve\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricResponse: The requested custom metric",
+        "operationId": "get_custom_metric_v1_custom_metric__metric_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "metric_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Metric Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomMetricResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Custom Metrics"
+        ],
+        "summary": "Delete Custom Metric",
+        "description": "Delete a custom metric.\n\nArgs:\n    metric_id: ID of the custom metric to delete\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    DeleteCustomMetricResponse: Confirmation of deletion",
+        "operationId": "delete_custom_metric_v1_custom_metric__metric_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "metric_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Metric Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteCustomMetricResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/custom-metrics-by-agent/{agent_id}": {
+      "get": {
+        "tags": [
+          "Custom Metrics"
+        ],
+        "summary": "Get Custom Metrics By Agent",
+        "description": "Get all custom metrics for a specific agent.\n\nArgs:\n    agent_id: ID of the agent\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricsListResponse: List of custom metrics for the agent",
+        "operationId": "get_custom_metrics_by_agent_v1_custom_metrics_by_agent__agent_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomMetricsListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/update-custom-metric/{metric_id}": {
+      "put": {
+        "tags": [
+          "Custom Metrics"
+        ],
+        "summary": "Update Custom Metric",
+        "description": "Update an existing custom metric.\n\nArgs:\n    metric_id: ID of the custom metric to update\n    metric_request: Updated custom metric data\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricResponse: The updated custom metric",
+        "operationId": "update_custom_metric_v1_update_custom_metric__metric_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "metric_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Metric Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomMetricRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomMetricResponse"
+                }
               }
             }
           },
@@ -1708,6 +2384,45 @@
         "title": "CallStatus",
         "description": "Enum representing the possible states of a call."
       },
+      "ComparisonRequest": {
+        "properties": {
+          "experiment_run_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Experiment Run Ids",
+            "description": "List of experiment run IDs to compare"
+          }
+        },
+        "type": "object",
+        "required": [
+          "experiment_run_ids"
+        ],
+        "title": "ComparisonRequest",
+        "description": "Pydantic model for experiment run comparison request"
+      },
+      "ComparisonResponse": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "AI-generated comparison summary of the experiment runs"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary"
+        ],
+        "title": "ComparisonResponse",
+        "description": "Pydantic model for experiment run comparison response"
+      },
       "CreateCronJobRequest": {
         "properties": {
           "simulation_id": {
@@ -1795,6 +2510,137 @@
         ],
         "title": "CreateCronJobResponse"
       },
+      "CreateCustomMetricRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id",
+            "description": "ID of the agent this metric belongs to"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the custom metric"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Description of what this metric measures"
+          },
+          "response_type": {
+            "$ref": "#/components/schemas/ResponseType",
+            "description": "Type of response expected"
+          },
+          "min_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Value",
+            "description": "Minimum value for quantitative metrics"
+          },
+          "max_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Value",
+            "description": "Maximum value for quantitative metrics"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Category for organizing metrics"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "Tags for categorizing the metric"
+          },
+          "scoring_guidance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring Guidance",
+            "description": "Guidance on how to score this metric"
+          },
+          "eval_route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalRoute"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Route for evaluating the metric",
+            "default": "AUTO"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "Model to use for evaluating the metric"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature",
+            "description": "Temperature for evaluating the metric"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "name",
+          "description",
+          "response_type"
+        ],
+        "title": "CreateCustomMetricRequest",
+        "description": "Request model for creating a custom metric"
+      },
       "CreateKeyIn": {
         "properties": {
           "scope": {
@@ -1831,6 +2677,179 @@
           "expression"
         ],
         "title": "CronSchedule"
+      },
+      "CustomMetricResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique identifier for the custom metric"
+          },
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id",
+            "description": "ID of the agent this metric belongs to"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the custom metric"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Description of what this metric measures"
+          },
+          "response_type": {
+            "$ref": "#/components/schemas/ResponseType",
+            "description": "Type of response expected"
+          },
+          "min_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Value",
+            "description": "Minimum value for quantitative metrics"
+          },
+          "max_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Value",
+            "description": "Maximum value for quantitative metrics"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Category for organizing metrics"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "Tags for categorizing the metric"
+          },
+          "scoring_guidance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring Guidance",
+            "description": "Guidance on how to score this metric"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When this metric was created"
+          },
+          "eval_route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalRoute"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Route for evaluating the metric"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "Model to use for evaluating the metric"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature",
+            "description": "Temperature for evaluating the metric"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent_id",
+          "name",
+          "description",
+          "response_type",
+          "created_at"
+        ],
+        "title": "CustomMetricResponse",
+        "description": "Response model for custom metric operations"
+      },
+      "CustomMetricsListResponse": {
+        "properties": {
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/CustomMetricResponse"
+            },
+            "type": "array",
+            "title": "Metrics",
+            "description": "List of custom metrics"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count",
+            "description": "Total number of metrics"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "metrics",
+          "total_count"
+        ],
+        "title": "CustomMetricsListResponse",
+        "description": "Response model for listing custom metrics"
       },
       "CustomerPersonaRequest": {
         "properties": {
@@ -1910,6 +2929,33 @@
         ],
         "title": "DeleteCronJobResponse"
       },
+      "DeleteCustomMetricResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Success message"
+          },
+          "deleted_metric_id": {
+            "type": "string",
+            "title": "Deleted Metric Id",
+            "description": "ID of the deleted metric"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "deleted_metric_id"
+        ],
+        "title": "DeleteCustomMetricResponse",
+        "description": "Response model for deleting a custom metric"
+      },
       "DigitalHumanRequest": {
         "properties": {
           "simulation_id": {
@@ -1946,6 +2992,21 @@
             ],
             "title": "Customer Personas",
             "description": "List of customer personas to be used in the simulation"
+          },
+          "workflow_adherence": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Adherence",
+            "description": "Dictionary of workflow IDs and their counts"
           },
           "load_testing": {
             "anyOf": [
@@ -2084,6 +3145,16 @@
         "title": "DigitalHumansSettings",
         "description": "Pydantic model for digital humans settings in simulation"
       },
+      "EvalRoute": {
+        "type": "string",
+        "enum": [
+          "AUDIO",
+          "TEXT",
+          "AUTO"
+        ],
+        "title": "EvalRoute",
+        "description": "Enum representing the evaluation route of a call."
+      },
       "EvaluateCallResponse": {
         "properties": {
           "status": {
@@ -2155,12 +3226,26 @@
             "description": "Reasoning behind the redundancy, if applicable"
           },
           "agent_speak_percentage": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Agent Speak Percentage",
             "description": "Percentage of the call where the agent was speaking"
           },
           "avg_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Avg Agent Latency",
             "description": "Average latency of the agent's responses during the call"
           },
@@ -2419,6 +3504,70 @@
         ],
         "title": "EveryNMinutesSchedule"
       },
+      "GenerateCustomMetricsRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent to generate metrics for"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Number of custom metrics to generate",
+            "default": 5
+          },
+          "custom_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Prompt",
+            "description": "Custom instructions for metric generation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "GenerateCustomMetricsRequest"
+      },
+      "GenerateCustomPersonasRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "ID of the agent to generate personas for"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Number of custom personas to generate",
+            "default": 5
+          },
+          "custom_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Prompt",
+            "description": "Custom instructions for persona generation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "GenerateCustomPersonasRequest"
+      },
       "GoalAdherence": {
         "properties": {
           "goal": {
@@ -2494,37 +3643,79 @@
       "Latency": {
         "properties": {
           "avg_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Avg Agent Latency",
             "description": "Average latency",
             "default": 0
           },
           "max_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Max Agent Latency",
             "description": "Maximum latency",
             "default": 0
           },
           "p50_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "P50 Agent Latency",
             "description": "50th percentile latency",
             "default": 0
           },
           "p90_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "P90 Agent Latency",
             "description": "90th percentile latency",
             "default": 0
           },
           "p95_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "P95 Agent Latency",
             "description": "95th percentile latency",
             "default": 0
           },
           "p99_agent_latency": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "P99 Agent Latency",
             "description": "99th percentile latency",
             "default": 0
@@ -2652,6 +3843,17 @@
         ],
         "title": "ParticipantRole",
         "description": "Enum representing the role of a participant in a call."
+      },
+      "ResponseType": {
+        "type": "string",
+        "enum": [
+          "pass_fail",
+          "yes_no",
+          "qualitative",
+          "quantitative"
+        ],
+        "title": "ResponseType",
+        "description": "Enum representing the possible response types for custom metrics."
       },
       "RetrieveCallLogResponse": {
         "properties": {
@@ -2986,7 +4188,7 @@
             "description": "Summary of the simulation run"
           },
           "status": {
-            "$ref": "#/components/schemas/SimulationStatus",
+            "$ref": "#/components/schemas/SimulationRunStatus",
             "description": "Current status of the simulation run"
           },
           "total_tests": {
@@ -3064,7 +4266,7 @@
         ],
         "title": "SimulationRunResultResponse"
       },
-      "SimulationStatus": {
+      "SimulationRunStatus": {
         "type": "string",
         "enum": [
           "INITIALIZING",
@@ -3072,7 +4274,7 @@
           "COMPLETED",
           "INCOMPLETED"
         ],
-        "title": "SimulationStatus",
+        "title": "SimulationRunStatus",
         "description": "Enum representing the possible states of a simulation run."
       },
       "ToolCallRequest": {
@@ -3207,8 +4409,7 @@
             "description": "End offset of the utterance in milliseconds"
           },
           "speaker": {
-            "type": "string",
-            "title": "Speaker",
+            "$ref": "#/components/schemas/ParticipantRole",
             "description": "Identifier for the speaker (e.g., 'AGENT', 'USER')"
           },
           "utterance": {
@@ -3225,6 +4426,147 @@
           "utterance"
         ],
         "title": "TranscriptEntryRequest"
+      },
+      "UpdateCustomMetricRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Name of the custom metric"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description of what this metric measures"
+          },
+          "response_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Type of response expected"
+          },
+          "min_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Value",
+            "description": "Minimum value for quantitative metrics"
+          },
+          "max_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Value",
+            "description": "Maximum value for quantitative metrics"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Category for organizing metrics"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "Tags for categorizing the metric"
+          },
+          "scoring_guidance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring Guidance",
+            "description": "Guidance on how to score this metric"
+          },
+          "eval_route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalRoute"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Route for evaluating the metric",
+            "default": "AUTO"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "Model to use for evaluating the metric"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature",
+            "description": "Temperature for evaluating the metric"
+          }
+        },
+        "type": "object",
+        "title": "UpdateCustomMetricRequest",
+        "description": "Request model for updating a custom metric"
       },
       "UpdateSimulationRequest": {
         "properties": {
@@ -3388,6 +4730,231 @@
           "time"
         ],
         "title": "WeeklySchedule"
+      },
+      "WorkflowEdge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique identifier for the edge"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Type of the edge (connector)"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "Label describing the customer intent or action"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "Source node id"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target",
+            "description": "Target node id"
+          },
+          "sourceHandle": {
+            "type": "string",
+            "title": "Sourcehandle",
+            "description": "Source handle identifier"
+          },
+          "targetHandle": {
+            "type": "string",
+            "title": "Targethandle",
+            "description": "Target handle identifier"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected",
+            "description": "Whether the edge is selected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "label",
+          "source",
+          "target",
+          "sourceHandle",
+          "targetHandle"
+        ],
+        "title": "WorkflowEdge",
+        "description": "Pydantic model for workflow edge"
+      },
+      "WorkflowGenerationRequest": {
+        "properties": {
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt",
+            "description": "System prompt describing the agent's behavior and capabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "system_prompt"
+        ],
+        "title": "WorkflowGenerationRequest",
+        "description": "Pydantic model for workflow generation request"
+      },
+      "WorkflowGenerationResponse": {
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "type": "array",
+            "title": "Edges",
+            "description": "List of workflow edges"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNode"
+            },
+            "type": "array",
+            "title": "Nodes",
+            "description": "List of workflow nodes"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edges",
+          "nodes"
+        ],
+        "title": "WorkflowGenerationResponse",
+        "description": "Pydantic model for workflow generation response"
+      },
+      "WorkflowNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique identifier for the node"
+          },
+          "data": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Data",
+            "description": "Node data containing label and description"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Type of the node (start, end, editable)"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width",
+            "description": "Width of the node"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height",
+            "description": "Height of the node"
+          },
+          "position": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Position",
+            "description": "Position coordinates (x, y)"
+          },
+          "deletable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deletable",
+            "description": "Whether the node can be deleted"
+          },
+          "draggable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draggable",
+            "description": "Whether the node can be dragged"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected",
+            "description": "Whether the node is selected"
+          },
+          "positionAbsolute": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Positionabsolute",
+            "description": "Absolute position coordinates"
+          },
+          "dragging": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dragging",
+            "description": "Whether the node is being dragged"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "data",
+          "type",
+          "width",
+          "height",
+          "position"
+        ],
+        "title": "WorkflowNode",
+        "description": "Pydantic model for workflow node"
       }
     },
     "securitySchemes": {
