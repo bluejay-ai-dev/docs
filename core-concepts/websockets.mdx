@@ -1,0 +1,273 @@
+---
+title: 'Websockets'
+description: 'Realtime messaging over websockets using the CHIRP protocol'
+---
+
+## Websockets
+
+Bluejay supports realtime, bidirectional communication over websockets. All messages sent to and from Bluejay over a websocket use the CHIRP protocol.
+
+### What is CHIRP?
+
+CHIRP (Conversational Handoff for Inter‑agent Realtime Protocol) is the world’s first real-time A2A communication protocol, enabling conversational agents to interact over websockets over a standard medium of communication. 
+
+- CHIRP is lightweight, flexible, and message‑oriented, enabling agents and services to exchange text, audio, status, and control information in a consistent envelope without requiring direct integrations between systems. 
+### CHIRP payload schema
+
+```json
+{
+  "id": "uuid-string",
+  "type": "text" | "audio" | "status" | "control",
+  "sender": "source-identifier",
+  "timestamp": "2023-12-07T10:30:00.000Z",
+  "payload": "text content or base64-encoded audio",
+  "metadata": {
+    // optional type-specific fields
+  }
+}
+```
+
+- **required fields**: `type`, `payload`.
+- **optional fields**: `id`, `sender`, `timestamp`, `metadata`.
+- **type** values:
+  - `text`: human- or model-readable UTF‑8 string in `payload`.
+  - `audio`: `payload` is base64-encoded audio bytes; include audio details in `metadata`.
+  - `status`: lifecycle or progress updates.
+  - `control`: session control messages (for example, start/stop, acknowledgements, or protocol signals).
+
+<Note>
+for `audio` messages, `payload` must be a base64-encoded string that decodes to raw audio bytes. Bluejay currently decodes incoming audio as 16,000 Hz (16 kHz) PCM, single channel (mono). custom decoding parameters via the `metadata` object (e.g., sample rate, encoding, channels) will be supported soon.
+</Note>
+
+Minimal CHIRP example:
+
+```json
+{ "type": "text", "payload": "hello" }
+```
+
+### Connection model
+
+Bluejay will initiate a websocket connection to the URL you configure in your Agent’s settings. Once connected, Bluejay will send CHIRP messages and expects your server to respond with CHIRP messages. Every frame in both directions must be a valid CHIRP object.
+
+### Examples
+
+#### Example: `text` message
+
+```json
+{
+  "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "type": "text",
+  "sender": "client",
+  "timestamp": "2025-01-01T12:00:00.000Z",
+  "payload": "hello, can you help me?"
+}
+```
+
+#### Example: `audio` message
+
+```json
+{
+  "id": "b5d8a6e8-2cfa-4f9c-9b2a-6f0f3f9a1a23",
+  "type": "audio",
+  "sender": "client",
+  "timestamp": "2025-01-01T12:00:01.000Z",
+  "payload": "<base64-audio-bytes>",
+  "metadata": {
+    "mime": "audio/wav",
+    "sampleRateHz": 16000,
+    "channels": 1
+  }
+}
+```
+
+#### Example: `status` message
+
+```json
+{
+  "id": "a2dbf8e4-0767-4a3d-8a29-3f5b7f2c4d10",
+  "type": "status",
+  "sender": "bluejay-agent",
+  "timestamp": "2025-01-01T12:00:02.000Z",
+  "payload": "ready",
+  "metadata": {
+    "code": "session.ready"
+  }
+}
+```
+
+#### Example: `control` message
+
+```json
+{
+  "id": "c0e1a39f-92d1-4f1c-9d8a-2a1b3c4d5e6f",
+  "type": "control",
+  "sender": "bluejay-agent",
+  "timestamp": "2025-01-01T12:00:03.000Z",
+  "payload": "invalid or unsupported payload",
+  "metadata": {
+    "code": "bad_request"
+  }
+}
+```
+
+### Server examples
+
+Deploy a websocket server and configure its public `ws://` or `wss://` URL in your Agent’s settings. Bluejay will connect to that URL and exchange CHIRP messages.
+
+<CodeGroup>
+
+```js JavaScript (Node.js)
+// npm i ws
+import { WebSocketServer } from 'ws'
+import { randomUUID } from 'crypto'
+
+const port = process.env.PORT ? Number(process.env.PORT) : 8080
+const wss = new WebSocketServer({ port })
+
+wss.on('connection', (ws) => {
+  // send a greeting as CHIRP
+  ws.send(JSON.stringify({
+    id: randomUUID(),
+    type: 'status',
+    sender: 'server',
+    timestamp: new Date().toISOString(),
+    payload: 'ready',
+    metadata: { code: 'session.ready' }
+  }))
+
+  ws.on('message', (data) => {
+    const msg = JSON.parse(data.toString())
+    if (msg.type === 'text') {
+      // echo as text
+      ws.send(JSON.stringify({
+        id: randomUUID(),
+        type: 'text',
+        sender: 'server',
+        timestamp: new Date().toISOString(),
+        payload: `received: ${msg.payload}`
+      }))
+    } else if (msg.type === 'control') {
+      // acknowledge control
+      ws.send(JSON.stringify({
+        id: randomUUID(),
+        type: 'status',
+        sender: 'server',
+        timestamp: new Date().toISOString(),
+        payload: 'ack',
+        metadata: { code: 'control.ack' }
+      }))
+    }
+  })
+})
+
+console.log(`ws server listening on :${port}`)
+```
+
+```python Python (asyncio)
+# pip install websockets
+import asyncio
+import json
+import os
+import uuid
+import websockets
+from datetime import datetime, timezone
+
+PORT = int(os.environ.get('PORT', '8080'))
+
+async def handler(ws):
+    # send greeting
+    await ws.send(json.dumps({
+        "id": str(uuid.uuid4()),
+        "type": "status",
+        "sender": "server",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "payload": "ready",
+        "metadata": {"code": "session.ready"}
+    }))
+
+    async for raw in ws:
+        msg = json.loads(raw)
+        if msg.get("type") == "text":
+            await ws.send(json.dumps({
+                "type": "text",
+                "payload": f"received: {msg.get('payload')}"
+            }))
+        elif msg.get("type") == "control":
+            await ws.send(json.dumps({
+                "type": "status",
+                "payload": "ack",
+                "metadata": {"code": "control.ack"}
+            }))
+
+async def main():
+    async with websockets.serve(handler, host="0.0.0.0", port=PORT):
+        print(f"ws server listening on :{PORT}")
+        await asyncio.Future()
+
+asyncio.run(main())
+```
+
+```go Go (gorilla/websocket)
+// go get github.com/gorilla/websocket
+package main
+
+import (
+    "encoding/json"
+    "log"
+    "net/http"
+    "time"
+
+    "github.com/gorilla/websocket"
+)
+
+type Chirp map[string]any
+
+var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+    c, err := upgrader.Upgrade(w, r, nil)
+    if err != nil { log.Println("upgrade:", err); return }
+    defer c.Close()
+
+    // greeting
+    ready := Chirp{
+        "type":      "status",
+        "payload":   "ready",
+        "metadata":  map[string]any{"code": "session.ready"},
+        "timestamp": time.Now().UTC().Format(time.RFC3339Nano),
+    }
+    if b, _ := json.Marshal(ready); c.WriteMessage(websocket.TextMessage, b) != nil { return }
+
+    for {
+        _, message, err := c.ReadMessage()
+        if err != nil { log.Println("read:", err); return }
+        var msg Chirp
+        if err := json.Unmarshal(message, &msg); err != nil { log.Println(err); continue }
+
+        switch msg["type"] {
+        case "text":
+            resp := Chirp{"type": "text", "payload": "received: " + msg["payload"].(string)}
+            b, _ := json.Marshal(resp)
+            _ = c.WriteMessage(websocket.TextMessage, b)
+        case "control":
+            resp := Chirp{"type": "status", "payload": "ack", "metadata": map[string]any{"code": "control.ack"}}
+            b, _ := json.Marshal(resp)
+            _ = c.WriteMessage(websocket.TextMessage, b)
+        }
+    }
+}
+
+func main() {
+    http.HandleFunc("/ws", handler)
+    log.Println("ws server listening on :8080/ws")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+</CodeGroup>
+
+### Tips
+
+- only `type` and `payload` are required; add other fields as needed for correlation and context.
+- include rich `metadata` to convey audio format or application context; consumers should ignore fields they do not understand.
+- treat every websocket frame as a complete CHIRP message; avoid streaming partial JSON. 
