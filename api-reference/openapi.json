@@ -844,6 +844,159 @@
         }
       }
     },
+    "/v1/get-all-simulations": {
+      "get": {
+        "summary": "Get All Simulations",
+        "description": "Get all simulations for a user.",
+        "operationId": "get_all_simulations_v1_get_all_simulations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSimulationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/get-simulations-by-agent/{agent_id}": {
+      "get": {
+        "summary": "Get Simulations By Agent",
+        "description": "Get all simulations for a specific agent.",
+        "operationId": "get_simulations_by_agent_v1_get_simulations_by_agent__agent_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSimulationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/get-simulation-runs/{simulation_id}": {
+      "get": {
+        "summary": "Get Simulation Runs",
+        "description": "Get all simulation runs for a specific simulation.",
+        "operationId": "get_simulation_runs_v1_get_simulation_runs__simulation_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "simulation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Simulation Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSimulationRunsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/generate-digital-humans": {
       "post": {
         "summary": "Generate Digital Humans",
@@ -1045,6 +1198,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreateCronJobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/update-cron-job/{cron_job_id}": {
+      "put": {
+        "summary": "Update Cron Job",
+        "operationId": "update_cron_job_v1_update_cron_job__cron_job_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cron_job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cron Job Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCronJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateCronJobResponse"
                 }
               }
             }
@@ -3568,6 +3784,34 @@
         ],
         "title": "GenerateCustomPersonasRequest"
       },
+      "GetSimulationRunsResponse": {
+        "properties": {
+          "simulation_runs": {
+            "items": {
+              "$ref": "#/components/schemas/SimulationRunRes"
+            },
+            "type": "array",
+            "title": "Simulation Runs",
+            "description": "List of simulation runs"
+          }
+        },
+        "type": "object",
+        "title": "GetSimulationRunsResponse"
+      },
+      "GetSimulationsResponse": {
+        "properties": {
+          "simulations": {
+            "items": {
+              "$ref": "#/components/schemas/SimulationRes"
+            },
+            "type": "array",
+            "title": "Simulations",
+            "description": "List of simulations"
+          }
+        },
+        "type": "object",
+        "title": "GetSimulationsResponse"
+      },
       "GoalAdherence": {
         "properties": {
           "goal": {
@@ -3971,6 +4215,58 @@
         "title": "SimulationRequest",
         "description": "Pydantic model for simulation request"
       },
+      "SimulationRes": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "ID of the simulation"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the simulation"
+          },
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id",
+            "description": "ID of the agent associated with the simulation"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When the simulation was created"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settings",
+            "description": "Settings of the simulation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "SimulationRes"
+      },
       "SimulationResponse": {
         "properties": {
           "simulation_id": {
@@ -4136,6 +4432,122 @@
         ],
         "title": "SimulationRunRequest",
         "description": "Pydantic model for simulation run request"
+      },
+      "SimulationRunRes": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "ID of the simulation run"
+          },
+          "experiment_id": {
+            "type": "integer",
+            "title": "Experiment Id",
+            "description": "ID of the simulation associated with the run"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "Summary of the simulation run"
+          },
+          "tests_passed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Passed",
+            "description": "Number of tests that passed in the simulation run"
+          },
+          "tests_failed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Failed",
+            "description": "Number of tests that failed in the simulation run"
+          },
+          "total_tests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Tests",
+            "description": "Total number of tests in the simulation run"
+          },
+          "tests_completed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Completed",
+            "description": "Number of tests that were completed in the simulation run"
+          },
+          "tests_incompleted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Incompleted",
+            "description": "Number of tests that were not completed in the simulation run"
+          },
+          "curr_step_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curr Step Id",
+            "description": "Current step ID of the simulation run"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When the simulation run was created"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SimulationRunStatus",
+            "description": "Current status of the simulation run"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "experiment_id",
+          "created_at",
+          "status"
+        ],
+        "title": "SimulationRunRes"
       },
       "SimulationRunResponse": {
         "properties": {
@@ -4426,6 +4838,92 @@
           "utterance"
         ],
         "title": "TranscriptEntryRequest"
+      },
+      "UpdateCronJobRequest": {
+        "properties": {
+          "schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EveryNMinutesSchedule"
+              },
+              {
+                "$ref": "#/components/schemas/DailySchedule"
+              },
+              {
+                "$ref": "#/components/schemas/WeeklySchedule"
+              },
+              {
+                "$ref": "#/components/schemas/MonthlySchedule"
+              },
+              {
+                "$ref": "#/components/schemas/CronSchedule"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule",
+            "description": "The new schedule for the cron job."
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled",
+            "description": "Whether to enable or disable the cron job."
+          }
+        },
+        "type": "object",
+        "title": "UpdateCronJobRequest"
+      },
+      "UpdateCronJobResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "The unique identifier for the updated cron job."
+          },
+          "experiment_id": {
+            "type": "string",
+            "title": "Experiment Id",
+            "description": "The unique identifier for the associated experiment."
+          },
+          "cron_expression": {
+            "type": "string",
+            "title": "Cron Expression",
+            "description": "The cron expression defining the job schedule."
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled",
+            "description": "Whether the cron job is enabled."
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "description": "The timestamp when the cron job was created."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "experiment_id",
+          "cron_expression",
+          "created_at"
+        ],
+        "title": "UpdateCronJobResponse"
       },
       "UpdateCustomMetricRequest": {
         "properties": {
