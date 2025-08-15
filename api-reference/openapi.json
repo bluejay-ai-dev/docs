@@ -156,7 +156,7 @@
     "/v1/generate-test-scenarios": {
       "post": {
         "summary": "Generate Test Scenarios",
-        "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n}",
+        "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
         "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
         "security": [
           {
@@ -411,7 +411,7 @@
     "/v1/evaluate-call": {
       "post": {
         "summary": "Evaluate",
-        "description": "Submit a call recording or transcript for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
+        "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
         "operationId": "evaluate_v1_evaluate_call_post",
         "security": [
           {
@@ -773,6 +773,109 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AgentUpdateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agent_id}": {
+      "get": {
+        "summary": "Get Agent",
+        "description": "Get an agent by ID.",
+        "operationId": "get_agent_v1_agents__agent_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPydantic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/all-agents": {
+      "get": {
+        "summary": "Get All Agents",
+        "description": "Get all your agents.",
+        "operationId": "get_all_agents_v1_all_agents_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentPydantic"
+                  },
+                  "title": "Response Get All Agents V1 All Agents Get"
                 }
               }
             }
@@ -1693,7 +1796,7 @@
           "Custom Metrics"
         ],
         "summary": "Create Custom Metric",
-        "description": "Create a new custom metric for an agent.\n\nArgs:\n    metric_request: Custom metric creation data\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricResponse: The created custom metric",
+        "description": "Create a new custom metric for an agent.",
         "operationId": "create_custom_metric_v1_create_custom_metric_post",
         "security": [
           {
@@ -1751,7 +1854,7 @@
           "Custom Metrics"
         ],
         "summary": "Get Custom Metric",
-        "description": "Get a specific custom metric by ID.\n\nArgs:\n    metric_id: ID of the custom metric to retrieve\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricResponse: The requested custom metric",
+        "description": "Get a specific custom metric by ID.",
         "operationId": "get_custom_metric_v1_custom_metric__metric_id__get",
         "security": [
           {
@@ -1765,6 +1868,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Metric Id"
             }
           },
@@ -1806,7 +1910,7 @@
           "Custom Metrics"
         ],
         "summary": "Delete Custom Metric",
-        "description": "Delete a custom metric.\n\nArgs:\n    metric_id: ID of the custom metric to delete\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    DeleteCustomMetricResponse: Confirmation of deletion",
+        "description": "Delete a specific custom metric by ID.",
         "operationId": "delete_custom_metric_v1_custom_metric__metric_id__delete",
         "security": [
           {
@@ -1820,6 +1924,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Metric Id"
             }
           },
@@ -1839,7 +1944,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteCustomMetricResponse"
+                  "$ref": "#/components/schemas/CustomMetric"
                 }
               }
             }
@@ -1863,7 +1968,7 @@
           "Custom Metrics"
         ],
         "summary": "Get Custom Metrics By Agent",
-        "description": "Get all custom metrics for a specific agent.\n\nArgs:\n    agent_id: ID of the agent\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricsListResponse: List of custom metrics for the agent",
+        "description": "Get all custom metrics for an agent.",
         "operationId": "get_custom_metrics_by_agent_v1_custom_metrics_by_agent__agent_id__get",
         "security": [
           {
@@ -1920,7 +2025,7 @@
           "Custom Metrics"
         ],
         "summary": "Update Custom Metric",
-        "description": "Update an existing custom metric.\n\nArgs:\n    metric_id: ID of the custom metric to update\n    metric_request: Updated custom metric data\n    auth: Authentication data\n    request: FastAPI request object\n\nReturns:\n    CustomMetricResponse: The updated custom metric",
+        "description": "Update a specific custom metric by ID.",
         "operationId": "update_custom_metric_v1_update_custom_metric__metric_id__put",
         "security": [
           {
@@ -1934,6 +2039,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Metric Id"
             }
           },
@@ -1980,6 +2086,307 @@
           }
         }
       }
+    },
+    "/v1/create-customer-persona": {
+      "post": {
+        "tags": [
+          "Customer Personas"
+        ],
+        "summary": "Create Customer Persona",
+        "description": "Create a new customer persona for an agent.",
+        "operationId": "create_customer_persona_v1_create_customer_persona_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerPersonaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPersonaPydantic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/customer-personas-by-agent/{agent_id}": {
+      "get": {
+        "tags": [
+          "Customer Personas"
+        ],
+        "summary": "Get Customer Personas By Agent",
+        "description": "Get all customer personas for an agent.",
+        "operationId": "get_customer_personas_by_agent_v1_customer_personas_by_agent__agent_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerPersonaPydantic"
+                  },
+                  "title": "Response Get Customer Personas By Agent V1 Customer Personas By Agent  Agent Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/customer-persona/{persona_id}": {
+      "get": {
+        "tags": [
+          "Customer Personas"
+        ],
+        "summary": "Get Customer Persona",
+        "description": "Get a specific customer persona by ID.",
+        "operationId": "get_customer_persona_v1_customer_persona__persona_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Persona Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPersonaPydantic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Customer Personas"
+        ],
+        "summary": "Delete Customer Persona",
+        "description": "Delete a specific customer persona by ID.",
+        "operationId": "delete_customer_persona_v1_customer_persona__persona_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Persona Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPersonaPydantic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/update-customer-persona/{persona_id}": {
+      "put": {
+        "tags": [
+          "Customer Personas"
+        ],
+        "summary": "Update Customer Persona",
+        "description": "Update a specific customer persona by ID.",
+        "operationId": "update_customer_persona_v1_update_customer_persona__persona_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "persona_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Persona Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerPersonaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPersonaPydantic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1992,6 +2399,133 @@
         ],
         "title": "AgentMode",
         "description": "Enum representing the mode of agent"
+      },
+      "AgentPydantic": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "agent_description": {
+            "type": "string",
+            "title": "Agent Description"
+          },
+          "knowledge_base": {
+            "type": "string",
+            "title": "Knowledge Base"
+          },
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "goals": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goals"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/AgentMode"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number"
+          },
+          "websocket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Websocket Url"
+          },
+          "redact_pii": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redact Pii"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "agent_description",
+          "knowledge_base",
+          "organization_id",
+          "mode"
+        ],
+        "title": "AgentPydantic"
       },
       "AgentRequest": {
         "properties": {
@@ -2904,6 +3438,38 @@
         "title": "CreateCustomMetricRequest",
         "description": "Request model for creating a custom metric"
       },
+      "CreateCustomerPersonaRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id",
+            "description": "ID of the agent this persona belongs to"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the customer persona"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Description of the customer persona"
+          },
+          "goal": {
+            "type": "string",
+            "title": "Goal",
+            "description": "Goal of the customer persona"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "name",
+          "description",
+          "goal"
+        ],
+        "title": "CreateCustomerPersonaRequest"
+      },
       "CreateKeyIn": {
         "properties": {
           "scope": {
@@ -2940,6 +3506,135 @@
           "expression"
         ],
         "title": "CronSchedule"
+      },
+      "CustomMetric": {
+        "properties": {
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "response_type": {
+            "$ref": "#/components/schemas/ResponseType"
+          },
+          "min_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Value"
+          },
+          "max_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Value"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Unique identifier for the custom metric"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "scoring_guidance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring Guidance"
+          },
+          "eval_route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalRoute"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "AUTO"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "name",
+          "description",
+          "response_type"
+        ],
+        "title": "CustomMetric",
+        "description": "Represents a custom metric entry in the database."
       },
       "CustomMetricResponse": {
         "properties": {
@@ -3114,6 +3809,76 @@
         "title": "CustomMetricsListResponse",
         "description": "Response model for listing custom metrics"
       },
+      "CustomerPersonaPydantic": {
+        "properties": {
+          "agent_id": {
+            "type": "integer",
+            "title": "Agent Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "CustomerPersonaPydantic",
+        "description": "Pydantic version of CustomerPersona for validation and serialization."
+      },
       "CustomerPersonaRequest": {
         "properties": {
           "name": {
@@ -3191,33 +3956,6 @@
           "message"
         ],
         "title": "DeleteCronJobResponse"
-      },
-      "DeleteCustomMetricResponse": {
-        "properties": {
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "Success message"
-          },
-          "deleted_metric_id": {
-            "type": "string",
-            "title": "Deleted Metric Id",
-            "description": "ID of the deleted metric"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status",
-            "description": "Status of the response",
-            "default": "200"
-          }
-        },
-        "type": "object",
-        "required": [
-          "message",
-          "deleted_metric_id"
-        ],
-        "title": "DeleteCustomMetricResponse",
-        "description": "Response model for deleting a custom metric"
       },
       "DigitalHumanRequest": {
         "properties": {
@@ -5112,6 +5850,48 @@
         "type": "object",
         "title": "UpdateCustomMetricRequest",
         "description": "Request model for updating a custom metric"
+      },
+      "UpdateCustomerPersonaRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Name of the customer persona"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Description of the customer persona"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal",
+            "description": "Goal of the customer persona"
+          }
+        },
+        "type": "object",
+        "title": "UpdateCustomerPersonaRequest"
       },
       "UpdateSimulationRequest": {
         "properties": {
