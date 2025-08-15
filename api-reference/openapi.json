@@ -340,6 +340,7 @@
     "/v1/queue-simulation": {
       "post": {
         "summary": "Queue Simulation",
+        "description": "DEPRECATED: use /queue-simulation-run instead",
         "operationId": "queue_simulation_v1_queue_simulation_post",
         "security": [
           {
@@ -1091,6 +1092,52 @@
                 "schema": {
                   "$ref": "#/components/schemas/SimulationRunResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/check-queue-simulation-run/{simulation_run_id}": {
+      "post": {
+        "summary": "Check Queue Simulation Run",
+        "operationId": "check_queue_simulation_run_v1_check_queue_simulation_run__simulation_run_id__post",
+        "parameters": [
+          {
+            "name": "simulation_run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Simulation Run Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -5102,6 +5149,21 @@
             ],
             "title": "Tool Calls",
             "description": "List of tool calls made during the call"
+          },
+          "recorded_transcript": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TranscriptEntryRequest"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded Transcript",
+            "description": "Recorded transcript of the call (utilized to analyze STT accuracy)"
           },
           "tags": {
             "anyOf": [
