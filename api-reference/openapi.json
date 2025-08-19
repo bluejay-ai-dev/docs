@@ -2093,7 +2093,7 @@
           "Customer Personas"
         ],
         "summary": "Create Customer Persona",
-        "description": "Create a new customer persona for an agent.",
+        "description": "Create a new customer persona.",
         "operationId": "create_customer_persona_v1_create_customer_persona_post",
         "security": [
           {
@@ -2372,6 +2372,123 @@
                 "schema": {
                   "$ref": "#/components/schemas/CustomerPersonaPydantic"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/traces/{trace_id}": {
+      "post": {
+        "tags": [
+          "Traces"
+        ],
+        "summary": "Get Trace",
+        "operationId": "get_trace_v1_traces__trace_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/spans/{trace_id}/{span_id}": {
+      "post": {
+        "tags": [
+          "Traces"
+        ],
+        "summary": "Get Span",
+        "operationId": "get_span_v1_spans__trace_id___span_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          },
+          {
+            "name": "span_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Span Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -3133,6 +3250,18 @@
             "title": "Tags",
             "description": "List of tags associated with the call"
           },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id",
+            "description": "Trace ID of the call"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -3426,6 +3555,21 @@
             ],
             "title": "Temperature",
             "description": "Temperature for evaluating the metric"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options",
+            "description": "Options for enum metrics"
           }
         },
         "type": "object",
@@ -3441,7 +3585,14 @@
       "CreateCustomerPersonaRequest": {
         "properties": {
           "agent_id": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Agent Id",
             "description": "ID of the agent this persona belongs to"
           },
@@ -3463,7 +3614,6 @@
         },
         "type": "object",
         "required": [
-          "agent_id",
           "name",
           "description",
           "goal"
@@ -3624,6 +3774,20 @@
               }
             ],
             "title": "Temperature"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options"
           }
         },
         "type": "object",
@@ -3765,6 +3929,21 @@
             ],
             "title": "Temperature",
             "description": "Temperature for evaluating the metric"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options",
+            "description": "Options for enum metrics"
           }
         },
         "type": "object",
@@ -3811,9 +3990,29 @@
       },
       "CustomerPersonaPydantic": {
         "properties": {
-          "agent_id": {
-            "type": "integer",
-            "title": "Agent Id"
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
           },
           "name": {
             "anyOf": [
@@ -3848,34 +4047,20 @@
             ],
             "title": "Goal"
           },
-          "created_at": {
+          "org_id": {
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "format": "uuid"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Created At"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
+            "title": "Org Id"
           }
         },
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
         "title": "CustomerPersonaPydantic",
         "description": "Pydantic version of CustomerPersona for validation and serialization."
       },
@@ -4879,7 +5064,9 @@
           "pass_fail",
           "yes_no",
           "qualitative",
-          "quantitative"
+          "quantitative",
+          "json",
+          "enum"
         ],
         "title": "ResponseType",
         "description": "Enum representing the possible response types for custom metrics."
@@ -5845,6 +6032,21 @@
             ],
             "title": "Temperature",
             "description": "Temperature for evaluating the metric"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options",
+            "description": "Options for enum metrics"
           }
         },
         "type": "object",
