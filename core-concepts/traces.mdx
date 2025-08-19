@@ -1,0 +1,58 @@
+---
+title: "Traces"
+description: "Send realtime traces to Bluejay"
+---
+
+## What are Traces?
+
+As part of your voice-agent stack, traces are used to monitor and observe the behavior of your application in real-time. They provide insights into the execution flow, latency, and performance of your system.
+
+## Sending Traces to Bluejay
+
+Bluejay supports any traces that conform to the [OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) standard, this includes OpenInference, Langfuse, OpenLLMetry, and more.
+
+To send traces to Bluejay:
+
+1. Instrument your application code to specify exporting your call traces to Bluejay.
+2. Link your traces to your call evaluations by including the `trace_id` in your requests to our [evaluate](/api-reference/endpoint/evaluate) endpoint.
+3. Visualize your traces along side your call evaluations in the Bluejay dashboard.
+
+---
+
+### Using OpenInference
+
+Send traces to Bluejay using OpenInference by configuring your OpenTelemetry SDK with the appropriate exporter. Below is an example of how to set up the OpenTelemetry SDK to send traces to Bluejay:
+
+```python highlight={14-15}
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+
+endpoint = "https://otlp.getbluejay.ai/v1/traces"
+resource = Resource.create({SERVICE_NAME: "<your_service_name>"})
+
+tracer_provider = trace_sdk.TracerProvider(resource=resource)
+headers = {
+    "Authorization": "Basic <BASE64_ENCODED_TRACE_KEY>"
+}
+
+# utilize this tracer_provider with any OpenTelemetry/OpenInference instrumentation
+tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint, headers=headers)))
+```
+
+OpenAI Example:
+```python
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+
+OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+{/* ### Using Langfuse
+
+```python
+OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp.getbluejay.ai/v1/traces"
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <BASE64_ENCODED_TRACE_KEY>"
+
+# collect traces via langfuse as normal
+``` */}
