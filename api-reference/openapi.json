@@ -1796,7 +1796,7 @@
           "Custom Metrics"
         ],
         "summary": "Create Custom Metric",
-        "description": "Create a new custom metric for an agent.",
+        "description": "Create a new custom metric.",
         "operationId": "create_custom_metric_v1_create_custom_metric_post",
         "security": [
           {
@@ -3439,7 +3439,14 @@
       "CreateCustomMetricRequest": {
         "properties": {
           "agent_id": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Agent Id",
             "description": "ID of the agent this metric belongs to"
           },
@@ -3574,7 +3581,6 @@
         },
         "type": "object",
         "required": [
-          "agent_id",
           "name",
           "description",
           "response_type"
@@ -3660,7 +3666,14 @@
       "CustomMetric": {
         "properties": {
           "agent_id": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Agent Id"
           },
           "name": {
@@ -3697,14 +3710,22 @@
             "title": "Max Value"
           },
           "created_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Created At"
           },
           "id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               {
                 "type": "null"
@@ -3788,11 +3809,22 @@
               }
             ],
             "title": "Enum Options"
+          },
+          "organization_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Id"
           }
         },
         "type": "object",
         "required": [
-          "agent_id",
           "name",
           "description",
           "response_type"
@@ -3806,11 +3838,6 @@
             "type": "string",
             "title": "Id",
             "description": "Unique identifier for the custom metric"
-          },
-          "agent_id": {
-            "type": "integer",
-            "title": "Agent Id",
-            "description": "ID of the agent this metric belongs to"
           },
           "name": {
             "type": "string",
@@ -3949,7 +3976,6 @@
         "type": "object",
         "required": [
           "id",
-          "agent_id",
           "name",
           "description",
           "response_type",
@@ -3972,12 +3998,6 @@
             "type": "integer",
             "title": "Total Count",
             "description": "Total number of metrics"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status",
-            "description": "Status of the response",
-            "default": "200"
           }
         },
         "type": "object",
