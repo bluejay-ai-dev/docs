@@ -337,77 +337,6 @@
         }
       }
     },
-    "/v1/queue-simulation": {
-      "post": {
-        "summary": "Queue Simulation",
-        "description": "DEPRECATED: use /queue-simulation-run instead",
-        "operationId": "queue_simulation_v1_queue_simulation_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-API-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "API key required to authenticate requests."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/queue-sequential-sim": {
-      "post": {
-        "summary": "Queue Sequential Sim",
-        "description": "Queues sims for a specific simulation run and step_id.\nReturns all sims with the specified step_id for the given simulation run.",
-        "operationId": "queue_sequential_sim_v1_queue_sequential_sim_post",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "X-API-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "API key required to authenticate requests."
-          }
-        ]
-      }
-    },
     "/v1/evaluate-call": {
       "post": {
         "summary": "Evaluate",
@@ -5416,6 +5345,19 @@
             ],
             "title": "Digital Human Ids",
             "description": "Digital human IDs to be used in the simulation"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\+1\\d{10}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number",
+            "description": "Optional phone number to be used in this simulation run (overrides the agent phone number)"
           }
         },
         "type": "object",
@@ -5530,6 +5472,18 @@
           "status": {
             "$ref": "#/components/schemas/SimulationRunStatus",
             "description": "Current status of the simulation run"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number",
+            "description": "Phone number of the simulation run"
           }
         },
         "type": "object",
@@ -5557,7 +5511,7 @@
             "type": "string",
             "title": "Status",
             "description": "Status of the response",
-            "default": "200"
+            "default": "success"
           }
         },
         "type": "object",
