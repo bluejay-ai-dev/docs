@@ -1,0 +1,530 @@
+---
+title: 'Observability'
+description: 'Integrating with Bluejay Observability'
+---
+
+## Observability with the Evaluate Endpoint
+
+Bluejay provides powerful observability capabilities through the evaluate endpoint, allowing you to analyze agent performance, detect hallucinations, measure redundancy, and track custom metrics. This cookbook will guide you through using the evaluate endpoint with practical Python examples.
+
+### Understanding the Evaluate Endpoint
+
+The [evaluate](/api-reference/endpoint/evaluate) endpoint (`POST /v1/evaluate`) allows you to submit call data for comprehensive analysis.
+It accepts audio recordings, transcripts, and metadata, and creates an evaluation job to retrieve later. On retrieval, it will provide detailed performance metrics and insights.
+
+**Key Features:**
+- **Hallucination Detection**: Identifies when agents provide incorrect or fabricated information
+- **Redundancy Analysis**: Measures unnecessary repetition in agent responses
+- **Custom Metrics**: Track domain-specific performance indicators
+- **Multi-modal Analysis**: Works with both audio and text transcripts
+
+### Quick Start: Evaluating a Call
+
+```python
+import requests
+import json
+from datetime import datetime, timezone
+
+def evaluate_call_basic(recording_url, bluejay_agent_id):
+    """Basic example of evaluating a call with audio and transcript"""
+
+    # Your API configuration
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    # Prepare evaluation data
+    call_data = {
+        "agent_id": bluejay_agent_id,
+        "recording_url": recording_url,
+        "start_time_utc": datetime.now(timezone.utc).isoformat(),
+        "participants": [
+            {
+                "role": "USER",
+                "spoke_first": False
+            },
+            {
+                "role": "AGENT",
+                "spoke_first": True
+            }
+        ]
+    }
+
+    # Submit for evaluation
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/evaluate",
+        headers=headers,
+        json=call_data
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Evaluation submitted! Call ID: {result['call_id']}")
+        return result['call_id']
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
+        return None
+
+# Usage
+call_id = evaluate_call_basic(recording_url, bluejay_agent_id)
+```
+
+### Working with Audio Files
+
+For the best evaluation results, provide high-quality audio recordings. The endpoint supports multiple audio formats and automatically transcribes audio if no transcript is provided.
+
+```python
+import requests
+import json
+from datetime import datetime, timezone
+import os
+
+def evaluate_with_audio_file():
+    """Example of evaluating a call with a local audio file"""
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    # Upload audio file to get a public URL (implement based on your storage)
+    def upload_audio_file(file_path):
+        """Upload audio file to storage and return public URL"""
+        # This is a placeholder - implement based on your storage solution
+        # Examples: AWS S3, Google Cloud Storage, Azure Blob Storage
+        pass
+
+    # Prepare call data with audio
+    audio_file_path = "local/path/to/your/call-recording.wav"
+
+    # Upload audio file
+    recording_url = upload_audio_file(audio_file_path)
+
+    call_data = {
+        "agent_id": "123",
+        "recording_url": recording_url,
+        "start_time_utc": datetime.now(timezone.utc).isoformat(),
+        "participants": [
+            {
+                "role": "USER",
+                "spoke_first": False
+            },
+            {
+                "role": "AGENT",
+                "spoke_first": True
+            }
+        ],
+        "tool_calls": []  # Include if your agent made any tool calls
+    }
+
+    # Submit for evaluation
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/evaluate",
+        headers=headers,
+        json=call_data
+    )
+
+    return response.json()
+
+# Example with AWS S3 upload
+import boto3
+from botocore.exceptions import NoCredentialsError
+
+def upload_to_s3(file_path, bucket_name, s3_key):
+    """Upload file to S3 and return public URL"""
+    s3 = boto3.client('s3')
+
+    try:
+        s3.upload_file(file_path, bucket_name, s3_key)
+        url = f"https://{bucket_name}.s3.amazonaws.com/{s3_key}"
+        return url
+    except NoCredentialsError:
+        print("AWS credentials not found")
+        return None
+```
+
+### Working with Transcripts
+
+Provide transcripts if you pre-transcribe your audio or do not have an audio file. You can provide transcripts as structured data or as a URL to a transcript file.
+
+```python
+import requests
+import json
+from datetime import datetime, timezone
+
+def evaluate_with_transcript_data():
+    """Example of evaluating a call with inline transcript data"""
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    # Sample transcript data
+    transcript = [
+        {
+            "start_offset_ms": 100,
+            "end_offset_ms": 1000,
+            "speaker": "AGENT",
+            "utterance": "Hello! Thank you for calling Bluejay support. How can I help you today?"
+        },
+        {
+            "start_offset_ms": 1000,
+            "end_offset_ms": 2000,
+            "speaker": "USER",
+            "utterance": "Hi, I'm having trouble with my recent order. It says it's delayed but I haven't received any updates."
+        },
+        {
+            "start_offset_ms": 2000,
+            "end_offset_ms": 3000,
+            "speaker": "AGENT",
+            "utterance": "I'd be happy to help you with that. Can you please provide your order number?"
+        },
+        {
+            "start_offset_ms": 3000,
+            "end_offset_ms": 4000,
+            "speaker": "USER",
+            "utterance": "Sure, it's BJ-2024-001-5678."
+        },
+        {
+            "start_offset_ms": 4000,
+            "end_offset_ms": 5000,
+            "speaker": "AGENT",
+            "utterance": "Thank you. Let me look that up for you. I can see your order is currently in transit and should arrive by tomorrow. The tracking information shows it's being processed through our fulfillment center."
+        }
+    ]
+
+    call_data = {
+        "agent_id": "123",
+        "transcript": transcript,
+        "start_time_utc": "2024-01-15T10:00:00Z",
+        "participants": [
+            {
+                "role": "USER",
+                "spoke_first": False
+            },
+            {
+                "role": "AGENT",
+                "spoke_first": True
+            }
+        ]
+    }
+
+    # Submit for evaluation
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/evaluate",
+        headers=headers,
+        json=call_data
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print("Evaluation submitted successfully!")
+        print(f"Call ID: {result['call_id']}")
+        print(f"Status: {result['status']}")
+        return result
+    else:
+        print(f"Error submitting evaluation: {response.text}")
+        return None
+
+def evaluate_audio_with_transcript_file():
+    """Example of evaluating a call with a transcript file URL"""
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    call_data = {
+        "agent_id": "123",
+        "recording_url": "https://storage.example.com/audio.mp3",
+        "transcript_url": "https://storage.example.com/transcript.json",
+        "start_time_utc": datetime.now(timezone.utc).isoformat(),
+        "participants": [
+            {
+                "role": "USER",
+                "spoke_first": False
+            },
+            {
+                "role": "AGENT",
+                "spoke_first": True
+            }
+        ],
+    }
+
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/evaluate",
+        headers=headers,
+        json=call_data
+    )
+
+    return response.json()
+```
+
+### Retrieving Evaluation Results
+
+Once you've submitted a call for evaluation, retrieve the results using the call ID:
+
+```python
+import requests
+import time
+
+def get_evaluation_results(call_id):
+    """Retrieve evaluation results for a specific call"""
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    headers = {
+        "X-API-Key": api_key
+    }
+
+    # Poll for results (evaluation may take some time)
+    max_attempts = 30
+    attempt = 0
+
+    while attempt < max_attempts:
+        response = requests.get(
+            f"{base_url}/retrieve-call-log/{call_id}",
+            headers=headers
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+
+            # Check if evaluation is complete
+            if 'evaluations' in data and data['evaluations']:
+                evaluation = data['evaluations'][0]
+                print("=== EVALUATION RESULTS ===")
+                print(f"Hallucination Detected: {evaluation.get('hallucination', 'N/A')}")
+                if evaluation.get('hallucination_reasoning'):
+                    print(f"Hallucination Reasoning: {evaluation['hallucination_reasoning']}")
+
+                print(f"Redundancy Score: {evaluation.get('redundancy', 'N/A')}")
+                if evaluation.get('redundancy_reasoning'):
+                    print(f"Redundancy Reasoning: {evaluation['redundancy_reasoning']}")
+
+                # Display custom metrics if available
+                if evaluation.get('custom_metrics'):
+                    print("\n=== CUSTOM METRICS ===")
+                    for metric in evaluation['custom_metrics']:
+                        print(f"{metric['name']}: {metric['value']}")
+
+                return data
+            else:
+                print("Evaluation still processing...")
+        else:
+            print(f"Error retrieving results: {response.status_code}")
+            return None
+
+        # Wait before next attempt
+        time.sleep(10)
+        attempt += 1
+
+    print("Evaluation timed out")
+    return None
+
+# Usage
+call_id = evaluate_with_transcript_data()
+if call_id:
+    results = get_evaluation_results(call_id['call_id'])
+```
+
+### Advanced: Custom Metrics and Tool Calls
+
+Track domain-specific performance indicators and include tool call data:
+
+```python
+import requests
+import json
+from datetime import datetime, timezone
+
+def evaluate_with_custom_metrics():
+    """Example showing how to include custom metrics and tool calls"""
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    # Example tool calls made during the conversation
+    tool_calls = [
+        {
+            "name": "check_order_status",
+            "parameters": {"order_id": "BJ-2024-001-5678"},
+            "output": "Order is in transit and should arrive by tomorrow.",
+            "start_offset_ms": 2000
+        },
+        {
+            "name": "send_update_email",
+            "parameters": {"customer_email": "customer@example.com", "message": "Order update sent"},
+            "output": "Email sent to customer@example.com",
+            "start_offset_ms": 3000
+        }
+    ]
+
+    call_data = {
+        "agent_id": "123",
+        "recording_url": "https://storage.example.com/complex-call.mp3",
+        "start_time_utc": "2024-01-15T10:00:00Z",
+        "participants": [
+            {
+                "role": "USER",
+                "spoke_first": False
+            },
+            {
+                "role": "AGENT",
+                "spoke_first": True
+            }
+        ],  
+        "tool_calls": tool_calls,
+        "transcript": [
+            {
+                "start_offset_ms": 100,
+                "end_offset_ms": 1000,
+                "speaker": "AGENT",
+                "utterance": "Hello, thank you for calling. How may I assist you?"
+            },
+            {
+                "start_offset_ms": 1000,
+                "end_offset_ms": 2000,
+                "speaker": "USER",
+                "utterance": "I need to check the status of my order and possibly get a refund."
+            },
+            {
+                "start_offset_ms": 2000,
+                "end_offset_ms": 3000,
+                "speaker": "AGENT",
+                "utterance": "I understand you'd like to check your order status. Let me look that up for you."
+            }
+        ]
+    }
+
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/evaluate",
+        headers=headers,
+        json=call_data
+    )
+
+    return response.json()
+```
+
+### Best Practices
+
+#### Data Quality
+1. **Audio Quality**: Use high-quality recordings (16kHz+ sample rate, minimal background noise)
+2. **Transcript Accuracy**: Ensure transcripts are accurate and include timestamps
+3. **Complete Metadata**: Provide all participant information and call details
+
+#### Error Handling
+```python
+def evaluate_with_error_handling():
+    """Example with comprehensive error handling"""
+
+    import requests
+    from requests.exceptions import RequestException, Timeout
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+
+    call_data = {
+        "agent_id": "123",
+        "recording_url": "https://storage.example.com/audio.mp3",
+        "start_time_utc": datetime.now(timezone.utc).isoformat(),
+        "participants": [
+            {
+                "role": "USER",
+                "spoke_first": False
+            },
+            {
+                "role": "AGENT",
+                "spoke_first": True
+            }
+        ]
+    }
+
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(
+            f"{base_url}/evaluate",
+            headers=headers,
+            json=call_data,
+            timeout=30
+        )
+
+        response.raise_for_status()  # Raise exception for bad status codes
+
+        result = response.json()
+        print(f"✅ Evaluation submitted successfully: {result['call_id']}")
+        return result
+
+    except Timeout:
+        print("❌ Request timed out")
+        return None
+    except RequestException as e:
+        print(f"❌ Request failed: {e}")
+        return None
+    except json.JSONDecodeError:
+        print("❌ Invalid JSON response")
+        return None
+```
+
+#### Batch Processing
+For processing multiple calls, implement batch processing with rate limiting:
+
+```python
+import time
+
+def process_batch_evaluations(call_files):
+    """Process multiple call evaluations with rate limiting"""
+
+    api_key = "your-api-key-here"
+    base_url = "https://api.bluejay.com/v1"
+    results = []
+
+    for i, call_file in enumerate(call_files):
+        print(f"Processing call {i+1}/{len(call_files)}: {call_file}")
+
+        # Submit evaluation
+        result = evaluate_call_from_file(call_file, api_key, base_url)
+        results.append(result)
+
+        # Rate limiting - avoid overwhelming the API
+        if i < len(call_files) - 1:  # Don't sleep after last call
+            time.sleep(1)
+
+    return results
+
+def evaluate_call_from_file(file_path, api_key, base_url):
+    """Helper function to evaluate a single call file"""
+    # Implementation depends on your file format
+    pass
+```
+
+### Next Steps
+
+- **Custom Metrics**: Define domain-specific evaluation criteria using custom metrics via API or the Bluejay dashboard
+- **Visualization**: Access the evaluation results using the Bluejay dashboard
+- **Alerting**: Set up alerts for poor performance indicators via the Bluejay dashboard
+
+For more advanced use cases, explore the [API Reference](/api-reference) or contact Bluejay support for custom evaluation configurations.
