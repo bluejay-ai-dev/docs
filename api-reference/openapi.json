@@ -6,23 +6,55 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/v1/api-keys": {
+    "/v1/send-text": {
       "post": {
-        "summary": "Create Api Key",
-        "operationId": "create_api_key_v1_api_keys_post",
-        "security": [
-          {
-            "HTTPBearer": []
+        "summary": "Recieve Text Processor",
+        "description": "Process text input and return a response.",
+        "operationId": "recieve_text_processor_v1_send_text_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TextProcessorRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
           }
-        ],
+        },
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
+            "description": "API key required to authenticate requests."
+          }
+        ]
+      }
+    },
+    "/v1/api-keys": {
+      "post": {
+        "summary": "Create Api Key",
+        "operationId": "create_api_key_v1_api_keys_post",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -30,9 +62,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateKeyIn"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateKeyIn" }
             }
           }
         },
@@ -41,9 +71,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeyOut"
-                }
+                "schema": { "$ref": "#/components/schemas/KeyOut" }
               }
             }
           },
@@ -51,9 +79,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -64,42 +90,29 @@
       "delete": {
         "summary": "Revoke Key",
         "operationId": "revoke_key_v1_api_keys__key_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "key_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Key Id"
-            }
+            "schema": { "type": "string", "title": "Key Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
+          "204": { "description": "Successful Response" },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -123,19 +136,13 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -145,9 +152,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ]
@@ -158,38 +163,26 @@
         "summary": "Generate Test Scenarios",
         "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
         "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -201,19 +194,13 @@
         "summary": "Generate Workflow Graph",
         "description": "Generate a workflow graph from a system prompt.\n\nAccepts a WorkflowGenerationRequest with the following structure:\n{\n    system_prompt: string;\n}\n\nReturns a workflow graph with nodes and edges representing the conversational flow.",
         "operationId": "generate_workflow_graph_v1_generate_workflow_graph_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -242,9 +229,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -256,38 +241,26 @@
         "summary": "Move Regen Test Scenarios Endpoint",
         "description": "Regenerates test scenarios with a new goal while preserving scenario descriptions.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    scenarios: TestScenario[];\n    newGoal: string;\n}",
         "operationId": "move_regen_test_scenarios_endpoint_v1_move_regen_test_scenarios_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -299,38 +272,26 @@
         "summary": "Regen Test Scenarios Endpoint",
         "description": "Regenerates test scenarios based on custom instructions while preserving style and structure.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    scenarios: TestScenario[];\n    instructions: string;\n    persona?: CustomerPersona;\n}",
         "operationId": "regen_test_scenarios_endpoint_v1_regen_test_scenarios_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -342,19 +303,13 @@
         "summary": "Evaluate",
         "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
         "operationId": "evaluate_v1_evaluate_call_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -362,9 +317,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CallRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/CallRequest" }
             }
           }
         },
@@ -383,9 +336,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -397,19 +348,13 @@
         "summary": "Evaluate",
         "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
         "operationId": "evaluate_v1_evaluate_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -417,9 +362,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CallRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/CallRequest" }
             }
           }
         },
@@ -438,9 +381,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -454,11 +395,7 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           }
         },
         "parameters": [
@@ -466,9 +403,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ]
@@ -479,28 +414,19 @@
         "summary": "Retrieve Call Logs",
         "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
         "operationId": "retrieve_call_logs_v1_retrieve_call_logs__agent_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "agent_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Agent Id"
-            }
+            "schema": { "type": "string", "title": "Agent Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -519,9 +445,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -535,11 +459,7 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           }
         },
         "parameters": [
@@ -547,9 +467,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ]
@@ -560,28 +478,19 @@
         "summary": "Retrieve Call Log",
         "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
         "operationId": "retrieve_call_log_v1_retrieve_call_log__call_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "call_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Call Id"
-            }
+            "schema": { "type": "string", "title": "Call Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -600,9 +509,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -614,19 +521,13 @@
         "summary": "Add Agent",
         "description": "Add a new agent to the system.\n\nReturns the agent id and a status code.",
         "operationId": "add_agent_v1_add_agent_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -634,9 +535,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AgentRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/AgentRequest" }
             }
           }
         },
@@ -645,9 +544,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/AgentResponse" }
               }
             }
           },
@@ -655,9 +552,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -669,19 +564,13 @@
         "summary": "Update Agent",
         "description": "Update an existing agent in the system.",
         "operationId": "update_agent_v1_update_agent_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -689,9 +578,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AgentUpdateRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/AgentUpdateRequest" }
             }
           }
         },
@@ -700,9 +587,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentUpdateResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/AgentUpdateResponse" }
               }
             }
           },
@@ -710,9 +595,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -724,28 +607,19 @@
         "summary": "Get Agent",
         "description": "Get an agent by ID.",
         "operationId": "get_agent_v1_agents__agent_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "agent_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Agent Id"
-            }
+            "schema": { "type": "integer", "title": "Agent Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -754,9 +628,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentPydantic"
-                }
+                "schema": { "$ref": "#/components/schemas/AgentPydantic" }
               }
             }
           },
@@ -764,9 +636,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -778,19 +648,13 @@
         "summary": "Get All Agents",
         "description": "Get all your agents.",
         "operationId": "get_all_agents_v1_all_agents_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -801,9 +665,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AgentPydantic"
-                  },
+                  "items": { "$ref": "#/components/schemas/AgentPydantic" },
                   "title": "Response Get All Agents V1 All Agents Get"
                 }
               }
@@ -813,9 +675,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -827,19 +687,13 @@
         "summary": "Create Simulation",
         "description": "Create a new simulation with the provided details.\n\nReturns the simulation id and a status code.",
         "operationId": "create_simulation_v1_create_simulation_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -847,9 +701,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SimulationRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/SimulationRequest" }
             }
           }
         },
@@ -858,9 +710,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SimulationResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/SimulationResponse" }
               }
             }
           },
@@ -868,9 +718,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -882,19 +730,13 @@
         "summary": "Get All Simulations",
         "description": "Get all simulations for a user.",
         "operationId": "get_all_simulations_v1_get_all_simulations_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -913,9 +755,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -927,28 +767,19 @@
         "summary": "Get Simulations By Agent",
         "description": "Get all simulations for a specific agent.",
         "operationId": "get_simulations_by_agent_v1_get_simulations_by_agent__agent_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "agent_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Agent Id"
-            }
+            "schema": { "type": "string", "title": "Agent Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -967,9 +798,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -981,28 +810,19 @@
         "summary": "Get Simulation Runs",
         "description": "Get all simulation runs for a specific simulation.",
         "operationId": "get_simulation_runs_v1_get_simulation_runs__simulation_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "simulation_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Simulation Id"
-            }
+            "schema": { "type": "string", "title": "Simulation Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1021,9 +841,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1035,19 +853,13 @@
         "summary": "Generate Digital Humans",
         "description": "Generate digital humans based on the provided simulation details.\n\nReturns a list of generated digital humans.",
         "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1055,9 +867,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DigitalHumanRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/DigitalHumanRequest" }
             }
           }
         },
@@ -1076,9 +886,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1090,19 +898,13 @@
         "summary": "Queue Simulation Run",
         "description": "Queue a simulation run for processing.",
         "operationId": "queue_simulation_run_v1_queue_simulation_run_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1110,9 +912,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SimulationRunRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/SimulationRunRequest" }
             }
           }
         },
@@ -1131,9 +931,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1149,37 +947,26 @@
             "name": "simulation_run_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Simulation Run Id"
-            }
+            "schema": { "type": "integer", "title": "Simulation Run Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1190,19 +977,13 @@
       "post": {
         "summary": "Update Simulation Result",
         "operationId": "update_simulation_result_v1_update_simulation_result_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1231,9 +1012,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1244,19 +1023,13 @@
       "post": {
         "summary": "Create Cron Job",
         "operationId": "create_cron_job_v1_create_cron_job_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1264,9 +1037,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCronJobRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateCronJobRequest" }
             }
           }
         },
@@ -1285,9 +1056,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1298,28 +1067,19 @@
       "put": {
         "summary": "Update Cron Job",
         "operationId": "update_cron_job_v1_update_cron_job__cron_job_id__put",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "cron_job_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Cron Job Id"
-            }
+            "schema": { "type": "string", "title": "Cron Job Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1327,9 +1087,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCronJobRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/UpdateCronJobRequest" }
             }
           }
         },
@@ -1348,9 +1106,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1361,28 +1117,19 @@
       "delete": {
         "summary": "Delete Cron Job",
         "operationId": "delete_cron_job_v1_delete_cron_job__cron_job_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "cron_job_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Cron Job Id"
-            }
+            "schema": { "type": "string", "title": "Cron Job Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1401,9 +1148,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1415,28 +1160,19 @@
         "summary": "Retrieve Simulation Results",
         "description": "Retrieve the results of a simulation run.\n\nReturns the simulation run details and associated test cases.",
         "operationId": "retrieve_simulation_results_v1_retrieve_simulation_results__simulation_run_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "simulation_run_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Simulation Run Id"
-            }
+            "schema": { "type": "string", "title": "Simulation Run Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1455,9 +1191,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1469,47 +1203,32 @@
         "summary": "Generate Translated Transcript",
         "description": "Generate a translated transcript for a given audio file.",
         "operationId": "generate_translated_transcript_v1_generate_translated_transcript__test_result_id__post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "test_result_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Test Result Id"
-            }
+            "schema": { "type": "string", "title": "Test Result Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1521,19 +1240,13 @@
         "summary": "Generate Custom Metrics",
         "description": "Generate custom metrics for a given agent based on its description and knowledge base.",
         "operationId": "generate_custom_metrics_v1_generate_custom_metrics_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1550,19 +1263,13 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1574,19 +1281,13 @@
         "summary": "Generate Customer Personas",
         "description": "Generate custom personas for a given agent based on its description and knowledge base.",
         "operationId": "generate_customer_personas_v1_generate_customer_personas_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1603,19 +1304,13 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1626,38 +1321,26 @@
       "get": {
         "summary": "Pong",
         "operationId": "pong_v1_ping_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1669,19 +1352,13 @@
         "summary": "Compare Experiment Runs",
         "description": "Compare multiple experiment runs and generate a summary of differences",
         "operationId": "compare_experiment_runs_v1_compare_experiment_runs_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1689,9 +1366,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ComparisonRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/ComparisonRequest" }
             }
           }
         },
@@ -1700,9 +1375,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ComparisonResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ComparisonResponse" }
               }
             }
           },
@@ -1710,9 +1383,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1721,25 +1392,17 @@
     },
     "/v1/create-custom-metric": {
       "post": {
-        "tags": [
-          "Custom Metrics"
-        ],
+        "tags": ["Custom Metrics"],
         "summary": "Create Custom Metric",
         "description": "Create a new custom metric.",
         "operationId": "create_custom_metric_v1_create_custom_metric_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1768,9 +1431,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1779,17 +1440,11 @@
     },
     "/v1/custom-metric/{metric_id}": {
       "get": {
-        "tags": [
-          "Custom Metrics"
-        ],
+        "tags": ["Custom Metrics"],
         "summary": "Get Custom Metric",
         "description": "Get a specific custom metric by ID.",
         "operationId": "get_custom_metric_v1_custom_metric__metric_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "metric_id",
@@ -1805,9 +1460,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1826,26 +1479,18 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
         }
       },
       "delete": {
-        "tags": [
-          "Custom Metrics"
-        ],
+        "tags": ["Custom Metrics"],
         "summary": "Delete Custom Metric",
         "description": "Delete a specific custom metric by ID.",
         "operationId": "delete_custom_metric_v1_custom_metric__metric_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "metric_id",
@@ -1861,9 +1506,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1872,9 +1515,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomMetric"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomMetric" }
               }
             }
           },
@@ -1882,9 +1523,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1893,34 +1532,23 @@
     },
     "/v1/custom-metrics-by-agent/{agent_id}": {
       "get": {
-        "tags": [
-          "Custom Metrics"
-        ],
+        "tags": ["Custom Metrics"],
         "summary": "Get Custom Metrics By Agent",
         "description": "Get all custom metrics for an agent.",
         "operationId": "get_custom_metrics_by_agent_v1_custom_metrics_by_agent__agent_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "agent_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Agent Id"
-            }
+            "schema": { "type": "integer", "title": "Agent Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -1939,9 +1567,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -1950,17 +1576,11 @@
     },
     "/v1/update-custom-metric/{metric_id}": {
       "put": {
-        "tags": [
-          "Custom Metrics"
-        ],
+        "tags": ["Custom Metrics"],
         "summary": "Update Custom Metric",
         "description": "Update a specific custom metric by ID.",
         "operationId": "update_custom_metric_v1_update_custom_metric__metric_id__put",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "metric_id",
@@ -1976,9 +1596,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2007,9 +1625,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2018,25 +1634,17 @@
     },
     "/v1/create-customer-persona": {
       "post": {
-        "tags": [
-          "Customer Personas"
-        ],
+        "tags": ["Customer Personas"],
         "summary": "Create Customer Persona",
         "description": "Create a new customer persona.",
         "operationId": "create_customer_persona_v1_create_customer_persona_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2065,9 +1673,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2076,34 +1682,23 @@
     },
     "/v1/customer-personas-by-agent/{agent_id}": {
       "get": {
-        "tags": [
-          "Customer Personas"
-        ],
+        "tags": ["Customer Personas"],
         "summary": "Get Customer Personas By Agent",
         "description": "Get all customer personas for an agent.",
         "operationId": "get_customer_personas_by_agent_v1_customer_personas_by_agent__agent_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "agent_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Agent Id"
-            }
+            "schema": { "type": "integer", "title": "Agent Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2126,9 +1721,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2137,17 +1730,11 @@
     },
     "/v1/customer-persona/{persona_id}": {
       "get": {
-        "tags": [
-          "Customer Personas"
-        ],
+        "tags": ["Customer Personas"],
         "summary": "Get Customer Persona",
         "description": "Get a specific customer persona by ID.",
         "operationId": "get_customer_persona_v1_customer_persona__persona_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "persona_id",
@@ -2163,9 +1750,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2184,26 +1769,18 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
         }
       },
       "delete": {
-        "tags": [
-          "Customer Personas"
-        ],
+        "tags": ["Customer Personas"],
         "summary": "Delete Customer Persona",
         "description": "Delete a specific customer persona by ID.",
         "operationId": "delete_customer_persona_v1_customer_persona__persona_id__delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "persona_id",
@@ -2219,9 +1796,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2240,9 +1815,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2251,17 +1824,11 @@
     },
     "/v1/update-customer-persona/{persona_id}": {
       "put": {
-        "tags": [
-          "Customer Personas"
-        ],
+        "tags": ["Customer Personas"],
         "summary": "Update Customer Persona",
         "description": "Update a specific customer persona by ID.",
         "operationId": "update_customer_persona_v1_update_customer_persona__persona_id__put",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "persona_id",
@@ -2277,9 +1844,7 @@
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2308,9 +1873,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2319,52 +1882,35 @@
     },
     "/v1/traces/{trace_id}": {
       "post": {
-        "tags": [
-          "Traces"
-        ],
+        "tags": ["Traces"],
         "summary": "Get Trace",
         "operationId": "get_trace_v1_traces__trace_id__post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "trace_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Trace Id"
-            }
+            "schema": { "type": "string", "title": "Trace Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2373,42 +1919,60 @@
     },
     "/v1/spans/{trace_id}/{span_id}": {
       "post": {
-        "tags": [
-          "Traces"
-        ],
+        "tags": ["Traces"],
         "summary": "Get Span",
         "operationId": "get_span_v1_spans__trace_id___span_id__post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
+        "security": [{ "HTTPBearer": [] }],
         "parameters": [
           {
             "name": "trace_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Trace Id"
-            }
+            "schema": { "type": "string", "title": "Trace Id" }
           },
           {
             "name": "span_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Span Id"
-            }
+            "schema": { "type": "string", "title": "Span Id" }
           },
           {
             "name": "X-API-Key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/phone-numbers": {
+      "get": {
+        "tags": ["Phone Numbers"],
+        "summary": "Get Phone Numbers",
+        "description": "Return phone number under an org",
+        "operationId": "get_phone_numbers_v1_phone_numbers_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
             "description": "API key required to authenticate requests."
           }
         ],
@@ -2417,7 +1981,13 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PhoneNumberResponse"
+                  },
+                  "title": "Response Get Phone Numbers V1 Phone Numbers Get"
+                }
               }
             }
           },
@@ -2425,9 +1995,7 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -2439,10 +2007,7 @@
     "schemas": {
       "AgentMode": {
         "type": "string",
-        "enum": [
-          "VOICE",
-          "TEXT"
-        ],
+        "enum": ["VOICE", "TEXT"],
         "title": "AgentMode",
         "description": "Enum representing the mode of agent"
       },
@@ -2450,117 +2015,65 @@
         "properties": {
           "id": {
             "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "integer" },
+              { "type": "string" },
+              { "type": "null" }
             ],
             "title": "Id"
           },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
+          "name": { "type": "string", "title": "Name" },
           "agent_description": {
             "type": "string",
             "title": "Agent Description"
           },
-          "knowledge_base": {
-            "type": "string",
-            "title": "Knowledge Base"
-          },
-          "organization_id": {
-            "type": "string",
-            "title": "Organization Id"
-          },
+          "knowledge_base": { "type": "string", "title": "Knowledge Base" },
+          "organization_id": { "type": "string", "title": "Organization Id" },
           "goals": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Goals"
           },
-          "mode": {
-            "$ref": "#/components/schemas/AgentMode"
-          },
+          "mode": { "$ref": "#/components/schemas/AgentMode" },
           "type": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentType"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/AgentType" },
+              { "type": "null" }
             ]
           },
           "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Phone Number"
           },
           "websocket_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Websocket Url"
           },
           "redact_pii": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Redact Pii"
           },
           "folder_id": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
             ],
             "title": "Folder Id"
           },
           "created_at": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "date-time" },
+              { "type": "null" }
             ],
             "title": "Created At"
+          },
+          "keyterms": {
+            "anyOf": [
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
+            ],
+            "title": "Keyterms"
           }
         },
         "type": "object",
@@ -2596,36 +2109,34 @@
             "description": "Phone number associated with the agent"
           },
           "goals": {
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "type": "array",
             "title": "Goals",
             "description": "List of goals for the agent"
           },
           "type": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentType"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/AgentType" },
+              { "type": "null" }
             ],
             "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers",
             "default": "INBOUND"
           },
           "mode": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentMode"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/AgentMode" },
+              { "type": "null" }
             ],
             "description": "Modality of the agent",
             "default": "VOICE"
+          },
+          "keyterms": {
+            "anyOf": [
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
+            ],
+            "title": "Keyterms",
+            "description": "List of keyterms for the agent"
           }
         },
         "type": "object",
@@ -2653,17 +2164,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
+        "required": ["agent_id"],
         "title": "AgentResponse"
       },
       "AgentType": {
         "type": "string",
-        "enum": [
-          "INBOUND",
-          "OUTBOUND"
-        ],
+        "enum": ["INBOUND", "OUTBOUND"],
         "title": "AgentType",
         "description": "Enum representing the type of agent"
       },
@@ -2675,95 +2181,58 @@
             "description": "ID of the agent to be updated"
           },
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name",
             "description": "Name of the agent"
           },
           "system_prompt": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "System Prompt",
             "description": "System prompt for the agent"
           },
           "knowledge_base": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Knowledge Base",
             "description": "Knowledge base of the agent"
           },
           "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Phone Number",
             "description": "Phone number associated with the agent"
           },
           "goals": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Goals",
             "description": "List of goals for the agent"
           },
           "type": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentType"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/AgentType" },
+              { "type": "null" }
             ],
             "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers"
           },
           "mode": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentMode"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/AgentMode" },
+              { "type": "null" }
             ],
             "description": "Modality of the agent"
+          },
+          "keyterms": {
+            "anyOf": [
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
+            ],
+            "title": "Keyterms",
+            "description": "List of keyterms for the agent"
           }
         },
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
+        "required": ["agent_id"],
         "title": "AgentUpdateRequest"
       },
       "AgentUpdateResponse": {
@@ -2780,41 +2249,21 @@
           }
         },
         "type": "object",
-        "required": [
-          "agent"
-        ],
+        "required": ["agent"],
         "title": "AgentUpdateResponse"
       },
       "Body_upload_audio_v1_log_evaluation_post": {
         "properties": {
-          "org_id": {
-            "type": "string",
-            "title": "Org Id"
-          },
-          "eval_id": {
-            "type": "string",
-            "title": "Eval Id"
-          },
-          "eval_name": {
-            "type": "string",
-            "title": "Eval Name"
-          },
+          "org_id": { "type": "string", "title": "Org Id" },
+          "eval_id": { "type": "string", "title": "Eval Id" },
+          "eval_name": { "type": "string", "title": "Eval Name" },
           "agent_description": {
             "type": "string",
             "title": "Agent Description"
           },
-          "knowledge_base": {
-            "type": "string",
-            "title": "Knowledge Base"
-          },
-          "custom_questions": {
-            "type": "string",
-            "title": "Custom Questions"
-          },
-          "transcript": {
-            "type": "string",
-            "title": "Transcript"
-          },
+          "knowledge_base": { "type": "string", "title": "Knowledge Base" },
+          "custom_questions": { "type": "string", "title": "Custom Questions" },
+          "transcript": { "type": "string", "title": "Transcript" },
           "audio_file": {
             "type": "string",
             "format": "binary",
@@ -2836,18 +2285,13 @@
       },
       "CallDirection": {
         "type": "string",
-        "enum": [
-          "INBOUND",
-          "OUTBOUND"
-        ],
+        "enum": ["INBOUND", "OUTBOUND"],
         "title": "CallDirection",
         "description": "Enum representing the direction of a call."
       },
       "CallInterface": {
         "type": "string",
-        "enum": [
-          "PHONE"
-        ],
+        "enum": ["PHONE"],
         "title": "CallInterface",
         "description": "Enum representing the interface used for a call."
       },
@@ -2864,14 +2308,7 @@
             "description": "ID of the agent associated with the call"
           },
           "recording_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Recording Url",
             "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
           },
@@ -2881,9 +2318,7 @@
             "description": "When the call started, in UTC"
           },
           "participants": {
-            "items": {
-              "$ref": "#/components/schemas/ParticipantResponse"
-            },
+            "items": { "$ref": "#/components/schemas/ParticipantResponse" },
             "type": "array",
             "title": "Participants",
             "description": "List of call participants"
@@ -2909,28 +2344,17 @@
             "description": "When this request was created (defaults to now in UTC)"
           },
           "transcript_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Transcript Url",
             "description": "URL to the transcript file (supported formats: .txt, .json)"
           },
           "tool_calls": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/ToolCallResponse"
-                },
+                "items": { "$ref": "#/components/schemas/ToolCallResponse" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Tool Calls",
             "description": "List of tool calls made during the call"
@@ -2938,42 +2362,24 @@
           "events": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/Event"
-                },
+                "items": { "$ref": "#/components/schemas/Event" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Events",
             "description": "List of events that occurred during the call"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "List of tags associated with the call"
           },
           "duration_ms": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Duration Ms",
             "description": "Duration of the call in milliseconds",
             "default": 0
@@ -2981,53 +2387,28 @@
           "evaluations": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/Evaluation"
-                },
+                "items": { "$ref": "#/components/schemas/Evaluation" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Evaluations",
             "description": "List of evaluations associated with the call"
           },
           "custom_metrics": {
-            "anyOf": [
-              {
-                "items": {},
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "items": {}, "type": "array" }, { "type": "null" }],
             "title": "Custom Metrics",
             "description": "Custom metrics associated with the call"
           },
           "annotations": {
-            "anyOf": [
-              {
-                "items": {},
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "items": {}, "type": "array" }, { "type": "null" }],
             "title": "Annotations",
             "description": "Annotations associated with the call"
           },
           "metadata": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Metadata",
             "description": "Additional metadata associated with the call"
@@ -3059,9 +2440,7 @@
                 "minLength": 1,
                 "format": "uri"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Recording Url",
             "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
@@ -3073,33 +2452,23 @@
             "description": "When the call started, in UTC ([python] log: datetime.now(timezone.utc) at call start)"
           },
           "participants": {
-            "items": {
-              "$ref": "#/components/schemas/ParticipantRequest"
-            },
+            "items": { "$ref": "#/components/schemas/ParticipantRequest" },
             "type": "array",
             "title": "Participants",
             "description": "List of call participants"
           },
           "call_direction": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/CallDirection"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/CallDirection" },
+              { "type": "null" }
             ],
             "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)",
             "default": "INBOUND"
           },
           "interface": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/CallInterface"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/CallInterface" },
+              { "type": "null" }
             ],
             "description": "Interface used for the call",
             "default": "PHONE"
@@ -3112,9 +2481,7 @@
                 "minLength": 1,
                 "format": "uri"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Transcript Url",
             "description": "URL to the transcript file (supported formats: .txt, .json)"
@@ -3127,9 +2494,7 @@
                 },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Transcript",
             "description": "Transcript of the call in text format"
@@ -3137,14 +2502,10 @@
           "tool_calls": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/ToolCallRequest"
-                },
+                "items": { "$ref": "#/components/schemas/ToolCallRequest" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Tool Calls",
             "description": "List of tool calls made during the call"
@@ -3152,78 +2513,46 @@
           "events": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/EventRequest"
-                },
+                "items": { "$ref": "#/components/schemas/EventRequest" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Events",
             "description": "List of events that occurred during the call"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "List of tags associated with the call"
           },
           "trace_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Trace Id",
             "description": "Trace ID of the call"
           },
           "created_at": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "date-time" },
+              { "type": "null" }
             ],
             "title": "Created At",
             "description": "When this request was created (defaults to now in UTC)"
           },
           "metadata": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Metadata",
             "description": "Additional metadata associated with the evaluation"
           }
         },
         "type": "object",
-        "required": [
-          "agent_id",
-          "start_time_utc",
-          "participants"
-        ],
+        "required": ["agent_id", "start_time_utc", "participants"],
         "title": "CallRequest",
         "description": "Pydantic model for incoming call evaluation requests"
       },
@@ -3242,18 +2571,14 @@
       "ComparisonRequest": {
         "properties": {
           "experiment_run_ids": {
-            "items": {
-              "type": "integer"
-            },
+            "items": { "type": "integer" },
             "type": "array",
             "title": "Experiment Run Ids",
             "description": "List of experiment run IDs to compare"
           }
         },
         "type": "object",
-        "required": [
-          "experiment_run_ids"
-        ],
+        "required": ["experiment_run_ids"],
         "title": "ComparisonRequest",
         "description": "Pydantic model for experiment run comparison request"
       },
@@ -3272,9 +2597,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "summary"
-        ],
+        "required": ["summary"],
         "title": "ComparisonResponse",
         "description": "Pydantic model for experiment run comparison response"
       },
@@ -3287,44 +2610,24 @@
           },
           "schedule": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/EveryNMinutesSchedule"
-              },
-              {
-                "$ref": "#/components/schemas/DailySchedule"
-              },
-              {
-                "$ref": "#/components/schemas/WeeklySchedule"
-              },
-              {
-                "$ref": "#/components/schemas/MonthlySchedule"
-              },
-              {
-                "$ref": "#/components/schemas/CronSchedule"
-              }
+              { "$ref": "#/components/schemas/EveryNMinutesSchedule" },
+              { "$ref": "#/components/schemas/DailySchedule" },
+              { "$ref": "#/components/schemas/WeeklySchedule" },
+              { "$ref": "#/components/schemas/MonthlySchedule" },
+              { "$ref": "#/components/schemas/CronSchedule" }
             ],
             "title": "Schedule",
             "description": "The schedule for the cron job."
           },
           "enabled": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Enabled",
             "description": "Whether the cron job should be enabled upon creation.",
             "default": true
           }
         },
         "type": "object",
-        "required": [
-          "simulation_id",
-          "schedule"
-        ],
+        "required": ["simulation_id", "schedule"],
         "title": "CreateCronJobRequest"
       },
       "CreateCronJobResponse": {
@@ -3345,37 +2648,19 @@
             "description": "The cron expression defining the job schedule."
           },
           "enabled": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Enabled",
             "description": "Whether the cron job is enabled."
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "experiment_id",
-          "cron_expression"
-        ],
+        "required": ["id", "experiment_id", "cron_expression"],
         "title": "CreateCronJobResponse"
       },
       "CreateCustomMetricRequest": {
         "properties": {
           "agent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Agent Id",
             "description": "ID of the agent this metric belongs to"
           },
@@ -3394,140 +2679,69 @@
             "description": "Type of response expected"
           },
           "min_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Min Value",
             "description": "Minimum value for quantitative metrics"
           },
           "max_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Max Value",
             "description": "Maximum value for quantitative metrics"
           },
           "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Category",
             "description": "Category for organizing metrics"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "Tags for categorizing the metric"
           },
           "scoring_guidance": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Scoring Guidance",
             "description": "Guidance on how to score this metric"
           },
           "eval_route": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalRoute"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/EvalRoute" },
+              { "type": "null" }
             ],
             "description": "Route for evaluating the metric",
             "default": "AUTO"
           },
           "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Model",
             "description": "Model to use for evaluating the metric"
           },
           "temperature": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Temperature",
             "description": "Temperature for evaluating the metric"
           },
           "enum_options": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Enum Options",
             "description": "Options for enum metrics"
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "description",
-          "response_type"
-        ],
+        "required": ["name", "description", "response_type"],
         "title": "CreateCustomMetricRequest",
         "description": "Request model for creating a custom metric"
       },
       "CreateCustomerPersonaRequest": {
         "properties": {
           "agent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Agent Id",
             "description": "ID of the agent this persona belongs to"
           },
@@ -3548,28 +2762,16 @@
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "description",
-          "goal"
-        ],
+        "required": ["name", "description", "goal"],
         "title": "CreateCustomerPersonaRequest"
       },
       "CreateKeyIn": {
         "properties": {
-          "scope": {
-            "type": "string",
-            "title": "Scope"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
+          "scope": { "type": "string", "title": "Scope" },
+          "name": { "type": "string", "title": "Name" }
         },
         "type": "object",
-        "required": [
-          "scope"
-        ],
+        "required": ["scope"],
         "title": "CreateKeyIn"
       },
       "CronSchedule": {
@@ -3586,178 +2788,86 @@
           }
         },
         "type": "object",
-        "required": [
-          "frequency",
-          "expression"
-        ],
+        "required": ["frequency", "expression"],
         "title": "CronSchedule"
       },
       "CustomMetric": {
         "properties": {
           "agent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Agent Id"
           },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "response_type": {
-            "$ref": "#/components/schemas/ResponseType"
-          },
+          "name": { "type": "string", "title": "Name" },
+          "description": { "type": "string", "title": "Description" },
+          "response_type": { "$ref": "#/components/schemas/ResponseType" },
           "min_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Min Value"
           },
           "max_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Max Value"
           },
           "created_at": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "date-time" },
+              { "type": "null" }
             ],
             "title": "Created At"
           },
           "id": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
             ],
             "title": "Id",
             "description": "Unique identifier for the custom metric"
           },
           "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Category"
           },
           "tags": {
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "type": "array",
             "title": "Tags"
           },
           "scoring_guidance": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Scoring Guidance"
           },
           "eval_route": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalRoute"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/EvalRoute" },
+              { "type": "null" }
             ],
             "default": "AUTO"
           },
           "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Model"
           },
           "temperature": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Temperature"
           },
           "enum_options": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Enum Options"
           },
           "organization_id": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
             ],
             "title": "Organization Id"
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "description",
-          "response_type"
-        ],
+        "required": ["name", "description", "response_type"],
         "title": "CustomMetric",
         "description": "Represents a custom metric entry in the database."
       },
@@ -3783,65 +2893,30 @@
             "description": "Type of response expected"
           },
           "min_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Min Value",
             "description": "Minimum value for quantitative metrics"
           },
           "max_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Max Value",
             "description": "Maximum value for quantitative metrics"
           },
           "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Category",
             "description": "Category for organizing metrics"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "Tags for categorizing the metric"
           },
           "scoring_guidance": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Scoring Guidance",
             "description": "Guidance on how to score this metric"
           },
@@ -3853,50 +2928,25 @@
           },
           "eval_route": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalRoute"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/EvalRoute" },
+              { "type": "null" }
             ],
             "description": "Route for evaluating the metric"
           },
           "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Model",
             "description": "Model to use for evaluating the metric"
           },
           "temperature": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Temperature",
             "description": "Temperature for evaluating the metric"
           },
           "enum_options": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Enum Options",
             "description": "Options for enum metrics"
@@ -3916,9 +2966,7 @@
       "CustomMetricsListResponse": {
         "properties": {
           "metrics": {
-            "items": {
-              "$ref": "#/components/schemas/CustomMetricResponse"
-            },
+            "items": { "$ref": "#/components/schemas/CustomMetricResponse" },
             "type": "array",
             "title": "Metrics",
             "description": "List of custom metrics"
@@ -3930,10 +2978,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "metrics",
-          "total_count"
-        ],
+        "required": ["metrics", "total_count"],
         "title": "CustomMetricsListResponse",
         "description": "Response model for listing custom metrics"
       },
@@ -3941,70 +2986,34 @@
         "properties": {
           "id": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
             ],
             "title": "Id"
           },
           "created_at": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "date-time" },
+              { "type": "null" }
             ],
             "title": "Created At"
           },
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name"
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description"
           },
           "goal": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Goal"
           },
           "org_id": {
             "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
             ],
             "title": "Org Id"
           }
@@ -4037,12 +3046,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "description",
-          "goal",
-          "num_calls"
-        ],
+        "required": ["name", "description", "goal", "num_calls"],
         "title": "CustomerPersonaRequest",
         "description": "Pydantic model for customer persona in simulation"
       },
@@ -4061,20 +3065,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "frequency",
-          "time"
-        ],
+        "required": ["frequency", "time"],
         "title": "DailySchedule"
       },
       "DeleteCronJobResponse": {
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
+            "enum": ["success", "error"],
             "title": "Status",
             "description": "The status of the delete operation."
           },
@@ -4085,10 +3083,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status",
-          "message"
-        ],
+        "required": ["status", "message"],
         "title": "DeleteCronJobResponse"
       },
       "DigitalHumanRequest": {
@@ -4101,14 +3096,10 @@
           "goal_adherence": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/GoalAdherence"
-                },
+                "items": { "$ref": "#/components/schemas/GoalAdherence" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Goal Adherence",
             "description": "List of goal adherence scenarios"
@@ -4121,9 +3112,7 @@
                 },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Customer Personas",
             "description": "List of customer personas to be used in the simulation"
@@ -4131,49 +3120,29 @@
           "workflow_adherence": {
             "anyOf": [
               {
-                "additionalProperties": {
-                  "type": "integer"
-                },
+                "additionalProperties": { "type": "integer" },
                 "type": "object"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Workflow Adherence",
             "description": "Dictionary of workflow IDs and their counts"
           },
           "load_testing": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Load Testing",
             "description": "Number of load testing calls",
             "default": 0
           },
           "red_teaming": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Red Teaming",
             "description": "Number of red teaming calls",
             "default": 0
           }
         },
         "type": "object",
-        "required": [
-          "simulation_id"
-        ],
+        "required": ["simulation_id"],
         "title": "DigitalHumanRequest",
         "description": "Pydantic model for digital humans (simulation type) request"
       },
@@ -4198,79 +3167,37 @@
       "DigitalHumansSettings": {
         "properties": {
           "default_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Default Name",
             "description": "Default name for the digital human",
             "default": "random"
           },
           "default_caller_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Default Caller Number",
             "description": "Default caller phone number for the digital human",
             "default": "random"
           },
           "default_language": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Default Language",
             "description": "Default language for the digital human",
             "default": "random"
           },
           "default_background_noise": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Default Background Noise",
             "description": "Background noise to be used in the simulation",
             "default": "none"
           },
           "speaks_first": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Speaks First",
             "description": "Whether the digital human speaks first in the call",
             "default": false
           },
           "first_message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "First Message",
             "description": "First message to be spoken by the digital human",
             "default": "ai_generated"
@@ -4282,35 +3209,18 @@
       },
       "EvalRoute": {
         "type": "string",
-        "enum": [
-          "AUDIO",
-          "TEXT",
-          "AUTO"
-        ],
+        "enum": ["AUDIO", "TEXT", "AUTO"],
         "title": "EvalRoute",
         "description": "Enum representing the evaluation route of a call."
       },
       "EvaluateCallResponse": {
         "properties": {
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "call_id": {
-            "type": "string",
-            "title": "Call Id"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message"
-          }
+          "status": { "type": "string", "title": "Status" },
+          "call_id": { "type": "string", "title": "Call Id" },
+          "message": { "type": "string", "title": "Message" }
         },
         "type": "object",
-        "required": [
-          "status",
-          "call_id",
-          "message"
-        ],
+        "required": ["status", "call_id", "message"],
         "title": "EvaluateCallResponse"
       },
       "Evaluation": {
@@ -4332,14 +3242,7 @@
             "description": "Whether the agent exhibited hallucination during the call"
           },
           "hallucination_reasoning": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Hallucination Reasoning",
             "description": "Reasoning behind the hallucination, if applicable"
           },
@@ -4349,49 +3252,24 @@
             "description": "Whether the agent exhibited redundancy during the call"
           },
           "redundancy_reasoning": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Redundancy Reasoning",
             "description": "Reasoning behind the redundancy, if applicable"
           },
           "agent_speak_percentage": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Agent Speak Percentage",
             "description": "Percentage of the call where the agent was speaking"
           },
           "avg_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Avg Agent Latency",
             "description": "Average latency of the agent's responses during the call"
           },
           "latency": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/Latency"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/Latency" },
+              { "type": "null" }
             ],
             "description": "Latency metrics for the agent's responses"
           },
@@ -4401,67 +3279,31 @@
             "description": "Total number of turns taken by the agent during the call"
           },
           "call_summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Call Summary",
             "description": "Summary of the call, if applicable"
           },
           "custom_evals": {
             "anyOf": [
-              {
-                "items": {},
-                "type": "array"
-              },
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "items": {}, "type": "array" },
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Custom Evals",
             "description": "List of custom evaluations performed during the call"
           },
           "custom_evals_success_rate": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Custom Evals Success Rate",
             "description": "Success rate of the custom evaluations performed during the call"
           },
           "pronunciation_score": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Pronunciation Score",
             "description": "Pronunciation score of the agent during the call"
           },
           "pronunciation_reasoning": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Pronunciation Reasoning",
             "description": "Reasoning behind the pronunciation score, if applicable"
           }
@@ -4490,131 +3332,67 @@
             "description": "Start offset of the event in milliseconds"
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description",
             "description": "Description of the event"
           },
           "end_offset_ms": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "End Offset Ms",
             "description": "End offset of the event in milliseconds"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "List of tags associated with the event"
           },
           "metadata": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Metadata",
             "description": "Additional metadata associated with the event"
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "start_offset_ms"
-        ],
+        "required": ["title", "start_offset_ms"],
         "title": "Event",
         "description": "Pydantic model for event data"
       },
       "EventRequest": {
         "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "start_offset_ms": {
-            "type": "integer",
-            "title": "Start Offset Ms"
-          },
+          "title": { "type": "string", "title": "Title" },
+          "start_offset_ms": { "type": "integer", "title": "Start Offset Ms" },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description"
           },
           "end_offset_ms": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "End Offset Ms"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags"
           },
           "metadata": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Metadata",
             "description": "Additional metadata associated with the event"
           }
         },
         "type": "object",
-        "required": [
-          "title",
-          "start_offset_ms"
-        ],
+        "required": ["title", "start_offset_ms"],
         "title": "EventRequest",
         "description": "Pydantic model for event data in request"
       },
@@ -4633,10 +3411,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "frequency",
-          "interval"
-        ],
+        "required": ["frequency", "interval"],
         "title": "EveryNMinutesSchedule"
       },
       "GenerateCustomMetricsRequest": {
@@ -4653,22 +3428,13 @@
             "default": 5
           },
           "custom_prompt": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Custom Prompt",
             "description": "Custom instructions for metric generation"
           }
         },
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
+        "required": ["agent_id"],
         "title": "GenerateCustomMetricsRequest"
       },
       "GenerateCustomPersonasRequest": {
@@ -4685,30 +3451,19 @@
             "default": 5
           },
           "custom_prompt": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Custom Prompt",
             "description": "Custom instructions for persona generation"
           }
         },
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
+        "required": ["agent_id"],
         "title": "GenerateCustomPersonasRequest"
       },
       "GetSimulationRunsResponse": {
         "properties": {
           "simulation_runs": {
-            "items": {
-              "$ref": "#/components/schemas/SimulationRunRes"
-            },
+            "items": { "$ref": "#/components/schemas/SimulationRunRes" },
             "type": "array",
             "title": "Simulation Runs",
             "description": "List of simulation runs"
@@ -4720,9 +3475,7 @@
       "GetSimulationsResponse": {
         "properties": {
           "simulations": {
-            "items": {
-              "$ref": "#/components/schemas/SimulationRes"
-            },
+            "items": { "$ref": "#/components/schemas/SimulationRes" },
             "type": "array",
             "title": "Simulations",
             "description": "List of simulations"
@@ -4745,19 +3498,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "goal",
-          "num_calls"
-        ],
+        "required": ["goal", "num_calls"],
         "title": "GoalAdherence",
         "description": "Pydantic model for goal adherence in simulation"
       },
       "HTTPValidationError": {
         "properties": {
           "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
+            "items": { "$ref": "#/components/schemas/ValidationError" },
             "type": "array",
             "title": "Detail"
           }
@@ -4767,118 +3515,51 @@
       },
       "KeyOut": {
         "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "api_key": {
-            "type": "string",
-            "title": "Api Key"
-          },
-          "scope": {
-            "type": "string",
-            "title": "Scope"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "created_at": {
-            "type": "string",
-            "title": "Created At"
-          },
-          "revoked": {
-            "type": "boolean",
-            "title": "Revoked"
-          }
+          "id": { "type": "string", "title": "Id" },
+          "api_key": { "type": "string", "title": "Api Key" },
+          "scope": { "type": "string", "title": "Scope" },
+          "name": { "type": "string", "title": "Name" },
+          "created_at": { "type": "string", "title": "Created At" },
+          "revoked": { "type": "boolean", "title": "Revoked" }
         },
         "type": "object",
-        "required": [
-          "id",
-          "api_key",
-          "scope",
-          "name",
-          "created_at",
-          "revoked"
-        ],
+        "required": ["id", "api_key", "scope", "name", "created_at", "revoked"],
         "title": "KeyOut"
       },
       "Latency": {
         "properties": {
           "avg_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Avg Agent Latency",
             "description": "Average latency",
             "default": 0
           },
           "max_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Max Agent Latency",
             "description": "Maximum latency",
             "default": 0
           },
           "p50_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "P50 Agent Latency",
             "description": "50th percentile latency",
             "default": 0
           },
           "p90_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "P90 Agent Latency",
             "description": "90th percentile latency",
             "default": 0
           },
           "p95_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "P95 Agent Latency",
             "description": "95th percentile latency",
             "default": 0
           },
           "p99_agent_latency": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "P99 Agent Latency",
             "description": "99th percentile latency",
             "default": 0
@@ -4907,50 +3588,24 @@
           }
         },
         "type": "object",
-        "required": [
-          "frequency",
-          "day_of_month",
-          "time"
-        ],
+        "required": ["frequency", "day_of_month", "time"],
         "title": "MonthlySchedule"
       },
       "ParticipantRequest": {
         "properties": {
-          "role": {
-            "$ref": "#/components/schemas/ParticipantRole"
-          },
-          "spoke_first": {
-            "type": "boolean",
-            "title": "Spoke First"
-          },
+          "role": { "$ref": "#/components/schemas/ParticipantRole" },
+          "spoke_first": { "type": "boolean", "title": "Spoke First" },
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name"
           },
           "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Phone Number"
           }
         },
         "type": "object",
-        "required": [
-          "role",
-          "spoke_first"
-        ],
+        "required": ["role", "spoke_first"],
         "title": "ParticipantRequest",
         "description": "Pydantic model for participant data in request"
       },
@@ -4966,46 +3621,67 @@
             "description": "Whether the participant spoke first in the call"
           },
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name",
             "description": "Name of the participant"
           },
           "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Phone Number",
             "description": "Phone number of the participant (if applicable)"
           }
         },
         "type": "object",
-        "required": [
-          "role",
-          "spoke_first"
-        ],
+        "required": ["role", "spoke_first"],
         "title": "ParticipantResponse",
         "description": "Pydantic model for participant data"
       },
       "ParticipantRole": {
         "type": "string",
-        "enum": [
-          "AGENT",
-          "USER"
-        ],
+        "enum": ["AGENT", "USER"],
         "title": "ParticipantRole",
         "description": "Enum representing the role of a participant in a call."
+      },
+      "PhoneNumberResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Unique identifier for the phone number record"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Timestamp when the record was created"
+          },
+          "phone_number": {
+            "type": "string",
+            "title": "Phone Number",
+            "description": "The phone number in text format"
+          },
+          "purchase_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Purchase Date",
+            "description": "Date when the phone number was purchased"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price",
+            "description": "Price of the phone number in cents or smallest currency unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "created_at",
+          "phone_number",
+          "purchase_date",
+          "price"
+        ],
+        "title": "PhoneNumberResponse",
+        "description": "Response schema for phone number data.\nBased on the database table structure with columns:\n- id: int8 (primary key)\n- created_at: timestamptz\n- phone_number: text\n- purchase_date: date\n- price: int8\n- organization_id: uuid"
       },
       "ResponseType": {
         "type": "string",
@@ -5034,17 +3710,13 @@
           }
         },
         "type": "object",
-        "required": [
-          "call_log"
-        ],
+        "required": ["call_log"],
         "title": "RetrieveCallLogResponse"
       },
       "RetrieveCallLogsResponse": {
         "properties": {
           "call_logs": {
-            "items": {
-              "$ref": "#/components/schemas/CallLog"
-            },
+            "items": { "$ref": "#/components/schemas/CallLog" },
             "type": "array",
             "title": "Call Logs",
             "description": "List of calls retrieved from the database"
@@ -5067,72 +3739,38 @@
             "description": "ID of the agent to be used in the simulation"
           },
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name",
             "description": "Name of the simulation"
           },
           "sequential_calling": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Sequential Calling",
             "description": "Whether to run the simulation with sequential calling",
             "default": false
           },
           "hang_up_on_transfer": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Hang Up On Transfer",
             "description": "Whether to hang up the call on transfer",
             "default": false
           },
           "max_call_duration": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Max Call Duration",
             "description": "Maximum duration of each call in minutes (default is 10 minutes)",
             "default": 10
           },
           "digital_humans_settings": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/DigitalHumansSettings"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/DigitalHumansSettings" },
+              { "type": "null" }
             ],
             "description": "Settings for digital humans in the simulation"
           }
         },
         "type": "object",
-        "required": [
-          "agent_id"
-        ],
+        "required": ["agent_id"],
         "title": "SimulationRequest",
         "description": "Pydantic model for simulation request"
       },
@@ -5149,14 +3787,7 @@
             "description": "Name of the simulation"
           },
           "agent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Agent Id",
             "description": "ID of the agent associated with the simulation"
           },
@@ -5168,24 +3799,15 @@
           },
           "settings": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Settings",
             "description": "Settings of the simulation"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "created_at"
-        ],
+        "required": ["id", "name", "created_at"],
         "title": "SimulationRes"
       },
       "SimulationResponse": {
@@ -5203,39 +3825,24 @@
           }
         },
         "type": "object",
-        "required": [
-          "simulation_id"
-        ],
+        "required": ["simulation_id"],
         "title": "SimulationResponse"
       },
       "SimulationResultResponse": {
         "properties": {
           "result": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Result",
             "description": "Result of the simulation run"
           },
           "custom_metrics": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "items": {},
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "items": {}, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Custom Metrics",
             "description": "Custom metrics associated with the simulation result"
@@ -5247,42 +3854,20 @@
           },
           "latency": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "items": {},
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "items": {}, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Latency",
             "description": "Average latency of the simulation run"
           },
           "transcript_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Transcript Url",
             "description": "URL to the transcript file of the simulation run"
           },
           "audio_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Audio Url",
             "description": "URL to the audio file of the simulation run"
           }
@@ -5304,9 +3889,7 @@
                 },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Simulation Results",
             "description": "List of results from the simulation run"
@@ -5319,9 +3902,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "simulation_run"
-        ],
+        "required": ["simulation_run"],
         "title": "SimulationResultsResponse"
       },
       "SimulationRunRequest": {
@@ -5333,37 +3914,23 @@
           },
           "digital_human_ids": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Digital Human Ids",
             "description": "Digital human IDs to be used in the simulation"
           },
           "phone_number": {
             "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^\\+1\\d{10}$"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "pattern": "^\\+1\\d{10}$" },
+              { "type": "null" }
             ],
             "title": "Phone Number",
             "description": "Optional phone number to be used in this simulation run (overrides the agent phone number)"
           }
         },
         "type": "object",
-        "required": [
-          "simulation_id"
-        ],
+        "required": ["simulation_id"],
         "title": "SimulationRunRequest",
         "description": "Pydantic model for simulation run request"
       },
@@ -5380,86 +3947,37 @@
             "description": "ID of the simulation associated with the run"
           },
           "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Summary",
             "description": "Summary of the simulation run"
           },
           "tests_passed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Passed",
             "description": "Number of tests that passed in the simulation run"
           },
           "tests_failed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Failed",
             "description": "Number of tests that failed in the simulation run"
           },
           "total_tests": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Total Tests",
             "description": "Total number of tests in the simulation run"
           },
           "tests_completed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Completed",
             "description": "Number of tests that were completed in the simulation run"
           },
           "tests_incompleted": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Incompleted",
             "description": "Number of tests that were not completed in the simulation run"
           },
           "curr_step_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Curr Step Id",
             "description": "Current step ID of the simulation run"
           },
@@ -5474,25 +3992,13 @@
             "description": "Current status of the simulation run"
           },
           "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Phone Number",
             "description": "Phone number of the simulation run"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "experiment_id",
-          "created_at",
-          "status"
-        ],
+        "required": ["id", "experiment_id", "created_at", "status"],
         "title": "SimulationRunRes"
       },
       "SimulationRunResponse": {
@@ -5515,10 +4021,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "simulation_run_id",
-          "agent_id"
-        ],
+        "required": ["simulation_run_id", "agent_id"],
         "title": "SimulationRunResponse"
       },
       "SimulationRunResultResponse": {
@@ -5534,14 +4037,7 @@
             "description": "ID of the simulation associated with the run"
           },
           "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Summary",
             "description": "Summary of the simulation run"
           },
@@ -5550,62 +4046,27 @@
             "description": "Current status of the simulation run"
           },
           "total_tests": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Total Tests",
             "description": "Total number of tests in the simulation run"
           },
           "tests_passed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Passed",
             "description": "Number of tests that passed in the simulation run"
           },
           "tests_failed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Failed",
             "description": "Number of tests that failed in the simulation run"
           },
           "tests_completed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Completed",
             "description": "Number of tests that were completed in the simulation run"
           },
           "tests_incompleted": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Tests Incompleted",
             "description": "Number of tests that were not completed in the simulation run"
           },
@@ -5617,78 +4078,66 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "simulation_id",
-          "created_at"
-        ],
+        "required": ["id", "simulation_id", "created_at"],
         "title": "SimulationRunResultResponse"
       },
       "SimulationRunStatus": {
         "type": "string",
-        "enum": [
-          "INITIALIZING",
-          "RUNNING",
-          "COMPLETED",
-          "INCOMPLETED"
-        ],
+        "enum": ["INITIALIZING", "RUNNING", "COMPLETED", "INCOMPLETED"],
         "title": "SimulationRunStatus",
         "description": "Enum representing the possible states of a simulation run."
       },
+      "TextProcessorRequest": {
+        "properties": {
+          "redis_key": {
+            "type": "string",
+            "title": "Redis Key",
+            "description": "redis key for conversation history"
+          },
+          "test_case_id": {
+            "type": "string",
+            "title": "Test Case Id",
+            "description": "ID of the test case"
+          },
+          "response_format": {
+            "type": "string",
+            "enum": ["chirp", "text"],
+            "title": "Response Format",
+            "description": "response format",
+            "default": "chirp"
+          }
+        },
+        "type": "object",
+        "required": ["redis_key", "test_case_id"],
+        "title": "TextProcessorRequest",
+        "description": "Pydantic model for text processor request body"
+      },
       "ToolCallRequest": {
         "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "start_offset_ms": {
-            "type": "integer",
-            "title": "Start Offset Ms"
-          },
+          "name": { "type": "string", "title": "Name" },
+          "start_offset_ms": { "type": "integer", "title": "Start Offset Ms" },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description"
           },
           "parameters": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Parameters"
           },
           "output": {
             "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string" },
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Output"
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "start_offset_ms"
-        ],
+        "required": ["name", "start_offset_ms"],
         "title": "ToolCallRequest",
         "description": "Pydantic model for tool call data in request"
       },
@@ -5705,52 +4154,30 @@
             "description": "Start offset of the tool call in milliseconds"
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description",
             "description": "Description of the tool call"
           },
           "parameters": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Parameters",
             "description": "Parameters passed to the tool call"
           },
           "output": {
             "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string" },
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Output",
             "description": "Output returned by the tool call"
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "start_offset_ms"
-        ],
+        "required": ["name", "start_offset_ms"],
         "title": "ToolCallResponse",
         "description": "Pydantic model for tool call data"
       },
@@ -5789,37 +4216,18 @@
         "properties": {
           "schedule": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/EveryNMinutesSchedule"
-              },
-              {
-                "$ref": "#/components/schemas/DailySchedule"
-              },
-              {
-                "$ref": "#/components/schemas/WeeklySchedule"
-              },
-              {
-                "$ref": "#/components/schemas/MonthlySchedule"
-              },
-              {
-                "$ref": "#/components/schemas/CronSchedule"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/EveryNMinutesSchedule" },
+              { "$ref": "#/components/schemas/DailySchedule" },
+              { "$ref": "#/components/schemas/WeeklySchedule" },
+              { "$ref": "#/components/schemas/MonthlySchedule" },
+              { "$ref": "#/components/schemas/CronSchedule" },
+              { "type": "null" }
             ],
             "title": "Schedule",
             "description": "The new schedule for the cron job."
           },
           "enabled": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Enabled",
             "description": "Whether to enable or disable the cron job."
           }
@@ -5845,14 +4253,7 @@
             "description": "The cron expression defining the job schedule."
           },
           "enabled": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Enabled",
             "description": "Whether the cron job is enabled."
           },
@@ -5863,161 +4264,78 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "experiment_id",
-          "cron_expression",
-          "created_at"
-        ],
+        "required": ["id", "experiment_id", "cron_expression", "created_at"],
         "title": "UpdateCronJobResponse"
       },
       "UpdateCustomMetricRequest": {
         "properties": {
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name",
             "description": "Name of the custom metric"
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description",
             "description": "Description of what this metric measures"
           },
           "response_type": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/ResponseType"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/ResponseType" },
+              { "type": "null" }
             ],
             "description": "Type of response expected"
           },
           "min_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Min Value",
             "description": "Minimum value for quantitative metrics"
           },
           "max_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Max Value",
             "description": "Maximum value for quantitative metrics"
           },
           "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Category",
             "description": "Category for organizing metrics"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "Tags for categorizing the metric"
           },
           "scoring_guidance": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Scoring Guidance",
             "description": "Guidance on how to score this metric"
           },
           "eval_route": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalRoute"
-              },
-              {
-                "type": "null"
-              }
+              { "$ref": "#/components/schemas/EvalRoute" },
+              { "type": "null" }
             ],
             "description": "Route for evaluating the metric",
             "default": "AUTO"
           },
           "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Model",
             "description": "Model to use for evaluating the metric"
           },
           "temperature": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
             "title": "Temperature",
             "description": "Temperature for evaluating the metric"
           },
           "enum_options": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Enum Options",
             "description": "Options for enum metrics"
@@ -6030,38 +4348,17 @@
       "UpdateCustomerPersonaRequest": {
         "properties": {
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Name",
             "description": "Name of the customer persona"
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Description",
             "description": "Description of the customer persona"
           },
           "goal": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Goal",
             "description": "Goal of the customer persona"
           }
@@ -6079,14 +4376,10 @@
           "events": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/Event"
-                },
+                "items": { "$ref": "#/components/schemas/Event" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Events",
             "description": "List of events that occurred during the call"
@@ -6094,14 +4387,10 @@
           "tool_calls": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/ToolCallResponse"
-                },
+                "items": { "$ref": "#/components/schemas/ToolCallResponse" },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Tool Calls",
             "description": "List of tool calls made during the call"
@@ -6114,46 +4403,30 @@
                 },
                 "type": "array"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Recorded Transcript",
             "description": "Recorded transcript of the call (utilized to analyze STT accuracy)"
           },
           "tags": {
             "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
             ],
             "title": "Tags",
             "description": "List of tags associated with the call"
           },
           "metadata": {
             "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
             ],
             "title": "Metadata",
             "description": "Additional metadata associated with the call"
           }
         },
         "type": "object",
-        "required": [
-          "simulation_result_id"
-        ],
+        "required": ["simulation_result_id"],
         "title": "UpdateSimulationRequest"
       },
       "UpdateSimulationResponse": {
@@ -6165,14 +4438,7 @@
             "default": "success"
           },
           "message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Message",
             "description": "Optional message providing additional information about the response"
           }
@@ -6183,34 +4449,15 @@
       "ValidationError": {
         "properties": {
           "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
             "type": "array",
             "title": "Location"
           },
-          "msg": {
-            "type": "string",
-            "title": "Message"
-          },
-          "type": {
-            "type": "string",
-            "title": "Error Type"
-          }
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       },
       "WeeklySchedule": {
@@ -6240,11 +4487,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "frequency",
-          "day_of_week",
-          "time"
-        ],
+        "required": ["frequency", "day_of_week", "time"],
         "title": "WeeklySchedule"
       },
       "WorkflowEdge": {
@@ -6285,14 +4528,7 @@
             "description": "Target handle identifier"
           },
           "selected": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Selected",
             "description": "Whether the edge is selected"
           }
@@ -6319,26 +4555,20 @@
           }
         },
         "type": "object",
-        "required": [
-          "system_prompt"
-        ],
+        "required": ["system_prompt"],
         "title": "WorkflowGenerationRequest",
         "description": "Pydantic model for workflow generation request"
       },
       "WorkflowGenerationResponse": {
         "properties": {
           "edges": {
-            "items": {
-              "$ref": "#/components/schemas/WorkflowEdge"
-            },
+            "items": { "$ref": "#/components/schemas/WorkflowEdge" },
             "type": "array",
             "title": "Edges",
             "description": "List of workflow edges"
           },
           "nodes": {
-            "items": {
-              "$ref": "#/components/schemas/WorkflowNode"
-            },
+            "items": { "$ref": "#/components/schemas/WorkflowNode" },
             "type": "array",
             "title": "Nodes",
             "description": "List of workflow nodes"
@@ -6351,10 +4581,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "edges",
-          "nodes"
-        ],
+        "required": ["edges", "nodes"],
         "title": "WorkflowGenerationResponse",
         "description": "Pydantic model for workflow generation response"
       },
@@ -6366,9 +4593,7 @@
             "description": "Unique identifier for the node"
           },
           "data": {
-            "additionalProperties": {
-              "type": "string"
-            },
+            "additionalProperties": { "type": "string" },
             "type": "object",
             "title": "Data",
             "description": "Node data containing label and description"
@@ -6389,86 +4614,45 @@
             "description": "Height of the node"
           },
           "position": {
-            "additionalProperties": {
-              "type": "number"
-            },
+            "additionalProperties": { "type": "number" },
             "type": "object",
             "title": "Position",
             "description": "Position coordinates (x, y)"
           },
           "deletable": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Deletable",
             "description": "Whether the node can be deleted"
           },
           "draggable": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Draggable",
             "description": "Whether the node can be dragged"
           },
           "selected": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Selected",
             "description": "Whether the node is selected"
           },
           "positionAbsolute": {
             "anyOf": [
               {
-                "additionalProperties": {
-                  "type": "number"
-                },
+                "additionalProperties": { "type": "number" },
                 "type": "object"
               },
-              {
-                "type": "null"
-              }
+              { "type": "null" }
             ],
             "title": "Positionabsolute",
             "description": "Absolute position coordinates"
           },
           "dragging": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
             "title": "Dragging",
             "description": "Whether the node is being dragged"
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "data",
-          "type",
-          "width",
-          "height",
-          "position"
-        ],
+        "required": ["id", "data", "type", "width", "height", "position"],
         "title": "WorkflowNode",
         "description": "Pydantic model for workflow node"
       }
@@ -6482,15 +4666,8 @@
       }
     }
   },
-  "security": [
-    {
-      "apiKeyAuth": []
-    }
-  ],
+  "security": [{ "apiKeyAuth": [] }],
   "servers": [
-    {
-      "url": "https://api.getbluejay.ai",
-      "description": "Production server"
-    }
+    { "url": "https://api.getbluejay.ai", "description": "Production server" }
   ]
 }
