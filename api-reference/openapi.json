@@ -2728,6 +2728,122 @@
                     }
                 ]
             }
+        },
+        "/v1/generate-signing-key": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Generate Signing Key",
+                "description": "Generate a new signing key for a webhook",
+                "operationId": "generate_signing_key_v1_generate_signing_key_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WebhookKeyRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookKeyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/get-signing-key": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Get Signing Key",
+                "description": "Get the signing key for a webhook",
+                "operationId": "get_signing_key_v1_get_signing_key_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WebhookKeyRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookKeyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -3259,6 +3375,18 @@
                         "title": "Agent Id",
                         "description": "ID of the agent associated with the call"
                     },
+                    "external_agent_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "External Agent Id",
+                        "description": "External ID of the agent associated with the call"
+                    },
                     "recording_url": {
                         "anyOf": [
                             {
@@ -3612,6 +3740,18 @@
                         ],
                         "title": "Metadata",
                         "description": "Additional metadata associated with the evaluation"
+                    },
+                    "webhook_tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Tag",
+                        "description": "Tag of the webhook to send the evaluation to"
                     }
                 },
                 "type": "object",
@@ -3794,6 +3934,18 @@
                         ],
                         "title": "Metadata",
                         "description": "Additional metadata associated with the evaluation"
+                    },
+                    "webhook_tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Tag",
+                        "description": "Tag of the webhook to send the evaluation to"
                     }
                 },
                 "type": "object",
@@ -6825,6 +6977,43 @@
                     "type"
                 ],
                 "title": "ValidationError"
+            },
+            "WebhookKeyRequest": {
+                "properties": {
+                    "webhook_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Webhook Id",
+                        "description": "ID of the webhook"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "webhook_id"
+                ],
+                "title": "WebhookKeyRequest",
+                "description": "Request model for creating a webhook"
+            },
+            "WebhookKeyResponse": {
+                "properties": {
+                    "signing_key": {
+                        "type": "string",
+                        "title": "Signing Key",
+                        "description": "Signing key"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "signing_key",
+                    "message"
+                ],
+                "title": "WebhookKeyResponse",
+                "description": "Response model for creating a webhook"
             },
             "WeeklySchedule": {
                 "properties": {
