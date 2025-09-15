@@ -204,7 +204,7 @@
         "/v1/generate-test-scenarios": {
             "post": {
                 "summary": "Generate Test Scenarios",
-                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{problem: string, transcript: string, success_criteria: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
+                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{problem: string, transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - problem: Required. Description of the problem/scenario context\n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from problem and transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
                 "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
                 "security": [
                     {
@@ -1131,7 +1131,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/DigitalHumanResponse"
+                                    "$ref": "#/components/schemas/src__main__DigitalHumanResponse"
                                 }
                             }
                         }
@@ -2844,10 +2844,324 @@
                     }
                 }
             }
+        },
+        "/v1/create-digital-human": {
+            "post": {
+                "tags": [
+                    "Digital Humans"
+                ],
+                "summary": "Create Digital Human",
+                "description": "Create a new digital human",
+                "operationId": "create_digital_human_v1_create_digital_human_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateDigitalHumanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/src__api__digital_humans__DigitalHumanResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/update-digital-human/{digital_human_id}": {
+            "put": {
+                "tags": [
+                    "Digital Humans"
+                ],
+                "summary": "Update Digital Human",
+                "description": "Update a digital human by ID",
+                "operationId": "update_digital_human_v1_update_digital_human__digital_human_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "digital_human_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Digital Human Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateDigitalHumanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/src__api__digital_humans__DigitalHumanResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/digital-human/{digital_human_id}": {
+            "get": {
+                "tags": [
+                    "Digital Humans"
+                ],
+                "summary": "Get Digital Human",
+                "description": "Get a digital human by ID",
+                "operationId": "get_digital_human_v1_digital_human__digital_human_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "digital_human_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Digital Human Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DigitalHumanResponseData"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Digital Humans"
+                ],
+                "summary": "Delete Digital Human",
+                "description": "Delete a digital human by ID",
+                "operationId": "delete_digital_human_v1_digital_human__digital_human_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "digital_human_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Digital Human Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DigitalHumanResponseData"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/digital-humans-by-simulation/{simulation_id}": {
+            "get": {
+                "tags": [
+                    "Digital Humans"
+                ],
+                "summary": "Get Digital Humans By Simulation",
+                "description": "Get digital humans by simulation ID",
+                "operationId": "get_digital_humans_by_simulation_v1_digital_humans_by_simulation__simulation_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DigitalHumansListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "AccentType": {
+                "type": "string",
+                "enum": [
+                    "american",
+                    "southern",
+                    "italian",
+                    "indian",
+                    "british",
+                    "australian",
+                    "mexican",
+                    "spanish",
+                    "portuguese",
+                    "turkish",
+                    "japanese",
+                    "hindi",
+                    "arabic"
+                ],
+                "title": "AccentType",
+                "description": "Enum for accent options"
+            },
             "AgentMode": {
                 "type": "string",
                 "enum": [
@@ -3111,6 +3425,18 @@
                         ],
                         "title": "External Agent Id",
                         "description": "External agent ID for the agent"
+                    },
+                    "folder": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Folder",
+                        "description": "Name of the folder to put the agent in"
                     }
                 },
                 "type": "object",
@@ -3270,6 +3596,18 @@
                         ],
                         "title": "External Agent Id",
                         "description": "External agent ID for the agent"
+                    },
+                    "folder": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Folder",
+                        "description": "Name of the folder to put the agent in"
                     }
                 },
                 "type": "object",
@@ -3296,6 +3634,20 @@
                     "agent"
                 ],
                 "title": "AgentUpdateResponse"
+            },
+            "BackgroundNoiseType": {
+                "type": "string",
+                "enum": [
+                    "none",
+                    "office",
+                    "talking",
+                    "traffic",
+                    "cafe",
+                    "park",
+                    "tv"
+                ],
+                "title": "BackgroundNoiseType",
+                "description": "Enum for background noise options"
             },
             "Body_upload_audio_v1_log_evaluation_post": {
                 "properties": {
@@ -4284,6 +4636,32 @@
                 ],
                 "title": "CreateCustomerPersonaRequest"
             },
+            "CreateDigitalHumanRequest": {
+                "properties": {
+                    "simulation_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Simulation Id",
+                        "description": "ID of the associated simulation"
+                    },
+                    "digital_human": {
+                        "$ref": "#/components/schemas/DigitalHumanRequestData",
+                        "description": "The digital human data"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_human"
+                ],
+                "title": "CreateDigitalHumanRequest",
+                "description": "Request model for creating a digital human"
+            },
             "CreateKeyIn": {
                 "properties": {
                     "scope": {
@@ -4906,23 +5284,481 @@
                 "title": "DigitalHumanRequest",
                 "description": "Pydantic model for digital humans (simulation type) request"
             },
-            "DigitalHumanResponse": {
+            "DigitalHumanRequestData": {
                 "properties": {
-                    "digital_humans": {
-                        "items": {},
-                        "type": "array",
-                        "title": "Digital Humans",
-                        "description": "List of digital humans created for the simulation"
-                    },
-                    "status": {
+                    "intent": {
                         "type": "string",
-                        "title": "Status",
-                        "description": "Status of the response",
-                        "default": "200"
+                        "title": "Intent",
+                        "description": "Description of the digital human"
+                    },
+                    "success_criteria": {
+                        "type": "string",
+                        "title": "Success Criteria",
+                        "description": "Success criteria for the digital human"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Name of the digital human"
+                    },
+                    "tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tag",
+                        "description": "Tag for categorizing the digital human"
+                    },
+                    "language": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LanguageType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Language the digital human speaks",
+                        "default": "en"
+                    },
+                    "accent": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccentType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Accent of the digital human"
+                    },
+                    "gender": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/GenderType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Gender of the digital human"
+                    },
+                    "background_noise": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/BackgroundNoiseType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Type of background noise",
+                        "default": "none"
+                    },
+                    "voice_speed": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VoiceSpeedType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Speed of the digital human's voice",
+                        "default": "normal"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "pattern": "^\\+1\\d{10}$",
+                        "title": "Phone Number",
+                        "description": "Phone number for the digital human"
+                    },
+                    "outbound_text_number": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^\\+1\\d{10}$"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Outbound Text Number",
+                        "description": "Outbound text number"
+                    },
+                    "background_noise_volume": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 1.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Background Noise Volume",
+                        "description": "Volume of background noise",
+                        "default": 0.8
+                    },
+                    "expected_tool_calls": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Expected Tool Calls",
+                        "description": "Expected tool call outputs"
+                    },
+                    "endpointing_delay": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Endpointing Delay",
+                        "description": "Delay for endpointing",
+                        "default": 1.5
+                    },
+                    "creativity": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 2.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Creativity",
+                        "description": "How creative the digital human is (Model temperature)",
+                        "default": 0.7
+                    },
+                    "hangup_phrases": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hangup Phrases",
+                        "description": "Phrases that trigger hangup"
+                    },
+                    "silence_timeout": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 15.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Silence Timeout",
+                        "description": "Silence timeout in seconds"
                     }
                 },
                 "type": "object",
-                "title": "DigitalHumanResponse"
+                "required": [
+                    "intent",
+                    "success_criteria",
+                    "phone_number"
+                ],
+                "title": "DigitalHumanRequestData",
+                "description": "Digital human data model for requests (without id and created_at)"
+            },
+            "DigitalHumanResponseData": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id",
+                        "description": "Unique identifier for the digital human"
+                    },
+                    "intent": {
+                        "type": "string",
+                        "title": "Intent",
+                        "description": "Description of the digital human"
+                    },
+                    "success_criteria": {
+                        "type": "string",
+                        "title": "Success Criteria",
+                        "description": "Success criteria for the digital human"
+                    },
+                    "tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tag",
+                        "description": "Tag for categorizing the digital human"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Name of the digital human"
+                    },
+                    "language": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LanguageType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Language of the digital human"
+                    },
+                    "accent": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccentType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Accent of the digital human"
+                    },
+                    "gender": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/GenderType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Gender of the digital human"
+                    },
+                    "background_noise": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Background Noise",
+                        "description": "Type of background noise"
+                    },
+                    "voice_speed": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Voice Speed",
+                        "description": "Speed of the digital human's voice"
+                    },
+                    "phone_number": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Phone Number",
+                        "description": "Phone number for the digital human"
+                    },
+                    "outbound_text_number": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Outbound Text Number",
+                        "description": "Outbound text number"
+                    },
+                    "websocket_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Websocket Url",
+                        "description": "WebSocket URL for real-time communication"
+                    },
+                    "background_noise_volume": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Background Noise Volume",
+                        "description": "Volume of background noise"
+                    },
+                    "expected_tool_calls": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Expected Tool Calls",
+                        "description": "Expected tool calls"
+                    },
+                    "endpointing_delay": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Endpointing Delay",
+                        "description": "Delay for endpointing"
+                    },
+                    "creativity": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Creativity",
+                        "description": "Temperature setting"
+                    },
+                    "hangup_phrases": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hangup Phrases",
+                        "description": "Phrases that trigger hangup"
+                    },
+                    "silence_timeout": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Silence Timeout",
+                        "description": "Silence timeout in seconds"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Created At",
+                        "description": "When this digital human was created"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "intent",
+                    "success_criteria"
+                ],
+                "title": "DigitalHumanResponseData",
+                "description": "Response model for digital human data"
+            },
+            "DigitalHumansListResponse": {
+                "properties": {
+                    "digital_humans": {
+                        "items": {
+                            "$ref": "#/components/schemas/DigitalHumanResponseData"
+                        },
+                        "type": "array",
+                        "title": "Digital Humans",
+                        "description": "List of digital humans"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "Total number of digital humans"
+                    },
+                    "simulation_id": {
+                        "type": "integer",
+                        "title": "Simulation Id",
+                        "description": "ID of the simulation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_humans",
+                    "total",
+                    "simulation_id"
+                ],
+                "title": "DigitalHumansListResponse",
+                "description": "Response model for listing digital humans by simulation"
             },
             "DigitalHumansSettings": {
                 "properties": {
@@ -5368,6 +6204,15 @@
                 ],
                 "title": "EveryNMinutesSchedule"
             },
+            "GenderType": {
+                "type": "string",
+                "enum": [
+                    "male",
+                    "female"
+                ],
+                "title": "GenderType",
+                "description": "Enum for gender options"
+            },
             "GenerateCustomMetricsRequest": {
                 "properties": {
                     "agent_id": {
@@ -5531,6 +6376,20 @@
                     "revoked"
                 ],
                 "title": "KeyOut"
+            },
+            "LanguageType": {
+                "type": "string",
+                "enum": [
+                    "en",
+                    "es",
+                    "pt",
+                    "ja",
+                    "tr",
+                    "hi",
+                    "ar"
+                ],
+                "title": "LanguageType",
+                "description": "Enum for supported language types"
             },
             "Latency": {
                 "properties": {
@@ -6834,6 +7693,229 @@
                 "type": "object",
                 "title": "UpdateCustomerPersonaRequest"
             },
+            "UpdateDigitalHumanRequest": {
+                "properties": {
+                    "intent": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Intent",
+                        "description": "Description of the digital human"
+                    },
+                    "success_criteria": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Success Criteria",
+                        "description": "Success criteria for the digital human"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Name of the digital human"
+                    },
+                    "tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tag",
+                        "description": "Tag for categorizing the digital human"
+                    },
+                    "language": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/LanguageType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Language the digital human speaks",
+                        "default": "en"
+                    },
+                    "accent": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AccentType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Accent of the digital human"
+                    },
+                    "gender": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/GenderType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Gender of the digital human"
+                    },
+                    "background_noise": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/BackgroundNoiseType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Type of background noise",
+                        "default": "none"
+                    },
+                    "voice_speed": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VoiceSpeedType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Speed of the digital human's voice",
+                        "default": "normal"
+                    },
+                    "phone_number": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^\\+1\\d{10}$"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Phone Number",
+                        "description": "Phone number for the digital human"
+                    },
+                    "outbound_text_number": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^\\+1\\d{10}$"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Outbound Text Number",
+                        "description": "Outbound text number"
+                    },
+                    "background_noise_volume": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 1.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Background Noise Volume",
+                        "description": "Volume of background noise",
+                        "default": 0.8
+                    },
+                    "expected_tool_calls": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Expected Tool Calls",
+                        "description": "Expected tool call outputs"
+                    },
+                    "endpointing_delay": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Endpointing Delay",
+                        "description": "Delay for endpointing",
+                        "default": 1.5
+                    },
+                    "creativity": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 2.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Creativity",
+                        "description": "How creative the digital human is (Model temperature)",
+                        "default": 0.7
+                    },
+                    "hangup_phrases": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hangup Phrases",
+                        "description": "Phrases that trigger hangup"
+                    },
+                    "silence_timeout": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 15.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Silence Timeout",
+                        "description": "Silence timeout in seconds"
+                    }
+                },
+                "type": "object",
+                "title": "UpdateDigitalHumanRequest",
+                "description": "Request model for updating a digital human - contains only the digital human data"
+            },
             "UpdateSimulationRequest": {
                 "properties": {
                     "simulation_result_id": {
@@ -6977,6 +8059,18 @@
                     "type"
                 ],
                 "title": "ValidationError"
+            },
+            "VoiceSpeedType": {
+                "type": "string",
+                "enum": [
+                    "slowest",
+                    "slow",
+                    "normal",
+                    "fast",
+                    "fastest"
+                ],
+                "title": "VoiceSpeedType",
+                "description": "Enum for voice speed options"
             },
             "WebhookKeyRequest": {
                 "properties": {
@@ -7274,6 +8368,50 @@
                 "title": "WorkflowNode",
                 "description": "Pydantic model for workflow node"
             },
+            "src__api__digital_humans__DigitalHumanResponse": {
+                "properties": {
+                    "digital_human": {
+                        "$ref": "#/components/schemas/DigitalHumanResponseData",
+                        "description": "The digital human data"
+                    },
+                    "simulation_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Simulation Id",
+                        "description": "ID of the associated simulation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_human"
+                ],
+                "title": "DigitalHumanResponse",
+                "description": "Response model for digital human operations with clear separation of digital human data and simulation context"
+            },
+            "src__main__DigitalHumanResponse": {
+                "properties": {
+                    "digital_humans": {
+                        "items": {},
+                        "type": "array",
+                        "title": "Digital Humans",
+                        "description": "List of digital humans created for the simulation"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "200"
+                    }
+                },
+                "type": "object",
+                "title": "DigitalHumanResponse"
+            },
             "src__main__SimulationRunRequest": {
                 "properties": {
                     "simulation_id": {
@@ -7361,6 +8499,7 @@
         "evaluate_webhook": {
             "post": {
                 "summary": "Webhook: evaluate_webhook",
+                "description": "Upon an evaulation job being completed, we'll send you the results to the URL you registered within the dashboard",
                 "requestBody": {
                     "required": true,
                     "content": {
