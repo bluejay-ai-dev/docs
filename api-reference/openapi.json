@@ -783,6 +783,61 @@
                 }
             }
         },
+        "/v1/update-agent-by-external-id": {
+            "put": {
+                "summary": "Update Agent By External Id",
+                "description": "Update an existing agent in the system by external ID.",
+                "operationId": "update_agent_by_external_id_v1_update_agent_by_external_id_put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AgentUpdateWithExternalIdRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentUpdateResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/agents/{agent_id}": {
             "get": {
                 "summary": "Get Agent",
@@ -801,6 +856,60 @@
                         "schema": {
                             "type": "integer",
                             "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agent-by-external-id/{external_id}": {
+            "get": {
+                "summary": "Get Agent By External Id",
+                "description": "Get an agent by external ID.",
+                "operationId": "get_agent_by_external_id_v1_agent_by_external_id__external_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "external_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "External Id"
                         }
                     },
                     {
@@ -3169,13 +3278,13 @@
                 }
             }
         },
-        "/v1/integrations/11labs": {
+        "/v1/integrations/ElevenLabs": {
             "post": {
                 "tags": [
-                    "11labs"
+                    "ElevenLabs"
                 ],
                 "summary": "Handle Webhook",
-                "operationId": "handle_webhook_v1_integrations_11labs_post",
+                "operationId": "handle_webhook_v1_integrations_ElevenLabs_post",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -3541,9 +3650,28 @@
             "AgentUpdateRequest": {
                 "properties": {
                     "agent_id": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Agent Id",
                         "description": "ID of the agent to be updated"
+                    },
+                    "external_agent_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "External Agent Id",
+                        "description": "External agent ID for the agent"
                     },
                     "name": {
                         "anyOf": [
@@ -3645,18 +3773,6 @@
                         "title": "Keyterms",
                         "description": "List of keyterms for the agent"
                     },
-                    "external_agent_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "External Agent Id",
-                        "description": "External agent ID for the agent"
-                    },
                     "folder": {
                         "anyOf": [
                             {
@@ -3694,6 +3810,132 @@
                     "agent"
                 ],
                 "title": "AgentUpdateResponse"
+            },
+            "AgentUpdateWithExternalIdRequest": {
+                "properties": {
+                    "external_agent_id": {
+                        "type": "string",
+                        "title": "External Agent Id",
+                        "description": "External agent ID for the agent"
+                    },
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Name of the agent"
+                    },
+                    "system_prompt": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "System Prompt",
+                        "description": "System prompt for the agent"
+                    },
+                    "knowledge_base": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base",
+                        "description": "Knowledge base of the agent"
+                    },
+                    "phone_number": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Phone Number",
+                        "description": "Phone number associated with the agent"
+                    },
+                    "goals": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Goals",
+                        "description": "List of goals for the agent"
+                    },
+                    "type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AgentType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers"
+                    },
+                    "mode": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AgentMode"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Modality of the agent"
+                    },
+                    "keyterms": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Keyterms",
+                        "description": "List of keyterms for the agent"
+                    },
+                    "folder": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Folder",
+                        "description": "Name of the folder to put the agent in"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "external_agent_id"
+                ],
+                "title": "AgentUpdateWithExternalIdRequest"
             },
             "BackgroundNoiseType": {
                 "type": "string",
