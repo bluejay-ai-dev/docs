@@ -1,0 +1,339 @@
+---
+title: 'Telephony'
+description: 'Simple phone number setup for instant voice agent testing'
+---
+
+# Telephony Integration
+
+Bluejay makes it incredibly simple to test your voice agents using just a phone number. Provide a phone number, and Bluejay handles all the telephony infrastructure to connect with your agent.
+
+## Quick Start
+
+Testing your voice agent is straightforward:
+
+1. **Add Your Phone Number**: Configure your agent with any valid phone number
+2. **Create a Simulation**: Set up test scenarios with customer personas
+3. **Run the Test**: Bluejay automatically handles the call setup
+4. **Get Results**: View detailed analytics, transcripts, and recordings
+
+```json
+{
+  "agent": {
+    "name": "Customer Support Agent",
+    "phone_number": "+15551234567",
+    "system_prompt": "You are a helpful customer support agent..."
+  }
+}
+```
+
+No complex setup, no infrastructure management, no telephony expertise required.
+
+## Inbound vs Outbound Testing
+
+Understanding simulation testing directions is crucial for effective voice agent evaluation. Bluejay supports both testing approaches based on who initiates the call.
+
+### Outbound Testing (Default)
+
+In outbound testing, **Bluejay calls your agent** to simulate incoming customer calls.
+
+#### How It Works
+1. You provide your agent's phone number or SIP endpoint
+2. Bluejay initiates calls to your agent using digital humans
+3. The simulated customer (persona) interacts with your agent
+4. Your agent responds as it would to real incoming calls
+
+#### Characteristics
+- **Immediate Execution**: Tests run as soon as triggered
+- **Multiple Iterations**: Can repeat the same test multiple times
+- **High Control**: Bluejay controls timing and execution
+- **Synchronous Results**: Get results immediately after completion
+- **High Concurrency**: Support for simultaneous calls
+
+#### Use Cases
+Perfect for testing:
+- **Customer Service Lines**: Support hotlines, help desks
+- **IVR Systems**: Automated phone menus and call routing
+- **Receptionist Agents**: Virtual assistants answering calls
+- **Emergency Response**: Crisis hotlines, urgent support
+- **Product Support**: Technical support scenarios
+
+### Inbound Testing
+
+In inbound testing, **your agent calls Bluejay** to simulate outbound campaigns and proactive scenarios.
+
+#### How It Works
+1. Bluejay provisions phone numbers for each test case
+2. Your agent system initiates calls to Bluejay's provisioned numbers
+3. Bluejay answers as the simulated customer (persona)
+4. Your agent conducts the outbound call scenario
+
+#### Triggering Inbound Calls
+**Automatic Triggering (Recommended)**:
+- Configure an HTTP endpoint that Bluejay calls to trigger your agent
+- Bluejay passes the provisioned number as `{{phoneNumberToDial}}`
+- Your system initiates the call automatically
+
+**Manual Calls**:
+- Bluejay displays provisioned numbers in the simulation interface
+- You manually trigger your agent to call the provided numbers
+
+#### Characteristics
+- **Asynchronous Execution**: Tests wait for your agent to initiate calls
+- **Agent-Controlled Timing**: Your system decides when to call
+- **Single Iteration**: One test per provisioned number
+- **Pending State**: Test cases remain pending until called
+- **Timeout Management**: Configurable timeouts for pending tests
+
+#### Use Cases
+Perfect for testing:
+- **Sales Campaigns**: Cold calling, lead follow-up
+- **Appointment Reminders**: Medical, service appointments
+- **Survey Calls**: Customer satisfaction, market research
+- **Collections**: Payment reminders, account management
+- **Notifications**: Alert calls, status updates
+- **Follow-up Workflows**: Post-purchase, support follow-ups
+
+## Key Differences
+
+| Aspect | Outbound Testing | Inbound Testing |
+|--------|------------------|-----------------|
+| **Who calls who** | Bluejay → Your Agent | Your Agent → Bluejay |
+| **Execution** | Instant | When your agent calls |
+| **Concurrency** | Unlimited | One per number |
+| **Primary use case** | Customer service | Sales/outreach |
+| **Timing control** | Bluejay controls | You control |
+| **Test state** | Running/Complete | Ready/Running/Complete |
+| **Setup complexity** | Simple | Requires triggering |
+
+## Choosing the Right Testing Direction
+
+### Choose Outbound Testing When:
+- Testing customer service scenarios
+- You need immediate results and feedback
+- Running high-volume or load tests
+- Testing response to incoming requests
+- Validating IVR flows and call routing
+- Testing agent availability and responsiveness
+
+### Choose Inbound Testing When:
+- Testing sales or marketing campaigns
+- Your agent initiates customer contact
+- Testing dialer integrations and workflows
+- Validating outreach scripts and processes
+- Testing follow-up and reminder systems
+- Simulating proactive customer engagement
+
+## Configuration Examples
+
+### Outbound Testing Configuration
+
+```json
+{
+  "agent_id": "agent_123",
+  "phone_number": "+15551234567",
+  "test_direction": "outbound",
+  "iterations": 5,
+  "concurrency": 3,
+  "scenarios": [
+    {
+      "name": "Product Support",
+      "customer_persona": "frustrated_customer",
+      "expected_outcome": "issue_resolved"
+    }
+  ]
+}
+```
+
+### Inbound Testing Configuration
+
+```json
+{
+  "agent_id": "agent_456", 
+  "test_direction": "inbound",
+  "trigger_endpoint": {
+    "url": "https://your-system.com/trigger-call",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer your-token"
+    },
+    "body": {
+      "phone_to_dial": "{{phoneNumberToDial}}",
+      "campaign_id": "{{campaignId}}"
+    }
+  },
+  "timeout_minutes": 60,
+  "scenarios": [
+    {
+      "name": "Sales Follow-up",
+      "customer_persona": "interested_prospect",
+      "expected_outcome": "appointment_scheduled"
+    }
+  ]
+}
+```
+
+## Real-World Examples
+
+### E-commerce Customer Support
+```json
+{
+  "simulation": {
+    "name": "Order Status Support",
+    "agent_phone": "+15551234567",
+    "test_mode": "customer_service",
+    "customer_persona": {
+      "name": "Sarah Johnson",
+      "tone": "concerned",
+      "issue": "Order delayed, needs update"
+    },
+    "success_criteria": [
+      "Order status provided",
+      "Customer satisfaction >= 4/5",
+      "Call duration < 5 minutes"
+    ]
+  }
+}
+```
+
+### Insurance Claims Processing
+```json
+{
+  "simulation": {
+    "name": "Auto Insurance Claim",
+    "agent_phone": "+15559876543",
+    "test_mode": "customer_service",
+    "customer_persona": {
+      "name": "Mike Chen",
+      "tone": "stressed",
+      "issue": "Car accident, need to file claim"
+    },
+    "required_actions": [
+      "Collect incident details",
+      "Verify policy information",
+      "Schedule adjuster appointment"
+    ]
+  }
+}
+```
+
+### Outbound Sales Campaign
+```json
+{
+  "simulation": {
+    "name": "Lead Follow-up Campaign",
+    "test_mode": "sales_campaign",
+    "trigger_endpoint": {
+      "url": "https://crm.company.com/trigger-call",
+      "headers": {"Authorization": "Bearer token"}
+    },
+    "customer_persona": {
+      "name": "Jennifer Wilson",
+      "tone": "interested",
+      "context": "Downloaded product brochure last week"
+    },
+    "success_criteria": [
+      "Product demo scheduled",
+      "Contact information confirmed",
+      "Follow-up date set"
+    ]
+  }
+}
+```
+
+## Supported Phone Systems
+
+Bluejay works with virtually any phone system:
+
+### ✅ Compatible Systems
+- **Traditional PBX**: Any standard business phone system
+- **VoIP Providers**: Twilio, RingCentral, 8x8, Vonage, etc.
+- **Cloud Contact Centers**: Amazon Connect, Genesys Cloud, Five9, etc.
+- **SIP-based Systems**: Any system supporting standard SIP protocols
+- **Mobile Phones**: Direct mobile number testing
+- **Landlines**: Traditional telephone lines
+
+### 📞 Supported Number Formats
+- **US/Canada**: +1XXXXXXXXXX
+- **International**: Full international format required
+- **Extensions**: Supported with comma-separated dialing
+- **Toll-Free**: 800, 888, 877, 866, 855, 844, 833 numbers
+
+## Key Benefits
+
+### 🚀 **Zero Infrastructure Setup**
+- No telephony infrastructure required
+- Works with your existing phone system
+- Start testing in minutes
+
+### 📊 **Complete Analytics**
+- Full conversation transcripts
+- Audio recordings for quality review
+- Performance metrics and automated scoring
+- Success/failure analysis with detailed insights
+
+### 🔄 **Realistic Testing Environment**
+- Actual phone call experience with real network conditions
+- Natural conversation flow and timing
+- Authentic customer interaction patterns
+- Real-world audio quality and latency
+
+### 📈 **Enterprise-Scale Testing**
+- Run multiple simulations simultaneously
+- Batch testing capabilities for large scenarios
+- Automated recurring tests for continuous monitoring
+- Load testing to validate system capacity
+
+## Technical Requirements
+
+### Customer Service Testing
+- **Concurrent Call Handling**: Ensure your agent can handle multiple simultaneous calls
+- **Response Time**: Monitor how quickly your agent answers and responds
+- **Rate Limiting**: Configure limits to prevent system overload
+- **Network Reliability**: Stable connectivity for consistent results
+
+### Sales Campaign Testing
+- **Call Triggering**: Set up HTTP endpoint or manual calling process
+- **Timeout Configuration**: Set realistic timeouts (default: 60 minutes)
+- **Dialer Integration**: Configure your system to call Bluejay's numbers
+- **Failed Call Handling**: Implement graceful error handling
+
+## Best Practices
+
+### Getting Started
+1. **Start Simple**: Begin with customer service testing for immediate feedback
+2. **Match Production**: Choose the testing mode that matches your real-world usage
+3. **Test Incrementally**: Start with single calls, then scale to multiple scenarios
+
+### Optimization
+- **Monitor Performance**: Track answer rates, call duration, and success metrics
+- **Scenario Variety**: Test different customer personas and edge cases
+- **Quality Review**: Regularly review recordings and transcripts
+- **Load Testing**: Use customer service mode for high-volume testing
+
+### Advanced Monitoring
+- **Real-time Dashboards**: Monitor active tests and results live
+- **Alert Configuration**: Set up notifications for failures or performance issues
+- **Continuous Testing**: Schedule regular tests to catch regressions early
+
+## Enhanced Analytics with SIP
+
+For customers requiring deeper insights and metadata collection, consider upgrading to our SIP connectivity option.
+
+**SIP Benefits:**
+- **Tool Call Tracking**: Monitor every API call and external service interaction
+- **Custom Metadata**: Collect business-specific metrics and outcomes
+- **Real-time Analytics**: Push live performance data during calls
+- **Advanced Evaluation**: Link conversation outcomes to specific agent behaviors
+
+[Learn more about SIP connectivity →](/simulation-integrations/sip)
+
+## Getting Started
+
+1. **Configure Your Agent**: Add your phone number to your agent settings
+2. **Choose Your Testing Mode**: Select customer service or sales campaign testing
+3. **Create Test Scenarios**: Define customer personas and expected outcomes
+4. **Run Your First Test**: Execute a simulation and monitor results
+5. **Analyze Results**: Review transcripts, recordings, and performance metrics
+6. **Iterate and Improve**: Use insights to enhance your agent's performance
+
+Ready to test your voice agent? Our telephony integration makes it as simple as providing a phone number.

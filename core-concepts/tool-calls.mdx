@@ -1,0 +1,162 @@
+---
+title: 'Tool Calls & Call Metadata'
+description: 'Enrich your evaluations with comprehensive tool call tracking and custom metadata'
+---
+
+Bluejay natively provides the ability to ingest and analyze tool calls and call metadata from your voice agents, enabling you to build comprehensive evaluations that go far beyond basic conversation analysis. By capturing every API call and database query during agent interactions, you can gain deep insights into agent performance and business outcomes.
+
+## Integration Options
+
+Bluejay supports two primary methods for ingesting tool calls and metadata, each optimized for different use cases and technical requirements.
+
+### SIP Integration (Recommended for Phone Systems)
+
+**Best for**: Traditional phone systems, telephony infrastructure, and scenarios requiring rich call metadata.
+
+SIP (Session Initiation Protocol) integration provides the most comprehensive approach to tool call and metadata ingestion. When Bluejay initiates calls via SIP, it automatically injects custom headers including the `X-Simulation-Result-Id`, enabling seamless data correlation.
+
+**How it Works:**
+1. Bluejay initiates SIP calls with custom headers
+2. Your agent extracts the `X-Simulation-Result-Id` from SIP headers
+3. During the call, your agent tracks tool calls and metadata
+4. Post-call, use the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) API to enrich the simulation data
+
+[Learn more about SIP integration →](/simulation-integrations/sip)
+
+### WebSocket Integration
+
+**Best for**: Real-time applications, modern web-based agents, and scenarios requiring bidirectional communication.
+
+WebSocket integration using the CHIRP protocol enables real-time, bidirectional communication with your voice agents. This approach is ideal for modern, web-based voice agent implementations.
+
+**How it Works:**
+1. Bluejay establishes WebSocket connection to your agent
+2. Real-time CHIRP message exchange during conversations
+3. Your agent can send tool call and metadata information via CHIRP messages
+4. Bluejay processes and correlates data in real-time
+
+[Learn more about WebSocket integration →](/simulation-integrations/websockets)
+
+## Phone System Recommendations
+
+### For Phone-Based Systems: Use SIP
+
+If your voice agent operates through traditional phone systems, telephony providers, or any phone number-based infrastructure, **we strongly recommend using SIP integration** to unlock the full benefits of tool call and metadata tracking.
+
+**Compatible Phone Systems:**
+- Traditional PBX systems
+- VoIP providers (Twilio, RingCentral, 8x8, etc.)
+- Cloud contact centers (Amazon Connect, Genesys, Five9)
+- SIP-based platforms
+- Mobile and landline integrations
+
+### Comparison: Basic Telephony vs SIP Integration
+
+| Feature | Basic Telephony | SIP Integration |
+|---------|----------------|-----------------|
+| **Setup Complexity** | Simple phone number | SIP endpoint configuration |
+| **Tool Call Tracking** | ❌ Not supported | ✅ Complete tracking |
+| **Custom Metadata** | ❌ Limited | ✅ Rich metadata support |
+| **Outcome Correlation** | ❌ Basic metrics only | ✅ Advanced analytics |
+| **Business Intelligence** | ❌ Conversation-focused | ✅ Comprehensive insights |
+| **Integration Effort** | Minimal | Moderate (one-time setup) |
+
+## Getting Started
+
+### Step 1: Choose Your Integration Method
+
+**For Phone-Based Agents:**
+- Use SIP integration for maximum capabilities
+- Follow the [SIP Integration Guide](/simulation-integrations/sip)
+
+**For Web-Based Agents:**
+- Use WebSocket integration with CHIRP protocol
+- Follow the [WebSocket Integration Guide](/simulation-integrations/websockets)
+
+### Step 2: Implement Tool Call Tracking
+
+Regardless of your integration method, implement comprehensive tool call tracking:
+
+```python
+# Example: Tool call tracking structure
+def track_tool_call(tool_name, parameters, result, timestamp):
+    return {
+        "tool_name": tool_name,
+        "parameters": parameters,
+        "result": result,
+        "timestamp": timestamp,
+        "execution_time_ms": calculate_execution_time(),
+        "success": result.get("error") is None
+    }
+```
+
+### Step 3: Enrich Your Evaluations
+
+Use the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint to send your tool calls and metadata to Bluejay:
+
+```json
+{
+  "simulation_result_id": "extracted-from-sip-header-or-websocket",
+  "tool_calls": [...],
+  "metadata": {...},
+  "events": [...]
+}
+```
+
+## Advanced Use Cases
+
+### Multi-Agent Orchestration
+Track tool calls across multiple agents in complex workflows:
+```json
+{
+  "tool_calls": [
+    {
+      "tool_name": "route_to_specialist",
+      "agent_id": "tier1_support",
+      "result": {"routed_to": "billing_specialist"}
+    }
+  ]
+}
+```
+
+### Performance Optimization
+Monitor tool performance to optimize agent efficiency:
+```json
+{
+  "metadata": {
+    "tool_performance": {
+      "avg_api_response_time": 250,
+      "failed_calls": 0,
+      "cache_hit_rate": 0.85
+    }
+  }
+}
+```
+
+### Business Intelligence
+Correlate conversation outcomes with tool usage patterns:
+```json
+{
+  "metadata": {
+    "business_metrics": {
+      "revenue_impact": 1500.00,
+      "cost_per_interaction": 2.50,
+      "efficiency_score": 0.92
+    }
+  }
+}
+```
+
+## Best Practices
+
+### Tool Call Tracking
+- **Capture Everything**: Track all external interactions, not just successful ones
+- **Include Timing**: Record execution times for performance analysis
+- **Error Handling**: Log failed calls and error details for debugging
+- **Parameter Logging**: Store input parameters for reproducibility analysis
+
+### Integration Architecture
+- **Async Processing**: Handle tool call tracking asynchronously to avoid call latency
+- **Post-Call Processing**: Process tool call and metadata and call the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint directly after the call has ended to ensure we are able to use this data in the evaluation.
+
+By leveraging Bluejay's tool call and metadata ingestion capabilities, you can transform basic voice agent testing into comprehensive business intelligence, enabling data-driven optimization and measurable improvements in agent performance and customer outcomes.
