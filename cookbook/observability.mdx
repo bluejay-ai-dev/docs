@@ -1,6 +1,6 @@
 ---
-title: 'Observability'
-description: 'Integrating with Bluejay Observability'
+title: "Observability"
+description: "Integrating with Bluejay Observability"
 ---
 
 ## Observability with the Evaluate Endpoint
@@ -13,6 +13,7 @@ The [evaluate](/api-reference/endpoint/evaluate) endpoint (`POST /v1/evaluate`) 
 It accepts audio recordings, transcripts, and metadata, and creates an evaluation job to retrieve later. On retrieval, it will provide detailed performance metrics and insights.
 
 **Key Features:**
+
 - **Hallucination Detection**: Identifies when agents provide incorrect or fabricated information
 - **Redundancy Analysis**: Measures unnecessary repetition in agent responses
 - **Custom Metrics**: Track domain-specific performance indicators
@@ -275,16 +276,117 @@ def evaluate_audio_with_transcript_file():
     return response.json()
 ```
 
-### Retrieving Evaluation Results
+### Retrieving Evaluation Results with Webhooks (Recommended)
 
-Once you've submitted a call for evaluation, retrieve the results using the call ID:
+The most efficient way to receive evaluation results is through the [evaluate webhook](/api-reference/webhook/evaluate-webhook). When you submit a call for evaluation, Bluejay will automatically send the complete results to your registered webhook URL once processing is complete.
+
+#### Configuring Your Webhook URL
+
+Before implementing your webhook endpoint, you'll need to register your webhook URL in the Bluejay dashboard:
+
+1. Log into your Bluejay dashboard
+2. Navigate to Settings → Webhooks
+3. Add your webhook URL (e.g., `https://yourapp.com/webhook/evaluate`)
+4. Copy your webhook secret key for signature verification
+5. Save the configuration
+
+**Important**:
+
+- Your webhook URL must be publicly accessible and use HTTPS for security
+- Store your webhook secret securely - you'll need it to verify incoming webhook signatures
+- Bluejay sends the `X-Bluejay-Signature` header with each webhook for authentication
+
+#### Setting Up Your Webhook Endpoint
+
+First, create an endpoint to receive webhook notifications:
+
+```python
+from fastapi import FastAPI, Request, HTTPException
+import json
+import hmac
+import hashlib
+
+app = FastAPI()
+
+# Your webhook secret from the Bluejay dashboard
+WEBHOOK_SECRET = "your-webhook-secret-here"
+
+def verify_webhook_signature(payload: bytes, signature: str, secret: str) -> bool:
+    """Verify the webhook signature from Bluejay"""
+    if not signature:
+        return False
+
+    # Remove 'sha256=' prefix if present
+    if signature.startswith('sha256='):
+        signature = signature[7:]
+
+    # Calculate expected signature
+    expected_signature = hmac.new(
+        secret.encode('utf-8'),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+    # Compare signatures securely
+    return hmac.compare_digest(expected_signature, signature)
+
+@app.post("/webhook/evaluate")
+async def handle_evaluation_webhook(request: Request):
+    """Handle incoming evaluation webhook from Bluejay with signature verification"""
+
+    try:
+        # Get raw payload for signature verification
+        payload = await request.body()
+        signature = request.headers.get('X-Bluejay-Signature')
+
+        # Verify webhook signature
+        if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
+            print("❌ Invalid webhook signature")
+            raise HTTPException(status_code=401, detail="Invalid signature")
+
+        # Parse the verified payload
+        webhook_data = json.loads(payload)
+
+        # The webhook sends the complete CallLog object with evaluations
+        call_id = webhook_data.get('id')
+        evaluations = webhook_data.get('evaluations', [])
+
+        if evaluations:
+            evaluation = evaluations[0]
+
+            # Process evaluation results
+            process_evaluation_results(call_id, evaluation)
+
+        return {"status": "success"}
+
+    except json.JSONDecodeError:
+        print("❌ Invalid JSON payload")
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    except Exception as e:
+        print(f"❌ Error processing webhook: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+def process_evaluation_results(call_id, evaluation):
+    """Async processing of evaluation results"""
+
+    print(f"=== EVALUATION RESULTS FOR CALL {call_id} ===")
+    print(f"Hallucination Detected: {evaluation.get('hallucination', 'N/A')}")
+    print(f"Redundancy Score: {evaluation.get('redundancy', 'N/A')}")
+
+    # Your processing logic here
+    pass
+```
+
+### Alternative: Polling for Results
+
+If you prefer to poll for results instead of using webhooks, you can retrieve the results using the call ID from the [retrieve-call-log](/api-reference/endpoint/retrieve-call-log) endpoint:
 
 ```python
 import requests
 import time
 
-def get_evaluation_results(call_id):
-    """Retrieve evaluation results for a specific call"""
+def get_evaluation_results_polling(call_id):
+    """Alternative method: Poll for evaluation results"""
 
     api_key = "your-api-key-here"
     base_url = "https://api.getbluejay.ai/v1"
@@ -338,15 +440,15 @@ def get_evaluation_results(call_id):
     print("Evaluation timed out")
     return None
 
-# Usage
+# Usage with polling method
 call_id = evaluate_with_transcript_data()
 if call_id:
-    results = get_evaluation_results(call_id['call_id'])
+    results = get_evaluation_results_polling(call_id['call_id'])
 ```
 
 ### Advanced: Custom Metrics and Tool Calls
 
-Track domain-specific performance indicators and include tool call data:
+Track domain-specific performance indicators and include tool call data using the [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint:
 
 ```python
 import requests
@@ -388,7 +490,7 @@ def evaluate_with_custom_metrics():
                 "role": "AGENT",
                 "spoke_first": True
             }
-        ],  
+        ],
         "tool_calls": tool_calls,
         "transcript": [
             {
@@ -409,7 +511,10 @@ def evaluate_with_custom_metrics():
                 "speaker": "AGENT",
                 "utterance": "I understand you'd like to check your order status. Let me look that up for you."
             }
-        ]
+        ],
+        "custom_metrics": [
+            "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+        ],
     }
 
     headers = {
@@ -428,12 +533,85 @@ def evaluate_with_custom_metrics():
 
 ### Best Practices
 
+#### Webhook Implementation
+
+1. **Reliable Endpoint**: Ensure your webhook endpoint is highly available and can handle the expected volume
+2. **Signature Verification**: Always verify the `X-Bluejay-Signature` header using HMAC-SHA256 to ensure webhook authenticity
+3. **Idempotency**: Handle duplicate webhook deliveries gracefully by checking call IDs
+4. **Response Time**: Respond quickly (< 5 seconds) to webhook requests to avoid timeouts
+5. **Error Handling**: Return appropriate HTTP status codes (200 for success, 401 for invalid signature, 4xx/5xx for other errors)
+6. **HTTPS Only**: Use HTTPS endpoints to protect webhook data in transit
+7. **Secret Management**: Store webhook secrets securely using environment variables or secret management systems
+
+```python
+# Example: Idempotent webhook handling with signature verification
+import os
+processed_calls = set()
+
+# Get webhook secret from environment variable
+WEBHOOK_SECRET = os.getenv('BLUEJAY_WEBHOOK_SECRET')
+
+@app.route('/webhook/evaluate', methods=['POST'])
+def handle_evaluation_webhook():
+    # Verify signature first
+    payload = request.get_data()
+    signature = request.headers.get('X-Bluejay-Signature')
+
+    if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
+        return jsonify({"error": "Invalid signature"}), 401
+
+    # Parse verified payload
+    webhook_data = json.loads(payload)
+    call_id = webhook_data.get('id')
+
+    # Check if already processed
+    if call_id in processed_calls:
+        return jsonify({"status": "already_processed"}), 200
+
+    # Process the evaluation
+    process_evaluation_results(call_id, webhook_data.get('evaluations', []))
+    processed_calls.add(call_id)
+
+    return jsonify({"status": "success"}), 200
+
+# Production-ready version with persistent storage
+import redis
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+@app.route('/webhook/evaluate', methods=['POST'])
+def handle_evaluation_webhook_production():
+    # Verify signature
+    payload = request.get_data()
+    signature = request.headers.get('X-Bluejay-Signature')
+
+    if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
+        return jsonify({"error": "Invalid signature"}), 401
+
+    # Parse verified payload
+    webhook_data = json.loads(payload)
+    call_id = webhook_data.get('id')
+
+    # Check if already processed using Redis
+    if redis_client.exists(f"processed_call:{call_id}"):
+        return jsonify({"status": "already_processed"}), 200
+
+    # Process the evaluation
+    process_evaluation_results(call_id, webhook_data.get('evaluations', []))
+
+    # Mark as processed with expiration (24 hours)
+    redis_client.setex(f"processed_call:{call_id}", 86400, "1")
+
+    return jsonify({"status": "success"}), 200
+```
+
 #### Data Quality
+
 1. **Audio Quality**: Use high-quality recordings (16kHz+ sample rate, minimal background noise)
 2. **Transcript Accuracy**: Ensure transcripts are accurate and include timestamps
 3. **Complete Metadata**: Provide all participant information and call details
 
 #### Error Handling
+
 ```python
 def evaluate_with_error_handling():
     """Example with comprehensive error handling"""
@@ -491,6 +669,7 @@ def evaluate_with_error_handling():
 ```
 
 #### Batch Processing
+
 For processing multiple calls, implement batch processing with rate limiting:
 
 ```python
@@ -524,8 +703,10 @@ def evaluate_call_from_file(file_path, api_key, base_url):
 
 ### Next Steps
 
+- **Webhook Setup**: Register your webhook URL in the Bluejay dashboard to start receiving automatic evaluation results
 - **Custom Metrics**: Define domain-specific evaluation criteria using custom metrics via API or the Bluejay dashboard
-- **Visualization**: Access the evaluation results using the Bluejay dashboard
-- **Alerting**: Set up alerts for poor performance indicators via the Bluejay dashboard
+- **Real-time Processing**: Build real-time evaluation processing pipelines using webhook notifications
+- **Alerting**: Implement automated alerts in your webhook handler for immediate notification of performance issues
+- **Visualization**: Access historical evaluation results using the Bluejay dashboard or build custom dashboards using webhook data
 
-For more advanced use cases, explore the [API Reference](/api-reference) or contact Bluejay support for custom evaluation configurations.
+For webhook registration and more advanced use cases, explore the [API Reference](/api-reference/add-agent) or contact the Bluejay team for custom evaluation configurations.

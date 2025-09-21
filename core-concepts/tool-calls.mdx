@@ -1,0 +1,242 @@
+---
+title: 'Tool Calls & Call Metadata'
+description: 'Enrich your evaluations with comprehensive tool call tracking and custom metadata'
+---
+
+Bluejay natively provides the ability to ingest and analyze tool calls and call metadata from your voice agents, enabling you to build comprehensive evaluations that go far beyond basic conversation analysis. By capturing every API call and database query during agent interactions, you can gain deep insights into agent performance and business outcomes.
+
+[For Simulation Integrations →](/core-concepts/tool-calls#simulation-integration-options)
+
+[For Observability →](/core-concepts/tool-calls#observability-integration-options)
+
+## Simulation Integration Options
+
+Bluejay supports two primary methods for ingesting tool calls and metadata for simulations, each optimized for different use cases and technical requirements.
+
+### SIP Integration (Recommended for Phone Systems)
+
+**Best for**: Traditional phone systems (PSTN) and telephony infrastructure.
+
+When Bluejay initiates calls via SIP (Session Initiation Protocol), it automatically injects custom headers including the `X-Simulation-Result-Id`, enabling seamless data correlation.
+
+**How it Works:**
+1. Bluejay initiates SIP calls with custom headers
+2. Your agent extracts the `X-Simulation-Result-Id` from SIP headers
+3. During the call, your agent tracks tool calls and metadata
+4. Post-call, you use the `X-Simulation-Result-Id` with your data to call the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint to enrich your simulation evaluations
+
+[Learn more about SIP integration →](/simulation-integrations/sip)
+
+### WebSocket Integration
+
+**Best for**: Modern web-based or non-phone-based agents.
+
+WebSocket integration using the CHIRP protocol enables real-time, bidirectional communication with your voice agents.
+
+**How it Works:**
+1. Bluejay establishes WebSocket connection to your agent and passes the `X-Simulation-Result-Id` in the websocket connect message.
+2. Real-time CHIRP message exchange during conversations
+3. During the call, your agent tracks tool calls and metadata
+4. Post-call, you use the `X-Simulation-Result-Id` with your data to call the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint to enrich your simulation evaluations
+
+[Learn more about WebSocket integration →](/simulation-integrations/websockets)
+
+## Phone System Recommendations
+
+### For Phone-Based Systems: Use SIP
+
+If your voice agent operates through traditional phone systems (PSTN), telephony providers, or any phone number-based infrastructure we do not support passing tool calls to enrich your evaluations.
+As such, to unlock the full benefits of tool call and metadata tracking, **we strongly recommend using the SIP integration**.
+
+**Compatible Phone Systems:**
+- Traditional PBX systems
+- VoIP providers (Twilio, RingCentral, Telnyx, etc.)
+- SIP-based platforms
+
+### Comparison: Basic Telephony vs SIP Integration
+
+| Feature | Basic Telephony | SIP Integration |
+|---------|----------------|-----------------|
+| **Setup Complexity** | Simple phone number | SIP endpoint configuration |
+| **Tool Call Tracking** | ❌ Not supported | ✅ Complete tracking |
+| **Custom Metadata** | ❌ Not supported | ✅ Rich metadata support |
+| **Evaluations** | ❌ Conversation-focused | ✅ Comprehensive insights |
+| **Integration Effort** | Minimal | Moderate (one-time setup) |
+
+## Getting Started
+
+### Step 1: Choose Your Integration Method
+
+**For Phone-Based Agents:**
+- Use SIP integration for maximum capabilities
+- Follow the [SIP Integration Guide](/simulation-integrations/sip)
+
+**For Web-Based Agents:**
+- Use WebSocket integration with CHIRP protocol
+- Follow the [WebSocket Integration Guide](/simulation-integrations/websockets)
+
+### Step 2: Implement Tool Call Tracking
+
+Regardless of your integration method, implement comprehensive tool call tracking:
+
+```python
+# Example: Tool call tracking structure
+def track_tool_call(tool_name, parameters, result, timestamp):
+    return {
+        "tool_name": tool_name,
+        "parameters": parameters,
+        "result": result,
+        "timestamp": timestamp
+    }
+```
+
+### Step 3: Enrich Your Evaluations
+
+The `X-Simulation-Result-Id` enables you to enrich your simulation data by calling the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint.
+
+**Endpoint Details:**
+
+`POST` [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result)
+
+**Headers:**
+- `Authorization: Bearer <your-api-key>`
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "simulation_result_id": "1234",
+  "events": [
+    {
+      "event_type": "tool_call",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "data": {
+        "tool_name": "get_account_balance",
+        "parameters": {"account_id": "12345"},
+        "result": {"balance": 1500.00}
+      }
+    }
+  ],
+  "tool_calls": [
+    {
+      "tool_name": "transfer_funds",
+      "parameters": {"from": "12345", "to": "67890", "amount": 500},
+      "result": {"transaction_id": "txn_abc123", "status": "completed"},
+      "timestamp": "2024-01-15T10:32:00Z"
+    }
+  ],
+  "metadata": {
+    "call_duration": 180,
+    "customer_satisfaction": 5,
+    "resolution_status": "resolved",
+    "custom_tags": ["account_inquiry", "funds_transfer"]
+  }
+}
+```
+
+## Observability Integration Options
+
+For Observability, we immediately support the ability to pass tool calls and metadata via the [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint.
+For more information, see this example in the [Observability cookbook](/cookbook/observability#advanced%3A-custom-metrics-and-tool-calls).
+
+
+## Use Cases
+
+### Multi-Agent Orchestration
+Track tool calls across multiple agents in complex workflows:
+```json
+{
+  "tool_calls": [
+    {
+      "tool_name": "route_to_specialist",
+      "parameters": {"customer_issue": "billing_inquiry", "current_agent": "tier1_support"},
+      "result": {"routed_to": "billing_specialist", "agent_id": "agent_billing_001"},
+      "timestamp": "2024-01-15T10:30:00Z"
+    },
+  ],
+  "metadata": {
+    "workflow_type": "escalation",
+    "total_agents_involved": 2,
+    "handoff_duration_seconds": 15
+  }
+}
+```
+
+### Financial Services & Banking
+Monitor critical financial operations with comprehensive audit trails:
+```json
+{
+  "tool_calls": [
+    {
+      "tool_name": "verify_account_ownership",
+      "parameters": {"account_id": "12345", "verification_method": "voice_biometric"},
+      "result": {"verified": true, "confidence_score": 0.95},
+      "timestamp": "2024-01-15T10:30:00Z"
+    },
+    {
+      "tool_name": "check_account_balance",
+      "parameters": {"account_id": "12345"},
+      "result": {"balance": 2500.00, "available_balance": 2300.00},
+      "timestamp": "2024-01-15T10:30:15Z"
+    },
+    {
+      "tool_name": "initiate_wire_transfer",
+      "parameters": {"from_account": "12345", "to_account": "67890", "amount": 1000.00},
+      "result": {"transaction_id": "wire_xyz789", "status": "pending_approval"},
+      "timestamp": "2024-01-15T10:31:00Z"
+    }
+  ],
+  "metadata": {
+    "compliance_flags": ["high_value_transaction", "cross_border"],
+    "risk_score": 0.3,
+    "authentication_methods": ["voice_biometric", "account_verification"]
+  }
+}
+```
+
+### E-commerce & Order Management
+Track customer service interactions with order processing systems:
+```json
+{
+  "tool_calls": [
+    {
+      "tool_name": "lookup_order",
+      "parameters": {"order_id": "ORD-2024-001", "customer_phone": "+1234567890"},
+      "result": {"order_status": "shipped", "tracking_number": "1Z999AA1234567890"},
+      "timestamp": "2024-01-15T14:20:00Z"
+    },
+    {
+      "tool_name": "check_return_eligibility",
+      "parameters": {"order_id": "ORD-2024-001", "item_id": "SKU-ABC123"},
+      "result": {"eligible": true, "return_window_days": 15},
+      "timestamp": "2024-01-15T14:20:30Z"
+    },
+    {
+      "tool_name": "initiate_return",
+      "parameters": {"order_id": "ORD-2024-001", "reason": "size_issue"},
+      "result": {"return_id": "RET-2024-456", "prepaid_label": true},
+      "timestamp": "2024-01-15T14:21:00Z"
+    }
+  ],
+  "metadata": {
+    "customer_tier": "premium",
+    "order_value": 299.99,
+    "resolution_time_seconds": 120,
+    "customer_satisfaction_predicted": 4.5
+  }
+}
+```
+
+## Best Practices
+
+### Tool Call Tracking
+- **Capture Everything**: Track all external interactions, not just successful ones
+- **Include Timing**: Record execution times for performance analysis
+- **Error Handling**: Log failed calls and error details for debugging
+- **Parameter Logging**: Store input parameters for reproducibility analysis
+
+### Integration Architecture
+- **Async Processing**: Handle tool call tracking asynchronously to avoid call latency
+- **Post-Call Processing**: Process tool call and metadata and call the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint or [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint directly after the call has ended to ensure we are able to use this data in the evaluation.
+
+By leveraging Bluejay's tool call and metadata ingestion capabilities, you can transform basic voice agent testing into comprehensive analytics and measurable improvements in agent performance and customer outcomes.
