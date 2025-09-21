@@ -1,6 +1,6 @@
 ---
-title: 'Observability'
-description: 'Integrating with Bluejay Observability'
+title: "Observability"
+description: "Integrating with Bluejay Observability"
 ---
 
 ## Observability with the Evaluate Endpoint
@@ -13,6 +13,7 @@ The [evaluate](/api-reference/endpoint/evaluate) endpoint (`POST /v1/evaluate`) 
 It accepts audio recordings, transcripts, and metadata, and creates an evaluation job to retrieve later. On retrieval, it will provide detailed performance metrics and insights.
 
 **Key Features:**
+
 - **Hallucination Detection**: Identifies when agents provide incorrect or fabricated information
 - **Redundancy Analysis**: Measures unnecessary repetition in agent responses
 - **Custom Metrics**: Track domain-specific performance indicators
@@ -289,7 +290,8 @@ Before implementing your webhook endpoint, you'll need to register your webhook 
 4. Copy your webhook secret key for signature verification
 5. Save the configuration
 
-**Important**: 
+**Important**:
+
 - Your webhook URL must be publicly accessible and use HTTPS for security
 - Store your webhook secret securely - you'll need it to verify incoming webhook signatures
 - Bluejay sends the `X-Bluejay-Signature` header with each webhook for authentication
@@ -313,50 +315,50 @@ def verify_webhook_signature(payload: bytes, signature: str, secret: str) -> boo
     """Verify the webhook signature from Bluejay"""
     if not signature:
         return False
-    
+
     # Remove 'sha256=' prefix if present
     if signature.startswith('sha256='):
         signature = signature[7:]
-    
+
     # Calculate expected signature
     expected_signature = hmac.new(
         secret.encode('utf-8'),
         payload,
         hashlib.sha256
     ).hexdigest()
-    
+
     # Compare signatures securely
     return hmac.compare_digest(expected_signature, signature)
 
 @app.post("/webhook/evaluate")
 async def handle_evaluation_webhook(request: Request):
     """Handle incoming evaluation webhook from Bluejay with signature verification"""
-    
+
     try:
         # Get raw payload for signature verification
         payload = await request.body()
         signature = request.headers.get('X-Bluejay-Signature')
-        
+
         # Verify webhook signature
         if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
             print("❌ Invalid webhook signature")
             raise HTTPException(status_code=401, detail="Invalid signature")
-        
+
         # Parse the verified payload
         webhook_data = json.loads(payload)
-        
+
         # The webhook sends the complete CallLog object with evaluations
         call_id = webhook_data.get('id')
         evaluations = webhook_data.get('evaluations', [])
-        
+
         if evaluations:
             evaluation = evaluations[0]
-            
+
             # Process evaluation results
             process_evaluation_results(call_id, evaluation)
-            
+
         return {"status": "success"}
-        
+
     except json.JSONDecodeError:
         print("❌ Invalid JSON payload")
         raise HTTPException(status_code=400, detail="Invalid JSON")
@@ -366,11 +368,11 @@ async def handle_evaluation_webhook(request: Request):
 
 def process_evaluation_results(call_id, evaluation):
     """Async processing of evaluation results"""
-    
+
     print(f"=== EVALUATION RESULTS FOR CALL {call_id} ===")
     print(f"Hallucination Detected: {evaluation.get('hallucination', 'N/A')}")
     print(f"Redundancy Score: {evaluation.get('redundancy', 'N/A')}")
-    
+
     # Your processing logic here
     pass
 ```
@@ -446,7 +448,7 @@ if call_id:
 
 ### Advanced: Custom Metrics and Tool Calls
 
-Track domain-specific performance indicators and include tool call data using the [evaluate](/api-reference/endpoint/evaluate) endpoint:
+Track domain-specific performance indicators and include tool call data using the [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint:
 
 ```python
 import requests
@@ -488,7 +490,7 @@ def evaluate_with_custom_metrics():
                 "role": "AGENT",
                 "spoke_first": True
             }
-        ],  
+        ],
         "tool_calls": tool_calls,
         "transcript": [
             {
@@ -509,7 +511,10 @@ def evaluate_with_custom_metrics():
                 "speaker": "AGENT",
                 "utterance": "I understand you'd like to check your order status. Let me look that up for you."
             }
-        ]
+        ],
+        "custom_metrics": [
+            "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+        ],
     }
 
     headers = {
@@ -529,6 +534,7 @@ def evaluate_with_custom_metrics():
 ### Best Practices
 
 #### Webhook Implementation
+
 1. **Reliable Endpoint**: Ensure your webhook endpoint is highly available and can handle the expected volume
 2. **Signature Verification**: Always verify the `X-Bluejay-Signature` header using HMAC-SHA256 to ensure webhook authenticity
 3. **Idempotency**: Handle duplicate webhook deliveries gracefully by checking call IDs
@@ -550,22 +556,22 @@ def handle_evaluation_webhook():
     # Verify signature first
     payload = request.get_data()
     signature = request.headers.get('X-Bluejay-Signature')
-    
+
     if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
         return jsonify({"error": "Invalid signature"}), 401
-    
+
     # Parse verified payload
     webhook_data = json.loads(payload)
     call_id = webhook_data.get('id')
-    
+
     # Check if already processed
     if call_id in processed_calls:
         return jsonify({"status": "already_processed"}), 200
-    
+
     # Process the evaluation
     process_evaluation_results(call_id, webhook_data.get('evaluations', []))
     processed_calls.add(call_id)
-    
+
     return jsonify({"status": "success"}), 200
 
 # Production-ready version with persistent storage
@@ -577,33 +583,35 @@ def handle_evaluation_webhook_production():
     # Verify signature
     payload = request.get_data()
     signature = request.headers.get('X-Bluejay-Signature')
-    
+
     if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
         return jsonify({"error": "Invalid signature"}), 401
-    
+
     # Parse verified payload
     webhook_data = json.loads(payload)
     call_id = webhook_data.get('id')
-    
+
     # Check if already processed using Redis
     if redis_client.exists(f"processed_call:{call_id}"):
         return jsonify({"status": "already_processed"}), 200
-    
+
     # Process the evaluation
     process_evaluation_results(call_id, webhook_data.get('evaluations', []))
-    
+
     # Mark as processed with expiration (24 hours)
     redis_client.setex(f"processed_call:{call_id}", 86400, "1")
-    
+
     return jsonify({"status": "success"}), 200
 ```
 
 #### Data Quality
+
 1. **Audio Quality**: Use high-quality recordings (16kHz+ sample rate, minimal background noise)
 2. **Transcript Accuracy**: Ensure transcripts are accurate and include timestamps
 3. **Complete Metadata**: Provide all participant information and call details
 
 #### Error Handling
+
 ```python
 def evaluate_with_error_handling():
     """Example with comprehensive error handling"""
@@ -661,6 +669,7 @@ def evaluate_with_error_handling():
 ```
 
 #### Batch Processing
+
 For processing multiple calls, implement batch processing with rate limiting:
 
 ```python

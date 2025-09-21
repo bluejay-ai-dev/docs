@@ -25,7 +25,6 @@ graph LR
     A[Bluejay Digital Human] -->|SIP INVITE| B[Your Voice Agent]
     B -->|SIP Headers + Metadata| C[Call Session]
     B -->|RTP Audio Stream| A
-    C -->|Simulation Data| D[update-simulation-result API]
 ```
 
 ## `X-Simulation-Result-Id` Header
@@ -67,74 +66,8 @@ def handle_sip_invite(invite_message):
         store_simulation_id(simulation_id)
 ```
 
-## Update Simulation Result Endpoint
+Using this header, you can now enrich your simulation evaluations by calling the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint.
 
-The `X-Simulation-Result-Id` enables you to enrich your simulation data by calling the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint.
-
-### Endpoint Details
-
-`POST` [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result)
-
-**Headers:**
-- `Authorization: Bearer <your-api-key>`
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  "simulation_result_id": "1234",
-  "events": [
-    {
-      "event_type": "tool_call",
-      "timestamp": "2024-01-15T10:30:00Z",
-      "data": {
-        "tool_name": "get_account_balance",
-        "parameters": {"account_id": "12345"},
-        "result": {"balance": 1500.00}
-      }
-    }
-  ],
-  "tool_calls": [
-    {
-      "tool_name": "transfer_funds",
-      "parameters": {"from": "12345", "to": "67890", "amount": 500},
-      "result": {"transaction_id": "txn_abc123", "status": "completed"},
-      "timestamp": "2024-01-15T10:32:00Z"
-    }
-  ],
-  "metadata": {
-    "call_duration": 180,
-    "customer_satisfaction": 5,
-    "resolution_status": "resolved",
-    "custom_tags": ["account_inquiry", "funds_transfer"]
-  }
-}
-```
-
-## Getting Started
-
-1. **Configure SIP Endpoint**: Enable your infrastructure with a SIP URI to receive calls from Bluejay
-2. **Extract Headers**: Implement header parsing to capture `X-Simulation-Result-Id`
-3. **Track Interactions**: Log tool calls, events, and metadata throughout the call
-4. **Update Results**: Use the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint to enrich your data
-5. **Analyze Performance**: Leverage the enhanced data for improved agent evaluation and optimization
-
-### What You Can Update
-
-1. **Tool Calls**: Document every function/API call made during the conversation
-2. **Events**: Track significant moments, state changes, or customer interactions  
-3. **Tags**: Add categorical labels for filtering and analysis
-4. **Metadata**: Include custom metrics, outcomes, and contextual information
-
-## Customer Integration Benefits
-
-By connecting via SIP and utilizing the simulation result updates, customers gain:
-
-### Enhanced Evaluation Capabilities
-
-- **Complete Tool Call Tracking**: Monitor every API call, database query, and external service interaction
-- **Custom Metrics**: Define and track business-specific KPIs and success criteria
-- **Event Timeline**: Build detailed timelines of customer interactions and agent decisions
-- **Outcome Correlation**: Link conversation outcomes to specific tool usage patterns
+For more information, see the [Tool Calls](/core-concepts/tool-calls#step-3%3A-enrich-your-evaluations) documentation.
 
 For technical support with SIP configuration or integration questions, contact the Bluejay team.
