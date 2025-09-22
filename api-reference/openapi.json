@@ -710,7 +710,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/AgentResponse"
+                                    "$ref": "#/components/schemas/src__main__AgentResponse"
                                 }
                             }
                         }
@@ -1875,6 +1875,120 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ComparisonResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agent/{agent_id}": {
+            "delete": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Delete Agent",
+                "description": "Delete an agent by ID.",
+                "operationId": "delete_agent_v1_agent__agent_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/src__api__agents__AgentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/simulation/{simulation_id}": {
+            "delete": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Delete Simulation",
+                "description": "Delete a specific simulation by ID.",
+                "operationId": "delete_simulation_v1_simulation__simulation_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteSimulationResponse"
                                 }
                             }
                         }
@@ -3681,26 +3795,6 @@
                     "goals"
                 ],
                 "title": "AgentRequest"
-            },
-            "AgentResponse": {
-                "properties": {
-                    "agent_id": {
-                        "type": "integer",
-                        "title": "Agent Id",
-                        "description": "ID of the created agent"
-                    },
-                    "status": {
-                        "type": "string",
-                        "title": "Status",
-                        "description": "Status of the response",
-                        "default": "200"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "agent_id"
-                ],
-                "title": "AgentResponse"
             },
             "AgentType": {
                 "type": "string",
@@ -5653,6 +5747,27 @@
                     "message"
                 ],
                 "title": "DeleteCronJobResponse"
+            },
+            "DeleteSimulationResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Success message"
+                    },
+                    "deleted_simulation_id": {
+                        "type": "integer",
+                        "title": "Deleted Simulation Id",
+                        "description": "ID of the deleted simulation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message",
+                    "deleted_simulation_id"
+                ],
+                "title": "DeleteSimulationResponse",
+                "description": "Response model for deleting a simulation"
             },
             "DigitalHumanRequest": {
                 "properties": {
@@ -8824,6 +8939,24 @@
                 "title": "WorkflowNode",
                 "description": "Pydantic model for workflow node"
             },
+            "src__api__agents__AgentResponse": {
+                "properties": {
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id",
+                    "status"
+                ],
+                "title": "AgentResponse"
+            },
             "src__api__digital_humans__DigitalHumanResponse": {
                 "properties": {
                     "digital_human": {
@@ -8849,6 +8982,26 @@
                 ],
                 "title": "DigitalHumanResponse",
                 "description": "Response model for digital human operations with clear separation of digital human data and simulation context"
+            },
+            "src__main__AgentResponse": {
+                "properties": {
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id",
+                        "description": "ID of the created agent"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "200"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id"
+                ],
+                "title": "AgentResponse"
             },
             "src__main__DigitalHumanResponse": {
                 "properties": {
