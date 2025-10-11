@@ -154,53 +154,6 @@
                 }
             }
         },
-        "/v1/log-evaluation": {
-            "post": {
-                "summary": "Upload Audio",
-                "operationId": "upload_audio_v1_log_evaluation_post",
-                "requestBody": {
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Body_upload_audio_v1_log_evaluation_post"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ]
-            }
-        },
         "/v1/generate-test-scenarios": {
             "post": {
                 "summary": "Generate Test Scenarios",
@@ -385,136 +338,10 @@
                 }
             }
         },
-        "/v1/evaluate-call": {
-            "post": {
-                "summary": "Evaluate",
-                "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
-                "operationId": "evaluate_v1_evaluate_call_post",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/components/schemas/CallRequestUsingAgentId"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/CallRequestUsingExternalAgentId"
-                                    }
-                                ],
-                                "title": "Call Data"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/EvaluateCallResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/evaluate": {
-            "post": {
-                "summary": "Evaluate",
-                "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
-                "operationId": "evaluate_v1_evaluate_post",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/components/schemas/CallRequestUsingAgentId"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/CallRequestUsingExternalAgentId"
-                                    }
-                                ],
-                                "title": "Call Data"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/EvaluateCallResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/v1/retrieve-call-logs": {
             "get": {
-                "summary": "Retrieve Call Logs",
-                "operationId": "retrieve_call_logs_v1_retrieve_call_logs_get",
+                "summary": "Retrieve Call Logs Index",
+                "operationId": "retrieve_call_logs_index_v1_retrieve_call_logs_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -594,8 +421,8 @@
         },
         "/v1/retrieve-call-log": {
             "get": {
-                "summary": "Retrieve Call Log",
-                "operationId": "retrieve_call_log_v1_retrieve_call_log_get",
+                "summary": "Retrieve Call Log Index",
+                "operationId": "retrieve_call_log_index_v1_retrieve_call_log_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -656,328 +483,6 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RetrieveCallLogResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/add-agent": {
-            "post": {
-                "summary": "Add Agent",
-                "description": "Add a new agent to the system.\n\nReturns the agent id and a status code.",
-                "operationId": "add_agent_v1_add_agent_post",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/AgentRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/src__main__AgentResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/update-agent": {
-            "post": {
-                "summary": "Update Agent",
-                "description": "Update an existing agent in the system.",
-                "operationId": "update_agent_v1_update_agent_post",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/AgentUpdateRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AgentUpdateResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/update-agent-by-external-id": {
-            "put": {
-                "summary": "Update Agent By External Id",
-                "description": "Update an existing agent in the system by external ID.",
-                "operationId": "update_agent_by_external_id_v1_update_agent_by_external_id_put",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/AgentUpdateWithExternalIdRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AgentUpdateResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/agents/{agent_id}": {
-            "get": {
-                "summary": "Get Agent",
-                "description": "Get an agent by ID.",
-                "operationId": "get_agent_v1_agents__agent_id__get",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "agent_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "title": "Agent Id"
-                        }
-                    },
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AgentPydantic"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/agent-by-external-id/{external_id}": {
-            "get": {
-                "summary": "Get Agent By External Id",
-                "description": "Get an agent by external ID.",
-                "operationId": "get_agent_by_external_id_v1_agent_by_external_id__external_id__get",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "external_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "title": "External Id"
-                        }
-                    },
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AgentPydantic"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/all-agents": {
-            "get": {
-                "summary": "Get All Agents",
-                "description": "Get all your agents.",
-                "operationId": "get_all_agents_v1_all_agents_get",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/AgentPydantic"
-                                    },
-                                    "title": "Response Get All Agents V1 All Agents Get"
                                 }
                             }
                         }
@@ -1892,6 +1397,391 @@
                 }
             }
         },
+        "/v1/regenerate-test-scenarios-from-community": {
+            "post": {
+                "tags": [
+                    "Regeneration"
+                ],
+                "summary": "Regenerate Test Scenarios From Community",
+                "operationId": "regenerate_test_scenarios_from_community_v1_regenerate_test_scenarios_from_community_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/add-agent": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Add Agent",
+                "description": "Add a new agent to the system.\n\nReturns the agent id and a status code.",
+                "operationId": "add_agent_v1_add_agent_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AgentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/update-agent": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Update Agent",
+                "description": "Update an existing agent in the system.",
+                "operationId": "update_agent_v1_update_agent_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AgentUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentUpdateResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/update-agent-by-external-id": {
+            "put": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Update Agent By External Id",
+                "description": "Update an existing agent in the system by external ID.",
+                "operationId": "update_agent_by_external_id_v1_update_agent_by_external_id_put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AgentUpdateWithExternalIdRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentUpdateResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get Agent",
+                "description": "Get an agent by ID.",
+                "operationId": "get_agent_v1_agents__agent_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agent-by-external-id/{external_id}": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get Agent By External Id",
+                "description": "Get an agent by external ID.",
+                "operationId": "get_agent_by_external_id_v1_agent_by_external_id__external_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "external_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "External Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/all-agents": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get All Agents",
+                "description": "Get all your agents.",
+                "operationId": "get_all_agents_v1_all_agents_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AgentPydantic"
+                                    },
+                                    "title": "Response Get All Agents V1 All Agents Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/agent/{agent_id}": {
             "delete": {
                 "tags": [
@@ -1931,7 +1821,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/src__api__agents__AgentResponse"
+                                    "$ref": "#/components/schemas/AgentResponse"
                                 }
                             }
                         }
@@ -2588,6 +2478,62 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/CustomerPersonaPydantic"
                                 }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/generate-goals": {
+            "post": {
+                "tags": [
+                    "Goals"
+                ],
+                "summary": "Generate Goals Endpoint",
+                "description": "Generate high-level goals for a given agent based on its description and knowledge base.",
+                "operationId": "generate_goals_endpoint_v1_generate_goals_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GenerateGoalsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
                             }
                         }
                     },
@@ -3423,6 +3369,138 @@
                 }
             }
         },
+        "/v1/evaluate-call": {
+            "post": {
+                "tags": [
+                    "Evaluate"
+                ],
+                "summary": "Evaluate",
+                "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
+                "operationId": "evaluate_v1_evaluate_call_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/CallRequestUsingAgentId"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CallRequestUsingExternalAgentId"
+                                    }
+                                ],
+                                "title": "Call Data"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EvaluateCallResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/evaluate": {
+            "post": {
+                "tags": [
+                    "Evaluate"
+                ],
+                "summary": "Evaluate",
+                "description": "Submit a call or chat for evaluation.\n\nReturns an eval ID that can be used to track evaluation status.",
+                "operationId": "evaluate_v1_evaluate_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/CallRequestUsingAgentId"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/CallRequestUsingExternalAgentId"
+                                    }
+                                ],
+                                "title": "Call Data"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EvaluateCallResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/integrations/ElevenLabs": {
             "post": {
                 "tags": [
@@ -3680,6 +3758,18 @@
                             }
                         ],
                         "title": "Sip Uri"
+                    },
+                    "custom_sip_headers": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Sip Headers"
                     }
                 },
                 "type": "object",
@@ -3795,6 +3885,26 @@
                     "goals"
                 ],
                 "title": "AgentRequest"
+            },
+            "AgentResponse": {
+                "properties": {
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id",
+                        "description": "ID of the created agent"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "200"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id"
+                ],
+                "title": "AgentResponse"
             },
             "AgentType": {
                 "type": "string",
@@ -4108,55 +4218,6 @@
                 ],
                 "title": "BackgroundNoiseType",
                 "description": "Enum for background noise options"
-            },
-            "Body_upload_audio_v1_log_evaluation_post": {
-                "properties": {
-                    "org_id": {
-                        "type": "string",
-                        "title": "Org Id"
-                    },
-                    "eval_id": {
-                        "type": "string",
-                        "title": "Eval Id"
-                    },
-                    "eval_name": {
-                        "type": "string",
-                        "title": "Eval Name"
-                    },
-                    "agent_description": {
-                        "type": "string",
-                        "title": "Agent Description"
-                    },
-                    "knowledge_base": {
-                        "type": "string",
-                        "title": "Knowledge Base"
-                    },
-                    "custom_questions": {
-                        "type": "string",
-                        "title": "Custom Questions"
-                    },
-                    "transcript": {
-                        "type": "string",
-                        "title": "Transcript"
-                    },
-                    "audio_file": {
-                        "type": "string",
-                        "format": "binary",
-                        "title": "Audio File"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "org_id",
-                    "eval_id",
-                    "eval_name",
-                    "agent_description",
-                    "knowledge_base",
-                    "custom_questions",
-                    "transcript",
-                    "audio_file"
-                ],
-                "title": "Body_upload_audio_v1_log_evaluation_post"
             },
             "CallDirection": {
                 "type": "string",
@@ -5219,7 +5280,14 @@
                         "title": "Scope"
                     },
                     "name": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Name"
                     }
                 },
@@ -6872,6 +6940,39 @@
                 ],
                 "title": "GenerateCustomPersonasRequest"
             },
+            "GenerateGoalsRequest": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "title": "Agent Id",
+                        "description": "ID of the agent to generate goals for"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "title": "Count",
+                        "description": "Number of goals to generate",
+                        "default": 5
+                    },
+                    "custom_prompt": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Prompt",
+                        "description": "Custom instructions for goal generation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id"
+                ],
+                "title": "GenerateGoalsRequest",
+                "description": "Request model for generating goals"
+            },
             "GetSimulationRunsResponse": {
                 "properties": {
                     "simulation_runs": {
@@ -7322,6 +7423,19 @@
                         "description": "Whether to run the simulation with sequential calling",
                         "default": false
                     },
+                    "max_concurrent": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "exclusiveMinimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Concurrent",
+                        "description": "Maximum number of concurrent calls in the simulation"
+                    },
                     "hang_up_on_transfer": {
                         "anyOf": [
                             {
@@ -7495,7 +7609,14 @@
                         "description": "Custom metrics associated with the simulation result"
                     },
                     "status": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Status",
                         "description": "Current status of the simulation result"
                     },
@@ -7761,7 +7882,14 @@
                         "description": "Summary of the simulation run"
                     },
                     "status": {
-                        "$ref": "#/components/schemas/SimulationRunStatus",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SimulationRunStatus"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "description": "Current status of the simulation run"
                     },
                     "total_tests": {
@@ -9002,24 +9130,6 @@
                 "title": "WorkflowNode",
                 "description": "Pydantic model for workflow node"
             },
-            "src__api__agents__AgentResponse": {
-                "properties": {
-                    "agent_id": {
-                        "type": "integer",
-                        "title": "Agent Id"
-                    },
-                    "status": {
-                        "type": "string",
-                        "title": "Status"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "agent_id",
-                    "status"
-                ],
-                "title": "AgentResponse"
-            },
             "src__api__digital_humans__DigitalHumanResponse": {
                 "properties": {
                     "digital_human": {
@@ -9045,26 +9155,6 @@
                 ],
                 "title": "DigitalHumanResponse",
                 "description": "Response model for digital human operations with clear separation of digital human data and simulation context"
-            },
-            "src__main__AgentResponse": {
-                "properties": {
-                    "agent_id": {
-                        "type": "integer",
-                        "title": "Agent Id",
-                        "description": "ID of the created agent"
-                    },
-                    "status": {
-                        "type": "string",
-                        "title": "Status",
-                        "description": "Status of the response",
-                        "default": "200"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "agent_id"
-                ],
-                "title": "AgentResponse"
             },
             "src__main__DigitalHumanResponse": {
                 "properties": {
@@ -9109,8 +9199,7 @@
                     "phone_number": {
                         "anyOf": [
                             {
-                                "type": "string",
-                                "pattern": "^\\+1\\d{10}$"
+                                "type": "string"
                             },
                             {
                                 "type": "null"
