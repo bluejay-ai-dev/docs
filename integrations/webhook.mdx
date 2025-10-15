@@ -1,0 +1,150 @@
+---
+title: "Webhooks"
+description: "Receive real-time notifications for simulation and observability events"
+---
+
+## Overview
+
+Webhooks allow you to receive real-time HTTP notifications when specific events occur in your Bluejay simulations and observability logs. Instead of polling for updates, Bluejay will send POST requests to your configured endpoint whenever subscribed events are triggered. Check the [Events Webhook](/api-reference/webhook/events-webhook) to understand the payload structure for each event.
+
+## Webhook Events
+
+You can subscribe to three types of events:
+
+### 1. Simulation Result Evaluated
+
+Triggered when a simulation result is evaluated.
+
+**Event Type:** `simulation_result_evaluated`
+
+**Payload Structure:**
+
+```json
+{
+  "type": "simulation_result_evaluated"
+  //...
+}
+```
+
+### 2. Observability Call Evaluated
+
+Triggered when an observability call is evaluated.
+
+**Event Type:** `observability_call_evaluated`
+
+**Payload Structure:**
+
+```json
+{
+  "type": "observability_call_evaluated"
+  //...
+}
+```
+
+### 3. Simulation Ended
+
+Triggered when a simulation instance completes execution.
+
+**Event Type:** `simulation_ended`
+
+**Payload Structure:**
+
+```json
+{
+  "type": "simulation_ended"
+  //...
+}
+```
+
+## Configuring Webhook Triggers
+
+### Agent and Folder Scoping
+
+When setting up a webhook, you can specify which agents or folders should trigger webhook notifications. This gives you fine-grained control over when your webhook endpoint receives events.
+
+**How it works:**
+
+- Select specific **agents** or **folders** when creating your webhook
+- Any simulations or observability calls executed under those agents will trigger the webhook
+- Events from agents or folders not in your webhook configuration will not trigger notifications
+
+**Example use cases:**
+
+- Monitor only production agents by selecting your production folder
+- Receive notifications for a specific agent you're testing
+- Track all simulations across multiple agents in a team folder
+
+### Setting Up Agent/Folder Triggers
+
+When configuring your webhook, you can:
+
+1. **Select specific agents** - Only events from these agents will trigger the webhook
+2. **Select folders** - Events from any agent within these folders will trigger the webhook
+3. **Combine both** - Create granular rules by selecting both specific agents and folders
+
+## Tagged Webhooks (Deprecated)
+
+<Warning>
+  Tagged webhooks are deprecated and will be removed in a future version. Please
+  migrate to agent/folder-based webhook triggers.
+</Warning>
+
+### Migration Notice
+
+- **Existing tagged webhooks** will continue to work for backward compatibility
+- **New behavior:** If a webhook tag is not specified when running a simulation or observability log, tagged webhooks will be ignored
+- **Recommended action:** Update your webhook configurations to use agent or folder scoping and remove any tags from your webhooks
+
+### Why the change?
+
+Agent and folder-based triggers provide:
+
+- Better organization and management
+- Clearer scoping of webhook events
+- Easier maintenance as your workspace grows
+- No need to remember to add tags to each simulation or observability log
+
+## Webhook Security
+
+### Verifying Webhook Requests
+
+To ensure webhook requests are genuinely from Bluejay:
+
+1. **Check the signature header** - All webhook requests include an HMAC-SHA256 `X-Bluejay-Signature` header
+3. **Use HTTPS endpoints** - Always configure webhook URLs with HTTPS
+
+### Best Practices
+
+- Respond quickly (within 5 seconds) to avoid timeouts
+- Process webhook data asynchronously if needed
+- Log all webhook events for debugging
+- Use a dedicated endpoint for Bluejay webhooks
+
+
+## Troubleshooting
+
+### Webhook Not Triggering
+
+Check that:
+
+- The webhook is enabled in your settings
+- The agent or folder is correctly configured in the webhook settings
+- You have specified the correct event type in your webhook subscription
+- Your endpoint URL is correct and accessible
+- Your endpoint responds within the timeout period
+
+### Missing Events
+
+Verify that:
+
+- The event type is included in your webhook subscription
+- The simulation or observability log is running under an agent/folder configured in your webhook
+
+### Delivery Failures
+
+Common causes:
+
+- Endpoint returning non-2xx status codes
+- Endpoint timeout (not responding within 5 seconds)
+- Network connectivity issues
+- Invalid SSL certificate (for HTTPS endpoints)
