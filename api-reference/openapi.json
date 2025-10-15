@@ -1839,14 +1839,14 @@
                 }
             }
         },
-        "/v1/folders": {
+        "/v1/create-folder": {
             "post": {
                 "tags": [
                     "Folders"
                 ],
                 "summary": "Create Folder",
                 "description": "Create a new folder for organizing agents.\n\nReturns the created folder details.",
-                "operationId": "create_folder_v1_folders_post",
+                "operationId": "create_folder_v1_create_folder_post",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -1895,14 +1895,16 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/v1/all-folders": {
             "get": {
                 "tags": [
                     "Folders"
                 ],
                 "summary": "Get All Folders",
                 "description": "Get all folders for the authenticated user's organization.\n\nReturns a list of all folders with their details.",
-                "operationId": "get_all_folders_v1_folders_get",
+                "operationId": "get_all_folders_v1_all_folders_get",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -1929,7 +1931,7 @@
                                     "items": {
                                         "$ref": "#/components/schemas/FolderResponse"
                                     },
-                                    "title": "Response Get All Folders V1 Folders Get"
+                                    "title": "Response Get All Folders V1 All Folders Get"
                                 }
                             }
                         }
@@ -1947,14 +1949,14 @@
                 }
             }
         },
-        "/v1/folders/{folder_id}": {
+        "/v1/folder/{folder_id}": {
             "get": {
                 "tags": [
                     "Folders"
                 ],
                 "summary": "Get Folder",
                 "description": "Get a specific folder by ID.\n\nReturns the folder details if it exists and belongs to the user's organization.",
-                "operationId": "get_folder_v1_folders__folder_id__get",
+                "operationId": "get_folder_v1_folder__folder_id__get",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -1981,72 +1983,6 @@
                         "description": "API key required to authenticate requests."
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FolderResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Folders"
-                ],
-                "summary": "Update Folder",
-                "description": "Update a folder's name.\n\nReturns the updated folder details.",
-                "operationId": "update_folder_v1_folders__folder_id__put",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "folder_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Folder Id"
-                        }
-                    },
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/FolderUpdateRequest"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -2076,7 +2012,7 @@
                 ],
                 "summary": "Delete Folder",
                 "description": "Delete a folder.\n\nNote: This will set the folder_id to NULL for all agents in this folder.\nReturns the deleted folder ID and status.",
-                "operationId": "delete_folder_v1_folders__folder_id__delete",
+                "operationId": "delete_folder_v1_folder__folder_id__delete",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -2185,6 +2121,74 @@
                 }
             }
         },
+        "/v1/update-folder/{folder_id}": {
+            "put": {
+                "tags": [
+                    "Folders"
+                ],
+                "summary": "Update Folder",
+                "description": "Update a folder's name.\n\nReturns the updated folder details.",
+                "operationId": "update_folder_v1_update_folder__folder_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "folder_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Folder Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FolderUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FolderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/get-agents-by-folder/{folder_id}": {
             "get": {
                 "tags": [
@@ -2224,7 +2228,13 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AgentPydantic"
+                                    },
+                                    "title": "Response Get Agents By Folder V1 Get Agents By Folder  Folder Id  Get"
+                                }
                             }
                         }
                     },
