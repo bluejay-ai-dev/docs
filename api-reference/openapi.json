@@ -765,9 +765,9 @@
         },
         "/v1/queue-simulation-run": {
             "post": {
-                "summary": "Queue Simulation Run",
+                "summary": "Queue Simulation Run Endpoint",
                 "description": "Queue a simulation run for processing.",
-                "operationId": "queue_simulation_run_v1_queue_simulation_run_post",
+                "operationId": "queue_simulation_run_endpoint_v1_queue_simulation_run_post",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -3958,10 +3958,13 @@
                     "mexican",
                     "spanish",
                     "portuguese",
+                    "french",
                     "turkish",
                     "japanese",
                     "hindi",
-                    "arabic"
+                    "arabic",
+                    "russian",
+                    "chinese"
                 ],
                 "title": "AccentType",
                 "description": "Enum for accent options"
@@ -4308,30 +4311,6 @@
                         ],
                         "title": "Folder",
                         "description": "Name of the folder to put the agent in"
-                    },
-                    "sip_username": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Sip Username",
-                        "description": "Username for the agent"
-                    },
-                    "sip_password": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Sip Password",
-                        "description": "Password for the agent"
                     }
                 },
                 "type": "object",
@@ -4510,30 +4489,6 @@
                         ],
                         "title": "Folder",
                         "description": "Name of the folder to put the agent in"
-                    },
-                    "sip_username": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Sip Username",
-                        "description": "Username for the agent"
-                    },
-                    "sip_password": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Sip Password",
-                        "description": "Password for the agent"
                     }
                 },
                 "type": "object",
@@ -4679,30 +4634,6 @@
                         ],
                         "title": "Folder",
                         "description": "Name of the folder to put the agent in"
-                    },
-                    "sip_username": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Sip Username",
-                        "description": "Username for the agent"
-                    },
-                    "sip_password": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Sip Password",
-                        "description": "Password for the agent"
                     }
                 },
                 "type": "object",
@@ -4842,7 +4773,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/Event"
+                                    "$ref": "#/components/schemas/Event-Output"
                                 },
                                 "type": "array"
                             },
@@ -7211,7 +7142,80 @@
                 "title": "Evaluation",
                 "description": "Pydantic model for evaluation result"
             },
-            "Event": {
+            "Event-Input": {
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Title of the event"
+                    },
+                    "start_offset_ms": {
+                        "type": "integer",
+                        "title": "Start Offset Ms",
+                        "description": "Start offset of the event in milliseconds"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "Description of the event"
+                    },
+                    "end_offset_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Offset Ms",
+                        "description": "End offset of the event in milliseconds"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags",
+                        "description": "List of tags associated with the event"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata",
+                        "description": "Additional metadata associated with the event"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "title",
+                    "start_offset_ms"
+                ],
+                "title": "Event",
+                "description": "Pydantic model for event data"
+            },
+            "Event-Output": {
                 "properties": {
                     "_title": {
                         "type": "string",
@@ -7663,7 +7667,9 @@
                     "ja",
                     "tr",
                     "hi",
-                    "ar"
+                    "ar",
+                    "ru",
+                    "zh"
                 ],
                 "title": "LanguageType",
                 "description": "Enum for supported language types"
@@ -9386,7 +9392,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/Event"
+                                    "$ref": "#/components/schemas/Event-Input"
                                 },
                                 "type": "array"
                             },
@@ -10438,6 +10444,82 @@
                 "title": "Simulation Result Evaluated",
                 "type": "object"
             },
+            "Event": {
+                "description": "Pydantic model for event data",
+                "properties": {
+                    "title": {
+                        "description": "Title of the event",
+                        "title": "Title",
+                        "type": "string"
+                    },
+                    "start_offset_ms": {
+                        "description": "Start offset of the event in milliseconds",
+                        "title": "Start Offset Ms",
+                        "type": "integer"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description of the event",
+                        "title": "Description"
+                    },
+                    "end_offset_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "End offset of the event in milliseconds",
+                        "title": "End Offset Ms"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "List of tags associated with the event",
+                        "title": "Tags"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Additional metadata associated with the event",
+                        "title": "Metadata"
+                    }
+                },
+                "required": [
+                    "title",
+                    "start_offset_ms"
+                ],
+                "title": "Event",
+                "type": "object"
+            },
             "TestResultStatus": {
                 "description": "Enum representing the possible states of a test result.",
                 "enum": [
@@ -11445,6 +11527,118 @@
                 ],
                 "title": "Simulation Ended",
                 "type": "object"
+            },
+            "WebhookOutboundSimulationStarted": {
+                "$defs": {
+                    "DigitalHuman": {
+                        "properties": {
+                            "id": {
+                                "description": "The ID of the digital human",
+                                "title": "Id",
+                                "type": "integer"
+                            },
+                            "name": {
+                                "description": "The name of the digital human",
+                                "title": "Name",
+                                "type": "string"
+                            },
+                            "phone_number": {
+                                "description": "The phone number of the digital human",
+                                "title": "Phone Number",
+                                "type": "string"
+                            },
+                            "associated_simulation_result_ids": {
+                                "description": "The IDs of the simulation results that were created for this digital human",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "title": "Associated Simulation Result Ids",
+                                "type": "array"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "phone_number"
+                        ],
+                        "title": "Digital Human",
+                        "type": "object"
+                    }
+                },
+                "description": "Represents an outbound simulation started event.",
+                "properties": {
+                    "type": {
+                        "default": "outbound_simulation_started",
+                        "description": "Type of webhook payload",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "agent_id": {
+                        "description": "The ID of the agent that this simulation belongs to",
+                        "title": "Agent Id",
+                        "type": "integer"
+                    },
+                    "simulation_id": {
+                        "description": "The ID of the simulation",
+                        "title": "Simulation Id",
+                        "type": "integer"
+                    },
+                    "simulation_run_id": {
+                        "description": "The ID of the simulation run",
+                        "title": "Simulation Run Id",
+                        "type": "integer"
+                    },
+                    "digital_humans": {
+                        "description": "The digital humans that were run for this simulation run",
+                        "items": {
+                            "$ref": "#/components/schemas/DigitalHuman"
+                        },
+                        "title": "Digital Humans",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "agent_id",
+                    "simulation_id",
+                    "simulation_run_id",
+                    "digital_humans"
+                ],
+                "title": "Outbound Simulation Started",
+                "type": "object"
+            },
+            "DigitalHuman": {
+                "properties": {
+                    "id": {
+                        "description": "The ID of the digital human",
+                        "title": "Id",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "The name of the digital human",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "phone_number": {
+                        "description": "The phone number of the digital human",
+                        "title": "Phone Number",
+                        "type": "string"
+                    },
+                    "associated_simulation_result_ids": {
+                        "description": "The IDs of the simulation results that were created for this digital human",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "title": "Associated Simulation Result Ids",
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "phone_number"
+                ],
+                "title": "Digital Human",
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -11475,6 +11669,9 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/WebhookSimulationResultEnded"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/WebhookOutboundSimulationStarted"
                                     }
                                 ],
                                 "discriminator": {
@@ -11482,7 +11679,8 @@
                                     "mapping": {
                                         "simulation_result_evaluated": "#/components/schemas/WebhookSimulationResultEvaluated",
                                         "observability_call_evaluated": "#/components/schemas/WebhookObservabilityCallEvaluated",
-                                        "simulation_ended": "#/components/schemas/WebhookSimulationResultEnded"
+                                        "simulation_ended": "#/components/schemas/WebhookSimulationResultEnded",
+                                        "outbound_simulation_started": "#/components/schemas/WebhookOutboundSimulationStarted"
                                     }
                                 }
                             }
