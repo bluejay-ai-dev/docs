@@ -800,7 +800,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SimulationRunResponse"
+                                    "$ref": "#/components/schemas/src__main__SimulationRunResponse"
                                 }
                             }
                         }
@@ -3262,7 +3262,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SimulationRunResponse"
+                                    "$ref": "#/components/schemas/src__text_agent_api__SimulationRunResponse"
                                 }
                             }
                         }
@@ -3287,36 +3287,6 @@
                 ],
                 "summary": "Receive Text Message",
                 "operationId": "receive_text_message_v1_receive_text_message_post",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ]
-            }
-        },
-        "/v1/test-text-api": {
-            "post": {
-                "tags": [
-                    "Text Simulations"
-                ],
-                "summary": "Text Api",
-                "operationId": "text_api_v1_test_text_api_post",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -4673,7 +4643,212 @@
                 "title": "CallInterface",
                 "description": "Enum representing the interface used for a call."
             },
-            "CallLog": {
+            "CallLog-Input": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "Unique identifier for the call"
+                    },
+                    "agent_id": {
+                        "type": "string",
+                        "title": "Agent Id",
+                        "description": "ID of the agent associated with the call"
+                    },
+                    "external_agent_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "External Agent Id",
+                        "description": "External ID of the agent associated with the call"
+                    },
+                    "recording_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Recording Url",
+                        "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
+                    },
+                    "start_time_utc": {
+                        "type": "string",
+                        "title": "Start Time Utc",
+                        "description": "When the call started, in UTC"
+                    },
+                    "participants": {
+                        "items": {
+                            "$ref": "#/components/schemas/ParticipantResponse"
+                        },
+                        "type": "array",
+                        "title": "Participants",
+                        "description": "List of call participants"
+                    },
+                    "call_direction": {
+                        "$ref": "#/components/schemas/CallDirection",
+                        "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)",
+                        "default": "INBOUND"
+                    },
+                    "interface": {
+                        "$ref": "#/components/schemas/CallInterface",
+                        "description": "Interface used for the call",
+                        "default": "PHONE"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/CallStatus",
+                        "description": "Current status of the call"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "When this request was created (defaults to now in UTC)"
+                    },
+                    "transcript_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Transcript Url",
+                        "description": "URL to the transcript file (supported formats: .txt, .json)"
+                    },
+                    "tool_calls": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/src__models__call__ToolCall"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tool Calls",
+                        "description": "List of tool calls made during the call"
+                    },
+                    "events": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/src__models__call__Event"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Events",
+                        "description": "List of events that occurred during the call"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags",
+                        "description": "List of tags associated with the call"
+                    },
+                    "duration_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration Ms",
+                        "description": "Duration of the call in milliseconds",
+                        "default": 0
+                    },
+                    "evaluations": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Evaluation"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Evaluations",
+                        "description": "List of evaluations associated with the call"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics",
+                        "description": "Custom metrics associated with the call"
+                    },
+                    "annotations": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Annotations",
+                        "description": "Annotations associated with the call"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata",
+                        "description": "Additional metadata associated with the call"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "agent_id",
+                    "recording_url",
+                    "start_time_utc",
+                    "participants",
+                    "status"
+                ],
+                "title": "CallLog"
+            },
+            "CallLog-Output": {
                 "properties": {
                     "id": {
                         "type": "string",
@@ -7158,7 +7333,7 @@
                 "title": "Evaluation",
                 "description": "Pydantic model for evaluation result"
             },
-            "Event-Input": {
+            "Event": {
                 "properties": {
                     "title": {
                         "type": "string",
@@ -8018,7 +8193,7 @@
             "RetrieveCallLogResponse": {
                 "properties": {
                     "call_log": {
-                        "$ref": "#/components/schemas/CallLog",
+                        "$ref": "#/components/schemas/CallLog-Output",
                         "description": "Details of the retrieved call log"
                     },
                     "status": {
@@ -8038,7 +8213,7 @@
                 "properties": {
                     "call_logs": {
                         "items": {
-                            "$ref": "#/components/schemas/CallLog"
+                            "$ref": "#/components/schemas/CallLog-Output"
                         },
                         "type": "array",
                         "title": "Call Logs",
@@ -8494,32 +8669,6 @@
                 ],
                 "title": "SimulationRunRes"
             },
-            "SimulationRunResponse": {
-                "properties": {
-                    "simulation_run_id": {
-                        "type": "string",
-                        "title": "Simulation Run Id",
-                        "description": "ID of the created simulation run"
-                    },
-                    "agent_id": {
-                        "type": "string",
-                        "title": "Agent Id",
-                        "description": "ID of the agent associated with the simulation run"
-                    },
-                    "status": {
-                        "type": "string",
-                        "title": "Status",
-                        "description": "Status of the response",
-                        "default": "success"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "simulation_run_id",
-                    "agent_id"
-                ],
-                "title": "SimulationRunResponse"
-            },
             "SimulationRunResultResponse": {
                 "properties": {
                     "id": {
@@ -8672,7 +8821,7 @@
                 "title": "TextProcessorRequest",
                 "description": "Pydantic model for text processor request body"
             },
-            "ToolCall-Input": {
+            "ToolCall": {
                 "properties": {
                     "name": {
                         "type": "string",
@@ -9423,7 +9572,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/Event-Input"
+                                    "$ref": "#/components/schemas/Event"
                                 },
                                 "type": "array"
                             },
@@ -9438,7 +9587,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/ToolCall-Input"
+                                    "$ref": "#/components/schemas/ToolCall"
                                 },
                                 "type": "array"
                             },
@@ -9962,6 +10111,154 @@
                 "title": "SimulationRunRequest",
                 "description": "Pydantic model for simulation run request"
             },
+            "src__main__SimulationRunResponse": {
+                "properties": {
+                    "simulation_run_id": {
+                        "type": "string",
+                        "title": "Simulation Run Id",
+                        "description": "ID of the created simulation run"
+                    },
+                    "agent_id": {
+                        "type": "string",
+                        "title": "Agent Id",
+                        "description": "ID of the agent associated with the simulation run"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "success"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_run_id",
+                    "agent_id"
+                ],
+                "title": "SimulationRunResponse"
+            },
+            "src__models__call__Event": {
+                "properties": {
+                    "_title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "_start_offset_ms": {
+                        "type": "integer",
+                        "title": "Start Offset Ms"
+                    },
+                    "_description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "_end_offset_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Offset Ms"
+                    },
+                    "_tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags"
+                    },
+                    "_metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "_title",
+                    "_start_offset_ms"
+                ],
+                "title": "Event"
+            },
+            "src__models__call__ToolCall": {
+                "properties": {
+                    "_name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "_start_offset_ms": {
+                        "type": "integer",
+                        "title": "Start Offset Ms"
+                    },
+                    "_description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "_parameters": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Parameters"
+                    },
+                    "_output": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Output"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "_name",
+                    "_start_offset_ms"
+                ],
+                "title": "ToolCall"
+            },
             "src__text_agent_api__SimulationRunRequest": {
                 "properties": {
                     "simulation_id": {
@@ -9983,6 +10280,19 @@
                         ],
                         "title": "Digital Human Ids",
                         "description": "Digital human IDs to be used in the simulation"
+                    },
+                    "terminate_overlapping_simulations": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Terminate Overlapping Simulations",
+                        "description": "If true, all overlapping conversations with same pair of phone numbers will be ended",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -9991,6 +10301,48 @@
                 ],
                 "title": "SimulationRunRequest",
                 "description": "Pydantic model for simulation run request"
+            },
+            "src__text_agent_api__SimulationRunResponse": {
+                "properties": {
+                    "simulation_run_id": {
+                        "type": "string",
+                        "title": "Simulation Run Id",
+                        "description": "ID of the created simulation run"
+                    },
+                    "agent_id": {
+                        "type": "string",
+                        "title": "Agent Id",
+                        "description": "ID of the agent associated with the simulation run"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "success"
+                    },
+                    "terminated_conversations": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": true,
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Terminated Conversations",
+                        "description": "List of conversations that were terminated due to overlapping phone numbers"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_run_id",
+                    "agent_id"
+                ],
+                "title": "SimulationRunResponse"
             },
             "WebhookSimulationResultEvaluated": {
                 "$defs": {
@@ -10475,82 +10827,6 @@
                 "title": "Simulation Result Evaluated",
                 "type": "object"
             },
-            "Event": {
-                "description": "Pydantic model for event data",
-                "properties": {
-                    "title": {
-                        "description": "Title of the event",
-                        "title": "Title",
-                        "type": "string"
-                    },
-                    "start_offset_ms": {
-                        "description": "Start offset of the event in milliseconds",
-                        "title": "Start Offset Ms",
-                        "type": "integer"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Description of the event",
-                        "title": "Description"
-                    },
-                    "end_offset_ms": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "End offset of the event in milliseconds",
-                        "title": "End Offset Ms"
-                    },
-                    "tags": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "List of tags associated with the event",
-                        "title": "Tags"
-                    },
-                    "metadata": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Additional metadata associated with the event",
-                        "title": "Metadata"
-                    }
-                },
-                "required": [
-                    "title",
-                    "start_offset_ms"
-                ],
-                "title": "Event",
-                "type": "object"
-            },
             "TestResultStatus": {
                 "description": "Enum representing the possible states of a test result.",
                 "enum": [
@@ -10567,71 +10843,6 @@
                 ],
                 "title": "TestResultStatus",
                 "type": "string"
-            },
-            "ToolCall": {
-                "description": "Represents a tool call during a conversation.",
-                "properties": {
-                    "name": {
-                        "description": "Name of the tool called",
-                        "title": "Name",
-                        "type": "string"
-                    },
-                    "start_offset_ms": {
-                        "description": "Start offset of the tool call in milliseconds",
-                        "title": "Start Offset Ms",
-                        "type": "integer"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Description of the tool call",
-                        "title": "Description"
-                    },
-                    "parameters": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Parameters passed to the tool call",
-                        "title": "Parameters"
-                    },
-                    "output": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Output returned by the tool call",
-                        "title": "Output"
-                    }
-                },
-                "required": [
-                    "name",
-                    "start_offset_ms"
-                ],
-                "title": "ToolCall",
-                "type": "object"
             },
             "WebhookCustomMetric": {
                 "properties": {
