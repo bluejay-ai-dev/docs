@@ -3751,6 +3751,310 @@
                 }
             }
         },
+        "/v1/create-community": {
+            "post": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Create Community",
+                "description": "Create a new community.",
+                "operationId": "create_community_v1_create_community_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCommunityRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/community/{community_id}": {
+            "get": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Get Community",
+                "description": "Get a specific community by ID.",
+                "operationId": "get_community_v1_community__community_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "community_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Community Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Delete Community",
+                "description": "Delete a specific community by ID.",
+                "operationId": "delete_community_v1_community__community_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "community_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Community Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/communities": {
+            "get": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Get Communities",
+                "description": "Get all communities, optionally filtered by digital human (test case).",
+                "operationId": "get_communities_v1_communities_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "digital_human_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Digital Human Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunitiesListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/update-community/{community_id}": {
+            "put": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Update Community",
+                "description": "Update a specific community by ID.",
+                "operationId": "update_community_v1_update_community__community_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "community_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Community Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCommunityRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/evaluate-call": {
             "post": {
                 "tags": [
@@ -4643,212 +4947,7 @@
                 "title": "CallInterface",
                 "description": "Enum representing the interface used for a call."
             },
-            "CallLog-Input": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "title": "Id",
-                        "description": "Unique identifier for the call"
-                    },
-                    "agent_id": {
-                        "type": "string",
-                        "title": "Agent Id",
-                        "description": "ID of the agent associated with the call"
-                    },
-                    "external_agent_id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "External Agent Id",
-                        "description": "External ID of the agent associated with the call"
-                    },
-                    "recording_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Recording Url",
-                        "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"
-                    },
-                    "start_time_utc": {
-                        "type": "string",
-                        "title": "Start Time Utc",
-                        "description": "When the call started, in UTC"
-                    },
-                    "participants": {
-                        "items": {
-                            "$ref": "#/components/schemas/ParticipantResponse"
-                        },
-                        "type": "array",
-                        "title": "Participants",
-                        "description": "List of call participants"
-                    },
-                    "call_direction": {
-                        "$ref": "#/components/schemas/CallDirection",
-                        "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)",
-                        "default": "INBOUND"
-                    },
-                    "interface": {
-                        "$ref": "#/components/schemas/CallInterface",
-                        "description": "Interface used for the call",
-                        "default": "PHONE"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/CallStatus",
-                        "description": "Current status of the call"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Created At",
-                        "description": "When this request was created (defaults to now in UTC)"
-                    },
-                    "transcript_url": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Transcript Url",
-                        "description": "URL to the transcript file (supported formats: .txt, .json)"
-                    },
-                    "tool_calls": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/src__models__call__ToolCall"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Tool Calls",
-                        "description": "List of tool calls made during the call"
-                    },
-                    "events": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/src__models__call__Event"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Events",
-                        "description": "List of events that occurred during the call"
-                    },
-                    "tags": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Tags",
-                        "description": "List of tags associated with the call"
-                    },
-                    "duration_ms": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Duration Ms",
-                        "description": "Duration of the call in milliseconds",
-                        "default": 0
-                    },
-                    "evaluations": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/Evaluation"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Evaluations",
-                        "description": "List of evaluations associated with the call"
-                    },
-                    "custom_metrics": {
-                        "anyOf": [
-                            {
-                                "items": {},
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Custom Metrics",
-                        "description": "Custom metrics associated with the call"
-                    },
-                    "annotations": {
-                        "anyOf": [
-                            {
-                                "items": {},
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Annotations",
-                        "description": "Annotations associated with the call"
-                    },
-                    "metadata": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Metadata",
-                        "description": "Additional metadata associated with the call"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "agent_id",
-                    "recording_url",
-                    "start_time_utc",
-                    "participants",
-                    "status"
-                ],
-                "title": "CallLog"
-            },
-            "CallLog-Output": {
+            "CallLog": {
                 "properties": {
                     "id": {
                         "type": "string",
@@ -5543,6 +5642,78 @@
                 "title": "CallStatus",
                 "description": "Enum representing the possible states of a call."
             },
+            "CommunitiesListResponse": {
+                "properties": {
+                    "communities": {
+                        "items": {
+                            "$ref": "#/components/schemas/CommunityResponse"
+                        },
+                        "type": "array",
+                        "title": "Communities",
+                        "description": "List of communities"
+                    },
+                    "total_count": {
+                        "type": "integer",
+                        "title": "Total Count",
+                        "description": "Total number of communities"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "communities",
+                    "total_count"
+                ],
+                "title": "CommunitiesListResponse",
+                "description": "Response model for listing communities"
+            },
+            "CommunityResponse": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "Unique identifier for the community"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Title of the community"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "Description of the community"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "When this community was created"
+                    },
+                    "digital_human_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Digital Human Ids",
+                        "description": "List of digital human (test case) IDs associated with this community"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "title",
+                    "created_at"
+                ],
+                "title": "CommunityResponse",
+                "description": "Response model for community operations"
+            },
             "ComparisonRequest": {
                 "properties": {
                     "experiment_run_ids": {
@@ -5581,6 +5752,47 @@
                 ],
                 "title": "ComparisonResponse",
                 "description": "Pydantic model for experiment run comparison response"
+            },
+            "CreateCommunityRequest": {
+                "properties": {
+                    "digital_human_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Digital Human Ids",
+                        "description": "List of digital human (test case) IDs to associate this community with"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Title of the community"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "Description of the community"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "title"
+                ],
+                "title": "CreateCommunityRequest"
             },
             "CreateCronJobRequest": {
                 "properties": {
@@ -7333,7 +7545,7 @@
                 "title": "Evaluation",
                 "description": "Pydantic model for evaluation result"
             },
-            "Event": {
+            "Event-Input": {
                 "properties": {
                     "title": {
                         "type": "string",
@@ -8193,7 +8405,7 @@
             "RetrieveCallLogResponse": {
                 "properties": {
                     "call_log": {
-                        "$ref": "#/components/schemas/CallLog-Output",
+                        "$ref": "#/components/schemas/CallLog",
                         "description": "Details of the retrieved call log"
                     },
                     "status": {
@@ -8213,7 +8425,7 @@
                 "properties": {
                     "call_logs": {
                         "items": {
-                            "$ref": "#/components/schemas/CallLog-Output"
+                            "$ref": "#/components/schemas/CallLog"
                         },
                         "type": "array",
                         "title": "Call Logs",
@@ -8821,7 +9033,7 @@
                 "title": "TextProcessorRequest",
                 "description": "Pydantic model for text processor request body"
             },
-            "ToolCall": {
+            "ToolCall-Input": {
                 "properties": {
                     "name": {
                         "type": "string",
@@ -9026,6 +9238,51 @@
                     "utterance"
                 ],
                 "title": "TranscriptEntryRequest"
+            },
+            "UpdateCommunityRequest": {
+                "properties": {
+                    "title": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Title",
+                        "description": "Title of the community"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "Description of the community"
+                    },
+                    "digital_human_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Digital Human Ids",
+                        "description": "List of digital human (test case) IDs to associate this community with (replaces existing associations)"
+                    }
+                },
+                "type": "object",
+                "title": "UpdateCommunityRequest"
             },
             "UpdateCronJobRequest": {
                 "properties": {
@@ -9572,7 +9829,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/Event"
+                                    "$ref": "#/components/schemas/Event-Input"
                                 },
                                 "type": "array"
                             },
@@ -9587,7 +9844,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/ToolCall"
+                                    "$ref": "#/components/schemas/ToolCall-Input"
                                 },
                                 "type": "array"
                             },
@@ -10136,128 +10393,6 @@
                     "agent_id"
                 ],
                 "title": "SimulationRunResponse"
-            },
-            "src__models__call__Event": {
-                "properties": {
-                    "_title": {
-                        "type": "string",
-                        "title": "Title"
-                    },
-                    "_start_offset_ms": {
-                        "type": "integer",
-                        "title": "Start Offset Ms"
-                    },
-                    "_description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Description"
-                    },
-                    "_end_offset_ms": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "End Offset Ms"
-                    },
-                    "_tags": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Tags"
-                    },
-                    "_metadata": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Metadata"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "_title",
-                    "_start_offset_ms"
-                ],
-                "title": "Event"
-            },
-            "src__models__call__ToolCall": {
-                "properties": {
-                    "_name": {
-                        "type": "string",
-                        "title": "Name"
-                    },
-                    "_start_offset_ms": {
-                        "type": "integer",
-                        "title": "Start Offset Ms"
-                    },
-                    "_description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Description"
-                    },
-                    "_parameters": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Parameters"
-                    },
-                    "_output": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Output"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "_name",
-                    "_start_offset_ms"
-                ],
-                "title": "ToolCall"
             },
             "src__text_agent_api__SimulationRunRequest": {
                 "properties": {
@@ -10827,6 +10962,82 @@
                 "title": "Simulation Result Evaluated",
                 "type": "object"
             },
+            "Event": {
+                "description": "Pydantic model for event data",
+                "properties": {
+                    "title": {
+                        "description": "Title of the event",
+                        "title": "Title",
+                        "type": "string"
+                    },
+                    "start_offset_ms": {
+                        "description": "Start offset of the event in milliseconds",
+                        "title": "Start Offset Ms",
+                        "type": "integer"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description of the event",
+                        "title": "Description"
+                    },
+                    "end_offset_ms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "End offset of the event in milliseconds",
+                        "title": "End Offset Ms"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "List of tags associated with the event",
+                        "title": "Tags"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Additional metadata associated with the event",
+                        "title": "Metadata"
+                    }
+                },
+                "required": [
+                    "title",
+                    "start_offset_ms"
+                ],
+                "title": "Event",
+                "type": "object"
+            },
             "TestResultStatus": {
                 "description": "Enum representing the possible states of a test result.",
                 "enum": [
@@ -10843,6 +11054,71 @@
                 ],
                 "title": "TestResultStatus",
                 "type": "string"
+            },
+            "ToolCall": {
+                "description": "Represents a tool call during a conversation.",
+                "properties": {
+                    "name": {
+                        "description": "Name of the tool called",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "start_offset_ms": {
+                        "description": "Start offset of the tool call in milliseconds",
+                        "title": "Start Offset Ms",
+                        "type": "integer"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Description of the tool call",
+                        "title": "Description"
+                    },
+                    "parameters": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Parameters passed to the tool call",
+                        "title": "Parameters"
+                    },
+                    "output": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Output returned by the tool call",
+                        "title": "Output"
+                    }
+                },
+                "required": [
+                    "name",
+                    "start_offset_ms"
+                ],
+                "title": "ToolCall",
+                "type": "object"
             },
             "WebhookCustomMetric": {
                 "properties": {
