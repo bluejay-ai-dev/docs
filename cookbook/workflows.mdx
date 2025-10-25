@@ -1,0 +1,552 @@
+---
+title: "Workflows"
+description: "Creating and Managing Agent Workflows with Bluejay"
+---
+
+## Workflows with the Bluejay API
+
+Bluejay provides powerful workflow management capabilities that allow you to define, create, and manage conversation flows for your AI agents. Workflows help structure how your agents handle different conversation paths, making them more predictable and easier to evaluate. This cookbook will guide you through using the workflows API with practical Python examples.
+
+### Understanding Workflows
+
+Workflows in Bluejay are visual representations of conversation flows that define how your agent should handle different customer interaction paths. They consist of nodes (conversation steps) and edges (transitions between steps) that create a structured map of possible conversation outcomes.
+
+**Key Features:**
+
+- **Visual Flow Design**: Create intuitive conversation flows with nodes and edges
+- **Agent Association**: Link workflows to specific agents for targeted behavior
+- **Evaluation Integration**: Use workflows for agent performance evaluation
+- **Flexible Structure**: Support for complex branching and decision points
+- **Auto-positioning**: Automatic layout generation for visual clarity
+
+### Workflow Structure
+
+A workflow consists of two main components:
+
+1. **Nodes**: Individual conversation steps or decision points
+   - `start`: Beginning of the conversation
+   - `end`: End of the conversation  
+   - `editable`: Intermediate conversation steps
+
+2. **Edges**: Connections between nodes representing customer responses or interaction paths
+
+### Quick Start: Creating a Simple Workflow
+
+```python
+import requests
+import json
+from datetime import datetime, timezone
+
+def create_simple_workflow(agent_id, api_key):
+    """Create a basic customer service workflow"""
+
+    base_url = "https://api.getbluejay.ai/v1"
+
+    # Define workflow structure
+    workflow_data = {
+        "agent_id": agent_id,
+        "name": "Customer Service Flow",
+        "enabled_for_evaluation": True,
+        "workflow": {
+            "nodes": [
+                {
+                    "id": "start-node",
+                    "type": "start",
+                    "data": {
+                        "label": "Start Conversation",
+                        "description": "Customer initiates contact"
+                    }
+                },
+                {
+                    "id": "greeting",
+                    "type": "editable",
+                    "data": {
+                        "label": "Greeting and Identification",
+                        "description": "Welcome customer and identify their needs"
+                    }
+                },
+                {
+                    "id": "problem-solving",
+                    "type": "editable",
+                    "data": {
+                        "label": "Problem Resolution",
+                        "description": "Address customer's specific issue"
+                    }
+                },
+                {
+                    "id": "end-node",
+                    "type": "end",
+                    "data": {
+                        "label": "End Conversation",
+                        "description": "Conversation completed successfully"
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "id": "edge-1",
+                    "source": "start-node",
+                    "target": "greeting",
+                    "label": "Customer calls in",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-2",
+                    "source": "greeting",
+                    "target": "problem-solving",
+                    "label": "Customer explains issue",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-3",
+                    "source": "problem-solving",
+                    "target": "end-node",
+                    "label": "Issue resolved",
+                    "type": "connector"
+                }
+            ]
+        }
+    }
+
+    # Submit workflow creation request
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/workflows",
+        headers=headers,
+        json=workflow_data
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Workflow created successfully!")
+        print(f"Workflow ID: {result['id']}")
+        print(f"Name: {result['name']}")
+        return result
+    else:
+        print(f"Error creating workflow: {response.status_code} - {response.text}")
+        return None
+
+# Usage
+api_key = "your-api-key-here"
+agent_id = 123
+workflow = create_simple_workflow(agent_id, api_key)
+```
+
+![Simple Workflow](/images/simple-workflow.png)
+
+### Advanced: Complex Order Processing Workflow
+
+Here's a more sophisticated example for an order processing system with multiple decision points:
+
+```python
+import requests
+import json
+from datetime import datetime, timezone
+
+def create_order_processing_workflow(agent_id, api_key):
+    """Create a comprehensive order processing workflow with branching logic"""
+
+    base_url = "https://api.getbluejay.ai/v1"
+
+    # Complex workflow with multiple paths
+    workflow_data = {
+        "agent_id": agent_id,
+        "name": "Order Processing & Support",
+        "enabled_for_evaluation": True,
+        "workflow": {
+            "nodes": [
+                {
+                    "id": "start-node",
+                    "type": "start",
+                    "data": {
+                        "label": "Start Conversation",
+                        "description": "Customer initiates order-related contact"
+                    }
+                },
+                {
+                    "id": "greeting",
+                    "type": "editable",
+                    "data": {
+                        "label": "Greeting and Identification",
+                        "description": "Warmly welcome customer and ask for their order number"
+                    }
+                },
+                {
+                    "id": "order-lookup",
+                    "type": "editable",
+                    "data": {
+                        "label": "Order Lookup",
+                        "description": "Retrieve and review customer's order details"
+                    }
+                },
+                {
+                    "id": "order-status",
+                    "type": "editable",
+                    "data": {
+                        "label": "Status Update",
+                        "description": "Provide current order status and tracking information"
+                    }
+                },
+                {
+                    "id": "order-changes",
+                    "type": "editable",
+                    "data": {
+                        "label": "Order Modifications",
+                        "description": "Handle order changes, cancellations, or modifications"
+                    }
+                },
+                {
+                    "id": "payment-issues",
+                    "type": "editable",
+                    "data": {
+                        "label": "Payment Resolution",
+                        "description": "Address payment problems or billing questions"
+                    }
+                },
+                {
+                    "id": "shipping-issues",
+                    "type": "editable",
+                    "data": {
+                        "label": "Shipping Support",
+                        "description": "Handle delivery problems, address changes, or shipping questions"
+                    }
+                },
+                {
+                    "id": "order-confirmation",
+                    "type": "editable",
+                    "data": {
+                        "label": "Order Confirmation",
+                        "description": "Confirm order details and provide next steps"
+                    }
+                },
+                {
+                    "id": "escalation",
+                    "type": "editable",
+                    "data": {
+                        "label": "Escalation",
+                        "description": "Transfer to human agent for complex issues"
+                    }
+                },
+                {
+                    "id": "end-node",
+                    "type": "end",
+                    "data": {
+                        "label": "End Conversation",
+                        "description": "Conversation completed"
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "id": "edge-1",
+                    "source": "start-node",
+                    "target": "greeting",
+                    "label": "Customer calls in",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-2",
+                    "source": "greeting",
+                    "target": "order-lookup",
+                    "label": "Customer provides order number",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-3",
+                    "source": "order-lookup",
+                    "target": "order-status",
+                    "label": "Order found - provide status",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-4",
+                    "source": "order-lookup",
+                    "target": "order-changes",
+                    "label": "Customer wants to modify order",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-5",
+                    "source": "order-lookup",
+                    "target": "payment-issues",
+                    "label": "Payment or billing issue",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-6",
+                    "source": "order-lookup",
+                    "target": "shipping-issues",
+                    "label": "Shipping or delivery problem",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-7",
+                    "source": "order-status",
+                    "target": "order-confirmation",
+                    "label": "Customer satisfied with status",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-8",
+                    "source": "order-changes",
+                    "target": "order-confirmation",
+                    "label": "Changes processed successfully",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-9",
+                    "source": "payment-issues",
+                    "target": "order-confirmation",
+                    "label": "Payment issue resolved",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-10",
+                    "source": "shipping-issues",
+                    "target": "order-confirmation",
+                    "label": "Shipping issue resolved",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-11",
+                    "source": "order-lookup",
+                    "target": "escalation",
+                    "label": "Complex issue requires human agent",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-12",
+                    "source": "order-confirmation",
+                    "target": "end-node",
+                    "label": "Customer satisfied",
+                    "type": "connector"
+                },
+                {
+                    "id": "edge-13",
+                    "source": "escalation",
+                    "target": "end-node",
+                    "label": "Transferred to human agent",
+                    "type": "connector"
+                }
+            ]
+        }
+    }
+
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        f"{base_url}/workflows",
+        headers=headers,
+        json=workflow_data
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Complex workflow created successfully!")
+        print(f"Workflow ID: {result['id']}")
+        print(f"Nodes: {len(result['workflow']['nodes'])}")
+        print(f"Edges: {len(result['workflow']['edges'])}")
+        return result
+    else:
+        print(f"Error creating workflow: {response.status_code} - {response.text}")
+        return None
+
+# Usage
+workflow = create_order_processing_workflow(agent_id, api_key)
+```
+
+![Complex Workflow](/images/complex-workflow.png)
+
+### Retrieving and Managing Workflows
+
+#### Get All Workflows for an Agent
+
+```python
+def get_agent_workflows(agent_id, api_key):
+    """Retrieve all workflows associated with an agent"""
+
+    base_url = "https://api.getbluejay.ai/v1"
+
+    headers = {
+        "X-API-Key": api_key
+    }
+
+    response = requests.get(
+        f"{base_url}/workflows/by-agent/{agent_id}",
+        headers=headers
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Found {result['total_count']} workflows for agent {agent_id}")
+        
+        for workflow in result['workflows']:
+            print(f"- {workflow['name']} (ID: {workflow['id']})")
+            print(f"  Created: {workflow['created_at']}")
+            print(f"  Evaluation enabled: {workflow['enabled_for_evaluation']}")
+            print()
+        
+        return result
+    else:
+        print(f"Error retrieving workflows: {response.status_code} - {response.text}")
+        return None
+
+# Usage
+workflows = get_agent_workflows(agent_id, api_key)
+```
+
+#### Get a Specific Workflow
+
+```python
+def get_workflow_details(workflow_id, api_key):
+    """Retrieve detailed information about a specific workflow"""
+
+    base_url = "https://api.getbluejay.ai/v1"
+
+    headers = {
+        "X-API-Key": api_key
+    }
+
+    response = requests.get(
+        f"{base_url}/workflows/{workflow_id}",
+        headers=headers
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Workflow: {result['name']}")
+        print(f"Agent ID: {result['agent_id']}")
+        print(f"Nodes: {len(result['workflow']['nodes'])}")
+        print(f"Edges: {len(result['workflow']['edges'])}")
+        
+        # Display node details
+        print("\nNodes:")
+        for node in result['workflow']['nodes']:
+            print(f"  - {node['data']['label']} ({node['type']})")
+            if node['data']['description']:
+                print(f"    Description: {node['data']['description']}")
+        
+        # Display edge details
+        print("\nEdges:")
+        for edge in result['workflow']['edges']:
+            print(f"  - {edge['source']} → {edge['target']}: {edge['label']}")
+        
+        return result
+    else:
+        print(f"Error retrieving workflow: {response.status_code} - {response.text}")
+        return None
+
+# Usage
+workflow_details = get_workflow_details(workflow_id, api_key)
+```
+
+### Updating Workflows
+
+```python
+def update_workflow(workflow_id, api_key, new_name=None, new_workflow_data=None):
+    """Update an existing workflow"""
+
+    base_url = "https://api.getbluejay.ai/v1"
+
+    # Prepare update data
+    update_data = {}
+    if new_name:
+        update_data["name"] = new_name
+    if new_workflow_data:
+        update_data["workflow"] = new_workflow_data
+
+    headers = {
+        "X-API-Key": api_key,
+        "Content-Type": "application/json"
+    }
+
+    response = requests.put(
+        f"{base_url}/workflows/{workflow_id}",
+        headers=headers,
+        json=update_data
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Workflow updated successfully!")
+        print(f"Updated name: {result['name']}")
+        print(f"Last updated: {result['updated_at']}")
+        return result
+    else:
+        print(f"Error updating workflow: {response.status_code} - {response.text}")
+        return None
+
+# Example: Update workflow name
+updated_workflow = update_workflow(
+    workflow_id=workflow_id,
+    api_key=api_key,
+    new_name="Updated Customer Service Flow"
+)
+```
+
+### Deleting Workflows
+
+```python
+def delete_workflow(workflow_id, api_key):
+    """Delete a workflow"""
+
+    base_url = "https://api.getbluejay.ai/v1"
+
+    headers = {
+        "X-API-Key": api_key
+    }
+
+    response = requests.delete(
+        f"{base_url}/workflows/{workflow_id}",
+        headers=headers
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Workflow deleted successfully!")
+        print(f"Deleted workflow ID: {result['id']}")
+        return result
+    else:
+        print(f"Error deleting workflow: {response.status_code} - {response.text}")
+        return None
+
+# Usage
+delete_result = delete_workflow(workflow_id, api_key)
+```
+
+### Workflow Validation and Best Practices
+
+#### Validation Rules
+
+Bluejay automatically validates workflows to ensure they're properly structured:
+
+1. **Exactly one start node**: Every workflow must have exactly one node with `type: "start"`
+2. **At least one end node**: Every workflow must have at least one node with `type: "end"`
+3. **Unique IDs**: All node and edge IDs must be unique within the workflow
+4. **Valid connections**: All edges must reference existing source and target nodes
+
+
+#### Best Practices
+
+1. **Clear Node Labels**: Use descriptive labels that clearly indicate the conversation step
+2. **Detailed Descriptions**: Provide comprehensive descriptions for each node to guide agent behavior
+3. **Logical Flow**: Ensure edges represent realistic customer responses and conversation paths
+4. **Error Handling**: Include paths for error scenarios and edge cases
+5. **Evaluation Focus**: Design workflows that align with your evaluation criteria
+
+
+### Next Steps
+
+- **Workflow Design**: Use the Bluejay dashboard to visually design and test your workflows
+- **Agent Integration**: Associate workflows with specific agents to control their conversation behavior
+- **Evaluation Setup**: Enable workflows for evaluation to measure agent performance against expected conversation flows
+- **Continuous Improvement**: Regularly update workflows based on real conversation data and performance metrics
+- **Team Collaboration**: Share workflow designs with your team for review and iteration
+
