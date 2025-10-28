@@ -157,7 +157,7 @@
         "/v1/generate-test-scenarios": {
             "post": {
                 "summary": "Generate Test Scenarios",
-                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{problem: string, transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - problem: Required. Description of the problem/scenario context\n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from problem and transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
+                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{problem: string, transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - problem: Required. Description of the problem/scenario context\n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from problem and transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n        csvCallAllocation: [{intent: string, success_criteria: string, count: number}, ...];\n            // For csvCallAllocation:\n            // - intent: Required. The customer intent/description for the scenario\n            // - success_criteria: Required. The success criteria for the scenario\n            // - count: Required. Number of scenarios to generate with this intent and success criteria\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
                 "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
                 "security": [
                     {
@@ -255,7 +255,7 @@
         "/v1/move-regen-test-scenarios": {
             "post": {
                 "summary": "Move Regen Test Scenarios Endpoint",
-                "description": "Regenerates test scenarios with a new goal while preserving scenario descriptions.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    scenarios: TestScenario[];\n    newGoal: string;\n}",
+                "description": "Regenerates test scenarios with a new goal while preserving scenario descriptions.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenario[];\n    newGoal: string;\n}",
                 "operationId": "move_regen_test_scenarios_endpoint_v1_move_regen_test_scenarios_post",
                 "security": [
                     {
@@ -298,7 +298,7 @@
         "/v1/regen-test-scenarios": {
             "post": {
                 "summary": "Regen Test Scenarios Endpoint",
-                "description": "Regenerates test scenarios based on custom instructions while preserving style and structure.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    scenarios: TestScenario[];\n    instructions: string;\n    persona?: CustomerPersona;\n}",
+                "description": "Regenerates test scenarios based on custom instructions while preserving style and structure.\n\nAccepts a request with the following structure:\n{\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenario[];\n    instructions: string;\n    persona?: CustomerPersona;\n}",
                 "operationId": "regen_test_scenarios_endpoint_v1_regen_test_scenarios_post",
                 "security": [
                     {
@@ -322,168 +322,6 @@
                         "content": {
                             "application/json": {
                                 "schema": {}
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/retrieve-call-logs": {
-            "get": {
-                "summary": "Retrieve Call Logs Index",
-                "operationId": "retrieve_call_logs_index_v1_retrieve_call_logs_get",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ]
-            }
-        },
-        "/v1/retrieve-call-logs/{agent_id}": {
-            "get": {
-                "summary": "Retrieve Call Logs",
-                "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
-                "operationId": "retrieve_call_logs_v1_retrieve_call_logs__agent_id__get",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "agent_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "title": "Agent Id"
-                        }
-                    },
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RetrieveCallLogsResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/retrieve-call-log": {
-            "get": {
-                "summary": "Retrieve Call Log Index",
-                "operationId": "retrieve_call_log_index_v1_retrieve_call_log_get",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ]
-            }
-        },
-        "/v1/retrieve-call-log/{call_id}": {
-            "get": {
-                "summary": "Retrieve Call Log",
-                "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
-                "operationId": "retrieve_call_log_v1_retrieve_call_log__call_id__get",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "call_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "title": "Call Id"
-                        }
-                    },
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RetrieveCallLogResponse"
-                                }
                             }
                         }
                     },
@@ -4217,6 +4055,1905 @@
                 ]
             }
         },
+        "/v1/agents/{agent_id}/prompts": {
+            "get": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Get Prompt By Label Agent Scoped",
+                "description": "retrieve a single prompt by label under /agents/{agent_id}/prompts?label=... .\n\n- if label is missing -> 400\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)",
+                "operationId": "get_prompt_by_label_agent_scoped_v1_agents__agent_id__prompts_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Label"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PromptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/prompts/versions": {
+            "post": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Create Prompt Version Agent Scoped",
+                "description": "create a new prompt version under /agents/{agent_id}/prompts/versions.",
+                "operationId": "create_prompt_version_agent_scoped_v1_agents__agent_id__prompts_versions_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePromptVersionBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PromptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "List Prompt Versions",
+                "description": "list prompt versions with optional filters (label, version).",
+                "operationId": "list_prompt_versions_v1_agents__agent_id__prompts_versions_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Label"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PromptResponse"
+                                    },
+                                    "title": "Response List Prompt Versions V1 Agents  Agent Id  Prompts Versions Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Delete Prompt Version By Label Agent Scoped",
+                "description": "delete a prompt version by label.\n\n- if label is production -> 400 (must move production first)\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
+                "operationId": "delete_prompt_version_by_label_agent_scoped_v1_agents__agent_id__prompts_versions_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Label"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/prompts/versions/{version}": {
+            "get": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Get Prompt Version Agent Scoped",
+                "operationId": "get_prompt_version_agent_scoped_v1_agents__agent_id__prompts_versions__version__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PromptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Delete Prompt Version Agent Scoped",
+                "description": "delete a specific prompt version; cannot delete production; cannot delete only version.\n\nif deleting latest, reassign latest to highest remaining version.\nreturns metadata about the deletion.",
+                "operationId": "delete_prompt_version_agent_scoped_v1_agents__agent_id__prompts_versions__version__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/prompts/{prompt_id}": {
+            "get": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Get Prompt By Id",
+                "operationId": "get_prompt_by_id_v1_agents__agent_id__prompts__prompt_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "prompt_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Prompt Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PromptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Delete Prompt By Id Agent Scoped",
+                "operationId": "delete_prompt_by_id_agent_scoped_v1_agents__agent_id__prompts__prompt_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "prompt_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Prompt Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/prompts/versions/{version}/labels": {
+            "get": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "List Prompt Version Labels Agent Scoped",
+                "operationId": "list_prompt_version_labels_agent_scoped_v1_agents__agent_id__prompts_versions__version__labels_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Add Prompt Version Labels Agent Scoped",
+                "operationId": "add_prompt_version_labels_agent_scoped_v1_agents__agent_id__prompts_versions__version__labels_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LabelDeltaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Prompts"
+                ],
+                "summary": "Remove Prompt Version Labels Agent Scoped",
+                "operationId": "remove_prompt_version_labels_agent_scoped_v1_agents__agent_id__prompts_versions__version__labels_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LabelDeltaRequest",
+                                "default": {
+                                    "labels": [],
+                                    "override_label": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/knowledge-bases": {
+            "get": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Get Knowledge Base By Label Agent Scoped",
+                "description": "retrieve a single knowledge base by label: /agents/{agent_id}/knowledge-bases?label=... .\n\n- if label is missing -> 400\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)",
+                "operationId": "get_knowledge_base_by_label_agent_scoped_v1_agents__agent_id__knowledge_bases_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Label"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/knowledge-bases/versions": {
+            "post": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Create Knowledge Base Version Agent Scoped",
+                "operationId": "create_knowledge_base_version_agent_scoped_v1_agents__agent_id__knowledge_bases_versions_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateKnowledgeBaseVersionBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "List Knowledge Base Versions",
+                "operationId": "list_knowledge_base_versions_v1_agents__agent_id__knowledge_bases_versions_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Label"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                                    },
+                                    "title": "Response List Knowledge Base Versions V1 Agents  Agent Id  Knowledge Bases Versions Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Delete Knowledge Base Version By Label Agent Scoped",
+                "description": "delete a knowledge base version by label.\n\n- if label is production -> 400 (must move production first)\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
+                "operationId": "delete_knowledge_base_version_by_label_agent_scoped_v1_agents__agent_id__knowledge_bases_versions_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Label"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/knowledge-bases/versions/{version}": {
+            "get": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Get Knowledge Base Version Agent Scoped",
+                "operationId": "get_knowledge_base_version_agent_scoped_v1_agents__agent_id__knowledge_bases_versions__version__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Delete Knowledge Base Version Agent Scoped",
+                "description": "delete a specific knowledge base version; cannot delete production; cannot delete only version.\n\nif deleting latest, reassign latest to highest remaining version.\nreturns metadata about the deletion.",
+                "operationId": "delete_knowledge_base_version_agent_scoped_v1_agents__agent_id__knowledge_bases_versions__version__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/knowledge-bases/{kb_id}": {
+            "get": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Get Knowledge Base By Id",
+                "operationId": "get_knowledge_base_by_id_v1_agents__agent_id__knowledge_bases__kb_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "kb_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Kb Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Delete Knowledge Base By Id Agent Scoped",
+                "operationId": "delete_knowledge_base_by_id_agent_scoped_v1_agents__agent_id__knowledge_bases__kb_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "kb_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Kb Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/knowledge-bases/versions/{version}/labels": {
+            "get": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "List Knowledge Base Version Labels Agent Scoped",
+                "operationId": "list_knowledge_base_version_labels_agent_scoped_v1_agents__agent_id__knowledge_bases_versions__version__labels_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Add Knowledge Base Version Labels Agent Scoped",
+                "operationId": "add_knowledge_base_version_labels_agent_scoped_v1_agents__agent_id__knowledge_bases_versions__version__labels_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LabelDeltaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Knowledge Bases"
+                ],
+                "summary": "Remove Knowledge Base Version Labels Agent Scoped",
+                "operationId": "remove_knowledge_base_version_labels_agent_scoped_v1_agents__agent_id__knowledge_bases_versions__version__labels_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Version"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LabelDeltaRequest",
+                                "default": {
+                                    "labels": [],
+                                    "override_label": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/labels": {
+            "post": {
+                "tags": [
+                    "Labels"
+                ],
+                "summary": "Create Label",
+                "description": "create a free-standing label for an agent (not attached to any prompt or knowledge base).",
+                "operationId": "create_label_v1_agents__agent_id__labels_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateLabelBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Labels"
+                ],
+                "summary": "List Labels",
+                "description": "list all free-standing labels for an agent; filter by substring with q.",
+                "operationId": "list_labels_v1_agents__agent_id__labels_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Q"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LabelPydantic"
+                                    },
+                                    "title": "Response List Labels V1 Agents  Agent Id  Labels Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/agents/{agent_id}/labels/{label_id}": {
+            "get": {
+                "tags": [
+                    "Labels"
+                ],
+                "summary": "Get Label By Id",
+                "operationId": "get_label_by_id_v1_agents__agent_id__labels__label_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Label Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Labels"
+                ],
+                "summary": "Update Label",
+                "description": "rename a free-standing label; reserved labels are not allowed as targets.",
+                "operationId": "update_label_v1_agents__agent_id__labels__label_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Label Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateLabelBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LabelPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Labels"
+                ],
+                "summary": "Delete Label",
+                "description": "delete a free-standing label; cannot delete reserved labels; cannot delete if associated.",
+                "operationId": "delete_label_v1_agents__agent_id__labels__label_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "label_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Label Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/workflows": {
             "post": {
                 "tags": [
@@ -4495,6 +6232,180 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/WorkflowsListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/retrieve-call-logs": {
+            "get": {
+                "tags": [
+                    "Call Logs"
+                ],
+                "summary": "Retrieve Call Logs Index",
+                "operationId": "retrieve_call_logs_index_v1_retrieve_call_logs_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ]
+            }
+        },
+        "/v1/retrieve-call-logs/{agent_id}": {
+            "get": {
+                "tags": [
+                    "Call Logs"
+                ],
+                "summary": "Retrieve Call Logs",
+                "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
+                "operationId": "retrieve_call_logs_v1_retrieve_call_logs__agent_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Agent Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RetrieveCallLogsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/retrieve-call-log": {
+            "get": {
+                "tags": [
+                    "Call Logs"
+                ],
+                "summary": "Retrieve Call Log Index",
+                "operationId": "retrieve_call_log_index_v1_retrieve_call_log_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ]
+            }
+        },
+        "/v1/retrieve-call-log/{call_id}": {
+            "get": {
+                "tags": [
+                    "Call Logs"
+                ],
+                "summary": "Retrieve Call Log",
+                "description": "Retrieve call logs for a specific agent given the agent ID.\nReturns a list of call objects, each with an additional \"evaluations\" field\ncontaining a list of evaluations joined via call_id.",
+                "operationId": "retrieve_call_log_v1_retrieve_call_log__call_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "call_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Call Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RetrieveCallLogResponse"
                                 }
                             }
                         }
@@ -5799,7 +7710,7 @@
                     },
                     "participants": {
                         "items": {
-                            "$ref": "#/components/schemas/ParticipantRequest"
+                            "$ref": "#/components/schemas/Participant"
                         },
                         "type": "array",
                         "maxItems": 2,
@@ -5865,7 +7776,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/ToolCallRequest"
+                                    "$ref": "#/components/schemas/ToolCall"
                                 },
                                 "type": "array"
                             },
@@ -5880,7 +7791,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/EventRequest"
+                                    "$ref": "#/components/schemas/Event"
                                 },
                                 "type": "array"
                             },
@@ -5986,6 +7897,18 @@
                         ],
                         "title": "Custom Metric Tags",
                         "description": "Specify one or more tags to include all custom metrics associated with those tags. This allows you to run groups of related custom metrics without listing each individually."
+                    },
+                    "label": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Label",
+                        "description": "Label of the agent to use for the evaluation (determines which prompt and knowledge base to use and defaults to the `production` label if not provided)"
                     }
                 },
                 "type": "object",
@@ -6038,7 +7961,7 @@
                     },
                     "participants": {
                         "items": {
-                            "$ref": "#/components/schemas/ParticipantRequest"
+                            "$ref": "#/components/schemas/Participant"
                         },
                         "type": "array",
                         "maxItems": 2,
@@ -6104,7 +8027,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/ToolCallRequest"
+                                    "$ref": "#/components/schemas/ToolCall"
                                 },
                                 "type": "array"
                             },
@@ -6119,7 +8042,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/EventRequest"
+                                    "$ref": "#/components/schemas/Event"
                                 },
                                 "type": "array"
                             },
@@ -6225,6 +8148,19 @@
                         ],
                         "title": "Custom Metric Tags",
                         "description": "Specify one or more tags to include all custom metrics associated with those tags. This allows you to run groups of related custom metrics without listing each individually."
+                    },
+                    "label": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Label",
+                        "description": "Label of the agent to use for the evaluation (determines which prompt and knowledge base to use)",
+                        "default": "production"
                     }
                 },
                 "type": "object",
@@ -6741,6 +8677,121 @@
                     "scope"
                 ],
                 "title": "CreateKeyIn"
+            },
+            "CreateKnowledgeBaseVersionBody": {
+                "properties": {
+                    "kb_text": {
+                        "type": "string",
+                        "title": "Kb Text"
+                    },
+                    "commit_message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Commit Message"
+                    },
+                    "labels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Labels"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "kb_text"
+                ],
+                "title": "CreateKnowledgeBaseVersionBody"
+            },
+            "CreateLabelBody": {
+                "properties": {
+                    "label_text": {
+                        "type": "string",
+                        "title": "Label Text",
+                        "description": "text for the label"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "label_text"
+                ],
+                "title": "CreateLabelBody"
+            },
+            "CreatePromptVersionBody": {
+                "properties": {
+                    "prompt_text": {
+                        "type": "string",
+                        "title": "Prompt Text"
+                    },
+                    "commit_message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Commit Message"
+                    },
+                    "labels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Labels"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "prompt_text"
+                ],
+                "title": "CreatePromptVersionBody",
+                "description": "body for agent-scoped create version endpoint (agent_id in path)."
             },
             "CreateWorkflowRequest": {
                 "properties": {
@@ -7351,6 +9402,32 @@
                         "type": "string",
                         "title": "Simulation Id",
                         "description": "ID of the simulation to be used for the digital human"
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Prompt UUID associated with the simulation"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Knowledge base UUID associated with the simulation"
                     },
                     "goal_adherence": {
                         "anyOf": [
@@ -8286,74 +10363,6 @@
                 "title": "Event",
                 "description": "Pydantic model for event data"
             },
-            "EventRequest": {
-                "properties": {
-                    "title": {
-                        "type": "string",
-                        "title": "Title"
-                    },
-                    "start_offset_ms": {
-                        "type": "integer",
-                        "title": "Start Offset Ms"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Description"
-                    },
-                    "end_offset_ms": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "End Offset Ms"
-                    },
-                    "tags": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Tags"
-                    },
-                    "metadata": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Metadata",
-                        "description": "Additional metadata associated with the event"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "title",
-                    "start_offset_ms"
-                ],
-                "title": "EventRequest",
-                "description": "Pydantic model for event data in request"
-            },
             "EveryNMinutesSchedule": {
                 "properties": {
                     "frequency": {
@@ -8473,6 +10482,32 @@
                         "title": "Agent Id",
                         "description": "ID of the agent to generate metrics for"
                     },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Prompt UUID associated with the agent"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Knowledge base UUID associated with the agent"
+                    },
                     "count": {
                         "type": "integer",
                         "title": "Count",
@@ -8504,6 +10539,32 @@
                         "type": "string",
                         "title": "Agent Id",
                         "description": "ID of the agent to generate personas for"
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Prompt UUID associated with the agent"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Knowledge base UUID associated with the agent"
                     },
                     "count": {
                         "type": "integer",
@@ -8542,6 +10603,32 @@
                         "title": "Count",
                         "description": "Number of goals to generate",
                         "default": 5
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "ID of the prompt to use for goal generation"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "ID of the knowledge base to use for goal generation"
                     },
                     "custom_prompt": {
                         "anyOf": [
@@ -8662,6 +10749,210 @@
                     "revoked"
                 ],
                 "title": "KeyOut"
+            },
+            "KnowledgeBaseResponse": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id",
+                        "description": "the id of the knowledge base"
+                    },
+                    "kb_text": {
+                        "type": "string",
+                        "title": "Kb Text",
+                        "description": "the knowledge base content"
+                    },
+                    "commit_message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Commit Message"
+                    },
+                    "labels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Labels",
+                        "description": "labels associated with the knowledge base"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata",
+                        "description": "arbitrary JSON metadata"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "title": "Version",
+                        "description": "the version number of the knowledge base"
+                    },
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id",
+                        "description": "id of the agent that owns this knowledge base"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "kb_text",
+                    "version",
+                    "agent_id"
+                ],
+                "title": "KnowledgeBaseResponse",
+                "description": "response model for knowledge base without created_at."
+            },
+            "LabelDeltaRequest": {
+                "properties": {
+                    "labels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Labels"
+                    },
+                    "override_label": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Override Label",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "title": "LabelDeltaRequest",
+                "description": "request body for add/remove label operations.\n\nlabels: list of labels to add or remove. empty/null means no-op for add,\nand clear-all for remove (callers decide the semantics).\noverride_label: when true, adding an existing label moves its association\nto the requested resource; when false, conflicts return 409."
+            },
+            "LabelListResponse": {
+                "properties": {
+                    "labels": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Labels"
+                    }
+                },
+                "type": "object",
+                "title": "LabelListResponse",
+                "description": "response wrapper for just a list of labels."
+            },
+            "LabelPydantic": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Created At"
+                    },
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id"
+                    },
+                    "label_text": {
+                        "type": "string",
+                        "title": "Label Text"
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id"
+                    },
+                    "color": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Color"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id",
+                    "label_text"
+                ],
+                "title": "LabelPydantic",
+                "description": "Represents a label record stored in the `labels` table."
             },
             "LanguageType": {
                 "type": "string",
@@ -8878,7 +11169,7 @@
                 "title": "NodeData",
                 "description": "Data content for a workflow node"
             },
-            "ParticipantRequest": {
+            "Participant": {
                 "properties": {
                     "role": {
                         "$ref": "#/components/schemas/ParticipantRole"
@@ -8915,8 +11206,8 @@
                     "role",
                     "spoke_first"
                 ],
-                "title": "ParticipantRequest",
-                "description": "Pydantic model for participant data in request"
+                "title": "Participant",
+                "description": "Represents a participant in a call."
             },
             "ParticipantResponse": {
                 "properties": {
@@ -9040,6 +11331,85 @@
                 "title": "Position",
                 "description": "2D position coordinates for nodes"
             },
+            "PromptResponse": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id",
+                        "description": "the id of the prompt"
+                    },
+                    "prompt_text": {
+                        "type": "string",
+                        "title": "Prompt Text",
+                        "description": "the prompt content"
+                    },
+                    "commit_message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Commit Message"
+                    },
+                    "labels": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Labels",
+                        "description": "labels associated with the prompt"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata",
+                        "description": "arbitrary JSON metadata"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "title": "Version",
+                        "description": "the version number of the prompt"
+                    },
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id",
+                        "description": "id of the agent that owns this prompt"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "prompt_text",
+                    "version",
+                    "agent_id"
+                ],
+                "title": "PromptResponse",
+                "description": "response model for prompt without created_at."
+            },
             "ResponseType": {
                 "type": "string",
                 "enum": [
@@ -9110,6 +11480,32 @@
                         ],
                         "title": "Name",
                         "description": "Name of the simulation"
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Optional default prompt UUID for this simulation"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Optional default knowledge base UUID for this simulation"
                     },
                     "sequential_calling": {
                         "anyOf": [
@@ -9693,6 +12089,7 @@
                     },
                     "start_offset_ms": {
                         "type": "integer",
+                        "minimum": 0.0,
                         "title": "Start Offset Ms",
                         "description": "Start offset of the tool call in milliseconds"
                     },
@@ -9745,63 +12142,6 @@
                 ],
                 "title": "ToolCall",
                 "description": "Represents a tool call during a conversation."
-            },
-            "ToolCallRequest": {
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "title": "Name"
-                    },
-                    "start_offset_ms": {
-                        "type": "integer",
-                        "title": "Start Offset Ms"
-                    },
-                    "description": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Description"
-                    },
-                    "parameters": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Parameters"
-                    },
-                    "output": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Output"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "name",
-                    "start_offset_ms"
-                ],
-                "title": "ToolCallRequest",
-                "description": "Pydantic model for tool call data in request"
             },
             "TranscriptEntryRequest": {
                 "properties": {
@@ -10413,6 +12753,20 @@
                 "title": "UpdateDigitalHumanRequest",
                 "description": "Request model for updating a digital human - contains only the digital human data"
             },
+            "UpdateLabelBody": {
+                "properties": {
+                    "label_text": {
+                        "type": "string",
+                        "title": "Label Text",
+                        "description": "new text for the label"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "label_text"
+                ],
+                "title": "UpdateLabelBody"
+            },
             "UpdateSimulationRequest": {
                 "properties": {
                     "simulation_result_id": {
@@ -10684,34 +13038,7 @@
                 ],
                 "title": "WeeklySchedule"
             },
-            "WorkflowData-Input": {
-                "properties": {
-                    "nodes": {
-                        "items": {
-                            "$ref": "#/components/schemas/src__api__workflows__WorkflowNode"
-                        },
-                        "type": "array",
-                        "title": "Nodes",
-                        "description": "List of all nodes in the workflow"
-                    },
-                    "edges": {
-                        "items": {
-                            "$ref": "#/components/schemas/src__api__workflows__WorkflowEdge"
-                        },
-                        "type": "array",
-                        "title": "Edges",
-                        "description": "List of all connections between nodes"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "nodes",
-                    "edges"
-                ],
-                "title": "WorkflowData",
-                "description": "Complete workflow graph structure"
-            },
-            "WorkflowData-Output": {
+            "WorkflowData": {
                 "properties": {
                     "nodes": {
                         "items": {
@@ -10750,7 +13077,7 @@
                     },
                     "edges": {
                         "items": {
-                            "$ref": "#/components/schemas/src__api__workflows__WorkflowEdge"
+                            "$ref": "#/components/schemas/WorkflowEdge-Input"
                         },
                         "type": "array",
                         "title": "Edges",
@@ -10764,6 +13091,59 @@
                 ],
                 "title": "WorkflowDataInput",
                 "description": "Input model for workflow data (without position fields)"
+            },
+            "WorkflowEdge-Input": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "Unique identifier for the edge"
+                    },
+                    "source": {
+                        "type": "string",
+                        "title": "Source",
+                        "description": "ID of the source node"
+                    },
+                    "target": {
+                        "type": "string",
+                        "title": "Target",
+                        "description": "ID of the target node"
+                    },
+                    "label": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Label",
+                        "description": "Description of the customer response/interaction",
+                        "default": "Click to edit"
+                    },
+                    "type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Type",
+                        "description": "Type of edge connector",
+                        "default": "connector"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "source",
+                    "target"
+                ],
+                "title": "WorkflowEdge",
+                "description": "Connection between two nodes representing a customer interaction path"
             },
             "WorkflowGenerationRequest": {
                 "properties": {
@@ -10862,7 +13242,7 @@
                         "description": "Name of the workflow"
                     },
                     "workflow": {
-                        "$ref": "#/components/schemas/WorkflowData-Output",
+                        "$ref": "#/components/schemas/WorkflowData",
                         "description": "The complete workflow structure"
                     },
                     "enabled_for_evaluation": {
@@ -11065,6 +13445,32 @@
                         "type": "string",
                         "title": "Simulation Id",
                         "description": "ID of the simulation to be run"
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Prompt UUID associated with this run"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Knowledge base UUID associated with this run"
                     },
                     "digital_human_ids": {
                         "anyOf": [
@@ -11323,6 +13729,32 @@
                         "title": "Simulation Id",
                         "description": "ID of the simulation to be run"
                     },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Prompt UUID associated with this run"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Knowledge base UUID associated with this run"
+                    },
                     "digital_human_ids": {
                         "anyOf": [
                             {
@@ -11506,6 +13938,7 @@
                             },
                             "start_offset_ms": {
                                 "description": "Start offset of the tool call in milliseconds",
+                                "minimum": 0,
                                 "title": "Start Offset Ms",
                                 "type": "integer"
                             },
@@ -12457,6 +14890,7 @@
                             },
                             "start_offset_ms": {
                                 "description": "Start offset of the tool call in milliseconds",
+                                "minimum": 0,
                                 "title": "Start Offset Ms",
                                 "type": "integer"
                             },
