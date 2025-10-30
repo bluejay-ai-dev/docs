@@ -1142,11 +1142,16 @@
             "get": {
                 "summary": "Pong",
                 "operationId": "pong_v1_ping_get",
-                "security": [
-                    {
-                        "HTTPBearer": []
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
                     }
-                ],
+                },
                 "parameters": [
                     {
                         "name": "X-API-Key",
@@ -1157,27 +1162,7 @@
                         },
                         "description": "API key required to authenticate requests."
                     }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
+                ]
             }
         },
         "/v1/compare-experiment-runs": {
@@ -2129,6 +2114,61 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/DeleteSimulationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Get Simulation",
+                "description": "Get a specific simulation by ID.",
+                "operationId": "get_simulation_v1_simulation__simulation_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SimulationPydantic"
                                 }
                             }
                         }
@@ -6463,10 +6503,10 @@
                     "id": {
                         "anyOf": [
                             {
-                                "type": "integer"
+                                "type": "string"
                             },
                             {
-                                "type": "string"
+                                "type": "integer"
                             },
                             {
                                 "type": "null"
@@ -8346,6 +8386,9 @@
                         "anyOf": [
                             {
                                 "$ref": "#/components/schemas/EveryNMinutesSchedule"
+                            },
+                            {
+                                "$ref": "#/components/schemas/EveryNHoursSchedule"
                             },
                             {
                                 "$ref": "#/components/schemas/DailySchedule"
@@ -10363,6 +10406,28 @@
                 "title": "Event",
                 "description": "Pydantic model for event data"
             },
+            "EveryNHoursSchedule": {
+                "properties": {
+                    "frequency": {
+                        "type": "string",
+                        "const": "every_n_hours",
+                        "title": "Frequency"
+                    },
+                    "interval": {
+                        "type": "integer",
+                        "maximum": 23.0,
+                        "exclusiveMinimum": 0.0,
+                        "title": "Interval",
+                        "description": "Repeat every N hours (max 23)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "frequency",
+                    "interval"
+                ],
+                "title": "EveryNHoursSchedule"
+            },
             "EveryNMinutesSchedule": {
                 "properties": {
                     "frequency": {
@@ -10372,9 +10437,10 @@
                     },
                     "interval": {
                         "type": "integer",
+                        "maximum": 59.0,
                         "exclusiveMinimum": 0.0,
                         "title": "Interval",
-                        "description": "Repeat every N minutes"
+                        "description": "Repeat every N minutes (max 59)"
                     }
                 },
                 "type": "object",
@@ -11462,6 +11528,132 @@
                 "type": "object",
                 "title": "RetrieveCallLogsResponse"
             },
+            "SimulationPydantic": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id"
+                    },
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Created At"
+                    },
+                    "settings": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Settings"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/SimulationType"
+                    },
+                    "max_concurrent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Concurrent"
+                    },
+                    "max_turns": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Turns"
+                    },
+                    "ringing_timeout": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ringing Timeout"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "pinned": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pinned"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id",
+                    "name",
+                    "type"
+                ],
+                "title": "SimulationPydantic"
+            },
             "SimulationRequest": {
                 "properties": {
                     "agent_id": {
@@ -12049,6 +12241,15 @@
                 "title": "SimulationRunStatus",
                 "description": "Enum representing the possible states of a simulation run."
             },
+            "SimulationType": {
+                "type": "string",
+                "enum": [
+                    "sequential",
+                    "parallel",
+                    "max_concurrent"
+                ],
+                "title": "SimulationType"
+            },
             "TextProcessorRequest": {
                 "properties": {
                     "redis_key": {
@@ -12225,6 +12426,9 @@
                         "anyOf": [
                             {
                                 "$ref": "#/components/schemas/EveryNMinutesSchedule"
+                            },
+                            {
+                                "$ref": "#/components/schemas/EveryNHoursSchedule"
                             },
                             {
                                 "$ref": "#/components/schemas/DailySchedule"
@@ -14152,6 +14356,30 @@
                         "title": "Simulation Run Id",
                         "type": "integer"
                     },
+                    "simulation_id": {
+                        "description": "The ID of the simulation that this simulation result belongs to",
+                        "title": "Simulation Id",
+                        "type": "integer"
+                    },
+                    "agent_id": {
+                        "description": "The ID of the agent that this simulation result belongs to",
+                        "title": "Agent Id",
+                        "type": "integer"
+                    },
+                    "folder_id": {
+                        "anyOf": [
+                            {
+                                "format": "uuid",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The ID of the folder that the agent belongs to",
+                        "title": "Folder Id"
+                    },
                     "result": {
                         "anyOf": [
                             {
@@ -14312,7 +14540,9 @@
                 "required": [
                     "id",
                     "digital_human_id",
-                    "simulation_run_id"
+                    "simulation_run_id",
+                    "simulation_id",
+                    "agent_id"
                 ],
                 "title": "Simulation Result Evaluated",
                 "type": "object"
