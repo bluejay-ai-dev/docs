@@ -1142,11 +1142,16 @@
             "get": {
                 "summary": "Pong",
                 "operationId": "pong_v1_ping_get",
-                "security": [
-                    {
-                        "HTTPBearer": []
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
                     }
-                ],
+                },
                 "parameters": [
                     {
                         "name": "X-API-Key",
@@ -1157,27 +1162,7 @@
                         },
                         "description": "API key required to authenticate requests."
                     }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
+                ]
             }
         },
         "/v1/compare-experiment-runs": {
@@ -6463,10 +6448,10 @@
                     "id": {
                         "anyOf": [
                             {
-                                "type": "integer"
+                                "type": "string"
                             },
                             {
-                                "type": "string"
+                                "type": "integer"
                             },
                             {
                                 "type": "null"
@@ -8346,6 +8331,9 @@
                         "anyOf": [
                             {
                                 "$ref": "#/components/schemas/EveryNMinutesSchedule"
+                            },
+                            {
+                                "$ref": "#/components/schemas/EveryNHoursSchedule"
                             },
                             {
                                 "$ref": "#/components/schemas/DailySchedule"
@@ -10363,6 +10351,28 @@
                 "title": "Event",
                 "description": "Pydantic model for event data"
             },
+            "EveryNHoursSchedule": {
+                "properties": {
+                    "frequency": {
+                        "type": "string",
+                        "const": "every_n_hours",
+                        "title": "Frequency"
+                    },
+                    "interval": {
+                        "type": "integer",
+                        "maximum": 23.0,
+                        "exclusiveMinimum": 0.0,
+                        "title": "Interval",
+                        "description": "Repeat every N hours (max 23)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "frequency",
+                    "interval"
+                ],
+                "title": "EveryNHoursSchedule"
+            },
             "EveryNMinutesSchedule": {
                 "properties": {
                     "frequency": {
@@ -10372,9 +10382,10 @@
                     },
                     "interval": {
                         "type": "integer",
+                        "maximum": 59.0,
                         "exclusiveMinimum": 0.0,
                         "title": "Interval",
-                        "description": "Repeat every N minutes"
+                        "description": "Repeat every N minutes (max 59)"
                     }
                 },
                 "type": "object",
@@ -12225,6 +12236,9 @@
                         "anyOf": [
                             {
                                 "$ref": "#/components/schemas/EveryNMinutesSchedule"
+                            },
+                            {
+                                "$ref": "#/components/schemas/EveryNHoursSchedule"
                             },
                             {
                                 "$ref": "#/components/schemas/DailySchedule"
@@ -14152,6 +14166,30 @@
                         "title": "Simulation Run Id",
                         "type": "integer"
                     },
+                    "simulation_id": {
+                        "description": "The ID of the simulation that this simulation result belongs to",
+                        "title": "Simulation Id",
+                        "type": "integer"
+                    },
+                    "agent_id": {
+                        "description": "The ID of the agent that this simulation result belongs to",
+                        "title": "Agent Id",
+                        "type": "integer"
+                    },
+                    "folder_id": {
+                        "anyOf": [
+                            {
+                                "format": "uuid",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The ID of the folder that the agent belongs to",
+                        "title": "Folder Id"
+                    },
                     "result": {
                         "anyOf": [
                             {
@@ -14312,7 +14350,9 @@
                 "required": [
                     "id",
                     "digital_human_id",
-                    "simulation_run_id"
+                    "simulation_run_id",
+                    "simulation_id",
+                    "agent_id"
                 ],
                 "title": "Simulation Result Evaluated",
                 "type": "object"
