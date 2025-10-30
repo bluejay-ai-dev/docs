@@ -2129,6 +2129,61 @@
                         }
                     }
                 }
+            },
+            "get": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Get Simulation",
+                "description": "Get a specific simulation by ID.",
+                "operationId": "get_simulation_v1_simulation__simulation_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SimulationPydantic"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/create-custom-metric": {
@@ -11473,6 +11528,132 @@
                 "type": "object",
                 "title": "RetrieveCallLogsResponse"
             },
+            "SimulationPydantic": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id"
+                    },
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Created At"
+                    },
+                    "settings": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Settings"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/SimulationType"
+                    },
+                    "max_concurrent": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Concurrent"
+                    },
+                    "max_turns": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Turns"
+                    },
+                    "ringing_timeout": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ringing Timeout"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "pinned": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pinned"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id",
+                    "name",
+                    "type"
+                ],
+                "title": "SimulationPydantic"
+            },
             "SimulationRequest": {
                 "properties": {
                     "agent_id": {
@@ -12059,6 +12240,15 @@
                 ],
                 "title": "SimulationRunStatus",
                 "description": "Enum representing the possible states of a simulation run."
+            },
+            "SimulationType": {
+                "type": "string",
+                "enum": [
+                    "sequential",
+                    "parallel",
+                    "max_concurrent"
+                ],
+                "title": "SimulationType"
             },
             "TextProcessorRequest": {
                 "properties": {
