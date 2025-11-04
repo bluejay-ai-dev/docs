@@ -549,7 +549,7 @@
         "/v1/generate-digital-humans": {
             "post": {
                 "summary": "Generate Digital Humans",
-                "description": "Generate digital humans based on the provided simulation details.\n\nReturns a list of generated digital humans.",
+                "description": "Generate digital humans based on the provided simulation details.\n\nSupports multiple generation methods:\n- goal_adherence: Generate scenarios based on specific goals\n- workflow_adherence: Generate scenarios that follow specific workflows\n- replay_transcript: Generate scenarios from existing transcripts to reproduce issues. \n  For each replay, provide:\n    * transcript: The original call transcript\n    * problem: What the AI agent did incorrectly (e.g., \"failed to collect email\", \"gave wrong pricing\")\n    * success_criteria: (optional) What the agent should do correctly\n    * mode: How to replay the scenario:\n        - strict: Use exact customer utterances from transcript\n        - smart (default): Balanced approach with specific utterances  \n        - persona: Generate natural language persona intent description\n- customer_personas: Generate scenarios based on customer personas\n- load_testing: Generate load testing scenarios\n- red_teaming: Generate red teaming scenarios\n\nReturns a list of generated digital humans.",
                 "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
                 "security": [
                     {
@@ -9503,21 +9503,6 @@
                         "title": "Goal Adherence",
                         "description": "List of goal adherence scenarios"
                     },
-                    "customer_personas": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/CustomerPersonaRequest"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Customer Personas",
-                        "description": "List of customer personas to be used in the simulation"
-                    },
                     "workflow_adherence": {
                         "anyOf": [
                             {
@@ -9532,6 +9517,36 @@
                         ],
                         "title": "Workflow Adherence",
                         "description": "Dictionary of workflow IDs and their counts"
+                    },
+                    "replay_transcript": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ReplayTranscriptRequest"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Replay Transcript",
+                        "description": "List of transcript replays to generate digital humans from"
+                    },
+                    "customer_personas": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/CustomerPersonaRequest"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Customer Personas",
+                        "description": "List of customer personas to be used in the simulation"
                     },
                     "load_testing": {
                         "anyOf": [
@@ -11491,6 +11506,50 @@
                 ],
                 "title": "PromptResponse",
                 "description": "response model for prompt without created_at."
+            },
+            "ReplayTranscriptRequest": {
+                "properties": {
+                    "transcript": {
+                        "type": "string",
+                        "title": "Transcript",
+                        "description": "The transcript text to analyze and replay"
+                    },
+                    "problem": {
+                        "type": "string",
+                        "title": "Problem",
+                        "description": "Description of what the AI agent did incorrectly in the original conversation (e.g., 'Agent failed to collect customer email', 'Agent provided incorrect pricing information', 'Agent did not follow the refund policy')"
+                    },
+                    "success_criteria": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Success Criteria",
+                        "description": "Success criteria for the scenario (auto-generated if not provided)"
+                    },
+                    "mode": {
+                        "type": "string",
+                        "enum": [
+                            "strict",
+                            "smart",
+                            "persona"
+                        ],
+                        "title": "Mode",
+                        "description": "Mode for transcript replay: 'strict' (extract specific utterances), 'smart' (balanced approach - default), or 'persona' (generate persona intent)",
+                        "default": "smart"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "transcript",
+                    "problem"
+                ],
+                "title": "ReplayTranscriptRequest",
+                "description": "Pydantic model for replay transcript request"
             },
             "ResponseType": {
                 "type": "string",
