@@ -6050,16 +6050,14 @@
                         }
                     }
                 }
-            }
-        },
-        "/v1/workflows/{workflow_id}": {
+            },
             "get": {
                 "tags": [
                     "Workflows"
                 ],
-                "summary": "Get Workflow",
-                "description": "Get a specific workflow by ID.",
-                "operationId": "get_workflow_v1_workflows__workflow_id__get",
+                "summary": "Get Workflows",
+                "description": "Get all workflows, optionally filtered by agent.",
+                "operationId": "get_workflows_v1_workflows_get",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -6067,13 +6065,19 @@
                 ],
                 "parameters": [
                     {
-                        "name": "workflow_id",
-                        "in": "path",
-                        "required": true,
+                        "name": "agent_id",
+                        "in": "query",
+                        "required": false,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid",
-                            "title": "Workflow Id"
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Agent Id"
                         }
                     },
                     {
@@ -6092,7 +6096,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/WorkflowResponse"
+                                    "$ref": "#/components/schemas/WorkflowsListResponse"
                                 }
                             }
                         }
@@ -6108,14 +6112,16 @@
                         }
                     }
                 }
-            },
-            "put": {
+            }
+        },
+        "/v1/workflow/{workflow_id}": {
+            "get": {
                 "tags": [
                     "Workflows"
                 ],
-                "summary": "Update Workflow",
-                "description": "Update a specific workflow by ID.",
-                "operationId": "update_workflow_v1_workflows__workflow_id__put",
+                "summary": "Get Workflow",
+                "description": "Get a specific workflow by ID.",
+                "operationId": "get_workflow_v1_workflow__workflow_id__get",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -6142,16 +6148,6 @@
                         "description": "API key required to authenticate requests."
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateWorkflowRequest"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -6181,7 +6177,7 @@
                 ],
                 "summary": "Delete Workflow",
                 "description": "Delete a specific workflow by ID.",
-                "operationId": "delete_workflow_v1_workflows__workflow_id__delete",
+                "operationId": "delete_workflow_v1_workflow__workflow_id__delete",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -6232,14 +6228,14 @@
                 }
             }
         },
-        "/v1/workflows/by-agent/{agent_id}": {
-            "get": {
+        "/v1/update-workflow/{workflow_id}": {
+            "put": {
                 "tags": [
                     "Workflows"
                 ],
-                "summary": "Get Workflows By Agent",
-                "description": "Get all workflows for an agent.",
-                "operationId": "get_workflows_by_agent_v1_workflows_by_agent__agent_id__get",
+                "summary": "Update Workflow",
+                "description": "Update a specific workflow by ID.",
+                "operationId": "update_workflow_v1_update_workflow__workflow_id__put",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -6247,12 +6243,13 @@
                 ],
                 "parameters": [
                     {
-                        "name": "agent_id",
+                        "name": "workflow_id",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "title": "Agent Id"
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Workflow Id"
                         }
                     },
                     {
@@ -6265,13 +6262,23 @@
                         "description": "API key required to authenticate requests."
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateWorkflowRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/WorkflowsListResponse"
+                                    "$ref": "#/components/schemas/WorkflowResponse"
                                 }
                             }
                         }
@@ -8854,12 +8861,6 @@
             },
             "CreateWorkflowRequest": {
                 "properties": {
-                    "agent_id": {
-                        "type": "integer",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Agent Id",
-                        "description": "ID of the agent this workflow belongs to"
-                    },
                     "name": {
                         "type": "string",
                         "maxLength": 255,
@@ -8870,6 +8871,22 @@
                     "workflow": {
                         "$ref": "#/components/schemas/WorkflowDataInput",
                         "description": "The complete workflow structure"
+                    },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array",
+                                "minItems": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids",
+                        "description": "List of agent IDs this workflow belongs to"
                     },
                     "enabled_for_evaluation": {
                         "anyOf": [
@@ -8887,7 +8904,6 @@
                 },
                 "type": "object",
                 "required": [
-                    "agent_id",
                     "name",
                     "workflow"
                 ],
@@ -13199,6 +13215,22 @@
                         ],
                         "description": "Updated workflow structure"
                     },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array",
+                                "minItems": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids",
+                        "description": "Updated list of agent IDs this workflow belongs to"
+                    },
                     "enabled_for_evaluation": {
                         "anyOf": [
                             {
@@ -13525,11 +13557,6 @@
                         "title": "Id",
                         "description": "Unique identifier of the workflow"
                     },
-                    "agent_id": {
-                        "type": "integer",
-                        "title": "Agent Id",
-                        "description": "ID of the agent this workflow belongs to"
-                    },
                     "name": {
                         "type": "string",
                         "title": "Name",
@@ -13555,17 +13582,25 @@
                         "format": "date-time",
                         "title": "Updated At",
                         "description": "When the workflow was last updated"
+                    },
+                    "agent_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Agent Ids",
+                        "description": "List of agent IDs this workflow belongs to"
                     }
                 },
                 "type": "object",
                 "required": [
                     "id",
-                    "agent_id",
                     "name",
                     "workflow",
                     "enabled_for_evaluation",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "agent_ids"
                 ],
                 "title": "WorkflowResponse",
                 "description": "API response containing workflow details"
