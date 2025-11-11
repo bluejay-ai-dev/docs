@@ -157,7 +157,7 @@
         "/v1/generate-test-scenarios": {
             "post": {
                 "summary": "Generate Test Scenarios",
-                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{problem: string, transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - problem: Required. Description of the problem/scenario context\n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from problem and transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n        csvCallAllocation: [{intent: string, success_criteria: string, count: number}, ...];\n            // For csvCallAllocation:\n            // - intent: Required. The customer intent/description for the scenario\n            // - success_criteria: Required. The success criteria for the scenario\n            // - count: Required. Number of scenarios to generate with this intent and success criteria\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
+                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n        csvCallAllocation: [{intent: string, success_criteria: string, count: number}, ...];\n            // For csvCallAllocation:\n            // - intent: Required. The customer intent/description for the scenario\n            // - success_criteria: Required. The success criteria for the scenario\n            // - count: Required. Number of scenarios to generate with this intent and success criteria\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
                 "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
                 "security": [
                     {
@@ -549,7 +549,7 @@
         "/v1/generate-digital-humans": {
             "post": {
                 "summary": "Generate Digital Humans",
-                "description": "Generate digital humans based on the provided simulation details.\n\nSupports multiple generation methods:\n- goal_adherence: Generate scenarios based on specific goals\n- workflow_adherence: Generate scenarios that follow specific workflows\n- replay_transcript: Generate scenarios from existing transcripts to reproduce issues. \n  For each replay, provide:\n    * transcript: The original call transcript\n    * problem: What the AI agent did incorrectly (e.g., \"failed to collect email\", \"gave wrong pricing\")\n    * success_criteria: (optional) What the agent should do correctly\n    * mode: How to replay the scenario:\n        - strict: Use exact customer utterances from transcript\n        - smart (default): Balanced approach with specific utterances  \n        - persona: Generate natural language persona intent description\n- customer_personas: Generate scenarios based on customer personas\n- load_testing: Generate load testing scenarios\n- red_teaming: Generate red teaming scenarios\n\nReturns a list of generated digital humans.",
+                "description": "Generate digital humans based on the provided simulation details.\n\nSupports multiple generation methods including replay_transcript which accepts two types:\n\n1. **ReplayTranscriptFromText**: Provide transcript text directly\n   - transcript (required): The transcript text to analyze\n   - success_criteria (optional): What the agent should do (auto-generated if not provided)\n   - mode (optional): 'strict', 'smart' (default), or 'persona'\n\n2. **ReplayTranscriptFromConversation**: Reference an existing conversation\n   - conversation_id (required): ID of an existing call to retrieve transcript from\n   - success_criteria (optional): What the agent should do (auto-generated if not provided)\n   - mode (optional): 'strict', 'smart' (default), or 'persona'\n\nMode options:\n- strict: Use exact customer utterances from transcript\n- smart: Balanced approach with specific utterances (default)\n- persona: Generate natural language persona intent description\n\nReturns a list of generated digital humans.",
                 "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
                 "security": [
                     {
@@ -9537,7 +9537,14 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/ReplayTranscriptRequest"
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ReplayTranscriptFromText"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ReplayTranscriptFromConversation"
+                                        }
+                                    ]
                                 },
                                 "type": "array"
                             },
@@ -11522,17 +11529,12 @@
                 "title": "PromptResponse",
                 "description": "response model for prompt without created_at."
             },
-            "ReplayTranscriptRequest": {
+            "ReplayTranscriptFromConversation": {
                 "properties": {
-                    "transcript": {
+                    "conversation_id": {
                         "type": "string",
-                        "title": "Transcript",
-                        "description": "The transcript text to analyze and replay"
-                    },
-                    "problem": {
-                        "type": "string",
-                        "title": "Problem",
-                        "description": "Description of what the AI agent did incorrectly in the original conversation (e.g., 'Agent failed to collect customer email', 'Agent provided incorrect pricing information', 'Agent did not follow the refund policy')"
+                        "title": "Conversation Id",
+                        "description": "ID of an existing conversation log to retrieve transcript from"
                     },
                     "success_criteria": {
                         "anyOf": [
@@ -11560,11 +11562,48 @@
                 },
                 "type": "object",
                 "required": [
-                    "transcript",
-                    "problem"
+                    "conversation_id"
                 ],
-                "title": "ReplayTranscriptRequest",
-                "description": "Pydantic model for replay transcript request"
+                "title": "Replay Transcript From Conversation ID",
+                "description": "Replay transcript by referencing an existing conversation ID"
+            },
+            "ReplayTranscriptFromText": {
+                "properties": {
+                    "transcript": {
+                        "type": "string",
+                        "title": "Transcript",
+                        "description": "The transcript text to analyze and replay"
+                    },
+                    "success_criteria": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Success Criteria",
+                        "description": "Success criteria for the scenario (auto-generated if not provided)"
+                    },
+                    "mode": {
+                        "type": "string",
+                        "enum": [
+                            "strict",
+                            "smart",
+                            "persona"
+                        ],
+                        "title": "Mode",
+                        "description": "Mode for transcript replay: 'strict' (extract specific utterances), 'smart' (balanced approach - default), or 'persona' (generate persona intent)",
+                        "default": "smart"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "transcript"
+                ],
+                "title": "Replay Transcript From Text",
+                "description": "Replay transcript by providing the transcript text directly"
             },
             "ResponseType": {
                 "type": "string",
