@@ -549,7 +549,7 @@
         "/v1/generate-digital-humans": {
             "post": {
                 "summary": "Generate Digital Humans",
-                "description": "Generate digital humans based on the provided simulation details.\n\nSupports multiple generation methods including replay_transcript which accepts two types:\n\n1. **ReplayTranscriptFromText**: Provide transcript text directly\n   - transcript (required): The transcript text to analyze\n   - success_criteria (optional): What the agent should do (auto-generated if not provided)\n   - mode (optional): 'strict', 'smart' (default), or 'persona'\n\n2. **ReplayTranscriptFromConversation**: Reference an existing conversation\n   - conversation_id (required): ID of an existing call to retrieve transcript from\n   - success_criteria (optional): What the agent should do (auto-generated if not provided)\n   - mode (optional): 'strict', 'smart' (default), or 'persona'\n\nMode options:\n- strict: Use exact customer utterances from transcript\n- smart: Balanced approach with specific utterances (default)\n- persona: Generate natural language persona intent description\n\nReturns a list of generated digital humans.",
+                "description": "Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.",
                 "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
                 "security": [
                     {
@@ -9472,10 +9472,22 @@
             },
             "DigitalHumanRequest": {
                 "properties": {
-                    "simulation_id": {
+                    "agent_id": {
                         "type": "string",
+                        "title": "Agent Id",
+                        "description": "ID of the agent to be used to generate the digital humans"
+                    },
+                    "simulation_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Simulation Id",
-                        "description": "ID of the simulation to be used for the digital human"
+                        "description": "Optionally attach the digital humans to a simulation"
                     },
                     "prompt_id": {
                         "anyOf": [
@@ -9599,7 +9611,7 @@
                 },
                 "type": "object",
                 "required": [
-                    "simulation_id"
+                    "agent_id"
                 ],
                 "title": "DigitalHumanRequest",
                 "description": "Pydantic model for digital humans (simulation type) request"
