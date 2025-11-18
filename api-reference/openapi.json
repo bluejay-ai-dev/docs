@@ -9631,6 +9631,21 @@
                         "title": "Red Teaming",
                         "description": "Number of red teaming calls",
                         "default": 0
+                    },
+                    "traits": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Trait"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Traits",
+                        "description": "List of traits to apply to all generated digital humans"
                     }
                 },
                 "type": "object",
@@ -9848,6 +9863,21 @@
                         ],
                         "title": "Silence Timeout",
                         "description": "Silence timeout in seconds"
+                    },
+                    "traits": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Trait"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Traits",
+                        "description": "List of traits associated with this digital human"
                     }
                 },
                 "type": "object",
@@ -10100,6 +10130,21 @@
                         ],
                         "title": "Created At",
                         "description": "When this digital human was created"
+                    },
+                    "traits": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Trait"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Traits",
+                        "description": "List of traits associated with this digital human"
                     }
                 },
                 "type": "object",
@@ -12526,6 +12571,48 @@
                 "title": "ToolCall",
                 "description": "Represents a tool call during a conversation."
             },
+            "Trait": {
+                "properties": {
+                    "trait_name": {
+                        "type": "string",
+                        "title": "Trait Name",
+                        "description": "Name of the trait"
+                    },
+                    "trait_data_type": {
+                        "$ref": "#/components/schemas/TraitDataType",
+                        "description": "Data type of the trait"
+                    },
+                    "value": {
+                        "title": "Value",
+                        "description": "Value of the trait (stored as JSONB)"
+                    },
+                    "is_sip_header": {
+                        "type": "boolean",
+                        "title": "Is Sip Header",
+                        "description": "Whether this trait is a SIP header",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "trait_name",
+                    "trait_data_type",
+                    "value"
+                ],
+                "title": "Trait",
+                "description": "Model for a single trait"
+            },
+            "TraitDataType": {
+                "type": "string",
+                "enum": [
+                    "BOOLEAN",
+                    "STRING",
+                    "DATE",
+                    "NUMBER"
+                ],
+                "title": "TraitDataType",
+                "description": "Enum for trait data types"
+            },
             "TranscriptEntryRequest": {
                 "properties": {
                     "start_offset_ms": {
@@ -13148,6 +13235,21 @@
                         ],
                         "title": "Simulation Ids",
                         "description": "Array of simulation IDs to associate with this digital human. If provided, completely replaces existing associations."
+                    },
+                    "traits": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Trait"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Traits",
+                        "description": "List of traits associated with this digital human. If provided, completely replaces existing traits."
                     }
                 },
                 "type": "object",
