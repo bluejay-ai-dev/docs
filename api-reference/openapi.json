@@ -4101,7 +4101,7 @@
                     "Prompts"
                 ],
                 "summary": "Get Prompt By Label Agent Scoped",
-                "description": "retrieve a single prompt by label under /agents/{agent_id}/prompts?label=... .\n\n- if label is missing -> 400\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)",
+                "description": "retrieve a single prompt by label under /agents/{agent_id}/prompts?label=... .\n\n- if label is missing -\u003E 400\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)",
                 "operationId": "get_prompt_by_label_agent_scoped_v1_agents__agent_id__prompts_get",
                 "security": [
                     {
@@ -4340,7 +4340,7 @@
                     "Prompts"
                 ],
                 "summary": "Delete Prompt Version By Label Agent Scoped",
-                "description": "delete a prompt version by label.\n\n- if label is production -> 400 (must move production first)\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
+                "description": "delete a prompt version by label.\n\n- if label is production -\u003E 400 (must move production first)\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
                 "operationId": "delete_prompt_version_by_label_agent_scoped_v1_agents__agent_id__prompts_versions_delete",
                 "security": [
                     {
@@ -4880,7 +4880,7 @@
                     "Knowledge Bases"
                 ],
                 "summary": "Get Knowledge Base By Label Agent Scoped",
-                "description": "retrieve a single knowledge base by label: /agents/{agent_id}/knowledge-bases?label=... .\n\n- if label is missing -> 400\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)",
+                "description": "retrieve a single knowledge base by label: /agents/{agent_id}/knowledge-bases?label=... .\n\n- if label is missing -\u003E 400\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)",
                 "operationId": "get_knowledge_base_by_label_agent_scoped_v1_agents__agent_id__knowledge_bases_get",
                 "security": [
                     {
@@ -5117,7 +5117,7 @@
                     "Knowledge Bases"
                 ],
                 "summary": "Delete Knowledge Base Version By Label Agent Scoped",
-                "description": "delete a knowledge base version by label.\n\n- if label is production -> 400 (must move production first)\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
+                "description": "delete a knowledge base version by label.\n\n- if label is production -\u003E 400 (must move production first)\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
                 "operationId": "delete_knowledge_base_version_by_label_agent_scoped_v1_agents__agent_id__knowledge_bases_versions_delete",
                 "security": [
                     {
@@ -6469,6 +6469,64 @@
                     }
                 }
             }
+        },
+        "/v1/re-evaluate/{call_id}": {
+            "post": {
+                "tags": [
+                    "Re-evaluate"
+                ],
+                "summary": "Re Evaluate",
+                "description": "Re-evaluate a call.",
+                "operationId": "re_evaluate_v1_re_evaluate__call_id__post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "call_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Call Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReEvaluateCallResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -7663,19 +7721,6 @@
                         ],
                         "title": "Evaluations",
                         "description": "List of evaluations associated with the call"
-                    },
-                    "custom_metrics": {
-                        "anyOf": [
-                            {
-                                "items": {},
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Custom Metrics",
-                        "description": "Custom metrics associated with the call"
                     },
                     "annotations": {
                         "anyOf": [
@@ -9772,8 +9817,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 1.0,
-                                "minimum": 0.0
+                                "maximum": 1,
+                                "minimum": 0
                             },
                             {
                                 "type": "null"
@@ -9813,8 +9858,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 2.0,
-                                "minimum": 0.0
+                                "maximum": 2,
+                                "minimum": 0
                             },
                             {
                                 "type": "null"
@@ -9855,7 +9900,7 @@
                         "anyOf": [
                             {
                                 "type": "integer",
-                                "minimum": 15.0
+                                "minimum": 15
                             },
                             {
                                 "type": "null"
@@ -10454,6 +10499,19 @@
                         ],
                         "title": "Pronunciation Reasoning",
                         "description": "Reasoning behind the pronunciation score, if applicable"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics",
+                        "description": "Custom metrics associated with the evaluation"
                     }
                 },
                 "type": "object",
@@ -10549,8 +10607,8 @@
                     },
                     "interval": {
                         "type": "integer",
-                        "maximum": 23.0,
-                        "exclusiveMinimum": 0.0,
+                        "maximum": 23,
+                        "exclusiveMinimum": 0,
                         "title": "Interval",
                         "description": "Repeat every N hours (max 23)"
                     }
@@ -10571,8 +10629,8 @@
                     },
                     "interval": {
                         "type": "integer",
-                        "maximum": 59.0,
-                        "exclusiveMinimum": 0.0,
+                        "maximum": 59,
+                        "exclusiveMinimum": 0,
                         "title": "Interval",
                         "description": "Repeat every N minutes (max 59)"
                     }
@@ -11263,8 +11321,8 @@
                     },
                     "day_of_month": {
                         "type": "integer",
-                        "maximum": 31.0,
-                        "minimum": 1.0,
+                        "maximum": 31,
+                        "minimum": 1,
                         "title": "Day Of Month"
                     },
                     "time": {
@@ -11610,6 +11668,29 @@
                 "title": "PromptResponse",
                 "description": "response model for prompt without created_at."
             },
+            "ReEvaluateCallResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "call_id": {
+                        "type": "string",
+                        "title": "Call Id"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "call_id",
+                    "message"
+                ],
+                "title": "ReEvaluateCallResponse"
+            },
             "ReplayTranscriptFromConversation": {
                 "properties": {
                     "conversation_id": {
@@ -11926,7 +12007,7 @@
                         "anyOf": [
                             {
                                 "type": "integer",
-                                "exclusiveMinimum": 0.0
+                                "exclusiveMinimum": 0
                             },
                             {
                                 "type": "null"
@@ -12517,7 +12598,7 @@
                     },
                     "start_offset_ms": {
                         "type": "integer",
-                        "minimum": 0.0,
+                        "minimum": 0,
                         "title": "Start Offset Ms",
                         "description": "Start offset of the tool call in milliseconds"
                     },
@@ -13129,8 +13210,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 1.0,
-                                "minimum": 0.0
+                                "maximum": 1,
+                                "minimum": 0
                             },
                             {
                                 "type": "null"
@@ -13170,8 +13251,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 2.0,
-                                "minimum": 0.0
+                                "maximum": 2,
+                                "minimum": 0
                             },
                             {
                                 "type": "null"
@@ -13212,7 +13293,7 @@
                         "anyOf": [
                             {
                                 "type": "integer",
-                                "minimum": 15.0
+                                "minimum": 15
                             },
                             {
                                 "type": "null"
@@ -15216,6 +15297,20 @@
                                 "default": null,
                                 "description": "Reasoning behind the pronunciation score, if applicable",
                                 "title": "Pronunciation Reasoning"
+                            },
+                            "custom_metrics": {
+                                "anyOf": [
+                                    {
+                                        "items": {},
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Custom metrics associated with the evaluation",
+                                "title": "Custom Metrics"
                             }
                         },
                         "required": [
@@ -15665,20 +15760,6 @@
                         ],
                         "description": "List of evaluations associated with the call",
                         "title": "Evaluations"
-                    },
-                    "custom_metrics": {
-                        "anyOf": [
-                            {
-                                "items": {},
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Custom metrics associated with the call",
-                        "title": "Custom Metrics"
                     },
                     "annotations": {
                         "anyOf": [
