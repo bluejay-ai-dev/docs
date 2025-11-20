@@ -6469,6 +6469,64 @@
                     }
                 }
             }
+        },
+        "/v1/re-evaluate/{call_id}": {
+            "post": {
+                "tags": [
+                    "Re-evaluate"
+                ],
+                "summary": "Re Evaluate",
+                "description": "Re-evaluate a call.",
+                "operationId": "re_evaluate_v1_re_evaluate__call_id__post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "call_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Call Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReEvaluateCallResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -7664,19 +7722,6 @@
                         "title": "Evaluations",
                         "description": "List of evaluations associated with the call"
                     },
-                    "custom_metrics": {
-                        "anyOf": [
-                            {
-                                "items": {},
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Custom Metrics",
-                        "description": "Custom metrics associated with the call"
-                    },
                     "annotations": {
                         "anyOf": [
                             {
@@ -7702,6 +7747,20 @@
                         ],
                         "title": "Metadata",
                         "description": "Additional metadata associated with the call"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics",
+                        "description": "Please use the custom metrics in the evaluations instead",
+                        "deprecated": true
                     }
                 },
                 "type": "object",
@@ -10454,6 +10513,19 @@
                         ],
                         "title": "Pronunciation Reasoning",
                         "description": "Reasoning behind the pronunciation score, if applicable"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics",
+                        "description": "Custom metrics associated with the evaluation"
                     }
                 },
                 "type": "object",
@@ -11609,6 +11681,29 @@
                 ],
                 "title": "PromptResponse",
                 "description": "response model for prompt without created_at."
+            },
+            "ReEvaluateCallResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "call_id": {
+                        "type": "string",
+                        "title": "Call Id"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "call_id",
+                    "message"
+                ],
+                "title": "ReEvaluateCallResponse"
             },
             "ReplayTranscriptFromConversation": {
                 "properties": {
@@ -15216,6 +15311,20 @@
                                 "default": null,
                                 "description": "Reasoning behind the pronunciation score, if applicable",
                                 "title": "Pronunciation Reasoning"
+                            },
+                            "custom_metrics": {
+                                "anyOf": [
+                                    {
+                                        "items": {},
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Custom metrics associated with the evaluation",
+                                "title": "Custom Metrics"
                             }
                         },
                         "required": [
@@ -15666,20 +15775,6 @@
                         "description": "List of evaluations associated with the call",
                         "title": "Evaluations"
                     },
-                    "custom_metrics": {
-                        "anyOf": [
-                            {
-                                "items": {},
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "Custom metrics associated with the call",
-                        "title": "Custom Metrics"
-                    },
                     "annotations": {
                         "anyOf": [
                             {
@@ -15707,6 +15802,21 @@
                         "default": null,
                         "description": "Additional metadata associated with the call",
                         "title": "Metadata"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "deprecated": true,
+                        "description": "Please use the custom metrics in the evaluations instead",
+                        "title": "Custom Metrics"
                     },
                     "type": {
                         "default": "observability_call_evaluated",
