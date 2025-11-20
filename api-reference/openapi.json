@@ -4101,7 +4101,7 @@
                     "Prompts"
                 ],
                 "summary": "Get Prompt By Label Agent Scoped",
-                "description": "retrieve a single prompt by label under /agents/{agent_id}/prompts?label=... .\n\n- if label is missing -\u003E 400\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)",
+                "description": "retrieve a single prompt by label under /agents/{agent_id}/prompts?label=... .\n\n- if label is missing -> 400\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)",
                 "operationId": "get_prompt_by_label_agent_scoped_v1_agents__agent_id__prompts_get",
                 "security": [
                     {
@@ -4340,7 +4340,7 @@
                     "Prompts"
                 ],
                 "summary": "Delete Prompt Version By Label Agent Scoped",
-                "description": "delete a prompt version by label.\n\n- if label is production -\u003E 400 (must move production first)\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
+                "description": "delete a prompt version by label.\n\n- if label is production -> 400 (must move production first)\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
                 "operationId": "delete_prompt_version_by_label_agent_scoped_v1_agents__agent_id__prompts_versions_delete",
                 "security": [
                     {
@@ -4880,7 +4880,7 @@
                     "Knowledge Bases"
                 ],
                 "summary": "Get Knowledge Base By Label Agent Scoped",
-                "description": "retrieve a single knowledge base by label: /agents/{agent_id}/knowledge-bases?label=... .\n\n- if label is missing -\u003E 400\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)",
+                "description": "retrieve a single knowledge base by label: /agents/{agent_id}/knowledge-bases?label=... .\n\n- if label is missing -> 400\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)",
                 "operationId": "get_knowledge_base_by_label_agent_scoped_v1_agents__agent_id__knowledge_bases_get",
                 "security": [
                     {
@@ -5117,7 +5117,7 @@
                     "Knowledge Bases"
                 ],
                 "summary": "Delete Knowledge Base Version By Label Agent Scoped",
-                "description": "delete a knowledge base version by label.\n\n- if label is production -\u003E 400 (must move production first)\n- if label resolves to 0 -\u003E 404; \u003E1 -\u003E 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
+                "description": "delete a knowledge base version by label.\n\n- if label is production -> 400 (must move production first)\n- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)\n- if deleting latest, reassign latest to highest remaining version\n- cannot delete if it is the only version",
                 "operationId": "delete_knowledge_base_version_by_label_agent_scoped_v1_agents__agent_id__knowledge_bases_versions_delete",
                 "security": [
                     {
@@ -7747,6 +7747,20 @@
                         ],
                         "title": "Metadata",
                         "description": "Additional metadata associated with the call"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics",
+                        "description": "Please use the custom metrics in the evaluations instead",
+                        "deprecated": true
                     }
                 },
                 "type": "object",
@@ -9817,8 +9831,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 1,
-                                "minimum": 0
+                                "maximum": 1.0,
+                                "minimum": 0.0
                             },
                             {
                                 "type": "null"
@@ -9858,8 +9872,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 2,
-                                "minimum": 0
+                                "maximum": 2.0,
+                                "minimum": 0.0
                             },
                             {
                                 "type": "null"
@@ -9900,7 +9914,7 @@
                         "anyOf": [
                             {
                                 "type": "integer",
-                                "minimum": 15
+                                "minimum": 15.0
                             },
                             {
                                 "type": "null"
@@ -10607,8 +10621,8 @@
                     },
                     "interval": {
                         "type": "integer",
-                        "maximum": 23,
-                        "exclusiveMinimum": 0,
+                        "maximum": 23.0,
+                        "exclusiveMinimum": 0.0,
                         "title": "Interval",
                         "description": "Repeat every N hours (max 23)"
                     }
@@ -10629,8 +10643,8 @@
                     },
                     "interval": {
                         "type": "integer",
-                        "maximum": 59,
-                        "exclusiveMinimum": 0,
+                        "maximum": 59.0,
+                        "exclusiveMinimum": 0.0,
                         "title": "Interval",
                         "description": "Repeat every N minutes (max 59)"
                     }
@@ -11321,8 +11335,8 @@
                     },
                     "day_of_month": {
                         "type": "integer",
-                        "maximum": 31,
-                        "minimum": 1,
+                        "maximum": 31.0,
+                        "minimum": 1.0,
                         "title": "Day Of Month"
                     },
                     "time": {
@@ -12007,7 +12021,7 @@
                         "anyOf": [
                             {
                                 "type": "integer",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0.0
                             },
                             {
                                 "type": "null"
@@ -12598,7 +12612,7 @@
                     },
                     "start_offset_ms": {
                         "type": "integer",
-                        "minimum": 0,
+                        "minimum": 0.0,
                         "title": "Start Offset Ms",
                         "description": "Start offset of the tool call in milliseconds"
                     },
@@ -13210,8 +13224,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 1,
-                                "minimum": 0
+                                "maximum": 1.0,
+                                "minimum": 0.0
                             },
                             {
                                 "type": "null"
@@ -13251,8 +13265,8 @@
                         "anyOf": [
                             {
                                 "type": "number",
-                                "maximum": 2,
-                                "minimum": 0
+                                "maximum": 2.0,
+                                "minimum": 0.0
                             },
                             {
                                 "type": "null"
@@ -13293,7 +13307,7 @@
                         "anyOf": [
                             {
                                 "type": "integer",
-                                "minimum": 15
+                                "minimum": 15.0
                             },
                             {
                                 "type": "null"
@@ -15788,6 +15802,21 @@
                         "default": null,
                         "description": "Additional metadata associated with the call",
                         "title": "Metadata"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "deprecated": true,
+                        "description": "Please use the custom metrics in the evaluations instead",
+                        "title": "Custom Metrics"
                     },
                     "type": {
                         "default": "observability_call_evaluated",
