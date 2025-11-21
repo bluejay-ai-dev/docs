@@ -702,60 +702,6 @@
                 }
             }
         },
-        "/v1/update-simulation-result": {
-            "post": {
-                "summary": "Update Simulation Result",
-                "operationId": "update_simulation_result_v1_update_simulation_result_post",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "API key required to authenticate requests."
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateSimulationRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UpdateSimulationResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/v1/create-cron-job": {
             "post": {
                 "summary": "Create Cron Job",
@@ -6470,6 +6416,63 @@
                 }
             }
         },
+        "/v1/update-simulation-result": {
+            "post": {
+                "tags": [
+                    "Simulation Results"
+                ],
+                "summary": "Update Simulation Result",
+                "operationId": "update_simulation_result_v1_update_simulation_result_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSimulationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateSimulationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/re-evaluate/{call_id}": {
             "post": {
                 "tags": [
@@ -9845,7 +9848,9 @@
                     "expected_tool_calls": {
                         "anyOf": [
                             {
-                                "items": {},
+                                "items": {
+                                    "$ref": "#/components/schemas/ExpectedToolCall"
+                                },
                                 "type": "array"
                             },
                             {
@@ -10104,7 +10109,9 @@
                     "expected_tool_calls": {
                         "anyOf": [
                             {
-                                "items": {},
+                                "items": {
+                                    "$ref": "#/components/schemas/ExpectedToolCall"
+                                },
                                 "type": "array"
                             },
                             {
@@ -10655,6 +10662,50 @@
                     "interval"
                 ],
                 "title": "EveryNMinutesSchedule"
+            },
+            "ExpectedToolCall": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Name of the expected tool call"
+                    },
+                    "parameters": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Parameters",
+                        "description": "Expected parameters passed to the tool call"
+                    },
+                    "output": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Output",
+                        "description": "Expected output returned by the tool call"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "ExpectedToolCall",
+                "description": "Represents an expected tool call during a conversation."
             },
             "FolderCreateRequest": {
                 "properties": {
@@ -13238,7 +13289,9 @@
                     "expected_tool_calls": {
                         "anyOf": [
                             {
-                                "items": {},
+                                "items": {
+                                    "$ref": "#/components/schemas/ExpectedToolCall"
+                                },
                                 "type": "array"
                             },
                             {
