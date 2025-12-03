@@ -1,0 +1,61 @@
+name: Agent Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      simulation_id:
+        description: 'Bluejay Simulation ID to run'
+        required: false
+        type: string
+      prompt_id:
+        description: 'Optional Prompt ID override'
+        required: false
+        type: string
+      knowledge_base_id:
+        description: 'Optional Knowledge Base ID override'
+        required: false
+        type: string
+      digital_human_ids:
+        description: 'Comma-separated Digital Human IDs (e.g. "dh_1,dh_2")'
+        required: false
+        type: string
+      phone_number:
+        description: 'Optional phone number to use for this run'
+        required: false
+        type: string
+      sip_uri:
+        description: 'Optional SIP URI to use for this run'
+        required: false
+        type: string
+      min_score:
+        description: 'Minimum required score (0–100)'
+        required: false
+        type: string
+        default: '80'
+  push:
+    branches: [main, dev]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  run-bluejay-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run Bluejay Tests
+        uses: bluejay-ai-dev/bluejay-github-actions@v1
+        with:
+          api_key: ${{ secrets.BLUEJAY_API_KEY }}
+          # Required: simulation id (manual input OR repo variable)
+          simulation_id: ${{ inputs.simulation_id || vars.BLUEJAY_SIMULATION_ID }}
+          # Optional overrides (manual input OR repo variable)
+          prompt_id: ${{ inputs.prompt_id || vars.BLUEJAY_PROMPT_ID }}
+          knowledge_base_id: ${{ inputs.knowledge_base_id || vars.BLUEJAY_KB_ID }}
+          digital_human_ids: ${{ inputs.digital_human_ids || vars.BLUEJAY_DIGITAL_HUMAN_IDS }}
+          phone_number: ${{ inputs.phone_number || vars.BLUEJAY_PHONE_NUMBER }}
+          sip_uri: ${{ inputs.sip_uri || vars.BLUEJAY_SIP_URI }}
+          # Behavior controls
+          wait_for_results: 'true'
+          min_score: ${{ inputs.min_score || vars.BLUEJAY_MIN_SCORE || '80' }}
+          poll_interval_seconds: '10'
+          timeout_seconds: '1500'
