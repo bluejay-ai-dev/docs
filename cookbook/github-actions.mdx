@@ -150,4 +150,119 @@ jobs:
 | `final-status` | Final simulation status: `completed`, `failed`, `cancelled`, etc. |
 | `score` | Overall numeric score from the simulation. |
 
+## Advanced Usage
+
+### Customize When Tests Run
+
+You can customize when your Bluejay tests run by modifying the `on:` section of your workflow. Here are some common patterns:
+
+<Tabs>
+  <Tab title="Push Only">
+Run tests only when pushing to specific branches:
+
+```yaml
+name: Agent Tests
+
+on:
+  push:
+    branches:
+      - main
+      - production
+      - staging
+
+jobs:
+  run-bluejay-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Bluejay Tests
+        uses: bluejay-ai-dev/bluejay-github-actions@v1
+        with:
+          api_key: ${{ secrets.BLUEJAY_API_KEY }}
+          simulation_id: ${{ vars.BLUEJAY_SIMULATION_ID }}
+          wait_for_results: 'true'
+          min_score: '80'
+```
+  </Tab>
+
+  <Tab title="Pull Requests Only">
+Run tests only when pull requests are opened or updated:
+
+```yaml
+name: Agent Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  run-bluejay-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Bluejay Tests
+        uses: bluejay-ai-dev/bluejay-github-actions@v1
+        with:
+          api_key: ${{ secrets.BLUEJAY_API_KEY }}
+          simulation_id: ${{ vars.BLUEJAY_SIMULATION_ID }}
+          wait_for_results: 'true'
+          min_score: '80'
+```
+  </Tab>
+
+  <Tab title="Scheduled Runs">
+Run tests on a schedule (e.g., daily at 9 AM UTC):
+
+```yaml
+name: Agent Tests
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+
+jobs:
+  run-bluejay-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Bluejay Tests
+        uses: bluejay-ai-dev/bluejay-github-actions@v1
+        with:
+          api_key: ${{ secrets.BLUEJAY_API_KEY }}
+          simulation_id: ${{ vars.BLUEJAY_SIMULATION_ID }}
+          wait_for_results: 'true'
+          min_score: '80'
+```
+  </Tab>
+
+  <Tab title="Manual">
+Run tests only when manually triggered:
+
+```yaml
+name: Agent Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      simulation_id:
+        description: 'Bluejay Simulation ID to run'
+        required: false
+        type: string
+
+jobs:
+  run-bluejay-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Bluejay Tests
+        uses: bluejay-ai-dev/bluejay-github-actions@v1
+        with:
+          api_key: ${{ secrets.BLUEJAY_API_KEY }}
+          simulation_id: ${{ inputs.simulation_id || vars.BLUEJAY_SIMULATION_ID }}
+          wait_for_results: 'true'
+          min_score: '80'
+```
+  </Tab>
+</Tabs>
+
+<Info>
+  **Want more control?** For a complete list of events and advanced trigger configurations, see the [GitHub Actions documentation on workflow triggers](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
+</Info>
+
 
