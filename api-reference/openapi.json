@@ -2245,6 +2245,64 @@
                 }
             }
         },
+        "/v1/create-custom-metrics": {
+            "post": {
+                "tags": [
+                    "Custom Metrics"
+                ],
+                "summary": "Create Custom Metrics",
+                "description": "Create multiple custom metrics synchronously using a single bulk insert.",
+                "operationId": "create_custom_metrics_v1_create_custom_metrics_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCustomMetricsBulkRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateCustomMetricsBulkResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/custom-metric/{metric_id}": {
             "get": {
                 "tags": [
@@ -8954,6 +9012,12 @@
                         ],
                         "title": "Enum Options",
                         "description": "Options for enum metrics"
+                    },
+                    "allow_not_applicable": {
+                        "type": "boolean",
+                        "title": "Allow Not Applicable",
+                        "description": "Whether this metric allows 'not applicable' responses.",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -8964,6 +9028,42 @@
                 ],
                 "title": "CreateCustomMetricRequest",
                 "description": "Request model for creating a custom metric"
+            },
+            "CreateCustomMetricsBulkRequest": {
+                "properties": {
+                    "metrics": {
+                        "items": {
+                            "$ref": "#/components/schemas/CreateCustomMetricRequest"
+                        },
+                        "type": "array",
+                        "title": "Metrics",
+                        "description": "List of custom metrics to create"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "metrics"
+                ],
+                "title": "CreateCustomMetricsBulkRequest",
+                "description": "Request model for creating multiple custom metrics"
+            },
+            "CreateCustomMetricsBulkResponse": {
+                "properties": {
+                    "metrics": {
+                        "items": {
+                            "$ref": "#/components/schemas/CustomMetricResponse"
+                        },
+                        "type": "array",
+                        "title": "Metrics",
+                        "description": "List of created custom metrics"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "metrics"
+                ],
+                "title": "CreateCustomMetricsBulkResponse",
+                "description": "Response model for bulk creating custom metrics"
             },
             "CreateCustomerPersonaRequest": {
                 "properties": {
@@ -9412,6 +9512,17 @@
                             }
                         ],
                         "title": "Organization Id"
+                    },
+                    "eval_enabled": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Eval Enabled"
                     }
                 },
                 "type": "object",
@@ -9562,6 +9673,12 @@
                         ],
                         "title": "Enum Options",
                         "description": "Options for enum metrics"
+                    },
+                    "allow_not_applicable": {
+                        "type": "boolean",
+                        "title": "Allow Not Applicable",
+                        "description": "Whether this metric allows 'not applicable' responses.",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -13448,6 +13565,18 @@
                         ],
                         "title": "Enum Options",
                         "description": "Options for enum metrics"
+                    },
+                    "allow_not_applicable": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Allow Not Applicable",
+                        "description": "Whether this metric allows 'not applicable' responses. When True, eval_enabled is set to AUTO; when False, eval_enabled is set to TRUE."
                     }
                 },
                 "type": "object",
