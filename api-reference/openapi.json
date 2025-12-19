@@ -6940,6 +6940,72 @@
                     }
                 }
             }
+        },
+        "/v1/translate-transcript": {
+            "post": {
+                "tags": [
+                    "Translation"
+                ],
+                "summary": "Translate a call transcript",
+                "description": "Translates all utterances in a simulation or production conversation transcript to the specified target language using Google Translate API.",
+                "operationId": "translate_transcript_v1_translate_transcript_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/TranslateSimulationTranscriptRequest"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/TranslateObservabilityTranscriptRequest"
+                                    }
+                                ],
+                                "title": "Translate Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TranslateTranscriptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -13501,6 +13567,79 @@
                     "utterance"
                 ],
                 "title": "TranscriptEntryRequest"
+            },
+            "TranslateObservabilityTranscriptRequest": {
+                "properties": {
+                    "conversation_id": {
+                        "type": "string",
+                        "title": "Conversation Id",
+                        "description": "ID of the production conversation (call_id) to translate"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "maxLength": 10,
+                        "minLength": 2,
+                        "title": "Target Language",
+                        "description": "Target language code (e.g., 'en', 'es', 'fr', 'de'). Defaults to 'en' (English).",
+                        "default": "en"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "conversation_id"
+                ],
+                "title": "Translate Observability Transcript",
+                "description": "Translate a production conversation transcript by providing the conversation ID"
+            },
+            "TranslateSimulationTranscriptRequest": {
+                "properties": {
+                    "simulation_result_id": {
+                        "type": "integer",
+                        "title": "Simulation Result Id",
+                        "description": "ID of the simulation result (test_result) to translate"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "maxLength": 10,
+                        "minLength": 2,
+                        "title": "Target Language",
+                        "description": "Target language code (e.g., 'en', 'es', 'fr', 'de'). Defaults to 'en' (English).",
+                        "default": "en"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_result_id"
+                ],
+                "title": "Translate Simulation Transcript",
+                "description": "Translate a simulation transcript by providing the simulation result ID"
+            },
+            "TranslateTranscriptResponse": {
+                "properties": {
+                    "translated_transcript_url": {
+                        "type": "string",
+                        "title": "Translated Transcript Url",
+                        "description": "URL to the translated transcript file"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "title": "Target Language",
+                        "description": "The target language used for translation"
+                    },
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "Whether the translation was successful",
+                        "default": true
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "translated_transcript_url",
+                    "target_language"
+                ],
+                "title": "TranslateTranscriptResponse",
+                "description": "Response model for translated transcript."
             },
             "UpdateCommunityRequest": {
                 "properties": {
