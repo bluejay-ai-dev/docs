@@ -3343,7 +3343,7 @@
                     "vapi"
                 ],
                 "summary": "Handle Webhook",
-                "description": "Handle VAPI webhook events",
+                "description": "Handle VAPI webhook events.",
                 "operationId": "handle_webhook_v1_integrations_vapi_post",
                 "responses": {
                     "200": {
@@ -7276,6 +7276,29 @@
                         "additionalProperties": true,
                         "type": "object",
                         "title": "Simulation Notifications"
+                    },
+                    "livekit_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Agent Name"
+                    },
+                    "livekit_metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Metadata"
                     }
                 },
                 "type": "object",
@@ -7487,6 +7510,31 @@
                         "title": "Redact Pii",
                         "description": "Enable/disable PII redaction",
                         "default": false
+                    },
+                    "livekit_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Agent Name",
+                        "description": "LiveKit agent name"
+                    },
+                    "livekit_metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Metadata",
+                        "description": "LiveKit metadata"
                     }
                 },
                 "type": "object",
@@ -7763,6 +7811,31 @@
                         ],
                         "title": "Redact Pii",
                         "description": "Enable/disable PII redaction"
+                    },
+                    "livekit_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Agent Name",
+                        "description": "LiveKit agent name"
+                    },
+                    "livekit_metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Metadata",
+                        "description": "LiveKit metadata"
                     }
                 },
                 "type": "object",
@@ -8007,6 +8080,31 @@
                         ],
                         "title": "Redact Pii",
                         "description": "Enable/disable PII redaction"
+                    },
+                    "livekit_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Agent Name",
+                        "description": "LiveKit agent name"
+                    },
+                    "livekit_metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Metadata",
+                        "description": "LiveKit metadata"
                     }
                 },
                 "type": "object",
@@ -8014,6 +8112,17 @@
                     "external_agent_id"
                 ],
                 "title": "AgentUpdateWithExternalIdRequest"
+            },
+            "AudioQualityType": {
+                "type": "string",
+                "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "horrible"
+                ],
+                "title": "AudioQualityType",
+                "description": "Enum for audio quality options"
             },
             "BackgroundNoiseType": {
                 "type": "string",
@@ -8903,6 +9012,28 @@
                 "title": "ComparisonResponse",
                 "description": "Pydantic model for experiment run comparison response"
             },
+            "ContextualInterruptionConfig": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "contextual",
+                        "title": "Type",
+                        "description": "Type discriminator for contextual interruption"
+                    },
+                    "contextual_prompt": {
+                        "type": "string",
+                        "title": "Contextual Prompt",
+                        "description": "Contextual prompt for LLM-based interruptions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "contextual_prompt"
+                ],
+                "title": "Contextual",
+                "description": "Contextual/LLM-based interruption configuration."
+            },
             "ConversationRequest": {
                 "properties": {
                     "type": {
@@ -9100,7 +9231,7 @@
                         "description": "Description of what this metric measures"
                     },
                     "response_type": {
-                        "$ref": "#/components/schemas/ResponseType",
+                        "$ref": "#/components/schemas/src__models__custom_metric__ResponseType",
                         "description": "Type of response expected"
                     },
                     "min_value": {
@@ -9530,7 +9661,7 @@
                         "title": "Description"
                     },
                     "response_type": {
-                        "$ref": "#/components/schemas/ResponseType"
+                        "$ref": "#/components/schemas/src__models__custom_metric__ResponseType"
                     },
                     "min_value": {
                         "anyOf": [
@@ -9700,7 +9831,7 @@
                         "description": "Description of what this metric measures"
                     },
                     "response_type": {
-                        "$ref": "#/components/schemas/ResponseType",
+                        "$ref": "#/components/schemas/src__models__custom_metric__ResponseType",
                         "description": "Type of response expected"
                     },
                     "min_value": {
@@ -10359,6 +10490,42 @@
                         "description": "Speed of the digital human's voice",
                         "default": "normal"
                     },
+                    "audio_quality": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AudioQualityType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Audio quality of the digital human's voice",
+                        "default": "high"
+                    },
+                    "fluency": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FluencyType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Fluency level of the digital human's speech",
+                        "default": "native"
+                    },
+                    "verbosity": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VerbosityType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Verbosity level of the digital human's responses",
+                        "default": "medium"
+                    },
                     "phone_number": {
                         "type": "string",
                         "pattern": "^\\+1\\d{10}$",
@@ -10490,6 +10657,39 @@
                         ],
                         "title": "Traits",
                         "description": "List of traits associated with this digital human"
+                    },
+                    "interruptions": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SimpleInterruptionConfig"
+                            },
+                            {
+                                "$ref": "#/components/schemas/KeywordsInterruptionConfig"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ContextualInterruptionConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Interruptions",
+                        "description": "Interruption configuration for the digital human"
+                    },
+                    "scripted_responses": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ScriptedResponse"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scripted Responses",
+                        "description": "List of scripted responses for the digital human"
                     }
                 },
                 "type": "object",
@@ -10605,6 +10805,42 @@
                         ],
                         "title": "Voice Speed",
                         "description": "Speed of the digital human's voice"
+                    },
+                    "audio_quality": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Audio Quality",
+                        "description": "Audio quality of the digital human's voice"
+                    },
+                    "fluency": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Fluency",
+                        "description": "Fluency level of the digital human's speech"
+                    },
+                    "verbosity": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Verbosity",
+                        "description": "Verbosity level of the digital human's responses"
                     },
                     "phone_number": {
                         "anyOf": [
@@ -10759,6 +10995,34 @@
                         ],
                         "title": "Traits",
                         "description": "List of traits associated with this digital human"
+                    },
+                    "interruptions": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Interruptions",
+                        "description": "Interruption configuration for the digital human"
+                    },
+                    "scripted_responses": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ScriptedResponse"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scripted Responses",
+                        "description": "List of scripted responses for the digital human"
                     }
                 },
                 "type": "object",
@@ -11393,6 +11657,16 @@
                 "title": "ExpectedToolCall",
                 "description": "Represents an expected tool call during a conversation."
             },
+            "FluencyType": {
+                "type": "string",
+                "enum": [
+                    "beginner",
+                    "intermediate",
+                    "native"
+                ],
+                "title": "FluencyType",
+                "description": "Enum for fluency level options"
+            },
             "FolderCreateRequest": {
                 "properties": {
                     "name": {
@@ -11759,6 +12033,60 @@
                 ],
                 "title": "KeyOut"
             },
+            "KeywordResponse": {
+                "properties": {
+                    "keyword": {
+                        "type": "string",
+                        "title": "Keyword",
+                        "description": "The keyword to listen for and interrupt on"
+                    },
+                    "response": {
+                        "type": "string",
+                        "title": "Response",
+                        "description": "Response to say when keyword is detected"
+                    },
+                    "probability": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0,
+                        "title": "Probability",
+                        "description": "Probability of responding (0.0-1.0) - defaults to 1.0",
+                        "default": 1.0
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "keyword",
+                    "response"
+                ],
+                "title": "KeywordResponse",
+                "description": "Model for a keyword response configuration"
+            },
+            "KeywordsInterruptionConfig": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "keywords",
+                        "title": "Type",
+                        "description": "Type discriminator for keywords interruption (required)"
+                    },
+                    "keyword_responses": {
+                        "items": {
+                            "$ref": "#/components/schemas/KeywordResponse"
+                        },
+                        "type": "array",
+                        "title": "Keyword Responses",
+                        "description": "Array of keyword response objects, each with keyword, response, and optional probability"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "keyword_responses"
+                ],
+                "title": "Keywords",
+                "description": "Keywords-based interruption configuration."
+            },
             "KnowledgeBaseResponse": {
                 "properties": {
                     "id": {
@@ -12064,6 +12392,15 @@
                 "type": "object",
                 "title": "Latency"
             },
+            "MatchType": {
+                "type": "string",
+                "enum": [
+                    "exact",
+                    "context"
+                ],
+                "title": "MatchType",
+                "description": "Enum for scripted response match types"
+            },
             "MetricEvaluationItem": {
                 "properties": {
                     "type": {
@@ -12251,6 +12588,15 @@
                 ],
                 "title": "NodeData",
                 "description": "Data content for a workflow node"
+            },
+            "OccurrenceMode": {
+                "type": "string",
+                "enum": [
+                    "always",
+                    "first_n"
+                ],
+                "title": "OccurrenceMode",
+                "description": "Enum for scripted response occurrence modes"
             },
             "Participant": {
                 "properties": {
@@ -12598,19 +12944,6 @@
                 "title": "Replay Transcript From Text",
                 "description": "Replay transcript by providing the transcript text directly"
             },
-            "ResponseType": {
-                "type": "string",
-                "enum": [
-                    "pass_fail",
-                    "yes_no",
-                    "qualitative",
-                    "quantitative",
-                    "json",
-                    "enum"
-                ],
-                "title": "ResponseType",
-                "description": "Enum representing the possible response types for custom metrics."
-            },
             "RetrieveCallLogResponse": {
                 "properties": {
                     "call_log": {
@@ -12649,6 +12982,82 @@
                 },
                 "type": "object",
                 "title": "RetrieveCallLogsResponse"
+            },
+            "ScriptedResponse": {
+                "properties": {
+                    "match_type": {
+                        "$ref": "#/components/schemas/MatchType",
+                        "description": "Type of match: 'exact' or 'context'"
+                    },
+                    "match_phrase": {
+                        "type": "string",
+                        "title": "Match Phrase",
+                        "description": "The phrase to match against"
+                    },
+                    "response_type": {
+                        "$ref": "#/components/schemas/src__api__digital_humans__ResponseType",
+                        "description": "Type of response: 'phrase' or 'silence'"
+                    },
+                    "response_value": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Response Value",
+                        "description": "The response text (required if response_type is 'phrase')"
+                    },
+                    "occurrence_mode": {
+                        "$ref": "#/components/schemas/OccurrenceMode",
+                        "description": "When to apply: 'always' or 'first_n'"
+                    },
+                    "occurrence_n": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "exclusiveMinimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Occurrence N",
+                        "description": "Number of times to apply (required if occurrence_mode is 'first_n', must be > 0)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "match_type",
+                    "match_phrase",
+                    "response_type",
+                    "occurrence_mode"
+                ],
+                "title": "ScriptedResponse",
+                "description": "Model for a scripted response configuration"
+            },
+            "SimpleInterruptionConfig": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "low",
+                            "medium",
+                            "high"
+                        ],
+                        "title": "Type",
+                        "description": "Interruption level: none, low, medium, or high"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type"
+                ],
+                "title": "Default",
+                "description": "Simple interruption configuration with predefined levels."
             },
             "SimulationPydantic": {
                 "properties": {
@@ -13804,7 +14213,7 @@
                     "response_type": {
                         "anyOf": [
                             {
-                                "$ref": "#/components/schemas/ResponseType"
+                                "$ref": "#/components/schemas/src__models__custom_metric__ResponseType"
                             },
                             {
                                 "type": "null"
@@ -14108,6 +14517,39 @@
                         "description": "Speed of the digital human's voice",
                         "default": "normal"
                     },
+                    "audio_quality": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AudioQualityType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Audio quality of the digital human's voice"
+                    },
+                    "fluency": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FluencyType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Fluency level of the digital human's speech"
+                    },
+                    "verbosity": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VerbosityType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Verbosity level of the digital human's responses"
+                    },
                     "phone_number": {
                         "anyOf": [
                             {
@@ -14261,6 +14703,39 @@
                         ],
                         "title": "Traits",
                         "description": "List of traits associated with this digital human. If provided, completely replaces existing traits."
+                    },
+                    "interruptions": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SimpleInterruptionConfig"
+                            },
+                            {
+                                "$ref": "#/components/schemas/KeywordsInterruptionConfig"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ContextualInterruptionConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Interruptions",
+                        "description": "Interruption configuration for the digital human. If provided, completely replaces existing interruption config."
+                    },
+                    "scripted_responses": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ScriptedResponse"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scripted Responses",
+                        "description": "List of scripted responses for the digital human. If provided, completely replaces existing scripted responses."
                     }
                 },
                 "type": "object",
@@ -14396,6 +14871,16 @@
                     "type"
                 ],
                 "title": "ValidationError"
+            },
+            "VerbosityType": {
+                "type": "string",
+                "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                ],
+                "title": "VerbosityType",
+                "description": "Enum for verbosity level options"
             },
             "VoiceSpeedType": {
                 "type": "string",
@@ -14786,6 +15271,15 @@
                 ],
                 "title": "DigitalHumanResponse",
                 "description": "Response model for digital human operations with clear separation of digital human data and simulation context"
+            },
+            "src__api__digital_humans__ResponseType": {
+                "type": "string",
+                "enum": [
+                    "phrase",
+                    "silence"
+                ],
+                "title": "ResponseType",
+                "description": "Enum for scripted response types"
             },
             "src__api__simulations__UpdateSimulationRequest": {
                 "properties": {
@@ -15200,6 +15694,31 @@
                         ],
                         "title": "Sip Uri",
                         "description": "Optional SIP URI to be used in this simulation run (overrides the agent SIP URI)"
+                    },
+                    "livekit_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Agent Name",
+                        "description": "Optional agent name to be used by user's livekit, an empty string will use the default agent"
+                    },
+                    "livekit_metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Livekit Metadata",
+                        "description": "metadata to be passed to the livekit room"
                     }
                 },
                 "type": "object",
@@ -15411,6 +15930,19 @@
                 ],
                 "title": "WorkflowNode",
                 "description": "Pydantic model for workflow node"
+            },
+            "src__models__custom_metric__ResponseType": {
+                "type": "string",
+                "enum": [
+                    "pass_fail",
+                    "yes_no",
+                    "qualitative",
+                    "quantitative",
+                    "json",
+                    "enum"
+                ],
+                "title": "ResponseType",
+                "description": "Enum representing the possible response types for custom metrics."
             },
             "src__text_agent_api__SimulationRunRequest": {
                 "properties": {
