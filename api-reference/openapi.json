@@ -4200,6 +4200,74 @@
                 }
             }
         },
+        "/v1/add-to-community/{community_id}": {
+            "put": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Add Digital Humans To Community",
+                "description": "Add digital humans to an existing community without replacing the current list.",
+                "operationId": "add_digital_humans_to_community_v1_add_to_community__community_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "community_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Community Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddToCommunityRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/evaluate-call": {
             "post": {
                 "tags": [
@@ -7032,6 +7100,23 @@
                 ],
                 "title": "AccentType",
                 "description": "Enum for accent options"
+            },
+            "AddToCommunityRequest": {
+                "properties": {
+                    "digital_human_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Digital Human Ids",
+                        "description": "List of digital human (test case) IDs to add to this community"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_human_ids"
+                ],
+                "title": "AddToCommunityRequest"
             },
             "AgentMode": {
                 "type": "string",
