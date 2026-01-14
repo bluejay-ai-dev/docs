@@ -1663,6 +1663,122 @@
                 }
             }
         },
+        "/v1/generate-http-webhook-key": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Generate Http Webhook Key",
+                "description": "Generate a new signing key for an HTTP agent's webhook",
+                "operationId": "generate_http_webhook_key_v1_generate_http_webhook_key_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AgentWebhookKeyRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentWebhookKeyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/get-http-webhook-key": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get Http Webhook Key",
+                "description": "Get the signing key for an HTTP agent's webhook",
+                "operationId": "get_http_webhook_key_v1_get_http_webhook_key_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AgentWebhookKeyRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AgentWebhookKeyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/create-folder": {
             "post": {
                 "tags": [
@@ -3396,7 +3512,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/src__text_agent_api__SimulationRunRequest"
+                                "$ref": "#/components/schemas/src__text_agents__sms_text_agent_api__SimulationRunRequest"
                             }
                         }
                     }
@@ -3407,7 +3523,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/src__text_agent_api__SimulationRunResponse"
+                                    "$ref": "#/components/schemas/src__text_agents__sms_text_agent_api__SimulationRunResponse"
                                 }
                             }
                         }
@@ -3438,6 +3554,117 @@
                         "content": {
                             "application/json": {
                                 "schema": {}
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ]
+            }
+        },
+        "/v1/queue-http-text-simulation-run": {
+            "post": {
+                "tags": [
+                    "HTTP Text Agent"
+                ],
+                "summary": "Queue Http Simulation Run",
+                "description": "Queue a new simulation run and test results for HTTP text agent.\nTakes simulation_id, optional prompt_id, knowledge_base_id, and digital_human_ids.\nIf digital_human_ids is not provided, uses all digital humans for the simulation.\nReturns simulation_run_id (experiment_run_id) and simulation_result_ids (array of test result IDs).",
+                "operationId": "queue_http_simulation_run_v1_queue_http_text_simulation_run_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/HttpSimulationRunRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HttpSimulationRunResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/send-http-text-message": {
+            "post": {
+                "tags": [
+                    "HTTP Text Agent"
+                ],
+                "summary": "Send Http Text Message",
+                "description": "Receive a text message via HTTP, process it through the lambda, and send response to webhook.\nUses simulation_result_id (test_result_id) for Redis operations and evaluations.",
+                "operationId": "send_http_text_message_v1_send_http_text_message_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/HttpTextMessageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HttpTextMessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
                             }
                         }
                     }
@@ -7384,6 +7611,28 @@
                             }
                         ],
                         "title": "Livekit Metadata"
+                    },
+                    "http_webhook": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook"
+                    },
+                    "http_webhook_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook Key"
                     }
                 },
                 "type": "object",
@@ -7620,6 +7869,18 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit metadata"
+                    },
+                    "http_webhook": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook",
+                        "description": "HTTP webhook URL for text agent communication"
                     }
                 },
                 "type": "object",
@@ -7643,6 +7904,18 @@
                         "title": "Status",
                         "description": "Status of the response",
                         "default": "200"
+                    },
+                    "http_webhook_signing_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook Signing Key",
+                        "description": "Signing key for HTTP webhook (only provided if http_webhook was set)"
                     }
                 },
                 "type": "object",
@@ -7921,6 +8194,18 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit metadata"
+                    },
+                    "http_webhook": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook",
+                        "description": "HTTP webhook URL for text agent communication"
                     }
                 },
                 "type": "object",
@@ -7940,6 +8225,18 @@
                         "title": "Status",
                         "description": "Status of the response",
                         "default": "200"
+                    },
+                    "http_webhook_signing_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook Signing Key",
+                        "description": "Signing key for HTTP webhook (only provided if http_webhook was set)"
                     }
                 },
                 "type": "object",
@@ -8190,6 +8487,18 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit metadata"
+                    },
+                    "http_webhook": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Http Webhook",
+                        "description": "HTTP webhook URL for text agent communication"
                     }
                 },
                 "type": "object",
@@ -8197,6 +8506,58 @@
                     "external_agent_id"
                 ],
                 "title": "AgentUpdateWithExternalIdRequest"
+            },
+            "AgentWebhookKeyRequest": {
+                "properties": {
+                    "agent_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Id",
+                        "description": "ID of the agent"
+                    },
+                    "external_agent_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "External Agent Id",
+                        "description": "External ID of the agent"
+                    }
+                },
+                "type": "object",
+                "title": "AgentWebhookKeyRequest",
+                "description": "Request model for creating/getting an agent webhook key"
+            },
+            "AgentWebhookKeyResponse": {
+                "properties": {
+                    "signing_key": {
+                        "type": "string",
+                        "title": "Signing Key",
+                        "description": "Signing key"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "signing_key",
+                    "message"
+                ],
+                "title": "AgentWebhookKeyResponse",
+                "description": "Response model for agent webhook key"
             },
             "AudioQualityType": {
                 "type": "string",
@@ -12118,6 +12479,157 @@
                 },
                 "type": "object",
                 "title": "HTTPValidationError"
+            },
+            "HttpSimulationRunRequest": {
+                "properties": {
+                    "simulation_id": {
+                        "type": "string",
+                        "title": "Simulation Id",
+                        "description": "ID of the simulation to be run"
+                    },
+                    "prompt_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Id",
+                        "description": "Prompt UUID associated with this run"
+                    },
+                    "knowledge_base_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base Id",
+                        "description": "Knowledge base UUID associated with this run"
+                    },
+                    "digital_human_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Digital Human Ids",
+                        "description": "Digital human IDs to be used in the simulation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_id"
+                ],
+                "title": "HttpSimulationRunRequest",
+                "description": "Request model for HTTP simulation run"
+            },
+            "HttpSimulationRunResponse": {
+                "properties": {
+                    "simulation_run_id": {
+                        "type": "string",
+                        "title": "Simulation Run Id",
+                        "description": "ID of the created simulation run (experiment_run)"
+                    },
+                    "simulation_result_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Simulation Result Ids",
+                        "description": "IDs of the created simulation results (test results)"
+                    },
+                    "agent_id": {
+                        "type": "string",
+                        "title": "Agent Id",
+                        "description": "ID of the agent associated with the simulation run"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "success"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_run_id",
+                    "simulation_result_ids",
+                    "agent_id"
+                ],
+                "title": "HttpSimulationRunResponse",
+                "description": "Response model for HTTP simulation run"
+            },
+            "HttpTextMessageRequest": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Text message to send"
+                    },
+                    "simulation_result_id": {
+                        "type": "string",
+                        "title": "Simulation Result Id",
+                        "description": "ID of the simulation result (test result)"
+                    },
+                    "conversation_ended": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Conversation Ended",
+                        "description": "If true, skip lambda and end/evaluate the conversation",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message",
+                    "simulation_result_id"
+                ],
+                "title": "HttpTextMessageRequest",
+                "description": "Request model for HTTP text message"
+            },
+            "HttpTextMessageResponse": {
+                "properties": {
+                    "simulation_id": {
+                        "type": "string",
+                        "title": "Simulation Id",
+                        "description": "Simulation ID"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "success"
+                    },
+                    "conversation_ended": {
+                        "type": "boolean",
+                        "title": "Conversation Ended",
+                        "description": "Whether the conversation has ended",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_id"
+                ],
+                "title": "HttpTextMessageResponse",
+                "description": "Response model for HTTP text message"
             },
             "KeyOut": {
                 "properties": {
@@ -16075,7 +16587,7 @@
                 "title": "ResponseType",
                 "description": "Enum representing the possible response types for custom metrics."
             },
-            "src__text_agent_api__SimulationRunRequest": {
+            "src__text_agents__sms_text_agent_api__SimulationRunRequest": {
                 "properties": {
                     "simulation_id": {
                         "type": "string",
@@ -16144,7 +16656,7 @@
                 "title": "SimulationRunRequest",
                 "description": "Pydantic model for simulation run request"
             },
-            "src__text_agent_api__SimulationRunResponse": {
+            "src__text_agents__sms_text_agent_api__SimulationRunResponse": {
                 "properties": {
                     "simulation_run_id": {
                         "type": "string",
