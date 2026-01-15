@@ -12582,7 +12582,7 @@
                         "title": "Simulation Result Id",
                         "description": "ID of the simulation result (test result)"
                     },
-                    "conversation_ended": {
+                    "end_conversation": {
                         "anyOf": [
                             {
                                 "type": "boolean"
@@ -12591,9 +12591,34 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Conversation Ended",
+                        "title": "End Conversation",
                         "description": "If true, skip lambda and end/evaluate the conversation",
                         "default": false
+                    },
+                    "end_turn": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Turn",
+                        "description": "If true, process the message now; if false, stack it for later",
+                        "default": true
+                    },
+                    "message_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Message Id",
+                        "description": "Unique message ID for deduping within a conversation"
                     }
                 },
                 "type": "object",
@@ -12617,9 +12642,9 @@
                         "description": "Status of the response",
                         "default": "success"
                     },
-                    "conversation_ended": {
+                    "end_conversation": {
                         "type": "boolean",
-                        "title": "Conversation Ended",
+                        "title": "End Conversation",
                         "description": "Whether the conversation has ended",
                         "default": false
                     }
@@ -16378,6 +16403,14 @@
                         "title": "Simulation Run Id",
                         "description": "ID of the created simulation run"
                     },
+                    "simulation_result_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Simulation Result Ids",
+                        "description": "IDs of the created simulation results (test results)"
+                    },
                     "agent_id": {
                         "type": "string",
                         "title": "Agent Id",
@@ -16393,6 +16426,7 @@
                 "type": "object",
                 "required": [
                     "simulation_run_id",
+                    "simulation_result_ids",
                     "agent_id"
                 ],
                 "title": "SimulationRunResponse"
@@ -16663,6 +16697,14 @@
                         "title": "Simulation Run Id",
                         "description": "ID of the created simulation run"
                     },
+                    "simulation_result_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Simulation Result Ids",
+                        "description": "IDs of the created simulation results (test results)"
+                    },
                     "agent_id": {
                         "type": "string",
                         "title": "Agent Id",
@@ -16694,6 +16736,7 @@
                 "type": "object",
                 "required": [
                     "simulation_run_id",
+                    "simulation_result_ids",
                     "agent_id"
                 ],
                 "title": "SimulationRunResponse"
