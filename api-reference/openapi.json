@@ -702,10 +702,10 @@
                 }
             }
         },
-        "/v1/create-cron-job": {
+        "/v1/create-schedule": {
             "post": {
-                "summary": "Create Cron Job",
-                "operationId": "create_cron_job_v1_create_cron_job_post",
+                "summary": "Create Schedule",
+                "operationId": "create_schedule_v1_create_schedule_post",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -756,10 +756,10 @@
                 }
             }
         },
-        "/v1/update-cron-job/{cron_job_id}": {
+        "/v1/update-schedule/{schedule_id}": {
             "put": {
-                "summary": "Update Cron Job",
-                "operationId": "update_cron_job_v1_update_cron_job__cron_job_id__put",
+                "summary": "Update Schedule",
+                "operationId": "update_schedule_v1_update_schedule__schedule_id__put",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -767,12 +767,12 @@
                 ],
                 "parameters": [
                     {
-                        "name": "cron_job_id",
+                        "name": "schedule_id",
                         "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "title": "Cron Job Id"
+                            "title": "Schedule Id"
                         }
                     },
                     {
@@ -819,10 +819,10 @@
                 }
             }
         },
-        "/v1/delete-cron-job/{cron_job_id}": {
+        "/v1/delete-schedule/{schedule_id}": {
             "delete": {
-                "summary": "Delete Cron Job",
-                "operationId": "delete_cron_job_v1_delete_cron_job__cron_job_id__delete",
+                "summary": "Delete Schedule",
+                "operationId": "delete_schedule_v1_delete_schedule__schedule_id__delete",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -830,12 +830,12 @@
                 ],
                 "parameters": [
                     {
-                        "name": "cron_job_id",
+                        "name": "schedule_id",
                         "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "title": "Cron Job Id"
+                            "title": "Schedule Id"
                         }
                     },
                     {
@@ -4200,6 +4200,74 @@
                 }
             }
         },
+        "/v1/add-to-community/{community_id}": {
+            "put": {
+                "tags": [
+                    "Communities"
+                ],
+                "summary": "Add Digital Humans To Community",
+                "description": "Add digital humans to an existing community without replacing the current list.",
+                "operationId": "add_digital_humans_to_community_v1_add_to_community__community_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "community_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Community Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddToCommunityRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/evaluate-call": {
             "post": {
                 "tags": [
@@ -7033,6 +7101,23 @@
                 "title": "AccentType",
                 "description": "Enum for accent options"
             },
+            "AddToCommunityRequest": {
+                "properties": {
+                    "digital_human_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Digital Human Ids",
+                        "description": "List of digital human (test case) IDs to add to this community"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_human_ids"
+                ],
+                "title": "AddToCommunityRequest"
+            },
             "AgentMode": {
                 "type": "string",
                 "enum": [
@@ -8349,6 +8434,17 @@
                         "title": "Custom Metrics",
                         "description": "Please use the custom metrics in the evaluations instead",
                         "deprecated": true
+                    },
+                    "conversation_ended_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipantRole"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Which participant role ended the conversation: 'USER' or 'AGENT'"
                     }
                 },
                 "type": "object",
@@ -8615,6 +8711,17 @@
                         ],
                         "title": "Enable Phrase Latencies",
                         "description": "Whether to enable phrase-level latency tracking for this call"
+                    },
+                    "conversation_ended_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipantRole"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Which participant role ended the conversation: 'USER' or 'AGENT'"
                     }
                 },
                 "type": "object",
@@ -8879,6 +8986,17 @@
                         ],
                         "title": "Enable Phrase Latencies",
                         "description": "Whether to enable phrase-level latency tracking for this call"
+                    },
+                    "conversation_ended_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipantRole"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Which participant role ended the conversation: 'USER' or 'AGENT'"
                     }
                 },
                 "type": "object",
@@ -9159,10 +9277,10 @@
                         "title": "Id",
                         "description": "The unique identifier for the created cron job."
                     },
-                    "experiment_id": {
+                    "simulation_id": {
                         "type": "string",
-                        "title": "Experiment Id",
-                        "description": "The unique identifier for the associated experiment."
+                        "title": "Simulation Id",
+                        "description": "The unique identifier for the associated simulation."
                     },
                     "cron_expression": {
                         "type": "string",
@@ -9185,7 +9303,7 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "experiment_id",
+                    "simulation_id",
                     "cron_expression"
                 ],
                 "title": "CreateCronJobResponse"
@@ -10690,6 +10808,19 @@
                         ],
                         "title": "Scripted Responses",
                         "description": "List of scripted responses for the digital human"
+                    },
+                    "speaks_first": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Speaks First",
+                        "description": "Whether the digital human speaks first in the call",
+                        "default": true
                     }
                 },
                 "type": "object",
@@ -11023,6 +11154,18 @@
                         ],
                         "title": "Scripted Responses",
                         "description": "List of scripted responses for the digital human"
+                    },
+                    "speaks_first": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Speaks First",
+                        "description": "Whether the digital human speaks first in the call"
                     }
                 },
                 "type": "object",
@@ -11116,19 +11259,6 @@
                         "title": "Default Background Noise",
                         "description": "Background noise to be used in the simulation",
                         "default": "none"
-                    },
-                    "speaks_first": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Speaks First",
-                        "description": "Whether the digital human speaks first in the call",
-                        "default": false
                     },
                     "first_message": {
                         "anyOf": [
@@ -11635,13 +11765,7 @@
                     },
                     "output": {
                         "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
+                            {},
                             {
                                 "type": "null"
                             }
@@ -13881,13 +14005,7 @@
                     },
                     "output": {
                         "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
+                            {},
                             {
                                 "type": "null"
                             }
@@ -14147,10 +14265,10 @@
                         "title": "Id",
                         "description": "The unique identifier for the updated cron job."
                     },
-                    "experiment_id": {
+                    "simulation_id": {
                         "type": "string",
-                        "title": "Experiment Id",
-                        "description": "The unique identifier for the associated experiment."
+                        "title": "Simulation Id",
+                        "description": "The unique identifier for the associated simulation."
                     },
                     "cron_expression": {
                         "type": "string",
@@ -14178,7 +14296,7 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "experiment_id",
+                    "simulation_id",
                     "cron_expression",
                     "created_at"
                 ],
@@ -14736,6 +14854,18 @@
                         ],
                         "title": "Scripted Responses",
                         "description": "List of scripted responses for the digital human. If provided, completely replaces existing scripted responses."
+                    },
+                    "speaks_first": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Speaks First",
+                        "description": "Whether the digital human speaks first in the call"
                     }
                 },
                 "type": "object",
@@ -16194,13 +16324,7 @@
                             },
                             "output": {
                                 "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "additionalProperties": true,
-                                        "type": "object"
-                                    },
+                                    {},
                                     {
                                         "type": "null"
                                     }
@@ -17186,13 +17310,7 @@
                             },
                             "output": {
                                 "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "additionalProperties": true,
-                                        "type": "object"
-                                    },
+                                    {},
                                     {
                                         "type": "null"
                                     }
@@ -17408,6 +17526,18 @@
                         "deprecated": true,
                         "description": "Please use the custom metrics in the evaluations instead",
                         "title": "Custom Metrics"
+                    },
+                    "conversation_ended_by": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipantRole"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "Which participant role ended the conversation: 'USER' or 'AGENT'"
                     },
                     "type": {
                         "default": "observability_call_evaluated",
