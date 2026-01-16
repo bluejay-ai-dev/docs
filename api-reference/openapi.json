@@ -6848,6 +6848,112 @@
                 }
             }
         },
+        "/v1/workflows/miro/boards": {
+            "get": {
+                "tags": [
+                    "Workflows"
+                ],
+                "summary": "List Miro Boards",
+                "description": "List all Miro boards accessible with the organization's Miro API key.\nRequires Miro integration to be configured in Settings > Integrations.",
+                "operationId": "list_miro_boards_v1_workflows_miro_boards_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MiroBoardsListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/workflows/from-miro": {
+            "post": {
+                "tags": [
+                    "Workflows"
+                ],
+                "summary": "Create Workflow From Miro",
+                "description": "Create a new workflow by importing a Miro board.\n\nThe Miro board is analyzed using graph-based algorithms to:\n- Detect start nodes (no incoming connections)\n- Detect end nodes (no outgoing connections)\n- Detect editable nodes (intermediate steps)\n- Convert connectors to workflow edges\n\nRequires Miro integration to be configured in Settings > Integrations.",
+                "operationId": "create_workflow_from_miro_v1_workflows_from_miro_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateWorkflowFromMiroRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/retrieve-call-logs": {
             "get": {
                 "tags": [
@@ -10098,6 +10204,57 @@
                 "title": "CreatePromptVersionBody",
                 "description": "body for agent-scoped create version endpoint (agent_id in path)."
             },
+            "CreateWorkflowFromMiroRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "Name of the workflow"
+                    },
+                    "miro_board_id": {
+                        "type": "string",
+                        "title": "Miro Board Id",
+                        "description": "Miro board ID to import from"
+                    },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids",
+                        "description": "List of agent IDs this workflow belongs to"
+                    },
+                    "enabled_for_evaluation": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enabled For Evaluation",
+                        "description": "Whether this workflow should be used for agent evaluation",
+                        "default": true
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "miro_board_id"
+                ],
+                "title": "CreateWorkflowFromMiroRequest",
+                "description": "API request to create a workflow from a Miro board"
+            },
             "CronSchedule": {
                 "properties": {
                     "frequency": {
@@ -12631,10 +12788,10 @@
             },
             "HttpTextMessageResponse": {
                 "properties": {
-                    "simulation_id": {
+                    "simulation_result_id": {
                         "type": "string",
-                        "title": "Simulation Id",
-                        "description": "Simulation ID"
+                        "title": "Simulation Result Id",
+                        "description": "Simulation result ID"
                     },
                     "status": {
                         "type": "string",
@@ -12651,7 +12808,7 @@
                 },
                 "type": "object",
                 "required": [
-                    "simulation_id"
+                    "simulation_result_id"
                 ],
                 "title": "HttpTextMessageResponse",
                 "description": "Response model for HTTP text message"
@@ -13134,6 +13291,31 @@
                 ],
                 "title": "MetricsRequest",
                 "description": "Pydantic model for metrics in evaluate-conversation request"
+            },
+            "MiroBoardsListResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Data",
+                        "description": "List of Miro boards"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "Total number of boards"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "data",
+                    "total"
+                ],
+                "title": "MiroBoardsListResponse",
+                "description": "Response model for listing Miro boards"
             },
             "MonthlySchedule": {
                 "properties": {
