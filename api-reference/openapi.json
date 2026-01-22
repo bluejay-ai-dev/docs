@@ -3340,6 +3340,66 @@
                 }
             }
         },
+        "/v1/traces": {
+            "get": {
+                "tags": [
+                    "Traces"
+                ],
+                "summary": "Get All Traces",
+                "description": "Get all traces for the authenticated user's organization.",
+                "operationId": "get_all_traces_v1_traces_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Number of traces to return",
+                            "default": 50,
+                            "title": "Limit"
+                        },
+                        "description": "Number of traces to return"
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/phone-numbers": {
             "get": {
                 "tags": [
@@ -7342,6 +7402,63 @@
                 }
             }
         },
+        "/v1/re-evaluate-simulation-result/{simulation_result_id}": {
+            "post": {
+                "tags": [
+                    "Re-evaluate"
+                ],
+                "summary": "Re Evaluate Simulation Result",
+                "description": "Re-evaluate a simulation result.",
+                "operationId": "re_evaluate_simulation_result_v1_re_evaluate_simulation_result__simulation_result_id__post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_result_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Result Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReEvaluateSimulationResultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/translate-transcript": {
             "post": {
                 "tags": [
@@ -9191,17 +9308,24 @@
                         "description": "Which participant role ended the conversation: 'USER' or 'AGENT'"
                     },
                     "multichannel": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Multichannel",
-                        "description": "Whether the call uses multichannel audio (true or false)"
+                        "description": "Whether the participants of the call are on different audio channels",
+                        "default": false
                     }
                 },
                 "type": "object",
                 "required": [
                     "agent_id",
                     "start_time_utc",
-                    "participants",
-                    "multichannel"
+                    "participants"
                 ],
                 "title": "Call Request Using Bluejay Agent ID"
             },
@@ -9472,17 +9596,24 @@
                         "description": "Which participant role ended the conversation: 'USER' or 'AGENT'"
                     },
                     "multichannel": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Multichannel",
-                        "description": "Whether the call is multichannel (true or false)"
+                        "description": "Whether the participants of the call are on different audio channels",
+                        "default": false
                     }
                 },
                 "type": "object",
                 "required": [
                     "external_agent_id",
                     "start_time_utc",
-                    "participants",
-                    "multichannel"
+                    "participants"
                 ],
                 "title": "Call Request Using External Agent ID"
             },
@@ -13133,7 +13264,8 @@
                     "ar",
                     "ru",
                     "zh",
-                    "ml"
+                    "ml",
+                    "fr"
                 ],
                 "title": "LanguageType",
                 "description": "Enum for supported language types"
@@ -13722,6 +13854,29 @@
                     "message"
                 ],
                 "title": "ReEvaluateCallResponse"
+            },
+            "ReEvaluateSimulationResultResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "simulation_result_id": {
+                        "type": "integer",
+                        "title": "Simulation Result Id"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "simulation_result_id",
+                    "message"
+                ],
+                "title": "ReEvaluateSimulationResultResponse"
             },
             "ReplayTranscriptFromConversation": {
                 "properties": {
@@ -15865,7 +16020,7 @@
                     },
                     "edges": {
                         "items": {
-                            "$ref": "#/components/schemas/WorkflowEdge-Input"
+                            "$ref": "#/components/schemas/src__api__workflows__WorkflowEdge"
                         },
                         "type": "array",
                         "title": "Edges",
@@ -15879,59 +16034,6 @@
                 ],
                 "title": "WorkflowDataInput",
                 "description": "Input model for workflow data (without position fields)"
-            },
-            "WorkflowEdge-Input": {
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "title": "Id",
-                        "description": "Unique identifier for the edge"
-                    },
-                    "source": {
-                        "type": "string",
-                        "title": "Source",
-                        "description": "ID of the source node"
-                    },
-                    "target": {
-                        "type": "string",
-                        "title": "Target",
-                        "description": "ID of the target node"
-                    },
-                    "label": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Label",
-                        "description": "Description of the customer response/interaction",
-                        "default": "Click to edit"
-                    },
-                    "type": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Type",
-                        "description": "Type of edge connector",
-                        "default": "connector"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "id",
-                    "source",
-                    "target"
-                ],
-                "title": "WorkflowEdge",
-                "description": "Connection between two nodes representing a customer interaction path"
             },
             "WorkflowGenerationRequest": {
                 "properties": {
