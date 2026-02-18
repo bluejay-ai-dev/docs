@@ -2368,6 +2368,120 @@
                 }
             }
         },
+        "/v1/simulation-result/{simulation_result_id}": {
+            "delete": {
+                "tags": [
+                    "Simulation Runs"
+                ],
+                "summary": "Delete Simulation Result",
+                "description": "Delete a single simulation result (one row in run details) by ID.",
+                "operationId": "delete_simulation_result_v1_simulation_result__simulation_result_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_result_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Result Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteSimulationResultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/simulation-run/{simulation_run_id}": {
+            "delete": {
+                "tags": [
+                    "Simulation Runs"
+                ],
+                "summary": "Delete Simulation Run",
+                "description": "Delete a single simulation run by ID. This will also delete all associated test results.",
+                "operationId": "delete_simulation_run_v1_simulation_run__simulation_run_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_run_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Run Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteSimulationRunResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/create-custom-metric": {
             "post": {
                 "tags": [
@@ -8891,6 +9005,122 @@
                     }
                 }
             }
+        },
+        "/v1/optimize/metric-prompt": {
+            "post": {
+                "tags": [
+                    "Optimize"
+                ],
+                "summary": "Optimize Metric Prompt",
+                "description": "Accept a custom metric prompt and return an optimized version using an LLM.\nThe optimized prompt is clearer, more precise, and easier for evaluators to apply consistently.",
+                "operationId": "optimize_metric_prompt_v1_optimize_metric_prompt_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OptimizeMetricPromptRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OptimizeMetricPromptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/optimize/metric-prompt-with-diff": {
+            "post": {
+                "tags": [
+                    "Optimize"
+                ],
+                "summary": "Optimize Metric Prompt With Diff",
+                "description": "Optimize a metric prompt using human vs AI evaluation comparisons.\nevaluation_diffs is required and must not be empty.",
+                "operationId": "optimize_metric_prompt_with_diff_v1_optimize_metric_prompt_with_diff_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OptimizeMetricPromptWithDiffRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OptimizeMetricPromptResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -9368,6 +9598,41 @@
                         ],
                         "title": "Livekit Metadata"
                     },
+                    "pipecat_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Name"
+                    },
+                    "pipecat_agent_configuration": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Configuration"
+                    },
+                    "pipecat_room_properties": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Room Properties"
+                    },
                     "http_webhook": {
                         "anyOf": [
                             {
@@ -9625,6 +9890,44 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit metadata"
+                    },
+                    "pipecat_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Name",
+                        "description": "Pipecat agent name"
+                    },
+                    "pipecat_agent_configuration": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Configuration",
+                        "description": "Pipecat agent configuration"
+                    },
+                    "pipecat_room_properties": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Room Properties",
+                        "description": "Pipecat room properties"
                     },
                     "http_webhook": {
                         "anyOf": [
@@ -9951,6 +10254,44 @@
                         "title": "Livekit Metadata",
                         "description": "LiveKit metadata"
                     },
+                    "pipecat_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Name",
+                        "description": "Pipecat agent name"
+                    },
+                    "pipecat_agent_configuration": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Configuration",
+                        "description": "Pipecat agent configuration"
+                    },
+                    "pipecat_room_properties": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Room Properties",
+                        "description": "Pipecat room properties"
+                    },
                     "http_webhook": {
                         "anyOf": [
                             {
@@ -10243,6 +10584,44 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit metadata"
+                    },
+                    "pipecat_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Name",
+                        "description": "Pipecat agent name"
+                    },
+                    "pipecat_agent_configuration": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Configuration",
+                        "description": "Pipecat agent configuration"
+                    },
+                    "pipecat_room_properties": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Room Properties",
+                        "description": "Pipecat room properties"
                     },
                     "http_webhook": {
                         "anyOf": [
@@ -10541,7 +10920,8 @@
             "CallInterface": {
                 "type": "string",
                 "enum": [
-                    "PHONE"
+                    "PHONE",
+                    "WEB"
                 ],
                 "title": "CallInterface",
                 "description": "Enum representing the interface used for a call."
@@ -12352,6 +12732,18 @@
                         "type": "string",
                         "title": "Human Response Value",
                         "description": "Human evaluation response value"
+                    },
+                    "human_reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Human Reasoning",
+                        "description": "Human evaluator's reasoning for the score"
                     }
                 },
                 "type": "object",
@@ -13203,6 +13595,48 @@
                 "title": "DeleteSimulationResponse",
                 "description": "Response model for deleting a simulation"
             },
+            "DeleteSimulationResultResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Success message"
+                    },
+                    "deleted_simulation_result_id": {
+                        "type": "integer",
+                        "title": "Deleted Simulation Result Id",
+                        "description": "ID of the deleted simulation result"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message",
+                    "deleted_simulation_result_id"
+                ],
+                "title": "DeleteSimulationResultResponse",
+                "description": "Response model for the delete simulation result API (customer-facing)."
+            },
+            "DeleteSimulationRunResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Success message"
+                    },
+                    "deleted_simulation_run_id": {
+                        "type": "integer",
+                        "title": "Deleted Simulation Run Id",
+                        "description": "ID of the deleted simulation run"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message",
+                    "deleted_simulation_run_id"
+                ],
+                "title": "DeleteSimulationRunResponse",
+                "description": "Response model for deleting a simulation run."
+            },
             "DeleteWorkflowResponse": {
                 "properties": {
                     "message": {
@@ -13562,6 +13996,19 @@
                         "title": "Expected Tool Calls",
                         "description": "Expected tool call outputs"
                     },
+                    "allow_end_call_tool": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Allow End Call Tool",
+                        "description": "Allow the digital human to end the tool call",
+                        "default": true
+                    },
                     "endpointing_delay": {
                         "anyOf": [
                             {
@@ -13630,6 +14077,18 @@
                         "title": "Silence Timeout",
                         "description": "Silence timeout in seconds"
                     },
+                    "role_description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Role Description",
+                        "description": "Description of the role for the digital human"
+                    },
                     "traits": {
                         "anyOf": [
                             {
@@ -13678,18 +14137,16 @@
                         "title": "Scripted Responses",
                         "description": "List of scripted responses for the digital human"
                     },
-                    "speaks_first": {
+                    "speaks_first_config": {
                         "anyOf": [
                             {
-                                "type": "boolean"
+                                "$ref": "#/components/schemas/SpeaksFirstConfig"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "title": "Speaks First",
-                        "description": "Whether the digital human speaks first in the call",
-                        "default": true
+                        "description": "Speaks first configuration for the digital human"
                     }
                 },
                 "type": "object",
@@ -13905,6 +14362,19 @@
                         "title": "Expected Tool Calls",
                         "description": "Expected tool calls"
                     },
+                    "allow_end_call_tool": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Allow End Call Tool",
+                        "description": "Allow the digital human to end the tool call",
+                        "default": true
+                    },
                     "endpointing_delay": {
                         "anyOf": [
                             {
@@ -14024,17 +14494,16 @@
                         "title": "Scripted Responses",
                         "description": "List of scripted responses for the digital human"
                     },
-                    "speaks_first": {
+                    "speaks_first_config": {
                         "anyOf": [
                             {
-                                "type": "boolean"
+                                "$ref": "#/components/schemas/SpeaksFirstConfig"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "title": "Speaks First",
-                        "description": "Whether the digital human speaks first in the call"
+                        "description": "Speaks first config: speaks_first, mode (custom|ai_generated), message (when custom)"
                     }
                 },
                 "type": "object",
@@ -14504,6 +14973,85 @@
                 ],
                 "title": "Evaluation",
                 "description": "Pydantic model for evaluation result"
+            },
+            "EvaluationDiffItem": {
+                "properties": {
+                    "call_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Call Id",
+                        "description": "Call ID for call conversations."
+                    },
+                    "test_result_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Test Result Id",
+                        "description": "Test result ID for test_result conversations."
+                    },
+                    "human_value": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Human Value",
+                        "description": "Human evaluator's response (e.g. Pass/Fail, score)."
+                    },
+                    "ai_value": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ai Value",
+                        "description": "AI evaluator's response."
+                    },
+                    "human_reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Human Reasoning",
+                        "description": "Human evaluator's reasoning."
+                    },
+                    "ai_reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Ai Reasoning",
+                        "description": "AI evaluator's reasoning."
+                    }
+                },
+                "type": "object",
+                "title": "EvaluationDiffItem",
+                "description": "One human vs AI evaluation comparison for a conversation."
             },
             "Event": {
                 "properties": {
@@ -16165,6 +16713,118 @@
                 "title": "Operator",
                 "description": "Enum representing the comparison operators for alarms."
             },
+            "OptimizeMetricPromptRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "The name of the custom metric to optimize."
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Prompt",
+                        "description": "The current evaluation system prompt to optimize."
+                    },
+                    "additional_instructions": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Additional Instructions",
+                        "description": "Additional instructions for the optimization."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "prompt"
+                ],
+                "title": "OptimizeMetricPromptRequest",
+                "description": "Request body for optimizing a metric prompt (no evaluation diffs)."
+            },
+            "OptimizeMetricPromptResponse": {
+                "properties": {
+                    "optimized_prompt": {
+                        "type": "string",
+                        "title": "Optimized Prompt",
+                        "description": "The optimized version of the custom metric prompt."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "optimized_prompt"
+                ],
+                "title": "OptimizeMetricPromptResponse",
+                "description": "Response containing the optimized prompt."
+            },
+            "OptimizeMetricPromptWithDiffRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "The name of the custom metric to optimize."
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Prompt",
+                        "description": "The current evaluation system prompt to optimize."
+                    },
+                    "additional_instructions": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Additional Instructions",
+                        "description": "Additional instructions for the optimization."
+                    },
+                    "evaluation_diffs": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/EvaluationDiffItem"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Evaluation Diffs",
+                        "description": "List of human vs AI evaluation comparisons. Required and must not be empty."
+                    },
+                    "diff_prompt": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Diff Prompt",
+                        "description": "System/instruction for how to use evaluation_diffs. If omitted, a default is used."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "prompt"
+                ],
+                "title": "OptimizeMetricPromptWithDiffRequest",
+                "description": "Request body for optimizing a metric prompt using evaluation diffs."
+            },
             "Participant": {
                 "properties": {
                     "role": {
@@ -16179,7 +16839,8 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Spoke First"
+                        "title": "Spoke First",
+                        "description": "Only provide if you would like to override the auto-detected spoke first behavior."
                     },
                     "name": {
                         "anyOf": [
@@ -17413,6 +18074,49 @@
                 ],
                 "title": "SimulationType"
             },
+            "SpeaksFirstConfig": {
+                "properties": {
+                    "speaks_first": {
+                        "type": "boolean",
+                        "title": "Speaks First",
+                        "description": "Whether the digital human speaks first in the call"
+                    },
+                    "mode": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "custom",
+                                    "ai_generated"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Mode",
+                        "description": "When speaks_first is true: 'custom' (user-provided message) or 'ai_generated' (no message)"
+                    },
+                    "message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Message",
+                        "description": "When mode is 'custom', the message the digital human says first"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "speaks_first"
+                ],
+                "title": "SpeaksFirstConfig",
+                "description": "Configuration for whether the digital human speaks first and how.\nStored as JSONB in Supabase (speaks_first_config)."
+            },
             "TextProcessorRequest": {
                 "properties": {
                     "redis_key": {
@@ -18383,8 +19087,7 @@
                     "phone_number": {
                         "anyOf": [
                             {
-                                "type": "string",
-                                "pattern": "^\\+1\\d{10}$"
+                                "type": "string"
                             },
                             {
                                 "type": "null"
@@ -18396,8 +19099,7 @@
                     "outbound_text_number": {
                         "anyOf": [
                             {
-                                "type": "string",
-                                "pattern": "^\\+1\\d{10}$"
+                                "type": "string"
                             },
                             {
                                 "type": "null"
@@ -18435,6 +19137,18 @@
                         ],
                         "title": "Expected Tool Calls",
                         "description": "Expected tool call outputs"
+                    },
+                    "allow_end_call_tool": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Allow End Call Tool",
+                        "description": "Allow the digital human to end the tool call"
                     },
                     "endpointing_delay": {
                         "anyOf": [
@@ -18567,17 +19281,28 @@
                         "title": "Scripted Responses",
                         "description": "List of scripted responses for the digital human. If provided, completely replaces existing scripted responses."
                     },
-                    "speaks_first": {
+                    "role_description": {
                         "anyOf": [
                             {
-                                "type": "boolean"
+                                "type": "string"
                             },
                             {
                                 "type": "null"
                             }
                         ],
-                        "title": "Speaks First",
-                        "description": "Whether the digital human speaks first in the call"
+                        "title": "Role Description",
+                        "description": "Description of the role for the digital human"
+                    },
+                    "speaks_first_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SpeaksFirstConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Speaks first configuration for the digital human. If provided, completely replaces existing speaks first config."
                     }
                 },
                 "type": "object",
@@ -19269,7 +19994,11 @@
                     "max_call_duration_units": {
                         "anyOf": [
                             {
-                                "type": "string"
+                                "type": "string",
+                                "enum": [
+                                    "minutes",
+                                    "seconds"
+                                ]
                             },
                             {
                                 "type": "null"
@@ -19659,6 +20388,44 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "metadata to be passed to the livekit room"
+                    },
+                    "pipecat_agent_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Name",
+                        "description": "Pipecat agent name"
+                    },
+                    "pipecat_agent_configuration": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Agent Configuration",
+                        "description": "Pipecat agent configuration"
+                    },
+                    "pipecat_room_properties": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pipecat Room Properties",
+                        "description": "Pipecat room properties"
                     }
                 },
                 "type": "object",
@@ -20729,7 +21496,8 @@
                     "CallInterface": {
                         "description": "Enum representing the interface used for a call.",
                         "enum": [
-                            "PHONE"
+                            "PHONE",
+                            "WEB"
                         ],
                         "title": "CallInterface",
                         "type": "string"
