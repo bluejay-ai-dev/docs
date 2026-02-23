@@ -2694,7 +2694,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/CustomMetric"
+                                    "$ref": "#/components/schemas/src__models__custom_metric__CustomMetric"
                                 }
                             }
                         }
@@ -3767,6 +3767,70 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/AddConversationsToLabResponse"
                                 }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Metrics Lab"
+                ],
+                "summary": "Remove Conversations From Lab",
+                "description": "Remove one or more conversations from an existing lab.",
+                "operationId": "remove_conversations_from_lab_v1_metrics_lab_lab__lab_id__conversations_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "lab_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Lab Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RemoveConversationsFromLabRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
                             }
                         }
                     },
@@ -5160,6 +5224,64 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GeneratePromptSummaryResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/generate-formatted-transcript": {
+            "post": {
+                "tags": [
+                    "Digital Humans"
+                ],
+                "summary": "Generate Formatted Transcript Endpoint",
+                "description": "Take a raw transcript and return the structured transcript, derived utterances, and speaks_first.",
+                "operationId": "generate_formatted_transcript_endpoint_v1_generate_formatted_transcript_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GenerateFormattedTranscriptRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenerateFormattedTranscriptResponse"
                                 }
                             }
                         }
@@ -9399,6 +9521,16 @@
                             }
                         ]
                     },
+                    "connection_type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ConnectionType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
                     "phone_number": {
                         "anyOf": [
                             {
@@ -9714,6 +9846,17 @@
                         ],
                         "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers",
                         "default": "INBOUND"
+                    },
+                    "connection_type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ConnectionType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Connection type of the agent (Livekit, Websocket, etc.)"
                     },
                     "mode": {
                         "anyOf": [
@@ -10092,6 +10235,17 @@
                         ],
                         "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers"
                     },
+                    "connection_type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ConnectionType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Connection type of the agent (Livekit, Websocket, etc.)"
+                    },
                     "mode": {
                         "anyOf": [
                             {
@@ -10303,6 +10457,30 @@
                         ],
                         "title": "Http Webhook",
                         "description": "HTTP webhook URL for text agent communication"
+                    },
+                    "voice_provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Voice Provider",
+                        "description": "Voice provider for the agent"
+                    },
+                    "provider_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Id",
+                        "description": "Provider ID for the agent"
                     }
                 },
                 "type": "object",
@@ -10422,6 +10600,17 @@
                             }
                         ],
                         "description": "INBOUND: Agent receives incoming calls from customers\nOUTBOUND: Agent makes outgoing calls to customers"
+                    },
+                    "connection_type": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ConnectionType"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Connection type of the agent (Livekit, Websocket, etc.)"
                     },
                     "mode": {
                         "anyOf": [
@@ -10634,6 +10823,30 @@
                         ],
                         "title": "Http Webhook",
                         "description": "HTTP webhook URL for text agent communication"
+                    },
+                    "voice_provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Voice Provider",
+                        "description": "Voice provider for the agent"
+                    },
+                    "provider_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Id",
+                        "description": "Provider ID for the agent"
                     }
                 },
                 "type": "object",
@@ -11841,6 +12054,20 @@
                 "title": "ComparisonResponse",
                 "description": "Pydantic model for experiment run comparison response"
             },
+            "ConnectionType": {
+                "type": "string",
+                "enum": [
+                    "SMS",
+                    "HTTP_WEBHOOK",
+                    "PHONE",
+                    "SIP",
+                    "WEBSOCKET",
+                    "LIVEKIT",
+                    "PIPECAT"
+                ],
+                "title": "ConnectionType",
+                "description": "Enum representing the connection type of the agent"
+            },
             "ContextualInterruptionConfig": {
                 "properties": {
                     "type": {
@@ -12875,180 +13102,6 @@
                     "expression"
                 ],
                 "title": "CronSchedule"
-            },
-            "CustomMetric": {
-                "properties": {
-                    "agent_id": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Agent Id"
-                    },
-                    "name": {
-                        "type": "string",
-                        "title": "Name"
-                    },
-                    "description": {
-                        "type": "string",
-                        "title": "Description"
-                    },
-                    "response_type": {
-                        "$ref": "#/components/schemas/src__models__custom_metric__ResponseType"
-                    },
-                    "min_value": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Min Value"
-                    },
-                    "max_value": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Max Value"
-                    },
-                    "created_at": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "format": "date-time"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Created At"
-                    },
-                    "id": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "format": "uuid"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Id",
-                        "description": "Unique identifier for the custom metric"
-                    },
-                    "category": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Category"
-                    },
-                    "tags": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array",
-                        "title": "Tags"
-                    },
-                    "scoring_guidance": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Scoring Guidance"
-                    },
-                    "eval_route": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/EvalRoute"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": "AUTO"
-                    },
-                    "model": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Model"
-                    },
-                    "temperature": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Temperature"
-                    },
-                    "enum_options": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Enum Options"
-                    },
-                    "organization_id": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "format": "uuid"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Organization Id"
-                    },
-                    "allow_not_applicable": {
-                        "type": "boolean",
-                        "title": "Allow Not Applicable",
-                        "default": false
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "name",
-                    "description",
-                    "response_type"
-                ],
-                "title": "CustomMetric",
-                "description": "Represents a custom metric entry in the database."
             },
             "CustomMetricResponse": {
                 "properties": {
@@ -14147,6 +14200,36 @@
                             }
                         ],
                         "description": "Speaks first configuration for the digital human"
+                    },
+                    "original_transcript": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Original Transcript",
+                        "description": "Original transcript text to replay. When provided (and formatted_transcript not provided), utterances are extracted via LLM and used as the intent."
+                    },
+                    "formatted_transcript": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Formatted Transcript",
+                        "description": "Pre-computed structured transcript as [{role, utterance}]. When provided, skips the format-transcript LLM call."
                     }
                 },
                 "type": "object",
@@ -14504,6 +14587,36 @@
                             }
                         ],
                         "description": "Speaks first config: speaks_first, mode (custom|ai_generated), message (when custom)"
+                    },
+                    "original_transcript": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Original Transcript",
+                        "description": "The original transcript text attached to this digital human"
+                    },
+                    "formatted_transcript": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Formatted Transcript",
+                        "description": "Structured transcript as [{\"role\": \"USER\"|\"AGENT\", \"utterance\": \"...\"}]"
                     }
                 },
                 "type": "object",
@@ -14952,7 +15065,9 @@
                     "custom_metrics": {
                         "anyOf": [
                             {
-                                "items": {},
+                                "items": {
+                                    "$ref": "#/components/schemas/src__models__api_custom_metric__CustomMetric"
+                                },
                                 "type": "array"
                             },
                             {
@@ -15424,6 +15539,57 @@
                     "agent_id"
                 ],
                 "title": "GenerateCustomPersonasRequest"
+            },
+            "GenerateFormattedTranscriptRequest": {
+                "properties": {
+                    "original_transcript": {
+                        "type": "string",
+                        "title": "Original Transcript",
+                        "description": "Raw transcript in any format"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "original_transcript"
+                ],
+                "title": "GenerateFormattedTranscriptRequest"
+            },
+            "GenerateFormattedTranscriptResponse": {
+                "properties": {
+                    "formatted_transcript": {
+                        "items": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Formatted Transcript",
+                        "description": "Structured transcript: [{\"role\": \"USER\"|\"AGENT\", \"utterance\": \"...\"}]"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "JSON-encoded list of user utterances (the intent/description field)"
+                    },
+                    "speaks_first_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SpeaksFirstConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Speaks first configuration derived from the transcript"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "formatted_transcript",
+                    "description"
+                ],
+                "title": "GenerateFormattedTranscriptResponse"
             },
             "GenerateGoalsRequest": {
                 "properties": {
@@ -17118,6 +17284,31 @@
                     "message"
                 ],
                 "title": "ReEvaluateSimulationResultResponse"
+            },
+            "RemoveConversationsFromLabRequest": {
+                "properties": {
+                    "lab_id": {
+                        "type": "string",
+                        "title": "Lab Id",
+                        "description": "Lab ID (UUID as string)"
+                    },
+                    "conversations": {
+                        "items": {
+                            "$ref": "#/components/schemas/ConversationItem"
+                        },
+                        "type": "array",
+                        "minItems": 1,
+                        "title": "Conversations",
+                        "description": "List of conversations to remove from the lab"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "lab_id",
+                    "conversations"
+                ],
+                "title": "RemoveConversationsFromLabRequest",
+                "description": "Request model for removing conversations from a lab"
             },
             "ReplayTranscriptFromConversation": {
                 "properties": {
@@ -19303,6 +19494,36 @@
                             }
                         ],
                         "description": "Speaks first configuration for the digital human. If provided, completely replaces existing speaks first config."
+                    },
+                    "original_transcript": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Original Transcript",
+                        "description": "Original transcript text. If changed from the current value, utterances are re-extracted and the intent is regenerated."
+                    },
+                    "formatted_transcript": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Formatted Transcript",
+                        "description": "Pre-computed structured transcript as [{role, utterance}]. When provided alongside original_transcript, skips the LLM formatting call."
                     }
                 },
                 "type": "object",
@@ -20287,6 +20508,37 @@
                         "title": "Status",
                         "description": "Status of the response",
                         "default": "200"
+                    },
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "Whether the generation succeeded",
+                        "default": true
+                    },
+                    "test_scenarios": {
+                        "anyOf": [
+                            {
+                                "items": {},
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Test Scenarios",
+                        "description": "Scenario view of created digital humans (includes original_transcript and formatted_transcript for transcript replays)"
+                    },
+                    "warning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Warning",
+                        "description": "Warning message if the request was modified (e.g. truncated due to exceeding the max limit)"
                     }
                 },
                 "type": "object",
@@ -20647,6 +20899,302 @@
                 "title": "WorkflowNode",
                 "description": "Pydantic model for workflow node"
             },
+            "src__models__api_custom_metric__CustomMetric": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "The name of the custom metric"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "The description of the custom metric"
+                    },
+                    "response_type": {
+                        "type": "string",
+                        "title": "Response Type",
+                        "description": "The response type of the custom metric"
+                    },
+                    "response_value": {
+                        "type": "string",
+                        "title": "Response Value",
+                        "description": "The response value of the custom metric"
+                    },
+                    "reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Reasoning",
+                        "description": "The reasoning of the custom metric"
+                    },
+                    "min_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Min Value",
+                        "description": "The minimum value of the custom metric"
+                    },
+                    "max_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Value",
+                        "description": "The maximum value of the custom metric"
+                    },
+                    "category": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Category",
+                        "description": "The category of the custom metric"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags",
+                        "description": "The tags of the custom metric"
+                    },
+                    "scoring_guidance": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scoring Guidance",
+                        "description": "The scoring guidance of the custom metric"
+                    },
+                    "enum_options": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enum Options",
+                        "description": "The enum options of the custom metric"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "response_type",
+                    "response_value"
+                ],
+                "title": "Custom Metric"
+            },
+            "src__models__custom_metric__CustomMetric": {
+                "properties": {
+                    "agent_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "response_type": {
+                        "$ref": "#/components/schemas/src__models__custom_metric__ResponseType"
+                    },
+                    "min_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Min Value"
+                    },
+                    "max_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Value"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Created At"
+                    },
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id",
+                        "description": "Unique identifier for the custom metric"
+                    },
+                    "category": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Category"
+                    },
+                    "tags": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Tags"
+                    },
+                    "scoring_guidance": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scoring Guidance"
+                    },
+                    "eval_route": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EvalRoute"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": "AUTO"
+                    },
+                    "model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Model"
+                    },
+                    "temperature": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Temperature"
+                    },
+                    "enum_options": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enum Options"
+                    },
+                    "organization_id": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Organization Id"
+                    },
+                    "allow_not_applicable": {
+                        "type": "boolean",
+                        "title": "Allow Not Applicable",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "response_type"
+                ],
+                "title": "CustomMetric",
+                "description": "Represents a custom metric entry in the database."
+            },
             "src__models__custom_metric__ResponseType": {
                 "type": "string",
                 "enum": [
@@ -20834,160 +21382,7 @@
             },
             "WebhookSimulationResultEvaluated": {
                 "$defs": {
-                    "Event": {
-                        "description": "Pydantic model for event data",
-                        "properties": {
-                            "title": {
-                                "description": "Title of the event",
-                                "title": "Title",
-                                "type": "string"
-                            },
-                            "start_offset_ms": {
-                                "description": "Start offset of the event in milliseconds",
-                                "title": "Start Offset Ms",
-                                "type": "integer"
-                            },
-                            "description": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "default": null,
-                                "description": "Description of the event",
-                                "title": "Description"
-                            },
-                            "end_offset_ms": {
-                                "anyOf": [
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "default": null,
-                                "description": "End offset of the event in milliseconds",
-                                "title": "End Offset Ms"
-                            },
-                            "tags": {
-                                "anyOf": [
-                                    {
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "type": "array"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "description": "List of tags associated with the event",
-                                "title": "Tags"
-                            },
-                            "metadata": {
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": true,
-                                        "type": "object"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "default": null,
-                                "description": "Additional metadata associated with the event",
-                                "title": "Metadata"
-                            }
-                        },
-                        "required": [
-                            "title",
-                            "start_offset_ms"
-                        ],
-                        "title": "Event",
-                        "type": "object"
-                    },
-                    "TestResultStatus": {
-                        "description": "Enum representing the possible states of a test result.",
-                        "enum": [
-                            "INITIALIZING",
-                            "QUEUED",
-                            "READY",
-                            "DISPATCHED",
-                            "RUNNING",
-                            "CONVERSATION_ENDED",
-                            "EVALUATING",
-                            "COMPLETED",
-                            "INCOMPLETED",
-                            "REJECTED"
-                        ],
-                        "title": "TestResultStatus",
-                        "type": "string"
-                    },
-                    "ToolCall": {
-                        "description": "Represents a tool call during a conversation.",
-                        "properties": {
-                            "name": {
-                                "description": "Name of the tool called",
-                                "title": "Name",
-                                "type": "string"
-                            },
-                            "start_offset_ms": {
-                                "description": "Start offset of the tool call in milliseconds",
-                                "minimum": 0,
-                                "title": "Start Offset Ms",
-                                "type": "integer"
-                            },
-                            "description": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "default": null,
-                                "description": "Description of the tool call",
-                                "title": "Description"
-                            },
-                            "parameters": {
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": true,
-                                        "type": "object"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "default": null,
-                                "description": "Parameters passed to the tool call",
-                                "title": "Parameters"
-                            },
-                            "output": {
-                                "anyOf": [
-                                    {},
-                                    {
-                                        "type": "null"
-                                    }
-                                ],
-                                "default": null,
-                                "description": "Output returned by the tool call",
-                                "title": "Output"
-                            }
-                        },
-                        "required": [
-                            "name",
-                            "start_offset_ms"
-                        ],
-                        "title": "ToolCall",
-                        "type": "object"
-                    },
-                    "WebhookCustomMetric": {
+                    "CustomMetric": {
                         "properties": {
                             "name": {
                                 "description": "The name of the custom metric",
@@ -21115,404 +21510,6 @@
                         ],
                         "title": "Custom Metric",
                         "type": "object"
-                    }
-                },
-                "description": "Represents a simulation result evaluated event.",
-                "properties": {
-                    "type": {
-                        "default": "simulation_result_evaluated",
-                        "description": "Type of webhook payload",
-                        "title": "Type",
-                        "type": "string"
-                    },
-                    "id": {
-                        "description": "The ID of the simulation result",
-                        "title": "Id",
-                        "type": "integer"
-                    },
-                    "digital_human_id": {
-                        "description": "The ID of the digital human",
-                        "title": "Digital Human Id",
-                        "type": "integer"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/TestResultStatus",
-                        "default": "COMPLETED",
-                        "description": "The status of the simulation result"
-                    },
-                    "simulation_run_id": {
-                        "description": "The ID of the simulation run that this simulation result belongs to",
-                        "title": "Simulation Run Id",
-                        "type": "integer"
-                    },
-                    "simulation_id": {
-                        "description": "The ID of the simulation that this simulation result belongs to",
-                        "title": "Simulation Id",
-                        "type": "integer"
-                    },
-                    "agent_id": {
-                        "description": "The ID of the agent that this simulation result belongs to",
-                        "title": "Agent Id",
-                        "type": "integer"
-                    },
-                    "folder_id": {
-                        "anyOf": [
-                            {
-                                "format": "uuid",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The ID of the folder that the agent belongs to",
-                        "title": "Folder Id"
-                    },
-                    "result": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The result of the simulation result",
-                        "title": "Result"
-                    },
-                    "custom_metrics": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/WebhookCustomMetric"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The custom metrics of the simulation result",
-                        "title": "Custom Metrics"
-                    },
-                    "created_at": {
-                        "anyOf": [
-                            {
-                                "format": "date-time",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The creation time of the simulation result",
-                        "title": "Created At"
-                    },
-                    "start_time": {
-                        "anyOf": [
-                            {
-                                "format": "date-time",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The start time of the simulation result",
-                        "title": "Start Time"
-                    },
-                    "end_time": {
-                        "anyOf": [
-                            {
-                                "format": "date-time",
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The end time of the simulation result",
-                        "title": "End Time"
-                    },
-                    "duration": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The duration of the simulation result",
-                        "title": "Duration"
-                    },
-                    "latency": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "number"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The latency of the simulation result",
-                        "title": "Latency"
-                    },
-                    "events": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/Event"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The events of the simulation result",
-                        "title": "Events"
-                    },
-                    "tool_calls": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "$ref": "#/components/schemas/ToolCall"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The tool calls of the simulation result",
-                        "title": "Tool Calls"
-                    },
-                    "tags": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The tags of the simulation result",
-                        "title": "Tags"
-                    },
-                    "metadata": {
-                        "anyOf": [
-                            {
-                                "additionalProperties": true,
-                                "type": "object"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "The metadata of the simulation result",
-                        "title": "Metadata"
-                    }
-                },
-                "required": [
-                    "id",
-                    "digital_human_id",
-                    "simulation_run_id",
-                    "simulation_id",
-                    "agent_id"
-                ],
-                "title": "Simulation Result Evaluated",
-                "type": "object"
-            },
-            "TestResultStatus": {
-                "description": "Enum representing the possible states of a test result.",
-                "enum": [
-                    "INITIALIZING",
-                    "QUEUED",
-                    "READY",
-                    "DISPATCHED",
-                    "RUNNING",
-                    "CONVERSATION_ENDED",
-                    "EVALUATING",
-                    "COMPLETED",
-                    "INCOMPLETED",
-                    "REJECTED"
-                ],
-                "title": "TestResultStatus",
-                "type": "string"
-            },
-            "WebhookCustomMetric": {
-                "properties": {
-                    "name": {
-                        "description": "The name of the custom metric",
-                        "title": "Name",
-                        "type": "string"
-                    },
-                    "description": {
-                        "description": "The description of the custom metric",
-                        "title": "Description",
-                        "type": "string"
-                    },
-                    "response_type": {
-                        "description": "The response type of the custom metric",
-                        "title": "Response Type",
-                        "type": "string"
-                    },
-                    "response_value": {
-                        "description": "The response value of the custom metric",
-                        "title": "Response Value",
-                        "type": "string"
-                    },
-                    "reasoning": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The reasoning of the custom metric",
-                        "title": "Reasoning"
-                    },
-                    "min_value": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The minimum value of the custom metric",
-                        "title": "Min Value"
-                    },
-                    "max_value": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The maximum value of the custom metric",
-                        "title": "Max Value"
-                    },
-                    "category": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The category of the custom metric",
-                        "title": "Category"
-                    },
-                    "tags": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The tags of the custom metric",
-                        "title": "Tags"
-                    },
-                    "scoring_guidance": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The scoring guidance of the custom metric",
-                        "title": "Scoring Guidance"
-                    },
-                    "enum_options": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "default": null,
-                        "description": "The enum options of the custom metric",
-                        "title": "Enum Options"
-                    }
-                },
-                "required": [
-                    "name",
-                    "description",
-                    "response_type",
-                    "response_value"
-                ],
-                "title": "Custom Metric",
-                "type": "object"
-            },
-            "WebhookObservabilityCallEvaluated": {
-                "$defs": {
-                    "CallDirection": {
-                        "description": "Enum representing the direction of a call.",
-                        "enum": [
-                            "INBOUND",
-                            "OUTBOUND"
-                        ],
-                        "title": "CallDirection",
-                        "type": "string"
-                    },
-                    "CallInterface": {
-                        "description": "Enum representing the interface used for a call.",
-                        "enum": [
-                            "PHONE",
-                            "WEB"
-                        ],
-                        "title": "CallInterface",
-                        "type": "string"
-                    },
-                    "CallStatus": {
-                        "description": "Enum representing the possible states of a call.",
-                        "enum": [
-                            "INITIALIZING",
-                            "QUEUED",
-                            "EVALUATING",
-                            "COMPLETED",
-                            "INCOMPLETED"
-                        ],
-                        "title": "CallStatus",
-                        "type": "string"
                     },
                     "Evaluation": {
                         "description": "Pydantic model for evaluation result",
@@ -21676,7 +21673,976 @@
                             "custom_metrics": {
                                 "anyOf": [
                                     {
+                                        "items": {
+                                            "$ref": "#/components/schemas/CustomMetric"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Custom metrics associated with the evaluation",
+                                "title": "Custom Metrics"
+                            }
+                        },
+                        "required": [
+                            "hallucination",
+                            "redundancy",
+                            "agent_speak_percentage",
+                            "avg_agent_latency",
+                            "num_turns"
+                        ],
+                        "title": "Evaluation",
+                        "type": "object"
+                    },
+                    "Event": {
+                        "description": "Pydantic model for event data",
+                        "properties": {
+                            "title": {
+                                "description": "Title of the event",
+                                "title": "Title",
+                                "type": "string"
+                            },
+                            "start_offset_ms": {
+                                "description": "Start offset of the event in milliseconds",
+                                "title": "Start Offset Ms",
+                                "type": "integer"
+                            },
+                            "description": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Description of the event",
+                                "title": "Description"
+                            },
+                            "end_offset_ms": {
+                                "anyOf": [
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "End offset of the event in milliseconds",
+                                "title": "End Offset Ms"
+                            },
+                            "tags": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "List of tags associated with the event",
+                                "title": "Tags"
+                            },
+                            "metadata": {
+                                "anyOf": [
+                                    {
+                                        "additionalProperties": true,
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional metadata associated with the event",
+                                "title": "Metadata"
+                            }
+                        },
+                        "required": [
+                            "title",
+                            "start_offset_ms"
+                        ],
+                        "title": "Event",
+                        "type": "object"
+                    },
+                    "Latency": {
+                        "properties": {
+                            "avg_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "Average latency",
+                                "title": "Avg Agent Latency"
+                            },
+                            "max_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "Maximum latency",
+                                "title": "Max Agent Latency"
+                            },
+                            "p50_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "50th percentile latency",
+                                "title": "P50 Agent Latency"
+                            },
+                            "p90_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "90th percentile latency",
+                                "title": "P90 Agent Latency"
+                            },
+                            "p95_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "95th percentile latency",
+                                "title": "P95 Agent Latency"
+                            },
+                            "p99_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "99th percentile latency",
+                                "title": "P99 Agent Latency"
+                            }
+                        },
+                        "title": "Latency",
+                        "type": "object"
+                    },
+                    "TestResultStatus": {
+                        "description": "Enum representing the possible states of a test result.",
+                        "enum": [
+                            "INITIALIZING",
+                            "QUEUED",
+                            "READY",
+                            "DISPATCHED",
+                            "RUNNING",
+                            "CONVERSATION_ENDED",
+                            "EVALUATING",
+                            "COMPLETED",
+                            "INCOMPLETED",
+                            "REJECTED"
+                        ],
+                        "title": "TestResultStatus",
+                        "type": "string"
+                    },
+                    "ToolCall": {
+                        "description": "Represents a tool call during a conversation.",
+                        "properties": {
+                            "name": {
+                                "description": "Name of the tool called",
+                                "title": "Name",
+                                "type": "string"
+                            },
+                            "start_offset_ms": {
+                                "description": "Start offset of the tool call in milliseconds",
+                                "minimum": 0,
+                                "title": "Start Offset Ms",
+                                "type": "integer"
+                            },
+                            "description": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Description of the tool call",
+                                "title": "Description"
+                            },
+                            "parameters": {
+                                "anyOf": [
+                                    {
+                                        "additionalProperties": true,
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Parameters passed to the tool call",
+                                "title": "Parameters"
+                            },
+                            "output": {
+                                "anyOf": [
+                                    {},
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Output returned by the tool call",
+                                "title": "Output"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "start_offset_ms"
+                        ],
+                        "title": "ToolCall",
+                        "type": "object"
+                    }
+                },
+                "description": "Represents a simulation result evaluated event.",
+                "properties": {
+                    "type": {
+                        "default": "simulation_result_evaluated",
+                        "description": "Type of webhook payload",
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "id": {
+                        "description": "The ID of the simulation result",
+                        "title": "Id",
+                        "type": "integer"
+                    },
+                    "digital_human_id": {
+                        "description": "The ID of the digital human",
+                        "title": "Digital Human Id",
+                        "type": "integer"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/TestResultStatus",
+                        "default": "COMPLETED",
+                        "description": "The status of the simulation result"
+                    },
+                    "simulation_run_id": {
+                        "description": "The ID of the simulation run that this simulation result belongs to",
+                        "title": "Simulation Run Id",
+                        "type": "integer"
+                    },
+                    "simulation_id": {
+                        "description": "The ID of the simulation that this simulation result belongs to",
+                        "title": "Simulation Id",
+                        "type": "integer"
+                    },
+                    "agent_id": {
+                        "description": "The ID of the agent that this simulation result belongs to",
+                        "title": "Agent Id",
+                        "type": "integer"
+                    },
+                    "folder_id": {
+                        "anyOf": [
+                            {
+                                "format": "uuid",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The ID of the folder that the agent belongs to",
+                        "title": "Folder Id"
+                    },
+                    "result": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "deprecated": true,
+                        "description": "Please use the evaluations instead",
+                        "title": "Result"
+                    },
+                    "custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/CustomMetric"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "deprecated": true,
+                        "description": "Please use the custom metrics in the evaluations instead",
+                        "title": "Custom Metrics"
+                    },
+                    "evaluations": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Evaluation"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The evaluations of the simulation result",
+                        "title": "Evaluations"
+                    },
+                    "created_at": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The creation time of the simulation result",
+                        "title": "Created At"
+                    },
+                    "start_time": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The start time of the simulation result",
+                        "title": "Start Time"
+                    },
+                    "end_time": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The end time of the simulation result",
+                        "title": "End Time"
+                    },
+                    "duration": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The duration of the simulation result",
+                        "title": "Duration"
+                    },
+                    "latency": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The latency of the simulation result",
+                        "title": "Latency"
+                    },
+                    "events": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Event"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The events of the simulation result",
+                        "title": "Events"
+                    },
+                    "tool_calls": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ToolCall"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The tool calls of the simulation result",
+                        "title": "Tool Calls"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The tags of the simulation result",
+                        "title": "Tags"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "The metadata of the simulation result",
+                        "title": "Metadata"
+                    }
+                },
+                "required": [
+                    "id",
+                    "digital_human_id",
+                    "simulation_run_id",
+                    "simulation_id",
+                    "agent_id"
+                ],
+                "title": "Simulation Result Evaluated",
+                "type": "object"
+            },
+            "CustomMetric": {
+                "properties": {
+                    "name": {
+                        "description": "The name of the custom metric",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "The description of the custom metric",
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "response_type": {
+                        "description": "The response type of the custom metric",
+                        "title": "Response Type",
+                        "type": "string"
+                    },
+                    "response_value": {
+                        "description": "The response value of the custom metric",
+                        "title": "Response Value",
+                        "type": "string"
+                    },
+                    "reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The reasoning of the custom metric",
+                        "title": "Reasoning"
+                    },
+                    "min_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The minimum value of the custom metric",
+                        "title": "Min Value"
+                    },
+                    "max_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The maximum value of the custom metric",
+                        "title": "Max Value"
+                    },
+                    "category": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The category of the custom metric",
+                        "title": "Category"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The tags of the custom metric",
+                        "title": "Tags"
+                    },
+                    "scoring_guidance": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The scoring guidance of the custom metric",
+                        "title": "Scoring Guidance"
+                    },
+                    "enum_options": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The enum options of the custom metric",
+                        "title": "Enum Options"
+                    }
+                },
+                "required": [
+                    "name",
+                    "description",
+                    "response_type",
+                    "response_value"
+                ],
+                "title": "Custom Metric",
+                "type": "object"
+            },
+            "TestResultStatus": {
+                "description": "Enum representing the possible states of a test result.",
+                "enum": [
+                    "INITIALIZING",
+                    "QUEUED",
+                    "READY",
+                    "DISPATCHED",
+                    "RUNNING",
+                    "CONVERSATION_ENDED",
+                    "EVALUATING",
+                    "COMPLETED",
+                    "INCOMPLETED",
+                    "REJECTED"
+                ],
+                "title": "TestResultStatus",
+                "type": "string"
+            },
+            "WebhookObservabilityCallEvaluated": {
+                "$defs": {
+                    "CallDirection": {
+                        "description": "Enum representing the direction of a call.",
+                        "enum": [
+                            "INBOUND",
+                            "OUTBOUND"
+                        ],
+                        "title": "CallDirection",
+                        "type": "string"
+                    },
+                    "CallInterface": {
+                        "description": "Enum representing the interface used for a call.",
+                        "enum": [
+                            "PHONE",
+                            "WEB"
+                        ],
+                        "title": "CallInterface",
+                        "type": "string"
+                    },
+                    "CallStatus": {
+                        "description": "Enum representing the possible states of a call.",
+                        "enum": [
+                            "INITIALIZING",
+                            "QUEUED",
+                            "EVALUATING",
+                            "COMPLETED",
+                            "INCOMPLETED"
+                        ],
+                        "title": "CallStatus",
+                        "type": "string"
+                    },
+                    "CustomMetric": {
+                        "properties": {
+                            "name": {
+                                "description": "The name of the custom metric",
+                                "title": "Name",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "The description of the custom metric",
+                                "title": "Description",
+                                "type": "string"
+                            },
+                            "response_type": {
+                                "description": "The response type of the custom metric",
+                                "title": "Response Type",
+                                "type": "string"
+                            },
+                            "response_value": {
+                                "description": "The response value of the custom metric",
+                                "title": "Response Value",
+                                "type": "string"
+                            },
+                            "reasoning": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The reasoning of the custom metric",
+                                "title": "Reasoning"
+                            },
+                            "min_value": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The minimum value of the custom metric",
+                                "title": "Min Value"
+                            },
+                            "max_value": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The maximum value of the custom metric",
+                                "title": "Max Value"
+                            },
+                            "category": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The category of the custom metric",
+                                "title": "Category"
+                            },
+                            "tags": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The tags of the custom metric",
+                                "title": "Tags"
+                            },
+                            "scoring_guidance": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The scoring guidance of the custom metric",
+                                "title": "Scoring Guidance"
+                            },
+                            "enum_options": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "The enum options of the custom metric",
+                                "title": "Enum Options"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "description",
+                            "response_type",
+                            "response_value"
+                        ],
+                        "title": "Custom Metric",
+                        "type": "object"
+                    },
+                    "Evaluation": {
+                        "description": "Pydantic model for evaluation result",
+                        "properties": {
+                            "id": {
+                                "description": "Unique identifier for the evaluation result",
+                                "title": "Id",
+                                "type": "string"
+                            },
+                            "created_at": {
+                                "description": "When this evaluation result was created (defaults to now in UTC)",
+                                "format": "date-time",
+                                "title": "Created At",
+                                "type": "string"
+                            },
+                            "hallucination": {
+                                "description": "Whether the agent exhibited hallucination during the call",
+                                "title": "Hallucination",
+                                "type": "boolean"
+                            },
+                            "hallucination_reasoning": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Reasoning behind the hallucination, if applicable",
+                                "title": "Hallucination Reasoning"
+                            },
+                            "redundancy": {
+                                "description": "Whether the agent exhibited redundancy during the call",
+                                "title": "Redundancy",
+                                "type": "boolean"
+                            },
+                            "redundancy_reasoning": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Reasoning behind the redundancy, if applicable",
+                                "title": "Redundancy Reasoning"
+                            },
+                            "agent_speak_percentage": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "Percentage of the call where the agent was speaking",
+                                "title": "Agent Speak Percentage"
+                            },
+                            "avg_agent_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "Average latency of the agent's responses during the call",
+                                "title": "Avg Agent Latency"
+                            },
+                            "latency": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/Latency"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "Latency metrics for the agent's responses"
+                            },
+                            "num_turns": {
+                                "description": "Total number of turns taken by the agent during the call",
+                                "title": "Num Turns",
+                                "type": "integer"
+                            },
+                            "call_summary": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Summary of the call, if applicable",
+                                "title": "Call Summary"
+                            },
+                            "custom_evals": {
+                                "anyOf": [
+                                    {
                                         "items": {},
+                                        "type": "array"
+                                    },
+                                    {
+                                        "additionalProperties": true,
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "List of custom evaluations performed during the call",
+                                "title": "Custom Evals"
+                            },
+                            "custom_evals_success_rate": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Success rate of the custom evaluations performed during the call",
+                                "title": "Custom Evals Success Rate"
+                            },
+                            "pronunciation_score": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Pronunciation score of the agent during the call",
+                                "title": "Pronunciation Score"
+                            },
+                            "pronunciation_reasoning": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Reasoning behind the pronunciation score, if applicable",
+                                "title": "Pronunciation Reasoning"
+                            },
+                            "custom_metrics": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "$ref": "#/components/schemas/CustomMetric"
+                                        },
                                         "type": "array"
                                     },
                                     {
@@ -22313,6 +23279,135 @@
                     "simulation_run_id"
                 ],
                 "title": "Simulation Ended",
+                "type": "object"
+            },
+            "WebhookCustomMetric": {
+                "properties": {
+                    "name": {
+                        "description": "The name of the custom metric",
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "The description of the custom metric",
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "response_type": {
+                        "description": "The response type of the custom metric",
+                        "title": "Response Type",
+                        "type": "string"
+                    },
+                    "response_value": {
+                        "description": "The response value of the custom metric",
+                        "title": "Response Value",
+                        "type": "string"
+                    },
+                    "reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The reasoning of the custom metric",
+                        "title": "Reasoning"
+                    },
+                    "min_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The minimum value of the custom metric",
+                        "title": "Min Value"
+                    },
+                    "max_value": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The maximum value of the custom metric",
+                        "title": "Max Value"
+                    },
+                    "category": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The category of the custom metric",
+                        "title": "Category"
+                    },
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The tags of the custom metric",
+                        "title": "Tags"
+                    },
+                    "scoring_guidance": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The scoring guidance of the custom metric",
+                        "title": "Scoring Guidance"
+                    },
+                    "enum_options": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "default": null,
+                        "description": "The enum options of the custom metric",
+                        "title": "Enum Options"
+                    }
+                },
+                "required": [
+                    "name",
+                    "description",
+                    "response_type",
+                    "response_value"
+                ],
+                "title": "Custom Metric",
                 "type": "object"
             },
             "WebhookOutboundSimulationStarted": {
