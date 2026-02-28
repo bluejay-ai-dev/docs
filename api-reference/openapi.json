@@ -8546,6 +8546,69 @@
                         }
                     },
                     {
+                        "name": "label",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Label of the agent to filter by",
+                            "title": "Label"
+                        },
+                        "description": "Label of the agent to filter by"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Max calls per page",
+                            "default": 50,
+                            "title": "Page Size"
+                        },
+                        "description": "Max calls per page"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "Page number (1-based)",
+                            "default": 1,
+                            "title": "Page"
+                        },
+                        "description": "Page number (1-based)"
+                    },
+                    {
+                        "name": "last",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "enum": [
+                                "1day",
+                                "3days",
+                                "7days",
+                                "30days"
+                            ],
+                            "type": "string",
+                            "description": "Last X days to filter by",
+                            "default": "1day",
+                            "title": "Last"
+                        },
+                        "description": "Last X days to filter by"
+                    },
+                    {
                         "name": "X-API-Key",
                         "in": "header",
                         "required": true,
@@ -14924,7 +14987,14 @@
                         "description": "When this evaluation result was created (defaults to now in UTC)"
                     },
                     "hallucination": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Hallucination",
                         "description": "Whether the agent exhibited hallucination during the call"
                     },
@@ -14941,7 +15011,14 @@
                         "description": "Reasoning behind the hallucination, if applicable"
                     },
                     "redundancy": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Redundancy",
                         "description": "Whether the agent exhibited redundancy during the call"
                     },
@@ -14993,7 +15070,14 @@
                         "description": "Latency metrics for the agent's responses"
                     },
                     "num_turns": {
-                        "type": "integer",
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Num Turns",
                         "description": "Total number of turns taken by the agent during the call"
                     },
@@ -15080,11 +15164,8 @@
                 },
                 "type": "object",
                 "required": [
-                    "hallucination",
-                    "redundancy",
                     "agent_speak_percentage",
-                    "avg_agent_latency",
-                    "num_turns"
+                    "avg_agent_latency"
                 ],
                 "title": "Evaluation",
                 "description": "Pydantic model for evaluation result"
@@ -17045,7 +17126,14 @@
                         "description": "Role of the participant in the call"
                     },
                     "spoke_first": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Spoke First",
                         "description": "Whether the participant spoke first in the call"
                     },
@@ -17076,8 +17164,7 @@
                 },
                 "type": "object",
                 "required": [
-                    "role",
-                    "spoke_first"
+                    "role"
                 ],
                 "title": "ParticipantResponse",
                 "description": "Pydantic model for participant data"
@@ -17415,14 +17502,34 @@
                         "title": "Call Logs",
                         "description": "List of calls retrieved from the database"
                     },
-                    "status": {
-                        "type": "string",
-                        "title": "Status",
-                        "description": "Status of the response",
-                        "default": "200"
+                    "total_count": {
+                        "type": "integer",
+                        "title": "Total Count",
+                        "description": "Total number of calls for this agent"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "Current page (1-based)"
+                    },
+                    "page_size": {
+                        "type": "integer",
+                        "title": "Page Size",
+                        "description": "Page size"
+                    },
+                    "total_pages": {
+                        "type": "integer",
+                        "title": "Total Pages",
+                        "description": "Total number of pages"
                     }
                 },
                 "type": "object",
+                "required": [
+                    "total_count",
+                    "page",
+                    "page_size",
+                    "total_pages"
+                ],
                 "title": "RetrieveCallLogsResponse"
             },
             "ScriptedResponse": {
@@ -21526,9 +21633,17 @@
                                 "type": "string"
                             },
                             "hallucination": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Whether the agent exhibited hallucination during the call",
-                                "title": "Hallucination",
-                                "type": "boolean"
+                                "title": "Hallucination"
                             },
                             "hallucination_reasoning": {
                                 "anyOf": [
@@ -21544,9 +21659,17 @@
                                 "title": "Hallucination Reasoning"
                             },
                             "redundancy": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Whether the agent exhibited redundancy during the call",
-                                "title": "Redundancy",
-                                "type": "boolean"
+                                "title": "Redundancy"
                             },
                             "redundancy_reasoning": {
                                 "anyOf": [
@@ -21597,9 +21720,17 @@
                                 "description": "Latency metrics for the agent's responses"
                             },
                             "num_turns": {
+                                "anyOf": [
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Total number of turns taken by the agent during the call",
-                                "title": "Num Turns",
-                                "type": "integer"
+                                "title": "Num Turns"
                             },
                             "call_summary": {
                                 "anyOf": [
@@ -21688,11 +21819,8 @@
                             }
                         },
                         "required": [
-                            "hallucination",
-                            "redundancy",
                             "agent_speak_percentage",
-                            "avg_agent_latency",
-                            "num_turns"
+                            "avg_agent_latency"
                         ],
                         "title": "Evaluation",
                         "type": "object"
@@ -22493,9 +22621,17 @@
                                 "type": "string"
                             },
                             "hallucination": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Whether the agent exhibited hallucination during the call",
-                                "title": "Hallucination",
-                                "type": "boolean"
+                                "title": "Hallucination"
                             },
                             "hallucination_reasoning": {
                                 "anyOf": [
@@ -22511,9 +22647,17 @@
                                 "title": "Hallucination Reasoning"
                             },
                             "redundancy": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Whether the agent exhibited redundancy during the call",
-                                "title": "Redundancy",
-                                "type": "boolean"
+                                "title": "Redundancy"
                             },
                             "redundancy_reasoning": {
                                 "anyOf": [
@@ -22564,9 +22708,17 @@
                                 "description": "Latency metrics for the agent's responses"
                             },
                             "num_turns": {
+                                "anyOf": [
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Total number of turns taken by the agent during the call",
-                                "title": "Num Turns",
-                                "type": "integer"
+                                "title": "Num Turns"
                             },
                             "call_summary": {
                                 "anyOf": [
@@ -22655,11 +22807,8 @@
                             }
                         },
                         "required": [
-                            "hallucination",
-                            "redundancy",
                             "agent_speak_percentage",
-                            "avg_agent_latency",
-                            "num_turns"
+                            "avg_agent_latency"
                         ],
                         "title": "Evaluation",
                         "type": "object"
@@ -22832,9 +22981,17 @@
                                 "description": "Role of the participant in the call"
                             },
                             "spoke_first": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
                                 "description": "Whether the participant spoke first in the call",
-                                "title": "Spoke First",
-                                "type": "boolean"
+                                "title": "Spoke First"
                             },
                             "name": {
                                 "anyOf": [
@@ -22864,8 +23021,7 @@
                             }
                         },
                         "required": [
-                            "role",
-                            "spoke_first"
+                            "role"
                         ],
                         "title": "ParticipantResponse",
                         "type": "object"
