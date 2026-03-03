@@ -2922,6 +2922,64 @@
                 }
             }
         },
+        "/v1/update-custom-metrics": {
+            "put": {
+                "tags": [
+                    "Custom Metrics"
+                ],
+                "summary": "Bulk Update Custom Metrics",
+                "description": "Bulk update custom metrics: apply the same patch to each metric in metric_ids.\nOnly keys present in updates are applied; each key's value (including null) is written.",
+                "operationId": "bulk_update_custom_metrics_v1_update_custom_metrics_put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkUpdateCustomMetricsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkUpdateCustomMetricsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/create-alarm": {
             "post": {
                 "tags": [
@@ -5603,6 +5661,72 @@
                 }
             }
         },
+        "/v1/generate-trait-values": {
+            "post": {
+                "tags": [
+                    "Customer Traits"
+                ],
+                "summary": "Generate Trait Values Endpoint",
+                "description": "Generate trait values for each scenario for a single trait.\n\nRequest:\n    - scenarios: list of scenario descriptions (intents), one per scenario\n    - traits: exactly one trait (name + data_type)\n\nResponse:\n    - dict mapping scenario index -> list of trait dicts\n    - each trait dict has:\n        {\n            \"name\": <trait_name>,       # same as the input trait name\n            \"data_type\": <data_type>,   # normalized data type string\n            \"value\": <generated_value>, # value for that scenario + trait\n        }\n\nFrontend mapping:\n    - for scenario index i:\n        const traitsForScenario = res[i]; // array of trait dicts\n        const value = traitsForScenario.find(t => t.name === traitName)?.value;",
+                "operationId": "generate_trait_values_endpoint_v1_generate_trait_values_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GenerateTraitValuesRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    },
+                                    "title": "Response Generate Trait Values Endpoint V1 Generate Trait Values Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/create-community": {
             "post": {
                 "tags": [
@@ -8060,6 +8184,16 @@
                         "description": "API key required to authenticate requests."
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateWorkflowRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -8572,7 +8706,7 @@
                             "maximum": 100,
                             "minimum": 1,
                             "description": "Max calls per page",
-                            "default": 50,
+                            "default": 20,
                             "title": "Page Size"
                         },
                         "description": "Max calls per page"
@@ -9313,6 +9447,7 @@
             "AccentType": {
                 "type": "string",
                 "enum": [
+                    "multilingual",
                     "american",
                     "southern",
                     "italian",
@@ -11183,6 +11318,66 @@
                     "deleted_count"
                 ],
                 "title": "BulkDeleteCallLogsResponse"
+            },
+            "BulkUpdateCustomMetricsRequest": {
+                "properties": {
+                    "metric_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Metric Ids",
+                        "description": "UUIDs of custom metrics to update"
+                    },
+                    "updates": {
+                        "$ref": "#/components/schemas/CustomMetricUpdates",
+                        "description": "Fields to update (only present keys are applied; value including null is written)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "metric_ids",
+                    "updates"
+                ],
+                "title": "BulkUpdateCustomMetricsRequest",
+                "description": "Request for bulk updating custom metrics (same patch applied to each metric)."
+            },
+            "BulkUpdateCustomMetricsResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "Whether the operation succeeded",
+                        "default": true
+                    },
+                    "message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Message",
+                        "description": "Human-readable summary; frontend falls back to 'Updated N custom metric(s)' if missing"
+                    },
+                    "updated": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Updated",
+                        "description": "Number of metrics updated"
+                    }
+                },
+                "type": "object",
+                "title": "BulkUpdateCustomMetricsResponse",
+                "description": "Response for bulk update (success, message, updated count)."
             },
             "CallDirection": {
                 "type": "string",
@@ -13146,6 +13341,56 @@
                 "title": "CreateWorkflowFromMiroRequest",
                 "description": "API request to create a workflow from a Miro board"
             },
+            "CreateWorkflowRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "Name of the workflow"
+                    },
+                    "workflow": {
+                        "$ref": "#/components/schemas/WorkflowDataInput",
+                        "description": "The complete workflow structure"
+                    },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids",
+                        "description": "List of agent IDs this workflow belongs to (can be empty or null for no associations)"
+                    },
+                    "enabled_for_evaluation": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enabled For Evaluation",
+                        "description": "Whether this workflow should be used for agent evaluation",
+                        "default": true
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "workflow"
+                ],
+                "title": "CreateWorkflowRequest",
+                "description": "API request to create a new workflow"
+            },
             "CronSchedule": {
                 "properties": {
                     "frequency": {
@@ -13331,6 +13576,84 @@
                 ],
                 "title": "CustomMetricResponse",
                 "description": "Response model for custom metric operations"
+            },
+            "CustomMetricUpdates": {
+                "properties": {
+                    "tags": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tags"
+                    },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids"
+                    },
+                    "eval_route": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EvalRoute"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Model"
+                    },
+                    "temperature": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Temperature"
+                    },
+                    "allow_not_applicable": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Allow Not Applicable"
+                    }
+                },
+                "type": "object",
+                "title": "CustomMetricUpdates",
+                "description": "Patch payload; only keys that are present are applied; each value (including null) is written."
             },
             "CustomMetricsListResponse": {
                 "properties": {
@@ -15869,6 +16192,57 @@
                 "title": "GeneratePromptSummaryResponse",
                 "description": "Response model for generating prompt summary."
             },
+            "GenerateTraitValuesRequest": {
+                "properties": {
+                    "scenarios": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Scenarios",
+                        "description": "List of intents (one per scenario) to generate values for"
+                    },
+                    "traits": {
+                        "items": {
+                            "$ref": "#/components/schemas/TraitInput"
+                        },
+                        "type": "array",
+                        "title": "Traits",
+                        "description": "List of traits (name + data_type) to generate values for"
+                    },
+                    "agent_prompt": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Prompt",
+                        "description": "Optional agent description for context"
+                    },
+                    "knowledge_base": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Knowledge Base",
+                        "description": "Optional knowledge base text for context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "scenarios",
+                    "traits"
+                ],
+                "title": "GenerateTraitValuesRequest",
+                "description": "Request: list of scenarios and list of traits; values are generated per scenario per trait."
+            },
             "GetSimulationRunsResponse": {
                 "properties": {
                     "simulation_runs": {
@@ -17830,7 +18204,7 @@
                         "title": "Max Concurrent",
                         "description": "Maximum number of concurrent calls in the simulation"
                     },
-                    "hang_up_on_transfer": {
+                    "hangup_on_transfer": {
                         "anyOf": [
                             {
                                 "type": "boolean"
@@ -17839,7 +18213,7 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Hang Up On Transfer",
+                        "title": "Hangup On Transfer",
                         "description": "Whether to hang up the call on transfer",
                         "default": false
                     },
@@ -17896,6 +18270,50 @@
                             }
                         ],
                         "description": "Settings for digital humans in the simulation"
+                    },
+                    "selected_custom_metrics": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Selected Custom Metrics",
+                        "description": "Custom metric IDs to enable for this simulation"
+                    },
+                    "custom_metrics_failing_threshold": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 100.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics Failing Threshold",
+                        "description": "Score threshold below which a custom metric is considered failing (0-100)"
+                    },
+                    "custom_metrics_passing_threshold": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 100.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics Passing Threshold",
+                        "description": "Score threshold at or above which a custom metric is considered passing (0-100)"
                     }
                 },
                 "type": "object",
@@ -18544,6 +18962,26 @@
                 ],
                 "title": "TraitDataType",
                 "description": "Enum for trait data types."
+            },
+            "TraitInput": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Name of the trait"
+                    },
+                    "data_type": {
+                        "$ref": "#/components/schemas/TraitDataType",
+                        "description": "Data type of the trait (BOOLEAN, STRING, NUMBER, DATE)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "data_type"
+                ],
+                "title": "TraitInput",
+                "description": "One trait to generate values for."
             },
             "TranscriptEntryRequest": {
                 "properties": {
@@ -20295,7 +20733,7 @@
                         "title": "Max Concurrent",
                         "description": "maximum number of concurrent runs"
                     },
-                    "hang_up_on_transfer": {
+                    "hangup_on_transfer": {
                         "anyOf": [
                             {
                                 "type": "boolean"
@@ -20304,7 +20742,7 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Hang Up On Transfer",
+                        "title": "Hangup On Transfer",
                         "description": "whether to hang up the call on transfer"
                     },
                     "max_call_duration": {
@@ -20387,6 +20825,34 @@
                         ],
                         "title": "Selected Custom Metrics",
                         "description": "array of custom metric IDs to be saved in settings"
+                    },
+                    "custom_metrics_failing_threshold": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 100.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics Failing Threshold",
+                        "description": "score threshold below which a custom metric is considered failing (0-100)"
+                    },
+                    "custom_metrics_passing_threshold": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 100.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Metrics Passing Threshold",
+                        "description": "score threshold at or above which a custom metric is considered passing (0-100)"
                     },
                     "tags": {
                         "anyOf": [
