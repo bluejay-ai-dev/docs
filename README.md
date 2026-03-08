@@ -61,7 +61,7 @@ Bluejay exposes two REST APIs with full OpenAPI specs:
 - **Mimic** — Simulation API (agents, digital humans, simulations, runs, and more)
 - **Skywatch** — Observability API (production call monitoring, custom metrics, labeling)
 
-99 endpoints across 15 resource groups, plus webhook event documentation.
+Comprehensive endpoint coverage across multiple resource groups, plus webhook event documentation.
 
 ---
 
@@ -91,7 +91,7 @@ Changes committed to the `main` branch are automatically deployed via the Mintli
 3. Test locally with `mintlify dev`
 4. Open a pull request — the Mintlify preview will be generated automatically
 
-For API reference changes, update `api-reference/openapi.json` (OpenAPI 3.0 format).
+For API reference changes, update `api-reference/openapi.json` (OpenAPI 3.1 format).
 
 ---
 
