@@ -926,6 +926,60 @@
                 }
             }
         },
+        "/v1/retrieve-simulation-result/{test_result_id}": {
+            "get": {
+                "summary": "Retrieve Simulation Result",
+                "description": "Retrieve a single test result and its associated custom metrics.\n\nArgs:\n    test_result_id: the ID of the test result to retrieve.\n\nReturns:\n    the test result along with its custom metric results.",
+                "operationId": "retrieve_simulation_result_v1_retrieve_simulation_result__test_result_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "test_result_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Test Result Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleSimulationResultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/generate-translated-transcript/{test_result_id}": {
             "post": {
                 "summary": "Generate Translated Transcript",
@@ -10284,6 +10338,30 @@
                         ],
                         "title": "Http Webhook",
                         "description": "HTTP webhook URL for text agent communication"
+                    },
+                    "voice_provider": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Voice Provider",
+                        "description": "Voice provider for the agent"
+                    },
+                    "provider_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Provider Id",
+                        "description": "Provider ID for the agent"
                     }
                 },
                 "type": "object",
@@ -14282,6 +14360,20 @@
                         ],
                         "title": "Traits",
                         "description": "List of traits to apply to all generated digital humans"
+                    },
+                    "num_runs": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Num Runs",
+                        "description": "Number of runs per digital human per simulation run (run count).",
+                        "default": 1
                     }
                 },
                 "type": "object",
@@ -14649,6 +14741,20 @@
                         ],
                         "title": "Formatted Transcript",
                         "description": "Pre-computed structured transcript as [{role, utterance}]. When provided, skips the format-transcript LLM call."
+                    },
+                    "num_runs": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Num Runs",
+                        "description": "Number of times this digital human is run per simulation run (run count).",
+                        "default": 1
                     }
                 },
                 "type": "object",
@@ -15142,6 +15248,20 @@
                         "title": "First Message",
                         "description": "First message to be spoken by the digital human",
                         "default": "ai_generated"
+                    },
+                    "num_runs": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Num Runs",
+                        "description": "Number of runs per digital human per simulation run (run count).",
+                        "default": 1
                     }
                 },
                 "type": "object",
@@ -18824,6 +18944,25 @@
                 ],
                 "title": "SimulationType"
             },
+            "SingleSimulationResultResponse": {
+                "properties": {
+                    "simulation_result": {
+                        "$ref": "#/components/schemas/SimulationResultResponse",
+                        "description": "The requested simulation result"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Status of the response",
+                        "default": "200"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "simulation_result"
+                ],
+                "title": "SingleSimulationResultResponse"
+            },
             "SpeaksFirstConfig": {
                 "properties": {
                     "speaks_first": {
@@ -20127,6 +20266,19 @@
                         ],
                         "title": "Formatted Transcript",
                         "description": "Pre-computed structured transcript as [{role, utterance}]. When provided alongside original_transcript, skips the LLM formatting call."
+                    },
+                    "num_runs": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Num Runs",
+                        "description": "Number of times this digital human is run per simulation run (run count)."
                     }
                 },
                 "type": "object",
@@ -20348,6 +20500,13 @@
                     "type": {
                         "type": "string",
                         "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
                     }
                 },
                 "type": "object",
