@@ -157,7 +157,7 @@
         "/v1/generate-test-scenarios": {
             "post": {
                 "summary": "Generate Test Scenarios",
-                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration: \n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n        csvCallAllocation: [{intent: string, success_criteria: string, count: number}, ...];\n            // For csvCallAllocation:\n            // - intent: Required. The customer intent/description for the scenario\n            // - success_criteria: Required. The success criteria for the scenario\n            // - count: Required. Number of scenarios to generate with this intent and success criteria\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
+                "description": "Generates test scenarios for a given simulation.\n\nAccepts a SimulationRequest with the following structure:\n{\n    name: string;\n    agent: Agent;\n    promptId?: string;\n    knowledgeBaseId?: string;\n    scenarios: TestScenarioRequest[];\n    callAllocation: {\n        goalAdherence: { [key: string]: number };\n        systemIntegrity: { [key: string]: number };\n        customerPersonas: { [key: string]: number };\n        workflowAdherence: { [key: string]: number };\n        expectedToolCalls: [{name: string, output: string}, {name: string, output: string}, ...];\n        customPrompt: {prompt: string, count: number};\n        transcriptGeneration: [{transcript: string, success_criteria?: string, use_specific_utterances?: boolean}, ...];\n            // For transcriptGeneration:\n            // - transcript: Required. The transcript text to analyze\n            // - success_criteria: Optional. If not provided, will be auto-generated from transcript\n            // - If use_specific_utterances is true (default): customer utterances extracted and stored as JSON string in scenario description\n            // - If use_specific_utterances is false: persona intent description generated in natural language\n        csvCallAllocation: [{intent: string, success_criteria: string, count: number}, ...];\n            // For csvCallAllocation:\n            // - intent: Required. The customer intent/description for the scenario\n            // - success_criteria: Required. The success criteria for the scenario\n            // - count: Required. Number of scenarios to generate with this intent and success criteria\n    };\n    selectedProperties: {\n        [category: string]: string[];\n    };\n    customerTraits?: [\n        {name: string, data_type: \"boolean\" | \"string\" | \"date\" | \"number\"}\n    ];\n}",
                 "operationId": "generate_test_scenarios_v1_generate_test_scenarios_post",
                 "security": [
                     {
@@ -9609,7 +9609,7 @@
                         "title": "Metric Ids",
                         "description": "List of custom metric IDs (UUIDs as strings) to add to the lab"
                     },
-                    "evaluate_existing_conversations": {
+                    "evaluate_conversations": {
                         "anyOf": [
                             {
                                 "type": "boolean"
@@ -9618,8 +9618,8 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Evaluate Existing Conversations",
-                        "description": "Whether to trigger evaluations for all existing conversations in the lab with the newly added metrics",
+                        "title": "Evaluate Conversations",
+                        "description": "Whether to evaluate conversations in the lab with the newly added metrics (copies existing evaluations where found, queues new evaluations only for metrics without results)",
                         "default": false
                     }
                 },
@@ -15598,6 +15598,30 @@
                         "title": "Custom Evals Success Rate",
                         "description": "Success rate of the custom evaluations performed during the call"
                     },
+                    "goal_success": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Goal Success",
+                        "description": "Whether the goal was successfully achieved during the call"
+                    },
+                    "goal_reasoning": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Goal Reasoning",
+                        "description": "Reasoning behind the goal success, if applicable"
+                    },
                     "pronunciation_score": {
                         "anyOf": [
                             {
@@ -20500,13 +20524,6 @@
                     "type": {
                         "type": "string",
                         "title": "Error Type"
-                    },
-                    "input": {
-                        "title": "Input"
-                    },
-                    "ctx": {
-                        "type": "object",
-                        "title": "Context"
                     }
                 },
                 "type": "object",
@@ -22458,6 +22475,32 @@
                                 "description": "Success rate of the custom evaluations performed during the call",
                                 "title": "Custom Evals Success Rate"
                             },
+                            "goal_success": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Whether the goal was successfully achieved during the call",
+                                "title": "Goal Success"
+                            },
+                            "goal_reasoning": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Reasoning behind the goal success, if applicable",
+                                "title": "Goal Reasoning"
+                            },
                             "pronunciation_score": {
                                 "anyOf": [
                                     {
@@ -23445,6 +23488,32 @@
                                 "default": null,
                                 "description": "Success rate of the custom evaluations performed during the call",
                                 "title": "Custom Evals Success Rate"
+                            },
+                            "goal_success": {
+                                "anyOf": [
+                                    {
+                                        "type": "boolean"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Whether the goal was successfully achieved during the call",
+                                "title": "Goal Success"
+                            },
+                            "goal_reasoning": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Reasoning behind the goal success, if applicable",
+                                "title": "Goal Reasoning"
                             },
                             "pronunciation_score": {
                                 "anyOf": [
