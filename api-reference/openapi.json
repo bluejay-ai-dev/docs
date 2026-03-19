@@ -2422,6 +2422,166 @@
                 }
             }
         },
+        "/v1/simulation/{simulation_id}/add-digital-humans": {
+            "post": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Add existing digital humans to a simulation",
+                "operationId": "addDigitalHumansToSimulation",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddDigitalHumansToSimulationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddDigitalHumansToSimulationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Simulation not found, or one or more digital humans invalid/inaccessible",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                }
+            }
+        },
+        "/v1/simulation/{simulation_id}/remove-digital-human/{digital_human_id}": {
+            "delete": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Remove a digital human from a simulation",
+                "description": "Removes a digital human from a simulation by ID; the digital human itself is not deleted.",
+                "operationId": "removeDigitalHumanFromSimulation",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "simulation_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Simulation Id"
+                        }
+                    },
+                    {
+                        "name": "digital_human_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Digital Human Id"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RemoveDigitalHumanFromSimulationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Simulation or digital human not found"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                }
+            }
+        },
         "/v1/simulation-result/{simulation_result_id}": {
             "delete": {
                 "tags": [
@@ -14124,6 +14284,50 @@
                 "title": "DeleteLabResponse",
                 "description": "Response model for deleting a lab"
             },
+            "AddDigitalHumansToSimulationRequest": {
+                "type": "object",
+                "required": [
+                    "digital_human_ids"
+                ],
+                "properties": {
+                    "digital_human_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "title": "Digital Human Ids"
+                    }
+                },
+                "title": "AddDigitalHumansToSimulationRequest"
+            },
+            "AddDigitalHumansToSimulationResponse": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "example": "success"
+                    }
+                },
+                "title": "AddDigitalHumansToSimulationResponse"
+            },
+            "RemoveDigitalHumanFromSimulationResponse": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "example": "success"
+                    }
+                },
+                "title": "RemoveDigitalHumanFromSimulationResponse"
+            },
             "DeleteSimulationResponse": {
                 "properties": {
                     "message": {
@@ -16506,6 +16710,24 @@
                 ],
                 "title": "GoalAdherence",
                 "description": "Pydantic model for goal adherence in simulation"
+            },
+            "HTTPError": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "description": "FastAPI error; 404 on add may be a string listing invalid ids",
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "object"
+                            }
+                        ],
+                        "title": "Detail"
+                    }
+                },
+                "title": "HTTPError"
             },
             "HTTPValidationError": {
                 "properties": {
