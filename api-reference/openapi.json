@@ -671,6 +671,22 @@
                         }
                     },
                     {
+                        "name": "X-Webhook-Secret",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Webhook-Secret"
+                        }
+                    },
+                    {
                         "name": "X-API-Key",
                         "in": "header",
                         "required": true,
@@ -4431,6 +4447,119 @@
                                         "$ref": "#/components/schemas/PhoneNumberResponse"
                                     },
                                     "title": "Response Get Phone Numbers V1 Phone Numbers Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/phone-numbers/add": {
+            "post": {
+                "tags": [
+                    "Phone Number Management"
+                ],
+                "summary": "Add Phone Number",
+                "operationId": "add_phone_number_v1_phone_numbers_add_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddPhoneNumberRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddPhoneNumberResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/phone-numbers/{phone_number}/release": {
+            "delete": {
+                "tags": [
+                    "Phone Number Management"
+                ],
+                "summary": "Release Phone Number",
+                "operationId": "release_phone_number_v1_phone_numbers__phone_number__release_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "phone_number",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Phone Number"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasePhoneNumberResponse"
                                 }
                             }
                         }
@@ -9691,6 +9820,66 @@
                 "title": "AddMetricsToLabResponse",
                 "description": "Response model for adding metrics to a lab"
             },
+            "AddPhoneNumberRequest": {
+                "properties": {
+                    "area_code": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Area Code",
+                        "description": "Optional US area code to bias phone number search (e.g. 415)"
+                    }
+                },
+                "type": "object",
+                "title": "AddPhoneNumberRequest",
+                "description": "Request schema for auto-purchasing a Twilio number for an organization."
+            },
+            "AddPhoneNumberResponse": {
+                "properties": {
+                    "phone_number": {
+                        "type": "string",
+                        "title": "Phone Number",
+                        "description": "Purchased E.164 phone number"
+                    },
+                    "twilio_sid": {
+                        "type": "string",
+                        "title": "Twilio Sid",
+                        "description": "Twilio IncomingPhoneNumber SID"
+                    },
+                    "organization_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Organization Id",
+                        "description": "Organization ID"
+                    },
+                    "purchase_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Purchase Date",
+                        "description": "Date when purchased"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "title": "Price",
+                        "description": "Stored price in cents"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "phone_number",
+                    "twilio_sid",
+                    "organization_id",
+                    "purchase_date",
+                    "price"
+                ],
+                "title": "AddPhoneNumberResponse",
+                "description": "Response schema after auto-purchasing and storing a phone number."
+            },
             "AddToCommunityRequest": {
                 "properties": {
                     "digital_human_ids": {
@@ -9722,10 +9911,10 @@
                     "id": {
                         "anyOf": [
                             {
-                                "type": "integer"
+                                "type": "string"
                             },
                             {
-                                "type": "string"
+                                "type": "integer"
                             },
                             {
                                 "type": "null"
@@ -14742,6 +14931,31 @@
                         "title": "Formatted Transcript",
                         "description": "Pre-computed structured transcript as [{role, utterance}]. When provided, skips the format-transcript LLM call."
                     },
+                    "always_on_mode": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Mode",
+                        "description": "Whether always-on mode is enabled",
+                        "default": false
+                    },
+                    "always_on_active": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Active",
+                        "description": "When true, this DH actively receives calls on phone_number. Defaults to True when phone_number is set."
+                    },
                     "num_runs": {
                         "anyOf": [
                             {
@@ -17962,6 +18176,27 @@
                 ],
                 "title": "ReEvaluateSimulationResultResponse"
             },
+            "ReleasePhoneNumberResponse": {
+                "properties": {
+                    "phone_number": {
+                        "type": "string",
+                        "title": "Phone Number",
+                        "description": "Released E.164 phone number"
+                    },
+                    "released": {
+                        "type": "boolean",
+                        "title": "Released",
+                        "description": "Whether the Twilio release was performed"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "phone_number",
+                    "released"
+                ],
+                "title": "ReleasePhoneNumberResponse",
+                "description": "Response schema after releasing a Twilio number."
+            },
             "RemoveConversationsFromLabRequest": {
                 "properties": {
                     "lab_id": {
@@ -18327,6 +18562,17 @@
                             }
                         ],
                         "title": "Pinned"
+                    },
+                    "always_on": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On"
                     }
                 },
                 "type": "object",
@@ -18530,6 +18776,19 @@
                         ],
                         "title": "Custom Metrics Passing Threshold",
                         "description": "Score threshold at or above which a custom metric is considered passing (0-100)"
+                    },
+                    "always_on": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On",
+                        "description": "When true, simulation has always-on digital humans configured",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -20354,6 +20613,43 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit-specific configuration and metadata for this digital human. If provided, completely replaces existing metadata."
+                    },
+                    "always_on_mode": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Mode",
+                        "description": "Whether always-on mode is enabled for this digital human"
+                    },
+                    "always_on_active": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Active",
+                        "description": "When true, this DH actively receives calls on phone_number; when false, number is assigned but inactive"
+                    },
+                    "override_conflict": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Override Conflict",
+                        "description": "When true, allows activation to replace an existing always-on active DH using the same phone number.",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -20575,13 +20871,6 @@
                     "type": {
                         "type": "string",
                         "title": "Error Type"
-                    },
-                    "input": {
-                        "title": "Input"
-                    },
-                    "ctx": {
-                        "type": "object",
-                        "title": "Context"
                     }
                 },
                 "type": "object",
