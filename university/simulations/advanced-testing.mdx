@@ -1,0 +1,108 @@
+---
+title: "Advanced Testing Strategies"
+description: Scale your testing with simulation types, Communities, Customer Traits, and structured test plans.
+icon: list-check
+---
+
+<Info>
+**Lesson:** [Testing with Simulations](/university/simulations/overview) · Topic 2 of 2
+</Info>
+
+## Lesson summary
+
+Running a single simulation is a good start, but real-world QA requires broader coverage. In this topic you will learn how to pick the right simulation type for your agent, design a test plan that covers the scenarios that matter most, and organize your Digital Humans into reusable Communities so you can run tests at scale.
+
+## Objectives
+
+- Choose the correct simulation type for your agent's connection method
+- Design a test plan that covers happy paths, edge cases, and failure modes
+- Use Customer Traits to add realistic variability to Digital Humans
+- Organize Digital Humans into Communities for reuse and batch testing
+
+## Video walkthrough
+
+<Note>
+Video coming soon. Follow the written walkthrough below in the meantime.
+</Note>
+
+## Walkthrough
+
+<Steps titleSize="h3">
+  <Step title="Pick the right simulation type">
+    Bluejay supports several simulation types. Each one matches a different way your agent communicates:
+
+    | Type | Best for | Example |
+    |---|---|---|
+    | **Voice (Telephony / SIP)** | Phone-based agents | A support line that customers call |
+    | **LiveKit** | Real-time WebRTC voice agents | A browser-based voice assistant |
+    | **WebSocket** | Streaming text or audio agents | A chat agent using persistent connections |
+    | **HTTP Webhook** | Request/response chat agents | A chatbot that replies to POST requests |
+
+    Pick the type that matches your production setup. If your agent handles phone calls, use Voice. If it is a text-based chatbot, use HTTP Webhook. For the full reference, see [Simulation Types](/test/simulations/types).
+  </Step>
+  <Step title="Build a test plan">
+    A strong test plan goes beyond happy paths. Cover these four areas:
+
+    1. **Happy paths** — The most common interactions your agent handles every day. Example: a customer calling to check an order status and getting a clear answer.
+    2. **Edge cases** — Unusual inputs like long pauses, interruptions, background noise, or requests in a different language. Example: the caller goes silent for 30 seconds mid-sentence.
+    3. **Failure modes** — What happens when the agent cannot help? Example: the caller asks for something outside the agent's scope and the agent should escalate.
+    4. **Regression checks** — Re-running the same simulation after you change a prompt, model, or knowledge base. This catches quality dips before they reach production.
+
+    A practical starting point is three to five simulations: two happy paths, one edge case, one failure mode, and one regression check.
+  </Step>
+  <Step title="Craft effective Digital Humans">
+    A great Digital Human has three parts:
+
+    1. **Persona** — Demographics, personality, and communication style. Is the caller patient or frustrated? Formal or casual?
+    2. **Scenario script** — What the caller wants to accomplish, any constraints, and what to do if the agent cannot help. Write it in second person: *"You are calling to cancel your subscription. You are upset because you were charged twice."*
+    3. **Customer Traits** — Structured attributes that add realism. Traits are typed values like account type, preferred language, urgency level, or simulated PII (name, order number, account ID).
+
+    <Tip>
+    Write scenario scripts in second person ("You are calling to…") to give the Digital Human clear direction. Include at least one constraint or fallback: *"If the agent asks for your account number, provide 9876. If the agent cannot help, ask to speak to a manager."*
+    </Tip>
+
+    For the full reference, see [Key Concepts → Digital Humans](/key-concepts/digital-humans/overview) and [Key Concepts → Customer Traits](/key-concepts/customer-traits/overview).
+  </Step>
+  <Step title="Organize with Communities">
+    When you have built a library of Digital Humans, group them into **Communities**. A Community lets you:
+
+    - Attach a batch of personas to a Simulation with one click
+    - Keep test coverage consistent across simulation runs
+    - Share personas across teams and simulations
+    - Run batch tests — start a Community-based simulation run and Bluejay will call your agent once for every Digital Human in the group
+
+    Think of a Community as a "test suite" of callers. As you discover new edge cases or production issues, add new Digital Humans to the Community so your coverage grows over time.
+
+    For the full reference, see [Key Concepts → Communities](/key-concepts/communities/overview).
+  </Step>
+</Steps>
+
+## Activity
+
+<Tip>
+**Hands-on exercise:** Create a Community called "Order Support Callers" with three Digital Humans:
+
+1. **Happy path:** *"You are calling to check the status of order #5001. You are polite and patient."*
+2. **Edge case:** *"You are calling about order #5002 but you do not remember your order number. You only know you placed it last Tuesday."*
+3. **Failure mode:** *"You are calling to return a product, but the return window has closed. If the agent says they cannot help, ask to speak with a supervisor."*
+
+Attach the Community to a simulation and run a batch. Review the three transcripts and compare the metric scores.
+</Tip>
+
+## Knowledge check
+
+<AccordionGroup>
+  <Accordion title="When should you use an HTTP Webhook simulation instead of a Voice simulation?">
+    Use HTTP Webhook when your agent communicates through synchronous HTTP request/response (like a chatbot API) rather than a persistent voice or streaming connection.
+  </Accordion>
+  <Accordion title="Why use Communities instead of creating Digital Humans directly inside each simulation?">
+    Communities let you reuse the same set of personas across multiple simulations. This keeps test coverage consistent, saves time, and makes it easy to grow your test library as you discover new scenarios.
+  </Accordion>
+  <Accordion title="What are Customer Traits?">
+    Customer Traits are structured attributes you attach to a Digital Human — things like account type, language preference, urgency level, or simulated personal information. They add realistic variability so your tests cover a wider range of real-world situations.
+  </Accordion>
+</AccordionGroup>
+
+## Lesson complete
+
+You have finished the Testing with Simulations lesson. Continue to [Lesson 3: Monitoring, Metrics & Dashboards](/university/observability/overview).

@@ -1,63 +1,102 @@
 ---
-title: "Lesson 1: Setting Up Observability"
+title: "Setting Up Observability"
 description: Connect production call data to Bluejay so every conversation is automatically evaluated.
 icon: satellite-dish
 ---
 
 <Info>
-**Course:** [Observability & Monitoring](/university/observability/overview) · Lesson 1 of 2
+**Lesson:** [Monitoring, Metrics & Dashboards](/university/observability/overview) · Topic 1 of 2
 </Info>
+
+## Lesson summary
+
+Testing with simulations catches problems before launch, but you also need to watch what happens once real customers start talking to your agent. Bluejay's observability pipeline takes your production calls, runs your Custom Metrics against them, and surfaces the results on dashboards — automatically. This topic shows you how to connect that pipeline.
 
 ## Objectives
 
-- Understand the observability data flow
-- Send your first production call to Bluejay via the API
+- Understand the observability data flow from production call to scored result
+- Send your first production call to Bluejay via the API or a provider integration
 - Verify that evaluation results appear in the dashboard
 
-## How observability works
+## Video walkthrough
 
-```
-Your Agent (production)
-  │
-  ├── call completes → transcript + metadata
-  │
-  └── POST /evaluate → Bluejay
-       │
-       ├── runs Custom Metrics
-       └── stores results → Dashboard
-```
-
-Bluejay's observability pipeline ingests completed conversations, runs your Custom Metrics against them, and surfaces the results on dashboards and in alerts.
+<Note>
+Video coming soon. Follow the written walkthrough below in the meantime.
+</Note>
 
 ## Walkthrough
 
-<Steps>
-  <Step title="Choose your integration method">
-    Bluejay supports multiple ways to ingest production data:
-    - **API integration** — send transcripts directly via the `/evaluate` endpoint
-    - **Provider integration** — connect Retell, Vapi, Bland, ElevenLabs, or other supported providers
+<Steps titleSize="h3">
+  <Step title="Understand the data flow">
+    Here is what happens when a production call gets evaluated:
 
-    See the [Observability API Integration Tutorial](/monitor/observability/api-integration-tutorial) for step-by-step API instructions, or browse [Integrations](/simulation-integrations/livekit) for provider-specific guides.
+    ```
+    Your Agent (production)
+      │
+      ├── call completes → transcript + metadata
+      │
+      └── sent to Bluejay (API or provider integration)
+           │
+           ├── runs Custom Metrics against the transcript
+           ├── detects hallucinations and redundancy
+           └── stores results → Dashboard, Call Logs, Alerts
+    ```
+
+    The key idea: Bluejay does not sit in the middle of your calls. Instead, it receives completed conversations after they happen and evaluates them.
+  </Step>
+  <Step title="Choose your integration method">
+    There are two ways to send production calls to Bluejay:
+
+    **Option A: API integration** — Send transcripts directly to the `/evaluate` endpoint. This works with any agent regardless of provider. See the [Observability API Integration Tutorial](/monitor/observability/api-integration-tutorial) for step-by-step instructions.
+
+    **Option B: Provider integration** — If your agent runs on Retell, Vapi, Bland, or ElevenLabs, you can connect the provider directly. Bluejay will automatically receive call data without extra code on your side. See the integration guides:
+    - [Retell](/integrations/retell)
+    - [Vapi](/integrations/vapi)
+    - [Bland](/integrations/bland)
+    - [ElevenLabs](/integrations/eleven-labs)
+
+    Either way, the result is the same: your production calls appear in Bluejay with metric scores attached.
   </Step>
   <Step title="Send a test call">
-    Using the API or your chosen provider integration, send a single completed conversation to Bluejay. Confirm it appears on the **Observability** page.
+    Before turning on the full pipeline, send a single call to make sure everything is connected:
+
+    - **API path:** Make a POST request to `/evaluate` with a transcript and your agent identifier.
+    - **Provider path:** Trigger a test call through your provider and confirm it appears in Bluejay.
+
+    Once the call is processed, navigate to the **Observability** page in the dashboard.
   </Step>
   <Step title="Review evaluation results">
-    Click into the call log entry to see the transcript, metadata, and Custom Metric scores. Verify the metrics match your expectations.
+    Click into the call log entry to see:
+
+    - **Transcript** — The full conversation, turn by turn
+    - **Custom Metric scores** — Pass/fail, ratings, or qualitative assessments
+    - **Built-in checks** — Hallucination detection (with reasoning) and redundancy detection
+    - **Metadata** — Call duration, latency, turn counts, agent speaking percentage
+
+    If a metric score looks wrong, you can click **Re-evaluate** to re-run the evaluation with updated or additional metrics.
   </Step>
 </Steps>
+
+## Activity
+
+<Tip>
+**Hands-on exercise:** Using the API or your provider integration, send one production call transcript to Bluejay. Navigate to the **Observability** page and click into the call log entry. Verify that you can see the transcript, metric scores, and metadata. If a metric score surprises you, try re-evaluating the call.
+</Tip>
 
 ## Knowledge check
 
 <AccordionGroup>
-  <Accordion title="What data does Bluejay need for observability?">
-    At minimum, a transcript and the agent identifier. Metadata like call duration, caller info, and timestamps enriches the evaluation but is optional.
+  <Accordion title="What data does Bluejay need at minimum for observability?">
+    At minimum, Bluejay needs a transcript and the agent identifier. Additional metadata like call duration, caller information, and timestamps enriches the evaluation but is not required.
   </Accordion>
   <Accordion title="Can you re-evaluate a call with different metrics?">
-    Yes. Use the **Re-evaluate** action on any call log to re-run it against updated or additional Custom Metrics.
+    Yes. Use the **Re-evaluate** action on any call log entry to re-run it against updated or additional Custom Metrics. This is useful when you add new metrics or refine existing ones.
+  </Accordion>
+  <Accordion title="What is the difference between the API integration and a provider integration?">
+    The API integration requires you to send transcripts to Bluejay yourself (via the `/evaluate` endpoint). A provider integration connects your voice provider (Retell, Vapi, Bland, ElevenLabs) directly so Bluejay receives call data automatically. Both produce the same evaluation results.
   </Accordion>
 </AccordionGroup>
 
-## Next lesson
+## Next topic
 
-Continue to [Lesson 2: Metrics & Evaluation](/university/observability/metrics-and-evaluation).
+Continue to [Topic 2: Metrics, Dashboards & Alerts](/university/observability/metrics-dashboards-alerts).

@@ -1,52 +1,101 @@
 ---
-title: "Lesson 1: Your First Simulation"
+title: "Your First Simulation"
 description: Create, configure, and run a simulation from scratch using the Bluejay dashboard.
 icon: play
 ---
 
 <Info>
-**Course:** [Testing & Simulations](/university/simulations/overview) · Lesson 1 of 3
+**Lesson:** [Testing with Simulations](/university/simulations/overview) · Topic 1 of 2
 </Info>
+
+## Lesson summary
+
+A simulation is how you test your AI agent before real customers talk to it. You set up a fake conversation — complete with a synthetic caller, a scenario, and grading criteria — and let Bluejay run it for you. This topic walks you through building and running your very first simulation, step by step.
 
 ## Objectives
 
 - Create a new Simulation attached to an Agent
-- Add a Digital Human to the Simulation
-- Run the Simulation and review results
+- Add a Digital Human with a scenario script
+- Attach Custom Metrics to define what "success" looks like
+- Run the Simulation and review the results
+
+## Video walkthrough
+
+<Note>
+Video coming soon. Follow the written walkthrough below in the meantime.
+</Note>
 
 ## Walkthrough
 
-<Steps>
+<Steps titleSize="h3">
   <Step title="Navigate to Simulations">
-    Open the **Simulations** page from the sidebar and click **New Simulation**. Select the Agent you created in Course 1.
-  </Step>
-  <Step title="Configure the scenario">
-    Give your Simulation a descriptive name (e.g., "Happy-path order placement"). Set the connection type that matches your agent — telephony, SIP, LiveKit, websocket, or HTTP.
+    Open the **Simulations** page from the sidebar and click **New Simulation**. Select the Agent you created in Lesson 1.
 
-    For a full breakdown of connection types, see [Simulation Integrations](/simulation-integrations/livekit).
+    A Simulation is always linked to one Agent. This tells Bluejay which AI agent to call during the test.
+  </Step>
+  <Step title="Configure the simulation">
+    Give your Simulation a descriptive name — something that tells you what you are testing. For example, "Happy-path order check."
+
+    Next, choose a **connection type** that matches how your agent communicates:
+
+    | Connection type | When to use it |
+    |---|---|
+    | **Telephony** | Your agent answers phone calls |
+    | **SIP** | Your agent uses SIP trunking |
+    | **LiveKit** | Your agent uses WebRTC via LiveKit |
+    | **WebSocket** | Your agent streams text or audio over a WebSocket |
+    | **HTTP Webhook** | Your agent handles request/response chat |
+
+    If you are not sure which one to pick, start with the type that matches your production setup. You can learn more in [Simulation Integrations](/simulation-integrations/livekit).
   </Step>
   <Step title="Add a Digital Human">
-    Click **Add Digital Human** and fill in the persona details: name, personality traits, and the scenario script that describes what the caller wants to accomplish. The scenario script is the most important field — it tells the Digital Human *what* to do during the call.
+    Click **Add Digital Human** and fill in:
+
+    - **Name:** A friendly label (e.g., "Impatient Customer")
+    - **Scenario script:** A description of what the caller wants to do. Write it in second person: *"You are calling to check the status of order #12345. You are in a hurry and want a quick answer."*
+    - **Persona traits:** Optional details like tone, language, or patience level
+
+    The scenario script is the most important field. It tells the Digital Human exactly what to say and do during the call.
   </Step>
   <Step title="Attach Custom Metrics">
-    Select or create Custom Metrics that define success for this conversation. For example: "Did the agent confirm the order?" or "Was the caller greeted within 5 seconds?"
+    Select or create **Custom Metrics** that define success for this conversation. For example:
+
+    - "Did the agent confirm the order number?" (pass/fail)
+    - "Was the caller greeted within the first 10 seconds?" (pass/fail)
+    - "Overall conversation quality" (qualitative: poor / fair / good / excellent)
+
+    Metrics are the grading rubric for the conversation. Without them, you can read the transcript but you will not get an automatic score.
   </Step>
   <Step title="Run the Simulation">
-    Click **Run** and watch the conversation unfold in real time. When it finishes, review the transcript and metric scores on the results page.
+    Click **Run**. Bluejay will start the conversation between your Agent and the Digital Human. Depending on the connection type, the call may take anywhere from a few seconds to a few minutes.
+
+    When it finishes, click into the **Simulation Run** to see:
+    - The full transcript (what was said, turn by turn)
+    - Metric scores (pass/fail, qualitative ratings, etc.)
+    - Call metadata (duration, latency, turn counts)
   </Step>
 </Steps>
+
+## Activity
+
+<Tip>
+**Hands-on exercise:** Create a simulation with one Digital Human whose scenario is: *"You are calling to check the status of your order. You want to know when it will arrive."* Attach a pass/fail Custom Metric: *"Did the agent confirm the order number?"* Run the simulation and review the results page. Check whether the metric passed or failed, and read through the transcript to see if the score makes sense.
+</Tip>
 
 ## Knowledge check
 
 <AccordionGroup>
   <Accordion title="What is a scenario script?">
-    A scenario script is a natural-language description of the Digital Human's goal, constraints, and behavior during a simulated conversation. It drives what the synthetic caller says and does.
+    A scenario script is a plain-language description of the Digital Human's goal, constraints, and behavior during a simulated conversation. It drives what the synthetic caller says and does — think of it as stage directions for an actor.
   </Accordion>
   <Accordion title="Can you run a Simulation more than once?">
-    Yes. Simulations are designed to be repeatable. Each execution creates a new **Simulation Run** with its own transcript and scores, so you can track changes over time.
+    Yes. Simulations are designed to be repeatable. Each time you run one, Bluejay creates a new **Simulation Run** with its own transcript and scores. This lets you track how your agent's performance changes over time.
+  </Accordion>
+  <Accordion title="Why do you need Custom Metrics?">
+    Without Custom Metrics, Bluejay captures the transcript but cannot score it automatically. Metrics turn a conversation into measurable data — pass/fail, ratings, and specific checks — so you can compare runs and catch regressions.
   </Accordion>
 </AccordionGroup>
 
-## Next lesson
+## Next topic
 
-Continue to [Lesson 2: Simulation Types & Strategies](/university/simulations/types-and-strategies).
+Continue to [Topic 2: Advanced Testing Strategies](/university/simulations/advanced-testing).

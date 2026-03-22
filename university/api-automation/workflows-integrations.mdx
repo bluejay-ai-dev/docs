@@ -1,0 +1,124 @@
+---
+title: "Workflows & Integrations"
+description: Automate recurring tests, connect voice providers, and integrate Bluejay into your CI/CD pipeline.
+icon: gears
+---
+
+<Info>
+**Lesson:** [API & Automation](/university/api-automation/overview) · Topic 2 of 2
+</Info>
+
+## Lesson summary
+
+Running tests manually is fine when you are getting started, but as your agent matures you will want testing and monitoring to happen on autopilot. This topic covers Workflows (automated test pipelines), Schedules (cron-based recurring runs), CI/CD integration, and the voice provider and transport integrations that connect Bluejay to your production stack.
+
+## Objectives
+
+- Build a Workflow that chains simulation runs, evaluations, and notifications
+- Schedule a Workflow to run on a recurring basis
+- Understand how to integrate Bluejay into a CI/CD pipeline
+- Connect voice provider and simulation transport integrations
+
+## Video walkthrough
+
+<Note>
+Video coming soon. Follow the written walkthrough below in the meantime.
+</Note>
+
+## Walkthrough
+
+<Steps titleSize="h3">
+  <Step title="Understand Workflows">
+    A **Workflow** is a graph of connected steps that Bluejay runs for you. Each step is a node, and you connect them in sequence or with branches. Common node types include:
+
+    - **Simulation run** — Trigger a simulation
+    - **Evaluation** — Score a conversation or set of conversations
+    - **Notification** — Send a message (Slack, email, webhook)
+    - **Branch** — Take different paths based on a condition (e.g., if a metric fails, send an alert; if it passes, continue)
+
+    Workflows let you build multi-step test pipelines. For example: run a regression simulation → check if the pass rate dropped → if yes, send a Slack alert → if no, log success.
+
+    For the full reference, see [Key Concepts → Workflows](/key-concepts/workflows/overview).
+  </Step>
+  <Step title="Set up a Schedule">
+    A **Schedule** attaches a cron expression to a Workflow so it runs automatically at a regular interval.
+
+    Common schedules:
+    - **Daily at 9 AM** — Run your regression suite every morning before the team starts work
+    - **Hourly** — Continuously monitor a high-traffic agent
+    - **Weekly on Monday** — Run a full test plan at the start of each sprint
+
+    To create a Schedule:
+    1. Open the Workflow you want to automate
+    2. Click **Add Schedule**
+    3. Set the cron expression or pick from the presets
+    4. Save — the Workflow will now run automatically at the times you specified
+
+    Schedules also support retries, so if a run fails due to a temporary issue, Bluejay will try again.
+  </Step>
+  <Step title="Integrate with CI/CD">
+    You can trigger Bluejay simulations from your CI/CD pipeline so every code change gets tested automatically. The pattern:
+
+    1. Your pipeline deploys a new version of your agent
+    2. A script calls the Bluejay API to queue a simulation run
+    3. The script polls for results (or uses a webhook to wait)
+    4. If metrics pass, the pipeline continues; if they fail, it blocks the deploy
+
+    Bluejay provides a [GitHub Actions cookbook](/cookbook/github-actions) with ready-to-use workflow examples. The same approach works with any CI system that can make HTTP requests.
+  </Step>
+  <Step title="Connect voice provider integrations">
+    If your agent runs on a third-party voice provider, you can connect it to Bluejay for automatic observability (production call scoring) and simulation transport.
+
+    **Observability integrations** (production monitoring):
+
+    | Provider | How to connect |
+    |---|---|
+    | **Retell** | Add your Bluejay org API key + Retell webhook URL. [Guide →](/integrations/retell) |
+    | **Vapi** | Add your Bluejay org API key + server URL. [Guide →](/integrations/vapi) |
+    | **Bland** | Add your webhook secret + inbound URL. [Guide →](/integrations/bland) |
+    | **ElevenLabs** | Add your webhook + Provider ID. [Guide →](/integrations/eleven-labs) |
+
+    **Simulation transport integrations** (how Bluejay calls your agent during tests):
+
+    | Transport | When to use it |
+    |---|---|
+    | [Telephony](/simulation-integrations/telephony) | Standard phone calls (PSTN) |
+    | [SIP](/simulation-integrations/sip) | SIP trunking (recommended for phone-based agents) |
+    | [LiveKit](/simulation-integrations/livekit) | WebRTC voice via LiveKit |
+    | [WebSockets](/simulation-integrations/websockets) | Streaming text or audio (CHIRP protocol) |
+    | [HTTP Webhooks](/simulation-integrations/http-webhooks) | Request/response chat agents |
+    | [Pipecat](/simulation-integrations/pipecat) | Pipecat Cloud agents |
+
+    Each guide walks you through the connection step by step. Most take under ten minutes to set up.
+  </Step>
+</Steps>
+
+## Activity
+
+<Tip>
+**Hands-on exercise:** Create a Workflow with two steps: (1) run your regression simulation, and (2) send a Slack notification with the results. Attach a daily schedule to it. Verify the schedule appears on the Workflows page and check that the first run completes successfully the next day.
+</Tip>
+
+## Knowledge check
+
+<AccordionGroup>
+  <Accordion title="What is a Workflow in Bluejay?">
+    A Workflow is an automated pipeline made up of connected steps (nodes). It can chain simulation runs, evaluations, notifications, and branching logic together so multi-step test processes run without manual intervention.
+  </Accordion>
+  <Accordion title="When would you use a Schedule?">
+    Use a Schedule when you want a Workflow to run automatically at regular intervals — for example, running your regression suite every morning or monitoring a production agent hourly.
+  </Accordion>
+  <Accordion title="How do you integrate Bluejay into a CI/CD pipeline?">
+    Your pipeline calls the Bluejay API to queue a simulation run after deploying a new agent version. It then waits for results (via polling or webhooks). If the metrics pass, the deploy continues; if they fail, the pipeline blocks. The GitHub Actions cookbook has ready-to-use examples.
+  </Accordion>
+</AccordionGroup>
+
+## Course complete
+
+Congratulations — you have finished Bluejay University. You now know how to set up the platform, test with simulations, monitor production calls, build dashboards and alerts, and automate everything with the API and Workflows.
+
+Head back to the [Bluejay University catalog](/bluejay-university) to review any lesson, or explore these resources for deeper dives:
+- [API Reference](/api-reference/introduction)
+- [Key Concepts](/key-concepts/agents/overview)
+- [Cookbooks](/cookbook/github-actions)
+- [Bluejay Blog](https://getbluejay.ai/blog)
