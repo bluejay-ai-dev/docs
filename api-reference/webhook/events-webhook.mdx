@@ -2,6 +2,333 @@
 title: 'Events Webhook'
 openapi: 'WEBHOOK events_webhook'
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the webhook payload, then plan the handler, then implement with minimal changes.
+
+## Handle Events Webhook — WEBHOOK
+
+> **What this webhook does:** Upon an event on the platform, we'll send you the results to the URL you registered within the dashboard
+
+**Type:** Incoming Webhook (JSON POST)
+
+### Required Payload Fields
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| **Variant: `simulation_result_evaluated`** | | | |
+| id | integer | yes | The ID of the simulation result |
+| digital_human_id | integer | yes | The ID of the digital human |
+| simulation_run_id | integer | yes | The ID of the simulation run that this simulation result belongs to |
+| simulation_id | integer | yes | The ID of the simulation that this simulation result belongs to |
+| agent_id | integer | yes | The ID of the agent that this simulation result belongs to |
+| **Variant: `observability_call_evaluated`** | | | |
+| id | string | yes | Unique identifier for the call |
+| agent_id | string | yes | ID of the agent associated with the call |
+| recording_url | string (nullable) | yes | URL to the recording file (supported formats: .mp4, .wav, .m4a) |
+| start_time_utc | string | yes | When the call started, in UTC |
+| participants | array[object] | yes | List of call participants |
+| status | string (enum: INITIALIZING, QUEUED, EVALUATING, COMPLETED, INCOMPLETED) | yes | Enum representing the possible states of a call. |
+| **Variant: `simulation_ended`** | | | |
+| id | integer | yes | The ID of the simulation result |
+| digital_human_id | integer | yes | The ID of the digital human |
+| simulation_run_id | integer | yes | The ID of the simulation run that this simulation result belongs to |
+| **Variant: `outbound_simulation_started`** | | | |
+| agent_id | integer | yes | The ID of the agent that this simulation belongs to |
+| simulation_id | integer | yes | The ID of the simulation |
+| simulation_run_id | integer | yes | The ID of the simulation run |
+| digital_humans | array[object] | yes | The digital humans that were run for this simulation run |
+
+### Payload Schema
+Discriminated by `type`:
+
+**When `type` = `simulation_result_evaluated`:**
+```json
+{
+  "type": "simulation_result_evaluated",
+  "id": 123,
+  "digital_human_id": 123,
+  "status": "INITIALIZING",
+  "simulation_run_id": 123,
+  "simulation_id": 123,
+  "agent_id": 123,
+  "folder_id": "string",
+  "result": {
+    "key": "value"
+  },
+  "custom_metrics": [
+    {
+      "name": "example_name",
+      "description": "string",
+      "response_type": "string",
+      "response_value": "string",
+      "reasoning": "string",
+      "min_value": 1.0,
+      "max_value": 1.0,
+      "category": "string",
+      "tags": [
+        "string"
+      ],
+      "scoring_guidance": "string",
+      "enum_options": [
+        "string"
+      ]
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "string",
+      "created_at": "string",
+      "hallucination": true,
+      "hallucination_reasoning": "string",
+      "redundancy": true,
+      "redundancy_reasoning": "string",
+      "agent_speak_percentage": 1.0,
+      "avg_agent_latency": 1.0,
+      "latency": {
+        "avg_agent_latency": 1.0,
+        "max_agent_latency": 1.0,
+        "p50_agent_latency": 1.0,
+        "p90_agent_latency": 1.0,
+        "p95_agent_latency": 1.0,
+        "p99_agent_latency": 1.0
+      },
+      "num_turns": 123,
+      "call_summary": "string",
+      "custom_evals": [],
+      "custom_evals_success_rate": 1.0,
+      "goal_success": true,
+      "goal_reasoning": "string",
+      "pronunciation_score": 1.0,
+      "pronunciation_reasoning": "string",
+      "custom_metrics": [
+        {
+          "name": "example_name",
+          "description": "string",
+          "response_type": "string",
+          "response_value": "string",
+          "reasoning": "string",
+          "min_value": 1.0,
+          "max_value": 1.0,
+          "category": "string",
+          "tags": [],
+          "scoring_guidance": "string",
+          "enum_options": []
+        }
+      ]
+    }
+  ],
+  "created_at": "string",
+  "start_time": "string",
+  "end_time": "string",
+  "duration": 123,
+  "latency": [
+    1.0
+  ],
+  "events": [
+    {
+      "title": "string",
+      "start_offset_ms": 123,
+      "description": "string",
+      "end_offset_ms": 123,
+      "tags": [
+        "string"
+      ],
+      "metadata": {
+        "key": "value"
+      }
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "example_name",
+      "start_offset_ms": 123,
+      "description": "string",
+      "parameters": {
+        "key": "value"
+      }
+    }
+  ],
+  "tags": [
+    "string"
+  ],
+  "metadata": {
+    "key": "value"
+  }
+}
+```
+
+**When `type` = `observability_call_evaluated`:**
+```json
+{
+  "id": "string",
+  "agent_id": "string",
+  "external_agent_id": "string",
+  "recording_url": "string",
+  "start_time_utc": "string",
+  "participants": [
+    {
+      "role": "AGENT",
+      "spoke_first": true,
+      "name": "string",
+      "phone_number": "string"
+    }
+  ],
+  "call_direction": "INBOUND",
+  "interface": "PHONE",
+  "status": "INITIALIZING",
+  "created_at": "string",
+  "transcript_url": "string",
+  "tool_calls": [
+    {
+      "name": "example_name",
+      "start_offset_ms": 123,
+      "description": "string",
+      "parameters": {
+        "key": "value"
+      }
+    }
+  ],
+  "events": [
+    {
+      "title": "string",
+      "start_offset_ms": 123,
+      "description": "string",
+      "end_offset_ms": 123,
+      "tags": [
+        "string"
+      ],
+      "metadata": {
+        "key": "value"
+      }
+    }
+  ],
+  "tags": [
+    "string"
+  ],
+  "duration_ms": 123,
+  "evaluations": [
+    {
+      "id": "string",
+      "created_at": "string",
+      "hallucination": true,
+      "hallucination_reasoning": "string",
+      "redundancy": true,
+      "redundancy_reasoning": "string",
+      "agent_speak_percentage": 1.0,
+      "avg_agent_latency": 1.0,
+      "latency": {
+        "avg_agent_latency": 1.0,
+        "max_agent_latency": 1.0,
+        "p50_agent_latency": 1.0,
+        "p90_agent_latency": 1.0,
+        "p95_agent_latency": 1.0,
+        "p99_agent_latency": 1.0
+      },
+      "num_turns": 123,
+      "call_summary": "string",
+      "custom_evals": [],
+      "custom_evals_success_rate": 1.0,
+      "goal_success": true,
+      "goal_reasoning": "string",
+      "pronunciation_score": 1.0,
+      "pronunciation_reasoning": "string",
+      "custom_metrics": [
+        {
+          "name": "example_name",
+          "description": "string",
+          "response_type": "string",
+          "response_value": "string",
+          "reasoning": "string",
+          "min_value": 1.0,
+          "max_value": 1.0,
+          "category": "string",
+          "tags": [],
+          "scoring_guidance": "string",
+          "enum_options": []
+        }
+      ]
+    }
+  ],
+  "annotations": [],
+  "metadata": {
+    "key": "value"
+  },
+  "custom_metrics": [],
+  "conversation_ended_by": "AGENT",
+  "type": "observability_call_evaluated"
+}
+```
+
+**When `type` = `simulation_ended`:**
+```json
+{
+  "type": "simulation_ended",
+  "id": 123,
+  "digital_human_id": 123,
+  "status": "INITIALIZING",
+  "simulation_run_id": 123,
+  "created_at": "string",
+  "start_time": "string",
+  "end_time": "string",
+  "duration": 123
+}
+```
+
+**When `type` = `outbound_simulation_started`:**
+```json
+{
+  "type": "outbound_simulation_started",
+  "agent_id": 123,
+  "simulation_id": 123,
+  "simulation_run_id": 123,
+  "digital_humans": [
+    {
+      "id": 123,
+      "name": "example_name",
+      "phone_number": "+15551234567",
+      "associated_simulation_result_ids": [
+        123
+      ]
+    }
+  ]
+}
+```
+
+
+Refer to the Bluejay API documentation for additional optional payload fields.
+
+### Example
+```python
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.post("/webhooks/events_webhook")
+async def handle_events_webhook(request: Request):
+    payload = await request.json()
+    event_type = payload.get("type")
+    # process based on event type
+    return {"status": "received"}
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Return a 200 OK response to acknowledge receipt.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns webhook handling in the codebase?
+2. What routing and validation patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the handler, export it, and confirm it compiles/passes lint.
+````
+</div>
+
 
 Upon an event on the platform, all webhooks that are subscribed to the specific event will receive the results to the URL you registered within the dashboard.
 

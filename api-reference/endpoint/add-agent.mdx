@@ -3,5 +3,73 @@ title: 'Add Agent'
 description: ''
 openapi: 'POST /v1/add-agent'
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Add Agent — POST /v1/add-agent
+
+> **What this endpoint does:** Add a new agent to the system. Returns the agent id and a status code.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/add-agent`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| name | string | Name of the agent |
+| system_prompt | string | System prompt for the agent |
+| knowledge_base | string | Knowledge base of the agent |
+| goals | array[string] | List of goals for the agent |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/add-agent and include any optional parameters (e.g., `phone_number`, `type`, `connection_type`, `mode`, `keyterms`, `external_agent_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "name": "example_name",
+  "system_prompt": "You are a helpful assistant.",
+  "knowledge_base": "string",
+  "goals": [
+    "string"
+  ]
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/add-agent. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def add_agent(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/add-agent"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
 
 Given the name, system prompt, knowledge base, phone number, and goals, this endpoint adds your agent and returns the agent ID.

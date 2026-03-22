@@ -3,5 +3,68 @@ title: 'Create Schedule'
 description: ''
 openapi: 'POST /v1/create-schedule'
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Create Schedule — POST /v1/create-schedule
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/create-schedule`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| simulation_id | string | The unique identifier for the associated simulation. |
+| schedule | object | object | object | object | object | object | The schedule for the cron job. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-schedule and include any optional parameters (e.g., `enabled`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "simulation_id": "string",
+  "schedule": {
+    "frequency": "string",
+    "interval": 123
+  }
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-schedule. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def create_schedule(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/create-schedule"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
 
 This endpoint allows you to create a schedule to run your simulations on a recurring basis. Provide the schedule configuration in the request body, including the simulation ID. The endpoint returns the created schedule with its ID, simulation ID, cron expression, and enabled status.
