@@ -3,61 +3,39 @@ title: 'Queue HTTP Text Simulation Run'
 description: ''
 openapi: 'POST /v1/queue-http-text-simulation-run'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Queue HTTP Text Simulation Run — POST /v1/queue-http-text-simulation-run
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** POST
-- **URL:** `https://api.getbluejay.ai/v1/queue-http-text-simulation-run`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Queue HTTP Text Simulation Run — POST /v1/queue-http-text-simulation-run
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| simulation_id | body | string | yes | ID of the simulation to be run |
-| prompt_id | body | string (nullable) | no | Prompt UUID associated with this run |
-| knowledge_base_id | body | string (nullable) | no | Knowledge base UUID associated with this run |
-| digital_human_ids | body | array[string] (nullable) | no | Digital human IDs to be used in the simulation |
+> **What this endpoint does:** Queue a new simulation run and test results for HTTP text agent. Takes simulation_id, optional prompt_id, knowledge_base_id, and digital_human_ids. If digital_human_ids is not provided, uses all digital humans for the simulation. Returns simulation_run_id (experiment_run_id) and simulation_result_ids (array of test result IDs).
 
-## Request Body Schema
+**Endpoint:** POST `https://api.getbluejay.ai/v1/queue-http-text-simulation-run`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| simulation_id | string | ID of the simulation to be run |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-http-text-simulation-run and include any optional parameters (e.g., `prompt_id`, `knowledge_base_id`, `digital_human_ids`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
-  "simulation_id": "string",
-  "prompt_id": "string",
-  "knowledge_base_id": "string",
-  "digital_human_ids": [
-    "string"
-  ]
+  "simulation_id": "string"
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "simulation_run_id": "string",
-  "simulation_result_ids": [
-    "string"
-  ],
-  "agent_id": "string",
-  "status": "success"
-}
-```
-- **Key error codes:** 422: Validation Error
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/queue-http-text-simulation-run. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **POST with body:**
 ```python
 import requests
@@ -70,15 +48,20 @@ def queue_http_text_simulation_run(payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 This endpoint initiates a new HTTP text simulation. Once a simulation is started, it is possible to send messages using the "Send HTTP Text Message" endpoint and receive them through the webhook configurable in the agent settings.

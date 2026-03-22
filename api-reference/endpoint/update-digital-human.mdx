@@ -3,57 +3,30 @@ title: 'Update Digital Human'
 description: ''
 openapi: 'PUT /v1/update-digital-human/{digital_human_id}'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Update Digital Human — PUT /v1/update-digital-human/{digital_human_id}
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** PUT
-- **URL:** `https://api.getbluejay.ai/v1/update-digital-human/{digital_human_id}`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Update Digital Human — PUT /v1/update-digital-human/{digital_human_id}
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| digital_human_id | path | integer | yes |  |
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| intent | body | string (nullable) | no | Description of the digital human |
-| success_criteria | body | string (nullable) | no | Success criteria for the digital human |
-| name | body | string (nullable) | no | Name of the digital human |
-| tag | body | string (nullable) | no | Tag for categorizing the digital human |
-| language | body | string (enum: en, es, pt, ja, tr, hi, ar, ru, zh, ml, fr, yue, vi, de) (nullable) | no | Language the digital human speaks (default: en) |
-| accent | body | string (enum: multilingual, american, southern, italian, indian, british, australian, mexican, spanish, portuguese, french, turkish, japanese, hindi, arabic, russian, chinese, german) (nullable) | no | Accent of the digital human |
-| gender | body | string (enum: male, female) (nullable) | no | Gender of the digital human |
-| background_noise | body | string (enum: none, office, talking, traffic, cafe, park, tv) (nullable) | no | Type of background noise (default: none) |
-| voice_speed | body | string (enum: slowest, slow, normal, fast, fastest) (nullable) | no | Speed of the digital human's voice (default: normal) |
-| audio_quality | body | string (enum: high, medium, low, horrible) (nullable) | no | Audio quality of the digital human's voice |
-| fluency | body | string (enum: beginner, intermediate, native) (nullable) | no | Fluency level of the digital human's speech |
-| verbosity | body | string (enum: low, medium, high) (nullable) | no | Verbosity level of the digital human's responses |
-| phone_number | body | string (nullable) | no | Phone number for the digital human |
-| outbound_text_number | body | string (nullable) | no | Outbound text number |
-| background_noise_volume | body | number (nullable) | no | Volume of background noise (default: 0.8) |
-| expected_tool_calls | body | array[object] (nullable) | no | Expected tool call outputs |
-| allow_end_call_tool | body | boolean (nullable) | no | Allow the digital human to end the tool call |
-| endpointing_delay | body | number (nullable) | no | Delay for endpointing (default: 1.5) |
-| creativity | body | number (nullable) | no | How creative the digital human is (Model temperature) (default: 0.7) |
-| hangup_phrases | body | array[string] (nullable) | no | Phrases that trigger hangup |
-| hangup_instructions | body | string (nullable) | no | Freeform instructions for how/when to hang up |
-| silence_timeout | body | integer (nullable) | no | Silence timeout in seconds |
-| simulation_ids | body | array[integer] (nullable) | no | Array of simulation IDs to associate with this digital human. If provided, completely replaces existing associations. |
-| traits | body | array[object] (nullable) | no | List of traits associated with this digital human. If provided, completely replaces existing traits. |
-| interruptions | body | object | object | object (nullable) | no | Interruption configuration for the digital human. If provided, completely replaces existing interruption config. |
-| scripted_responses | body | array[object] (nullable) | no | List of scripted responses for the digital human. If provided, completely replaces existing scripted responses. |
-| role_description | body | string (nullable) | no | Description of the role for the digital human |
-| speaks_first_config | body | object (nullable) | no | Speaks first configuration for the digital human. If provided, completely replaces existing speaks first config. |
-| original_transcript | body | string (nullable) | no | Original transcript text. If changed from the current value, utterances are re-extracted and the intent is regenerated. |
-| formatted_transcript | body | array[object] (nullable) | no | Pre-computed structured transcript as [{role, utterance}]. When provided alongside original_transcript, skips the LLM formatting call. |
-| num_runs | body | integer (nullable) | no | Number of times this digital human is run per simulation run (run count). |
-| livekit_metadata | body | object (nullable) | no | LiveKit-specific configuration and metadata for this digital human. If provided, completely replaces existing metadata. |
+> **What this endpoint does:** Update a digital human by ID.
 
-## Request Body Schema
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-digital-human/{digital_human_id}`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| digital_human_id | integer |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-digital-human and include any optional parameters (e.g., `intent`, `success_criteria`, `name`, `tag`, `language`, `accent`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
 ```json
 {
   "intent": "string",
@@ -131,99 +104,7 @@ openapi: 'PUT /v1/update-digital-human/{digital_human_id}'
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "digital_human": {
-    "id": 123,
-    "intent": "string",
-    "success_criteria": "string",
-    "tag": "string",
-    "name": "string",
-    "language": "en",
-    "accent": "multilingual",
-    "gender": "male",
-    "background_noise": "string",
-    "voice_speed": "string",
-    "audio_quality": "string",
-    "fluency": "string",
-    "verbosity": "string",
-    "phone_number": "string",
-    "outbound_text_number": "string",
-    "websocket_url": "string",
-    "background_noise_volume": 1.0,
-    "expected_tool_calls": [
-      {
-        "name": "example_name",
-        "parameters": {
-          "key": "value"
-        }
-      }
-    ],
-    "allow_end_call_tool": true,
-    "endpointing_delay": 1.0,
-    "creativity": 1.0,
-    "hangup_phrases": [
-      "string"
-    ],
-    "hangup_instructions": "string",
-    "silence_timeout": 123,
-    "role_description": "string",
-    "created_at": "string",
-    "traits": [
-      {
-        "trait_name": "example_name",
-        "trait_data_type": "BOOLEAN",
-        "value": "string",
-        "is_sip_header": false
-      }
-    ],
-    "interruptions": {
-      "key": "value"
-    },
-    "scripted_responses": [
-      {
-        "match_type": "exact",
-        "match_phrase": "string",
-        "response_type": "phrase",
-        "response_value": "string",
-        "occurrence_mode": "always",
-        "occurrence_n": 123,
-        "silence_duration": 123
-      }
-    ],
-    "speaks_first_config": {
-      "speaks_first": true,
-      "mode": "custom",
-      "message": "string"
-    },
-    "original_transcript": "string",
-    "formatted_transcript": [
-      {
-        "key": "value"
-      }
-    ],
-    "livekit_metadata": {
-      "key": "value"
-    }
-  },
-  "simulation_ids": [
-    123
-  ],
-  "simulation_id": 123
-}
-```
-- **Key error codes:** 422: Validation Error
-
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **PUT with body:**
 ```python
 import requests
@@ -236,15 +117,20 @@ def update_digital_human(digital_human_id: int, payload: dict, api_key: str) -> 
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 This endpoint allows you to update an existing digital human. Provide the digital human ID and updated details to update the metric.

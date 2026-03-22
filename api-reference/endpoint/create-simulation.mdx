@@ -3,86 +3,39 @@ title: 'Create Simulation'
 description: ''
 openapi: 'POST /v1/create-simulation'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Create Simulation — POST /v1/create-simulation
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** POST
-- **URL:** `https://api.getbluejay.ai/v1/create-simulation`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Create Simulation — POST /v1/create-simulation
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| agent_id | body | string | yes | ID of the agent to be used in the simulation |
-| name | body | string (nullable) | no | Name of the simulation |
-| description | body | string (nullable) | no | Description of the simulation |
-| prompt_id | body | string (nullable) | no | Optional default prompt UUID for this simulation |
-| knowledge_base_id | body | string (nullable) | no | Optional default knowledge base UUID for this simulation |
-| sequential_calling | body | boolean (nullable) | no | Whether to run the simulation with sequential calling (default: False) |
-| max_concurrent | body | integer (nullable) | no | Maximum number of concurrent calls in the simulation |
-| hangup_on_transfer | body | boolean (nullable) | no | Whether to hang up the call on transfer (default: False) |
-| max_call_duration | body | integer (nullable) | no | Maximum duration of each call (default is 10). Units specified by max_call_duration_units (default: 10) |
-| max_call_duration_units | body | string (enum: minutes, seconds) (nullable) | no | Units for max_call_duration: 'minutes' (default) or 'seconds' (default: minutes) |
-| ringing_timeout | body | integer (nullable) | no | Ringing timeout in seconds for SIP trunks (default 300s) (default: 300) |
-| digital_humans_settings | body | object (nullable) | no | Settings for digital humans in the simulation |
-| selected_custom_metrics | body | array[string] (nullable) | no | Custom metric IDs to enable for this simulation |
-| custom_metrics_failing_threshold | body | integer (nullable) | no | Score threshold below which a custom metric is considered failing (0-100) |
-| custom_metrics_passing_threshold | body | integer (nullable) | no | Score threshold at or above which a custom metric is considered passing (0-100) |
+> **What this endpoint does:** Create a new simulation with the provided details. Returns the simulation id and a status code.
 
-## Request Body Schema
+**Endpoint:** POST `https://api.getbluejay.ai/v1/create-simulation`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| agent_id | string | ID of the agent to be used in the simulation |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-simulation and include any optional parameters (e.g., `name`, `description`, `prompt_id`, `knowledge_base_id`, `sequential_calling`, `max_concurrent`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
-  "agent_id": "string",
-  "name": "string",
-  "description": "string",
-  "prompt_id": "string",
-  "knowledge_base_id": "string",
-  "sequential_calling": true,
-  "max_concurrent": 123,
-  "hangup_on_transfer": true,
-  "max_call_duration": 123,
-  "max_call_duration_units": "minutes",
-  "ringing_timeout": 123,
-  "digital_humans_settings": {
-    "default_name": "string",
-    "default_caller_number": "string",
-    "default_language": "string",
-    "default_background_noise": "string",
-    "first_message": "string",
-    "num_runs": 123
-  },
-  "selected_custom_metrics": [
-    "string"
-  ],
-  "custom_metrics_failing_threshold": 123,
-  "custom_metrics_passing_threshold": 123
+  "agent_id": "string"
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "simulation_id": 123,
-  "status": "200"
-}
-```
-- **Key error codes:** 422: Validation Error
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-simulation. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **POST with body:**
 ```python
 import requests
@@ -95,14 +48,19 @@ def create_simulation(payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
  Given the agent ID, and simulation settings, this endpoint creates a simulation and returns the simulation ID.

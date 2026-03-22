@@ -3,157 +3,39 @@ title: 'Update Agent'
 description: ''
 openapi: 'POST /v1/update-agent'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Update Agent — POST /v1/update-agent
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** POST
-- **URL:** `https://api.getbluejay.ai/v1/update-agent`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Update Agent — POST /v1/update-agent
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| agent_id | body | string (nullable) | yes | ID of the agent to be updated |
-| external_agent_id | body | string (nullable) | no | External agent ID for the agent |
-| name | body | string (nullable) | no | Name of the agent |
-| system_prompt | body | string (nullable) | no | System prompt for the agent |
-| knowledge_base | body | string (nullable) | no | Knowledge base of the agent |
-| phone_number | body | string (nullable) | no | Phone number associated with the agent |
-| goals | body | array[string] (nullable) | no | List of goals for the agent |
-| type | body | string (enum: INBOUND, OUTBOUND) (nullable) | no | INBOUND: Agent receives incoming calls from customers OUTBOUND: Agent makes outgoing calls to customers |
-| connection_type | body | string (enum: SMS, HTTP_WEBHOOK, PHONE, SIP, WEBSOCKET, LIVEKIT, PIPECAT) (nullable) | no | Connection type of the agent (Livekit, Websocket, etc.) |
-| mode | body | string (enum: VOICE, TEXT) (nullable) | no | Modality of the agent |
-| keyterms | body | array[string] (nullable) | no | List of keyterms for the agent |
-| folder | body | string (nullable) | no | Name of the folder to put the agent in |
-| websocket_url | body | string (nullable) | no | WebSocket URL for real-time communication |
-| websocket_username | body | string (nullable) | no | Username for WebSocket authentication |
-| websocket_password | body | string (nullable) | no | Password for WebSocket authentication |
-| sip_uri | body | string (nullable) | no | SIP URI for VoIP calls |
-| sip_username | body | string (nullable) | no | Username for SIP authentication |
-| sip_password | body | string (nullable) | no | Password for SIP authentication |
-| custom_sip_headers | body | object (nullable) | no | Custom headers for SIP requests (Do not include `X-` prefix for the headers, these get added automatically) |
-| redact_pii | body | boolean (nullable) | no | Enable/disable PII redaction |
-| livekit_agent_name | body | string (nullable) | no | LiveKit agent name |
-| livekit_metadata | body | object (nullable) | no | LiveKit metadata |
-| pipecat_agent_name | body | string (nullable) | no | Pipecat agent name |
-| pipecat_agent_configuration | body | object (nullable) | no | Pipecat agent configuration |
-| pipecat_room_properties | body | object (nullable) | no | Pipecat room properties |
-| http_webhook | body | string (nullable) | no | HTTP webhook URL for text agent communication |
-| voice_provider | body | string (nullable) | no | Voice provider for the agent |
-| provider_id | body | string (nullable) | no | Provider ID for the agent |
+> **What this endpoint does:** Update an existing agent in the system.
 
-## Request Body Schema
+**Endpoint:** POST `https://api.getbluejay.ai/v1/update-agent`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| agent_id | string (nullable) | ID of the agent to be updated |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-agent and include any optional parameters (e.g., `external_agent_id`, `name`, `system_prompt`, `knowledge_base`, `phone_number`, `goals`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
-  "agent_id": "string",
-  "external_agent_id": "string",
-  "name": "string",
-  "system_prompt": "string",
-  "knowledge_base": "string",
-  "phone_number": "string",
-  "goals": [
-    "string"
-  ],
-  "type": "INBOUND",
-  "connection_type": "SMS",
-  "mode": "VOICE",
-  "keyterms": [
-    "string"
-  ],
-  "folder": "string",
-  "websocket_url": "string",
-  "websocket_username": "string",
-  "websocket_password": "string",
-  "sip_uri": "string",
-  "sip_username": "string",
-  "sip_password": "string",
-  "custom_sip_headers": {
-    "key": "value"
-  },
-  "redact_pii": true,
-  "livekit_agent_name": "string",
-  "livekit_metadata": {
-    "key": "value"
-  },
-  "pipecat_agent_name": "string",
-  "pipecat_agent_configuration": {
-    "key": "value"
-  },
-  "pipecat_room_properties": {
-    "key": "value"
-  },
-  "http_webhook": "string",
-  "voice_provider": "string",
-  "provider_id": "string"
+  "agent_id": "string"
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "agent": {
-    "agent_id": "string",
-    "external_agent_id": "string",
-    "name": "string",
-    "system_prompt": "string",
-    "knowledge_base": "string",
-    "phone_number": "string",
-    "goals": [
-      "string"
-    ],
-    "type": "INBOUND",
-    "connection_type": "SMS",
-    "mode": "VOICE",
-    "keyterms": [
-      "string"
-    ],
-    "folder": "string",
-    "websocket_url": "string",
-    "websocket_username": "string",
-    "websocket_password": "string",
-    "sip_uri": "string",
-    "sip_username": "string",
-    "sip_password": "string",
-    "custom_sip_headers": {
-      "key": "value"
-    },
-    "redact_pii": true,
-    "livekit_agent_name": "string",
-    "livekit_metadata": {
-      "key": "value"
-    },
-    "pipecat_agent_name": "string",
-    "pipecat_agent_configuration": {
-      "key": "value"
-    },
-    "pipecat_room_properties": {
-      "key": "value"
-    },
-    "http_webhook": "string",
-    "voice_provider": "string",
-    "provider_id": "string"
-  },
-  "status": "200",
-  "http_webhook_key": "string"
-}
-```
-- **Key error codes:** 422: Validation Error
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/update-agent. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **POST with body:**
 ```python
 import requests
@@ -166,15 +48,20 @@ def update_agent(payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 Given the ID and, optionally, the name, system prompt, knowledge base, phone number, and goals, this endpoint updates your agent and returns the updates made to your agent.

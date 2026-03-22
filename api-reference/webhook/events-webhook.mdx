@@ -2,82 +2,47 @@
 title: 'Events Webhook'
 openapi: 'WEBHOOK events_webhook'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Handle Events Webhook — WEBHOOK
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: set up a handler to receive and process this webhook payload in the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the webhook payload, then plan the handler, then implement with minimal changes.
 
-## Webhook Details
-- **Type:** Incoming Webhook
-- **Payload Format:** JSON (POST)
-- **Description:** Upon an event on the platform, we'll send you the results to the URL you registered within the dashboard
+## Handle Events Webhook — WEBHOOK
 
-## Payload Fields
+> **What this webhook does:** Upon an event on the platform, we'll send you the results to the URL you registered within the dashboard
+
+**Type:** Incoming Webhook (JSON POST)
+
+### Required Payload Fields
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | **Variant: `simulation_result_evaluated`** | | | |
-| type | string | no | Type of webhook payload |
 | id | integer | yes | The ID of the simulation result |
 | digital_human_id | integer | yes | The ID of the digital human |
-| status | string (enum: INITIALIZING, QUEUED, READY, DISPATCHED, RUNNING, CONVERSATION_ENDED, EVALUATING, COMPLETED, INCOMPLETED, REJECTED) | no | Enum representing the possible states of a test result. |
 | simulation_run_id | integer | yes | The ID of the simulation run that this simulation result belongs to |
 | simulation_id | integer | yes | The ID of the simulation that this simulation result belongs to |
 | agent_id | integer | yes | The ID of the agent that this simulation result belongs to |
-| folder_id | string (nullable) | no | The ID of the folder that the agent belongs to |
-| result | object (nullable) | no | Please use the evaluations instead |
-| custom_metrics | array[object] (nullable) | no | Please use the custom metrics in the evaluations instead |
-| evaluations | array[object] (nullable) | no | The evaluations of the simulation result |
-| created_at | string (nullable) | no | The creation time of the simulation result |
-| start_time | string (nullable) | no | The start time of the simulation result |
-| end_time | string (nullable) | no | The end time of the simulation result |
-| duration | integer (nullable) | no | The duration of the simulation result |
-| latency | array[number] (nullable) | no | The latency of the simulation result |
-| events | array[object] (nullable) | no | The events of the simulation result |
-| tool_calls | array[object] (nullable) | no | The tool calls of the simulation result |
-| tags | array[string] (nullable) | no | The tags of the simulation result |
-| metadata | object (nullable) | no | The metadata of the simulation result |
 | **Variant: `observability_call_evaluated`** | | | |
 | id | string | yes | Unique identifier for the call |
 | agent_id | string | yes | ID of the agent associated with the call |
-| external_agent_id | string (nullable) | no | External ID of the agent associated with the call |
 | recording_url | string (nullable) | yes | URL to the recording file (supported formats: .mp4, .wav, .m4a) |
 | start_time_utc | string | yes | When the call started, in UTC |
 | participants | array[object] | yes | List of call participants |
-| call_direction | string (enum: INBOUND, OUTBOUND) | no | Enum representing the direction of a call. |
-| interface | string (enum: PHONE, WEB) | no | Enum representing the interface used for a call. |
 | status | string (enum: INITIALIZING, QUEUED, EVALUATING, COMPLETED, INCOMPLETED) | yes | Enum representing the possible states of a call. |
-| created_at | string | no | When this request was created (defaults to now in UTC) |
-| transcript_url | string (nullable) | no | URL to the transcript file (supported formats: .txt, .json) |
-| tool_calls | array[object] (nullable) | no | List of tool calls made during the call |
-| events | array[object] (nullable) | no | List of events that occurred during the call |
-| tags | array[string] (nullable) | no | List of tags associated with the call |
-| duration_ms | integer (nullable) | no | Duration of the call in milliseconds |
-| evaluations | array[object] (nullable) | no | List of evaluations associated with the call |
-| annotations | array[any] (nullable) | no | Annotations associated with the call |
-| metadata | object (nullable) | no | Additional metadata associated with the call |
-| custom_metrics | array[any] (nullable) | no | Please use the custom metrics in the evaluations instead |
-| conversation_ended_by | string (enum: AGENT, USER) (nullable) | no | Which participant role ended the conversation: 'USER' or 'AGENT' |
-| type | string | no | Type of webhook payload |
 | **Variant: `simulation_ended`** | | | |
-| type | string | no | Type of webhook payload |
 | id | integer | yes | The ID of the simulation result |
 | digital_human_id | integer | yes | The ID of the digital human |
-| status | string (enum: INITIALIZING, QUEUED, READY, DISPATCHED, RUNNING, CONVERSATION_ENDED, EVALUATING, COMPLETED, INCOMPLETED, REJECTED) | no | Enum representing the possible states of a test result. |
 | simulation_run_id | integer | yes | The ID of the simulation run that this simulation result belongs to |
-| created_at | string (nullable) | no | The creation time of the simulation result |
-| start_time | string (nullable) | no | The start time of the simulation result |
-| end_time | string (nullable) | no | The end time of the simulation result |
-| duration | integer (nullable) | no | The duration of the simulation result |
 | **Variant: `outbound_simulation_started`** | | | |
-| type | string | no | Type of webhook payload |
 | agent_id | integer | yes | The ID of the agent that this simulation belongs to |
 | simulation_id | integer | yes | The ID of the simulation |
 | simulation_run_id | integer | yes | The ID of the simulation run |
 | digital_humans | array[object] | yes | The digital humans that were run for this simulation run |
 
-## Payload Schema
-This webhook sends different payload types, discriminated by the `type` field:
+### Payload Schema
+Discriminated by `type`:
 
 **When `type` = `simulation_result_evaluated`:**
 ```json
@@ -333,32 +298,9 @@ This webhook sends different payload types, discriminated by the `type` field:
 ```
 
 
-## Integration Instructions
-1. Create or locate the appropriate webhook handler module.
-2. Implement a route/endpoint to receive the webhook POST request.
-3. Validate the incoming payload structure.
-4. Process the webhook data according to business logic.
-5. Return an appropriate response (200 OK) to acknowledge receipt.
+Refer to the Bluejay API documentation for additional optional payload fields.
 
-## Few-Shot Example
-**Flask webhook handler:**
-```python
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-@app.route("/webhooks/events_webhook", methods=["POST"])
-def handle_events_webhook():
-    payload = request.get_json()
-    if not payload:
-        return jsonify({"error": "Invalid payload"}), 400
-    event_type = payload.get("type")
-    # Process based on event type
-    # ...
-    return jsonify({"status": "received"}), 200
-```
-
-**FastAPI webhook handler:**
+### Example
 ```python
 from fastapi import FastAPI, Request
 
@@ -368,20 +310,24 @@ app = FastAPI()
 async def handle_events_webhook(request: Request):
     payload = await request.json()
     event_type = payload.get("type")
-    # Process based on event type
-    # ...
+    # process based on event type
     return {"status": "received"}
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Return a 200 OK response to acknowledge receipt.
 
-**Reminder: Set up this webhook handler fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns webhook handling in the codebase?
+2. What routing and validation patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the handler, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 Upon an event on the platform, all webhooks that are subscribed to the specific event will receive the results to the URL you registered within the dashboard.

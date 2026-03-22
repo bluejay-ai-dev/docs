@@ -3,39 +3,30 @@ title: 'Update Custom Metric'
 description: ''
 openapi: 'PUT /v1/update-custom-metric/{metric_id}'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Update Custom Metric — PUT /v1/update-custom-metric/{metric_id}
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** PUT
-- **URL:** `https://api.getbluejay.ai/v1/update-custom-metric/{metric_id}`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Update Custom Metric — PUT /v1/update-custom-metric/{metric_id}
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| metric_id | path | string | yes |  |
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| name | body | string (nullable) | no | Name of the custom metric |
-| description | body | string (nullable) | no | Description of what this metric measures |
-| response_type | body | string (enum: pass_fail, yes_no, qualitative, quantitative, json, enum) (nullable) | no | Type of response expected |
-| agent_ids | body | array[integer] (nullable) | no | List of agent IDs to associate this metric with (replaces existing associations) |
-| min_value | body | number (nullable) | no | Minimum value for quantitative metrics |
-| max_value | body | number (nullable) | no | Maximum value for quantitative metrics |
-| category | body | string (nullable) | no | Category for organizing metrics |
-| tags | body | array[string] (nullable) | no | Tags for categorizing the metric |
-| scoring_guidance | body | string (nullable) | no | Guidance on how to score this metric |
-| eval_route | body | string (enum: AUDIO, TEXT, AUTO) (nullable) | no | Route for evaluating the metric (default: AUTO) |
-| model | body | string (nullable) | no | Model to use for evaluating the metric |
-| temperature | body | number (nullable) | no | Temperature for evaluating the metric |
-| enum_options | body | array[string] (nullable) | no | Options for enum metrics |
-| allow_not_applicable | body | boolean (nullable) | no | Whether this metric allows 'not applicable' responses. |
+> **What this endpoint does:** Update a specific custom metric by ID.
 
-## Request Body Schema
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-custom-metric/{metric_id}`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| metric_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-custom-metric and include any optional parameters (e.g., `name`, `description`, `response_type`, `agent_ids`, `min_value`, `max_value`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
 ```json
 {
   "name": "string",
@@ -61,44 +52,7 @@ openapi: 'PUT /v1/update-custom-metric/{metric_id}'
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "id": "string",
-  "name": "example_name",
-  "description": "string",
-  "response_type": "pass_fail",
-  "agent_ids": [
-    123
-  ],
-  "min_value": 1.0,
-  "max_value": 1.0,
-  "category": "string",
-  "tags": [
-    "string"
-  ],
-  "scoring_guidance": "string",
-  "created_at": "string",
-  "eval_route": "AUDIO",
-  "model": "string",
-  "temperature": 1.0,
-  "enum_options": [
-    "string"
-  ],
-  "allow_not_applicable": false
-}
-```
-- **Key error codes:** 422: Validation Error
-
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **PUT with body:**
 ```python
 import requests
@@ -111,15 +65,20 @@ def update_custom_metric(metric_id: str, payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 This endpoint allows you to update an existing custom metric for your agents. Provide the metric ID and updated details to update the metric.

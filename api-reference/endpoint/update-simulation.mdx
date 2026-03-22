@@ -3,41 +3,30 @@ title: 'Update Simulation'
 description: ''
 openapi: 'PUT /v1/simulation/{simulation_id}'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Update Simulation — PUT /v1/simulation/{simulation_id}
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** PUT
-- **URL:** `https://api.getbluejay.ai/v1/simulation/{simulation_id}`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Update Simulation — PUT /v1/simulation/{simulation_id}
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| simulation_id | path | integer | yes |  |
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| name | body | string (nullable) | no | updated simulation name |
-| description | body | string (nullable) | no | human‑readable description of the simulation |
-| prompt_id | body | string (nullable) | no | optional default prompt UUID for this simulation |
-| knowledge_base_id | body | string (nullable) | no | optional default knowledge base UUID for this simulation |
-| max_concurrent | body | integer (nullable) | no | maximum number of concurrent runs |
-| hangup_on_transfer | body | boolean (nullable) | no | whether to hang up the call on transfer |
-| max_call_duration | body | integer (nullable) | no | maximum duration of each call. units specified by max_call_duration_units |
-| max_call_duration_units | body | string (enum: minutes, seconds) (nullable) | no | units for max_call_duration: 'minutes' or 'seconds' |
-| max_turns | body | integer (nullable) | no | maximum number of turns per simulation run |
-| ringing_timeout | body | integer (nullable) | no | ringing timeout in seconds before abandoning |
-| digital_humans_settings | body | object (nullable) | no | settings for digital humans in the simulation |
-| selected_custom_metrics | body | array[string] (nullable) | no | array of custom metric IDs to be saved in settings |
-| custom_metrics_failing_threshold | body | integer (nullable) | no | score threshold below which a custom metric is considered failing (0-100) |
-| custom_metrics_passing_threshold | body | integer (nullable) | no | score threshold at or above which a custom metric is considered passing (0-100) |
-| tags | body | array[string] (nullable) | no | array of tags for the simulation |
-| pinned | body | boolean (nullable) | no | whether the simulation is pinned |
+> **What this endpoint does:** update a specific simulation by id. only fields provided in the request body will be updated.
 
-## Request Body Schema
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/simulation/{simulation_id}`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| simulation_id | integer |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-simulation and include any optional parameters (e.g., `name`, `description`, `prompt_id`, `knowledge_base_id`, `max_concurrent`, `hangup_on_transfer`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
 ```json
 {
   "name": "string",
@@ -65,38 +54,7 @@ openapi: 'PUT /v1/simulation/{simulation_id}'
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "id": 123,
-  "agent_id": 123,
-  "name": "example_name",
-  "created_at": "string",
-  "settings": {
-    "key": "value"
-  },
-  "type": "sequential",
-  "max_concurrent": 123,
-  "max_turns": 123,
-  "ringing_timeout": 123,
-  "tags": [
-    "string"
-  ],
-  "description": "string",
-  "pinned": true
-}
-```
-- **Key error codes:** 422: Validation Error
-
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **PUT with body:**
 ```python
 import requests
@@ -109,15 +67,20 @@ def update_simulation(simulation_id: int, payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 Update a specific simulation by ID. Only fields provided in the request body will be updated.

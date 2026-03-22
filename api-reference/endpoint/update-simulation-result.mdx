@@ -3,92 +3,37 @@ title: 'Update Simulation Result'
 description: ''
 openapi: 'POST /v1/update-simulation-result'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate Update Simulation Result — POST /v1/update-simulation-result
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** POST
-- **URL:** `https://api.getbluejay.ai/v1/update-simulation-result`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## Update Simulation Result — POST /v1/update-simulation-result
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| simulation_result_id | body | string | yes | Simulation result ID provided via SIP for the specific call |
-| events | body | array[object] (nullable) | no | List of events that occurred during the call |
-| tool_calls | body | array[object] (nullable) | no | List of tool calls made during the call |
-| recorded_transcript | body | array[object] (nullable) | no | Recorded transcript of the call (utilized to analyze STT accuracy) |
-| tags | body | array[string] (nullable) | no | List of tags associated with the call |
-| metadata | body | object (nullable) | no | Additional metadata associated with the call |
+**Endpoint:** POST `https://api.getbluejay.ai/v1/update-simulation-result`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
 
-## Request Body Schema
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| simulation_result_id | string | Simulation result ID provided via SIP for the specific call |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-simulation-result and include any optional parameters (e.g., `events`, `tool_calls`, `recorded_transcript`, `tags`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
-  "simulation_result_id": "string",
-  "events": [
-    {
-      "title": "string",
-      "start_offset_ms": 123,
-      "description": "string",
-      "end_offset_ms": 123,
-      "tags": [
-        "string"
-      ],
-      "metadata": {
-        "key": "value"
-      }
-    }
-  ],
-  "tool_calls": [
-    {
-      "name": "example_name",
-      "start_offset_ms": 123,
-      "description": "string",
-      "parameters": {
-        "key": "value"
-      }
-    }
-  ],
-  "recorded_transcript": [
-    {
-      "start_offset_ms": 123,
-      "end_offset_ms": 123,
-      "speaker": "AGENT",
-      "utterance": "string"
-    }
-  ],
-  "tags": [
-    "string"
-  ],
-  "metadata": {
-    "key": "value"
-  }
+  "simulation_result_id": "string"
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "status": "success",
-  "message": "string"
-}
-```
-- **Key error codes:** 422: Validation Error
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/update-simulation-result. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **POST with body:**
 ```python
 import requests
@@ -101,15 +46,20 @@ def update_simulation_result(payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 The simulation result ID can be found as a header of the websocket connect message. The header will look like this: 

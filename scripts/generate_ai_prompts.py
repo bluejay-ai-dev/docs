@@ -260,35 +260,65 @@ def sanitize_func_name(title):
     return name
 
 
-def build_params_table(header_params, body_schema):
-    """Build a single unified parameter table."""
+def build_required_params_table(header_params, body_schema):
+    """Build a parameter table containing only required params."""
     rows = []
     if header_params:
         for p in header_params:
+            if p["required"] != "yes":
+                continue
             desc = p["description"].replace("\n", " ").replace("|", "\\|")
-            rows.append(
-                f"| {p['name']} | {p['location']} | {p['type']} "
-                f"| {p['required']} | {desc} |"
-            )
+            rows.append(f"| {p['name']} | {p['type']} | {desc} |")
 
     if body_schema and "properties" in body_schema:
         required = set(body_schema.get("required", []))
         for pn, ps in body_schema["properties"].items():
+            if pn not in required:
+                continue
             ts = get_type_str(ps)
-            req = "yes" if pn in required else "no"
             desc = (ps.get("description") or "").replace("\n", " ").replace("|", "\\|")
-            if "default" in ps and ps["default"] is not None:
-                desc += f" (default: {ps['default']})"
-            rows.append(f"| {pn} | body | {ts} | {req} | {desc} |")
+            rows.append(f"| {pn} | {ts} | {desc} |")
 
     if not rows:
-        return "No parameters required."
+        return "No required parameters."
 
     header = (
-        "| Name | Location | Type | Required | Description |\n"
-        "|------|----------|------|----------|-------------|"
+        "| Name | Type | Description |\n"
+        "|------|------|-------------|"
     )
     return header + "\n" + "\n".join(rows)
+
+
+def get_optional_param_names(header_params, body_schema, limit=6):
+    """Collect a few optional parameter names for the docs directive."""
+    names = []
+    if header_params:
+        for p in header_params:
+            if p["required"] != "yes":
+                names.append(p["name"])
+    if body_schema and "properties" in body_schema:
+        required = set(body_schema.get("required", []))
+        for pn in body_schema["properties"]:
+            if pn not in required:
+                names.append(pn)
+    return names[:limit]
+
+
+def schema_to_required_example(body_schema):
+    """Generate an example containing only required fields."""
+    if not body_schema or "properties" not in body_schema:
+        return None
+    required = set(body_schema.get("required", []))
+    if not required:
+        return None
+    obj = {}
+    for pn, ps in body_schema["properties"].items():
+        if pn not in required:
+            continue
+        val = schema_to_example(ps)
+        if val is not None:
+            obj[pn] = val
+    return obj if obj else None
 
 
 # ---------------------------------------------------------------------------
@@ -353,42 +383,47 @@ def generate_few_shot(method, path, title, has_body, param_types=None):
 # Prompt generators
 # ---------------------------------------------------------------------------
 
-def generate_endpoint_prompt(spec, title, method, path, operation):
+def generate_endpoint_prompt(spec, title, method, path, operation, docs_slug=""):
     method = method.upper()
 
+    description = (operation.get("description") or "").strip()
     params = extract_params(spec, operation)
     body_schema = extract_body_schema(spec, operation)
-    resp_code, resp_schema, resp_desc = extract_response(spec, operation)
     error_codes = extract_error_codes(operation)
 
-    params_table = build_params_table(params, body_schema)
+    params_table = build_required_params_table(params, body_schema)
+    optional_names = get_optional_param_names(params, body_schema)
+
+    docs_url = f"https://docs.getbluejay.ai/api-reference/endpoint/{docs_slug}" if docs_slug else ""
+
+    optional_directive = ""
+    if optional_names:
+        examples = ", ".join(f"`{n}`" for n in optional_names)
+        ref = f" at {docs_url}" if docs_url else ""
+        optional_directive = (
+            f"\n\nReview the full parameter list{ref} and include any "
+            f"optional parameters (e.g., {examples}) that serve your integration's "
+            f"use case and align with Bluejay's testing and monitoring capabilities."
+        )
 
     body_section = ""
     if body_schema:
-        example = schema_to_example(body_schema)
+        example = schema_to_required_example(body_schema)
         if example:
             body_json = json.dumps(example, indent=2)
-            body_section = f"\n\n## Request Body Schema\n```json\n{body_json}\n```"
-
-    if resp_schema:
-        resp_example = schema_to_example(resp_schema)
-        if resp_example:
-            resp_json = json.dumps(resp_example, indent=2)
-            resp_section = f"\n\n## Response\n- **Success ({resp_code}):**\n```json\n{resp_json}\n```"
+            ref = f" at {docs_url}" if docs_url else " in the API documentation"
+            body_section = (
+                f"\n\n### Request Body (required fields)\n```json\n{body_json}\n```\n\n"
+                f"Refer to the full schema{ref}. Include optional fields that serve "
+                f"the goal of setting up for testing and monitoring on Bluejay."
+            )
         else:
-            resp_section = f"\n\n## Response\n- **Success ({resp_code}):** {resp_desc}"
-    elif resp_code == "204":
-        resp_section = f"\n\n## Response\n- **Success ({resp_code}):** No response body"
-    else:
-        resp_section = f"\n\n## Response\n- **Success ({resp_code}):** {resp_desc}"
+            full_example = schema_to_example(body_schema)
+            if full_example:
+                body_json = json.dumps(full_example, indent=2)
+                body_section = f"\n\n### Request Body\n```json\n{body_json}\n```"
 
-    error_line = ""
-    if error_codes:
-        error_line = "\n- **Key error codes:** " + "; ".join(error_codes[:3])
-
-    ct_line = ""
-    if body_schema:
-        ct_line = "\n- **Content-Type:** application/json"
+    ct_line = "\n**Content-Type:** application/json" if body_schema else ""
 
     openapi_type_map = {"integer": "int", "number": "float", "boolean": "bool"}
     param_types = {}
@@ -399,34 +434,40 @@ def generate_endpoint_prompt(spec, title, method, path, operation):
 
     few_shot = generate_few_shot(method, path, title, body_schema is not None, param_types)
 
+    error_line = ""
+    if error_codes:
+        error_line = "; ".join(error_codes[:3])
+
+    desc_clean = " ".join(description.split()) if description else ""
+    desc_line = f"\n\n> **What this endpoint does:** {desc_clean}" if desc_clean else ""
+
     prompt = (
-        f"# Integrate {title} — {method} {path}\n\n"
-        f"**You are a senior backend engineer. Your task: integrate the endpoint below "
-        f"into the existing codebase with minimal, surgical changes. Do not refactor, "
-        f"rename, or restructure anything beyond what is required for this integration.**\n\n"
-        f"## Endpoint Details\n"
-        f"- **Method:** {method}\n"
-        f"- **URL:** `{BASE_URL}{path}`\n"
-        f"- **Auth:** API Key via `X-API-Key` header{ct_line}\n\n"
-        f"## Parameters\n"
+        f"# Bluejay \u2014 Testing & Monitoring Platform for Conversational AI Agents\n\n"
+        f"You are a senior backend engineer integrating the Bluejay API. "
+        f"Think step-by-step: first understand the endpoint, then plan the "
+        f"integration, then implement with minimal changes.\n\n"
+        f"## {title} \u2014 {method} {path}"
+        f"{desc_line}\n\n"
+        f"**Endpoint:** {method} `{BASE_URL}{path}`\n"
+        f"**Auth:** `X-API-Key` header{ct_line}\n\n"
+        f"### Required Parameters\n"
         f"{params_table}"
-        f"{body_section}"
-        f"{resp_section}"
-        f"{error_line}\n\n"
-        f"## Integration Instructions\n"
-        f"1. Create or locate the appropriate service/module for this API domain.\n"
-        f"2. Implement the API call using the project's existing HTTP client and patterns.\n"
-        f"3. Include proper error handling for the documented error codes.\n"
-        f"4. Add TypeScript types / interfaces for request params and response shape (if TS project).\n"
-        f"5. Export the function so it's consumable by the rest of the codebase.\n\n"
-        f"## Few-Shot Example\n{few_shot}\n\n"
-        f"## Constraints\n"
-        f"- **Be concise.** Only add/change files directly needed for this integration.\n"
-        f"- **Match existing patterns** in the codebase (naming, file structure, error handling).\n"
-        f"- **Do not** install new dependencies unless absolutely required.\n"
-        f"- **Do not** modify unrelated files.\n\n"
-        f"**Reminder: Integrate this single endpoint fully and correctly. "
-        f"Minimal diff, maximum correctness.**"
+        f"{optional_directive}"
+        f"{body_section}\n\n"
+        f"### Example\n{few_shot}\n\n"
+        f"### Constraints\n"
+        f"- Minimal changes \u2014 only add/change files needed for this integration.\n"
+        f"- Match existing codebase patterns (naming, file structure, error handling).\n"
+    )
+    if error_line:
+        prompt += f"- Include error handling for {error_line}.\n"
+    prompt += (
+        f"\n### Integration Checklist\n"
+        f"Before writing code, verify:\n"
+        f"1. Which module/service owns this API domain in the codebase?\n"
+        f"2. What HTTP client and error-handling patterns does the project use?\n"
+        f"3. Are there existing types/interfaces to extend?\n\n"
+        f"Then implement the integration, export it, and confirm it compiles/passes lint."
     )
     return prompt
 
@@ -438,7 +479,6 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
     raw_schema = rb.get("content", {}).get("application/json", {}).get("schema", {})
     resolved = resolve_schema(spec, raw_schema) if raw_schema else None
 
-    # Payload table + example sections
     payload_table_lines = []
     payload_examples = ""
 
@@ -448,9 +488,8 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
         mapping = discriminator.get("mapping", {})
 
         payload_examples = (
-            f"\n\n## Payload Schema\n"
-            f"This webhook sends different payload types, discriminated by the "
-            f"`{disc_prop}` field:\n"
+            f"\n\n### Payload Schema\n"
+            f"Discriminated by `{disc_prop}`:\n"
         )
         payload_table_lines.append("| Name | Type | Required | Description |")
         payload_table_lines.append("|------|------|----------|-------------|")
@@ -460,10 +499,11 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
             payload_table_lines.append(f"| **Variant: `{vtype}`** | | | |")
             req_fields = set(vs.get("required", []))
             for pn, ps in vs.get("properties", {}).items():
+                if pn not in req_fields:
+                    continue
                 ts = get_type_str(ps)
-                rq = "yes" if pn in req_fields else "no"
                 d = (ps.get("description") or "").replace("\n", " ").replace("|", "\\|")
-                payload_table_lines.append(f"| {pn} | {ts} | {rq} | {d} |")
+                payload_table_lines.append(f"| {pn} | {ts} | yes | {d} |")
 
             example = schema_to_example(vs)
             if example:
@@ -477,54 +517,36 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
         payload_table_lines.append("|------|------|----------|-------------|")
         req_fields = set(resolved.get("required", []))
         for pn, ps in resolved["properties"].items():
+            if pn not in req_fields:
+                continue
             ts = get_type_str(ps)
-            rq = "yes" if pn in req_fields else "no"
             d = (ps.get("description") or "").replace("\n", " ").replace("|", "\\|")
-            payload_table_lines.append(f"| {pn} | {ts} | {rq} | {d} |")
+            payload_table_lines.append(f"| {pn} | {ts} | yes | {d} |")
         example = schema_to_example(resolved)
         if example:
             ej = json.dumps(example, indent=2)
-            payload_examples = f"\n\n## Payload Schema\n```json\n{ej}\n```"
+            payload_examples = f"\n\n### Payload Schema\n```json\n{ej}\n```"
 
     payload_table = "\n".join(payload_table_lines) if payload_table_lines else "See payload examples below."
 
     fn = sanitize_func_name(title)
 
+    desc_clean = " ".join(description.split()) if description else ""
+    desc_line = f"\n\n> **What this webhook does:** {desc_clean}" if desc_clean else ""
+
     prompt = (
-        f"# Handle {title} — WEBHOOK\n\n"
-        f"**You are a senior backend engineer. Your task: set up a handler to receive and "
-        f"process this webhook payload in the existing codebase with minimal, surgical "
-        f"changes. Do not refactor, rename, or restructure anything beyond what is "
-        f"required for this integration.**\n\n"
-        f"## Webhook Details\n"
-        f"- **Type:** Incoming Webhook\n"
-        f"- **Payload Format:** JSON (POST)\n"
-        f"- **Description:** {description}\n\n"
-        f"## Payload Fields\n"
+        f"# Bluejay \u2014 Testing & Monitoring Platform for Conversational AI Agents\n\n"
+        f"You are a senior backend engineer integrating the Bluejay API. "
+        f"Think step-by-step: first understand the webhook payload, then plan "
+        f"the handler, then implement with minimal changes.\n\n"
+        f"## Handle {title} \u2014 WEBHOOK"
+        f"{desc_line}\n\n"
+        f"**Type:** Incoming Webhook (JSON POST)\n"
+        f"\n### Required Payload Fields\n"
         f"{payload_table}"
         f"{payload_examples}\n\n"
-        f"## Integration Instructions\n"
-        f"1. Create or locate the appropriate webhook handler module.\n"
-        f"2. Implement a route/endpoint to receive the webhook POST request.\n"
-        f"3. Validate the incoming payload structure.\n"
-        f"4. Process the webhook data according to business logic.\n"
-        f"5. Return an appropriate response (200 OK) to acknowledge receipt.\n\n"
-        f"## Few-Shot Example\n"
-        f"**Flask webhook handler:**\n"
-        f"```python\n"
-        f"from flask import Flask, request, jsonify\n\n"
-        f"app = Flask(__name__)\n\n"
-        f'@app.route("/webhooks/{webhook_id}", methods=["POST"])\n'
-        f"def handle_{fn}():\n"
-        f"    payload = request.get_json()\n"
-        f"    if not payload:\n"
-        f'        return jsonify({{"error": "Invalid payload"}}), 400\n'
-        f'    event_type = payload.get("type")\n'
-        f"    # Process based on event type\n"
-        f"    # ...\n"
-        f'    return jsonify({{"status": "received"}}), 200\n'
-        f"```\n\n"
-        f"**FastAPI webhook handler:**\n"
+        f"Refer to the Bluejay API documentation for additional optional payload fields.\n\n"
+        f"### Example\n"
         f"```python\n"
         f"from fastapi import FastAPI, Request\n\n"
         f"app = FastAPI()\n\n"
@@ -532,17 +554,19 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
         f"async def handle_{fn}(request: Request):\n"
         f"    payload = await request.json()\n"
         f'    event_type = payload.get("type")\n'
-        f"    # Process based on event type\n"
-        f"    # ...\n"
+        f"    # process based on event type\n"
         f'    return {{"status": "received"}}\n'
         f"```\n\n"
-        f"## Constraints\n"
-        f"- **Be concise.** Only add/change files directly needed for this integration.\n"
-        f"- **Match existing patterns** in the codebase (naming, file structure, error handling).\n"
-        f"- **Do not** install new dependencies unless absolutely required.\n"
-        f"- **Do not** modify unrelated files.\n\n"
-        f"**Reminder: Set up this webhook handler fully and correctly. "
-        f"Minimal diff, maximum correctness.**"
+        f"### Constraints\n"
+        f"- Minimal changes \u2014 only add/change files needed for this integration.\n"
+        f"- Match existing codebase patterns (naming, file structure, error handling).\n"
+        f"- Return a 200 OK response to acknowledge receipt.\n\n"
+        f"### Integration Checklist\n"
+        f"Before writing code, verify:\n"
+        f"1. Which module/service owns webhook handling in the codebase?\n"
+        f"2. What routing and validation patterns does the project use?\n"
+        f"3. Are there existing types/interfaces to extend?\n\n"
+        f"Then implement the handler, export it, and confirm it compiles/passes lint."
     )
     return prompt
 
@@ -572,18 +596,27 @@ def parse_frontmatter(content):
 # File processing
 # ---------------------------------------------------------------------------
 
+def _slug_from_filepath(filepath):
+    """Derive a URL-safe slug from the MDX filename."""
+    basename = os.path.splitext(os.path.basename(filepath))[0]
+    return re.sub(r"[^a-z0-9\-]", "-", basename.lower())
+
+
 def process_file(filepath, spec):
     """Read MDX, look up operation, generate accordion, write back."""
     with open(filepath, "r") as f:
         content = f.read()
 
-    if '<Accordion title="Copy AI Integration Prompt">' in content:
-        content = re.sub(
-            r'\n<Accordion title="Copy AI Integration Prompt">\n````\n.*?\n````\n</Accordion>\n',
-            "",
-            content,
-            flags=re.DOTALL,
-        )
+    # strip old prompt section formats
+    for pattern in [
+        r'\n<div className="ai-prompt-box">\n<div className="ai-prompt-box-header">.*?````\n</div>\n',
+        r'\n<Accordion title="Prompt for AI Agents">\n````\n.*?\n````\n</Accordion>\n',
+        r'\n<Accordion title="Integration Prompt for AI Agents">\n````\n.*?\n````\n</Accordion>\n',
+        r'\n<div className="ai-prompt-section">.*?</div>\n</div>\n',
+        r'\n<div className="ai-prompt-section">.*?</Accordion>\n</div>\n',
+        r'\n<Accordion title="Copy AI Integration Prompt">\n````\n.*?\n````\n</Accordion>\n',
+    ]:
+        content = re.sub(pattern, "", content, flags=re.DOTALL)
 
     fm, end_idx = parse_frontmatter(content)
     if not fm or "openapi" not in fm:
@@ -593,25 +626,23 @@ def process_file(filepath, spec):
     title = fm.get("title", "Unknown Endpoint")
     frontmatter = content[:end_idx]
     body = content[end_idx:]
+    slug = _slug_from_filepath(filepath)
 
     if openapi_val.startswith("WEBHOOK"):
         webhook_id = openapi_val.split(" ", 1)[1].strip()
         op = spec.get("webhooks", {}).get(webhook_id, {}).get("post", {})
         if not op:
             prompt = (
-                f"# Handle {title} — WEBHOOK\n\n"
-                f"**You are a senior backend engineer. Your task: set up a handler to "
-                f"receive and process this webhook payload with minimal, surgical changes.**\n\n"
-                f"## Webhook Details\n"
+                f"# Bluejay \u2014 Testing & Monitoring Platform for Conversational AI Agents\n\n"
+                f"## Handle {title} \u2014 WEBHOOK\n\n"
+                f"Set up a handler to receive and process this webhook payload.\n\n"
+                f"### Webhook Details\n"
                 f"- **Type:** Incoming Webhook\n"
                 f"- **Payload Format:** JSON (POST)\n\n"
-                f"## Integration Instructions\n"
-                f"1. Create or locate the appropriate webhook handler module.\n"
-                f"2. Implement a route/endpoint to receive the webhook POST request.\n"
-                f"3. Validate the incoming payload structure.\n"
-                f"4. Return a 200 OK response to acknowledge receipt.\n\n"
-                f"**Reminder: Set up this webhook handler fully and correctly. "
-                f"Minimal diff, maximum correctness.**"
+                f"### Constraints\n"
+                f"- Minimal changes \u2014 only add/change files needed for this integration.\n"
+                f"- Match existing codebase patterns.\n"
+                f"- Return a 200 OK response to acknowledge receipt."
             )
         else:
             prompt = generate_webhook_prompt(spec, title, webhook_id, op)
@@ -623,14 +654,15 @@ def process_file(filepath, spec):
         op = spec.get("paths", {}).get(path, {}).get(method.lower(), {})
         if not op:
             return "warn"
-        prompt = generate_endpoint_prompt(spec, title, method, path, op)
+        prompt = generate_endpoint_prompt(spec, title, method, path, op, docs_slug=slug)
 
     accordion = (
-        '\n<Accordion title="Copy AI Integration Prompt">\n'
-        "````\n"
+        f'\n<div className="ai-prompt-box">\n'
+        f'<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>\n'
+        f"````\n"
         f"{prompt}\n"
-        "````\n"
-        "</Accordion>\n"
+        f"````\n"
+        f"</div>\n"
     )
 
     new_content = frontmatter + accordion + body

@@ -3,25 +3,28 @@ title: 'End Conversations'
 description: ''
 openapi: 'POST /v1/end-conversations'
 ---
-<Accordion title="Copy AI Integration Prompt">
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Integrate End Conversations — POST /v1/end-conversations
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Endpoint Details
-- **Method:** POST
-- **URL:** `https://api.getbluejay.ai/v1/end-conversations`
-- **Auth:** API Key via `X-API-Key` header
-- **Content-Type:** application/json
+## End Conversations — POST /v1/end-conversations
 
-## Parameters
-| Name | Location | Type | Required | Description |
-|------|----------|------|----------|-------------|
-| X-API-Key | header | string | yes | API key required to authenticate requests. |
-| test_result_ids | body | array[integer] | yes | List of test result IDs to end |
+> **What this endpoint does:** End multiple running conversations by marking them in Redis for the LiveKit agent to terminate. This endpoint: 1. Checks that each test result exists and is in RUNNING status 2. Writes control objects to Redis for the LiveKit agent to pick up 3. Schedules a 30-second fallback watchdog for each conversation 4. Returns which conversations were successfully marked for ending and which failed The fallback watchdog ensures that if LiveKit fails to respond, the conversation status will be updated after 30 seconds to prevent it from appearing stuck forever.
 
-## Request Body Schema
+**Endpoint:** POST `https://api.getbluejay.ai/v1/end-conversations`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| test_result_ids | array[integer] | List of test result IDs to end |
+
+### Request Body (required fields)
 ```json
 {
   "test_result_ids": [
@@ -30,31 +33,9 @@ openapi: 'POST /v1/end-conversations'
 }
 ```
 
-## Response
-- **Success (200):**
-```json
-{
-  "success": true,
-  "ended_count": 123,
-  "test_result_ids": [
-    123
-  ],
-  "failed_ids": [
-    123
-  ],
-  "message": "string"
-}
-```
-- **Key error codes:** 422: Validation Error
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/end-conversations. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
-## Integration Instructions
-1. Create or locate the appropriate service/module for this API domain.
-2. Implement the API call using the project's existing HTTP client and patterns.
-3. Include proper error handling for the documented error codes.
-4. Add TypeScript types / interfaces for request params and response shape (if TS project).
-5. Export the function so it's consumable by the rest of the codebase.
-
-## Few-Shot Example
+### Example
 **POST with body:**
 ```python
 import requests
@@ -67,15 +48,20 @@ def end_conversations(payload: dict, api_key: str) -> dict:
     return response.json()
 ```
 
-## Constraints
-- **Be concise.** Only add/change files directly needed for this integration.
-- **Match existing patterns** in the codebase (naming, file structure, error handling).
-- **Do not** install new dependencies unless absolutely required.
-- **Do not** modify unrelated files.
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
 
-**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</Accordion>
+</div>
 
 
 End multiple running conversations by marking them for termination. Once marked, conversations will end within 20 seconds.
