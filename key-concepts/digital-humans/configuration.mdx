@@ -1,0 +1,146 @@
+---
+title: Configuration
+description: Configure Digital Human behavior, voice traits, scripted responses, DTMF, and IVR simulation
+icon: gear
+---
+
+Digital Humans are highly configurable. You can change their accents, languages, background noises, emotions, speaking speeds, and more. This page covers every configuration lever available to you.
+
+## Voice & Speech Settings
+
+These settings control how the Digital Human sounds during a conversation with your agent.
+
+| Setting | Description | Example Values |
+|---|---|---|
+| **Language** | The language the Digital Human speaks | English, Spanish, Mandarin, Hindi, French |
+| **Accent** | Regional accent applied to speech | British, Southern US, Latin American, Australian |
+| **Speaking Speed** | How fast or slow the Digital Human talks | Slow, Normal, Fast |
+| **Emotion** | The emotional tone of the conversation | Calm, Frustrated, Anxious, Cheerful, Angry |
+| **Volume** | How loudly the Digital Human speaks | Quiet, Normal, Loud |
+| **Background Noise** | Ambient sounds during the conversation | Office, Street, Airport, Car, None |
+
+<Tip>
+Combining settings creates realistic personas. A frustrated customer calling from a noisy airport behaves very differently from a calm customer in a quiet home office -- and your agent should handle both.
+</Tip>
+
+## Intent & Success Criteria
+
+Every Digital Human needs a clear intent and success criteria to produce meaningful test results.
+
+### Defining Intent
+
+The intent is **what the Digital Human wants to accomplish** in the conversation. Write it as a clear scenario description:
+
+```md
+Intent: "I'm calling because I was charged twice for my monthly subscription.
+I want a refund for the duplicate charge and confirmation that it won't
+happen again next month."
+```
+
+### Defining Success Criteria
+
+Success criteria are the **conditions that determine whether the test passed**. They should be specific and measurable:
+
+```md
+Success Criteria:
+- The agent acknowledged the duplicate charge
+- The agent initiated a refund or escalated to billing
+- The agent provided a confirmation number or next steps
+```
+
+<Note>
+The more specific your success criteria, the more actionable your simulation results will be. Avoid vague criteria like "the agent was helpful" -- instead, define exactly what "helpful" means for that scenario.
+</Note>
+
+## Advanced Behaviors
+
+Digital Humans can do far more than just talk. These advanced behaviors let you test scenarios that standard conversational testing can't reach.
+
+### Scripted Responses
+
+Configure a Digital Human to provide **specific responses depending on what your agent says**. This is useful when you need deterministic behavior for regression testing.
+
+<Steps>
+  <Step title="Define trigger phrases">
+    Specify what the agent might say that should trigger a scripted response -- for example, "Can I have your account number?"
+  </Step>
+  <Step title="Map scripted replies">
+    Define the exact response the Digital Human should give when the trigger is matched -- for example, "Sure, it's 4829-3371."
+  </Step>
+  <Step title="Set fallback behavior">
+    Decide what happens when no trigger matches. The Digital Human can continue with natural conversation or stay on script.
+  </Step>
+</Steps>
+
+### DTMF Codes
+
+Digital Humans can **send DTMF (touch-tone) codes** during a call. This is critical for testing agents that require keypad input -- such as entering an account number, selecting a menu option, or confirming a PIN.
+
+```md
+DTMF Sequence: "1" → "4829" → "#"
+Trigger: After the agent says "Please enter your account number followed by the pound sign"
+```
+
+### Silence Simulation
+
+Configure a Digital Human to **stay silent** for a specified duration. This tests how your agent handles dead air -- does it re-prompt the customer? Does it escalate? Does it hang up too early?
+
+### IVR System Simulation
+
+Digital Humans can **simulate an IVR (Interactive Voice Response) system** so your agent can navigate through it. This is the inverse of the typical setup -- instead of a human calling your agent, your agent is calling into a phone tree, and the Digital Human plays the role of that phone tree.
+
+<Steps>
+  <Step title="Define the IVR menu tree">
+    Map out the menu structure: "Press 1 for Sales, Press 2 for Support, Press 3 for Billing."
+  </Step>
+  <Step title="Configure agent navigation">
+    Set the expected path your agent should take through the IVR to reach the correct department.
+  </Step>
+  <Step title="Validate the outcome">
+    Define success criteria for the agent successfully navigating the IVR and reaching the intended endpoint.
+  </Step>
+</Steps>
+
+## Configuration Combinations
+
+The power of Digital Humans comes from combining these settings. Here are a few example configurations:
+
+<CardGroup cols={2}>
+  <Card title="Frustrated bilingual caller" icon="language">
+    **Language:** Spanish → English mid-call  
+    **Emotion:** Frustrated  
+    **Speed:** Fast  
+    **Intent:** Billing dispute, wants to speak to a manager  
+    **Success:** Agent de-escalates and resolves without transfer
+  </Card>
+  <Card title="Silent customer on hold" icon="volume-xmark">
+    **Silence:** 15 seconds after greeting  
+    **Emotion:** Neutral  
+    **Intent:** Waiting for agent to re-engage  
+    **Success:** Agent re-prompts within 10 seconds, doesn't disconnect
+  </Card>
+  <Card title="DTMF account verification" icon="phone">
+    **DTMF:** Sends account number when prompted  
+    **Emotion:** Calm  
+    **Background:** Office  
+    **Intent:** Check account balance  
+    **Success:** Agent correctly reads back the balance
+  </Card>
+  <Card title="IVR navigation test" icon="diagram-project">
+    **Mode:** IVR simulation  
+    **Menu:** 3-level phone tree  
+    **Intent:** Agent must reach "Billing → Refunds → Existing Case"  
+    **Success:** Agent arrives at correct endpoint within 60 seconds
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Use Cases" icon="lightbulb" href="/key-concepts/digital-humans/use-cases">
+    See real-world patterns for building effective Digital Human test suites.
+  </Card>
+  <Card title="Generate via API" icon="code" href="/api-reference/endpoint/generate-digital-humans">
+    Create Digital Humans programmatically with the generation endpoint.
+  </Card>
+</CardGroup>

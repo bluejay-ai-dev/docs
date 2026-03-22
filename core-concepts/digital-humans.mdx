@@ -1,63 +1,150 @@
 ---
-title: 'Digital Humans'
-description: 'Learn about Bluejay digital humans'
+title: 'Digital Humans Deep Dive'
+description: 'Complete reference for Digital Human fields, generation, and best practices'
 icon: users
 ---
 
-Digital Humans are Bluejay's dynamic representation of the customers that interact with your agents. These virtual customers are meticulously crafted to simulate authentic human interactions, enabling realistic testing scenarios and providing insightful observability into agent performance.
+This page serves as the detailed reference for Digital Humans on Bluejay. For a conceptual overview, start with the [Digital Humans Overview](/key-concepts/digital-humans/overview).
 
 ## What Is a Digital Human?
 
-A **Digital Human** is Bluejay’s lifelike simulation of a customer who engages your agents through calls. Constructed from detailed descriptions and explicit goals provided during your agent's creation, these digital customers enable highly realistic and targeted interaction scenarios.
+A **Digital Human** is a synthetic replica of a customer that interacts with your agent during Bluejay simulations. Each Digital Human carries an intent, success criteria, and a set of behavioral traits that together form a single, self-contained test case.
 
-## How Bluejay Constructs Digital Humans
+Digital Humans are the atomic unit of testing on Bluejay. A simulation runs one or more Digital Humans against your agent, producing a transcript and evaluation result for each interaction.
 
-Bluejay creates Digital Humans based on the comprehensive details you provide during the Agent creation process. A strong emphasis is placed on your defined agent goals, ensuring interactions are purposeful and aligned with your desired outcomes.
+## Digital Human Fields
 
-Digital Humans on Bluejay feature:
+Every Digital Human is defined by the following fields:
 
-- **Multilingual Capabilities**
-  - Fluent in multiple languages, allowing extensive international and diverse scenario simulations.
+| Field | Type | Description |
+|---|---|---|
+| **Intent** | String | What the Digital Human wants to accomplish in the conversation |
+| **Success Criteria** | List | Conditions that must be met for the interaction to be considered successful |
+| **Language** | String | The language the Digital Human speaks (e.g., English, Spanish, Mandarin) |
+| **Accent** | String | Regional accent applied to speech (e.g., British, Southern US, Latin American) |
+| **Emotion** | String | Emotional tone (e.g., Calm, Frustrated, Anxious, Angry, Cheerful) |
+| **Speaking Speed** | String | Pace of speech (Slow, Normal, Fast) |
+| **Volume** | String | How loud the Digital Human speaks (Quiet, Normal, Loud) |
+| **Background Noise** | String | Ambient sounds during the call (Office, Airport, Car, None) |
+| **Scripted Responses** | Map | Trigger-response pairs for deterministic behavior |
+| **DTMF Sequences** | List | Touch-tone codes to send during the call |
+| **Silence Duration** | Number | Seconds the Digital Human stays silent at a specified point |
 
-- **Diverse Accents**
-  - Varied accents representing global customer bases, enhancing realism and practical usability of simulations.
+## How Bluejay Generates Digital Humans
 
-- **Emotional Range**
-  - Expressive emotional capabilities that enable nuanced interaction scenarios, from calm inquiries to challenging customer service situations.
+When you use the generation endpoint, Bluejay creates Digital Humans based on the context you've provided about your agent. The generation process works in three stages:
 
-- **Variable Tone, Volume, and Speed**
-  - Adjustable vocal characteristics to simulate diverse customer interactions realistically, capturing the complexity of human conversation.
+```mermaid
+flowchart LR
+    Input["Agent Description\n+ Goals\n+ Known Scenarios"] --> Gen["Bluejay\nGeneration Engine"]
+    Gen --> DH1["Digital Human 1\nBilling Dispute\nFrustrated, English"]
+    Gen --> DH2["Digital Human 2\nNew Account Setup\nCalm, Spanish"]
+    Gen --> DH3["Digital Human 3\nTechnical Support\nAnxious, Fast Speech"]
+    Gen --> DHN["... up to 100"]
+```
 
-## Importance of Digital Humans
+<Steps>
+  <Step title="Context ingestion">
+    Bluejay reads your agent's description, system prompt, goals, and any existing Digital Humans to understand the problem space.
+  </Step>
+  <Step title="Scenario diversification">
+    The generation engine creates a diverse set of intents and customer profiles, varying across languages, emotions, complexity levels, and scenario types.
+  </Step>
+  <Step title="Criteria assignment">
+    Each generated Digital Human receives tailored success criteria aligned to its specific intent and your agent's expected behavior.
+  </Step>
+</Steps>
 
-Digital Humans are essential for accurate and effective simulations, providing:
+<Tip>
+The more you tell Bluejay about your agent's behavior, the better the generation engine can produce diverse, relevant Digital Humans. Include edge cases, known failure modes, and multi-step workflows in your agent description.
+</Tip>
 
-- Ultra-realistic interaction scenarios tailored to your agent’s specific capabilities and goals.
-- Deep insights into agent performance under varied, authentic conditions.
-- Enhanced ability to optimize agents through comprehensive, realistic testing scenarios.
+## Intent Design
+
+A well-written intent is specific, actionable, and reflects a real customer scenario. Here's how to think about writing intents:
+
+**Weak intent:**
+```
+"Ask about billing"
+```
+
+**Strong intent:**
+```
+"I was charged $49.99 on March 3rd but I cancelled my subscription on February 28th.
+I want a full refund and written confirmation that no further charges will occur."
+```
+
+Strong intents give the Digital Human a clear objective and provide enough context for the conversation to feel authentic. They also make success criteria easier to define because the expected outcome is already implied.
+
+## Success Criteria Design
+
+Success criteria should be **specific, observable, and binary**. Each criterion should be something Bluejay can evaluate from the transcript alone.
+
+**Good criteria:**
+- The agent acknowledged the duplicate charge within the first 3 turns
+- The agent offered a refund or escalated to billing
+- The agent did not share account balance before verifying identity
+
+**Bad criteria:**
+- The agent was helpful
+- The conversation went well
+- The agent sounded professional
+
+## Scripted Responses vs. Natural Conversation
+
+Digital Humans support two conversation modes:
+
+<CardGroup cols={2}>
+  <Card title="Natural conversation" icon="comments">
+    The Digital Human responds dynamically based on its intent and traits. Best for exploratory testing and discovering unexpected agent behaviors.
+  </Card>
+  <Card title="Scripted responses" icon="scroll">
+    The Digital Human follows a predetermined script, responding with specific phrases when triggered. Best for regression testing and deterministic validation.
+  </Card>
+</CardGroup>
+
+You can mix both modes -- a Digital Human can follow a script for the first few turns (providing account details, answering verification questions) and then switch to natural conversation for the resolution phase.
+
+## Communities
+
+Digital Humans can be grouped into **Communities** -- reusable sets of personas that form a benchmark population. Communities enable:
+
+- **Consistent benchmarks** -- run the same set of Digital Humans against different agent versions to compare performance over time
+- **Audience segmentation** -- organize Digital Humans by customer type, language, or scenario category
+- **Cross-agent testing** -- use one Community across multiple agents to see how different agents handle the same customers
+
+See the [Communities](/key-concepts/communities/overview) documentation for details on creating and managing Communities.
 
 ## Best Practices
 
-- **Detailed Agent Goals:** Clearly define your agent’s goals to maximize the realism and effectiveness of digital human interactions.
-- **Regular Scenario Updates:** Continuously refine and expand the scope of your scenarios to reflect evolving real-world interactions and challenges.
-- **Diverse Scenario Profiles:** Leverage Bluejay’s multilingual and emotional range to create diverse, comprehensive testing environments.
+<Steps>
+  <Step title="Start with your real customers">
+    Review your production call logs, support tickets, and customer feedback. Build Digital Humans that reflect the actual scenarios your agent encounters.
+  </Step>
+  <Step title="Cover the full spectrum">
+    Don't only test the happy path. Create Digital Humans for edge cases, adversarial scenarios, multilingual interactions, and silence/timeout conditions.
+  </Step>
+  <Step title="Be specific with success criteria">
+    Vague criteria produce vague results. Write criteria that are observable in a transcript and leave no room for interpretation.
+  </Step>
+  <Step title="Iterate and expand">
+    Start with a small set of targeted Digital Humans. As you discover new failure modes in production, add corresponding Digital Humans to your simulation suite.
+  </Step>
+  <Step title="Use generation for breadth, manual for depth">
+    Generate large populations to discover unexpected scenarios. Then create hand-crafted Digital Humans for your most critical and nuanced test cases.
+  </Step>
+</Steps>
 
-## Example Digital Human Scenario
+## API Reference
 
-```md
-Language: "Spanish"
-
-Accent: "Latin American"
-
-Emotion: "Frustrated"
-
-Tone: "Assertive"
-
-Volume: "Loud"
-
-Speed: "Fast"
-
-Scenario Goals:
-- Resolve billing dispute quickly
-- Test agent’s ability to handle high-stress situations
-- Assess effectiveness in escalating or defusing tension
+<CardGroup cols={3}>
+  <Card title="Create" icon="plus" href="/api-reference/endpoint/create-digital-human">
+    Create a single Digital Human with full configuration.
+  </Card>
+  <Card title="Generate" icon="wand-magic-sparkles" href="/api-reference/endpoint/generate-digital-humans">
+    Auto-generate up to 100 diverse Digital Humans.
+  </Card>
+  <Card title="Update" icon="pen" href="/api-reference/endpoint/update-digital-human">
+    Modify an existing Digital Human's fields.
+  </Card>
+</CardGroup>
