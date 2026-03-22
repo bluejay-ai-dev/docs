@@ -3,6 +3,119 @@ title: 'Create Custom Metrics'
 description: ''
 openapi: 'POST /v1/create-custom-metrics'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Create Custom Metrics — POST /v1/create-custom-metrics
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/create-custom-metrics`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| metrics | body | array[object] | yes | List of custom metrics to create |
+
+## Request Body Schema
+```json
+{
+  "metrics": [
+    {
+      "agent_id": 123,
+      "agent_ids": [
+        123
+      ],
+      "name": "example_name",
+      "description": "string",
+      "response_type": "pass_fail",
+      "min_value": 1.0,
+      "max_value": 1.0,
+      "category": "string",
+      "tags": [
+        "string"
+      ],
+      "scoring_guidance": "string",
+      "eval_route": "AUDIO",
+      "model": "string",
+      "temperature": 1.0,
+      "enum_options": [
+        "string"
+      ],
+      "allow_not_applicable": false
+    }
+  ]
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "metrics": [
+    {
+      "id": "string",
+      "name": "example_name",
+      "description": "string",
+      "response_type": "pass_fail",
+      "agent_ids": [
+        123
+      ],
+      "min_value": 1.0,
+      "max_value": 1.0,
+      "category": "string",
+      "tags": [
+        "string"
+      ],
+      "scoring_guidance": "string",
+      "created_at": "string",
+      "eval_route": "AUDIO",
+      "model": "string",
+      "temperature": 1.0,
+      "enum_options": [
+        "string"
+      ],
+      "allow_not_applicable": false
+    }
+  ]
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def create_custom_metrics(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/create-custom-metrics"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 Create multiple custom metrics synchronously using a single bulk insert.
 

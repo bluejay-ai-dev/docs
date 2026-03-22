@@ -3,6 +3,74 @@ title: 'Move Agent to Folder'
 description: ''
 openapi: 'PUT /v1/folders/move-agent'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Move Agent to Folder — PUT /v1/folders/move-agent
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** PUT
+- **URL:** `https://api.getbluejay.ai/v1/folders/move-agent`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| agent_id | body | integer | yes | ID of the agent to move |
+| folder_id | body | string (nullable) | no | ID of the target folder (null to disassociate from any folder) |
+
+## Request Body Schema
+```json
+{
+  "agent_id": 123,
+  "folder_id": "string"
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "agent_id": 123,
+  "folder_id": "string",
+  "status": "success"
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**PUT with body:**
+```python
+import requests
+
+def move_agent_to_folder(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/folders/move-agent"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 Associate an agent with a folder or disassociate it from any folder. Both the agent and folder (if provided) must belong to your organization.
 

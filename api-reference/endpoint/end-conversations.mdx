@@ -3,5 +3,79 @@ title: 'End Conversations'
 description: ''
 openapi: 'POST /v1/end-conversations'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate End Conversations — POST /v1/end-conversations
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/end-conversations`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| test_result_ids | body | array[integer] | yes | List of test result IDs to end |
+
+## Request Body Schema
+```json
+{
+  "test_result_ids": [
+    123
+  ]
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "success": true,
+  "ended_count": 123,
+  "test_result_ids": [
+    123
+  ],
+  "failed_ids": [
+    123
+  ],
+  "message": "string"
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def end_conversations(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/end-conversations"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 End multiple running conversations by marking them for termination. Once marked, conversations will end within 20 seconds.

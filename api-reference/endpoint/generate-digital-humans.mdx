@@ -3,4 +3,121 @@ title: 'Generate Digital Humans'
 description: ''
 openapi: 'POST /v1/generate-digital-humans'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Generate Digital Humans — POST /v1/generate-digital-humans
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/generate-digital-humans`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| agent_id | body | string | yes | ID of the agent to be used to generate the digital humans |
+| simulation_id | body | string (nullable) | no | Optionally attach the digital humans to a simulation |
+| prompt_id | body | string (nullable) | no | Prompt UUID associated with the simulation |
+| knowledge_base_id | body | string (nullable) | no | Knowledge base UUID associated with the simulation |
+| goal_adherence | body | array[object] (nullable) | no | List of goal adherence scenarios |
+| workflow_adherence | body | object (nullable) | no | Dictionary of workflow IDs and their counts |
+| replay_transcript | body | array[object | object] (nullable) | no | List of transcript replays to generate digital humans from |
+| customer_personas | body | array[object] (nullable) | no | List of customer personas to be used in the simulation |
+| load_testing | body | integer (nullable) | no | Number of load testing calls (default: 0) |
+| red_teaming | body | integer (nullable) | no | Number of red teaming calls (default: 0) |
+| traits | body | array[object] (nullable) | no | List of traits to apply to all generated digital humans |
+| num_runs | body | integer (nullable) | no | Number of runs per digital human per simulation run (run count). (default: 1) |
+
+## Request Body Schema
+```json
+{
+  "agent_id": "string",
+  "simulation_id": "string",
+  "prompt_id": "string",
+  "knowledge_base_id": "string",
+  "goal_adherence": [
+    {
+      "goal": "string",
+      "num_calls": 123
+    }
+  ],
+  "workflow_adherence": {
+    "key": "value"
+  },
+  "replay_transcript": [
+    {
+      "transcript": "string",
+      "success_criteria": "string",
+      "mode": "strict"
+    }
+  ],
+  "customer_personas": [
+    {
+      "name": "example_name",
+      "description": "string",
+      "goal": "string",
+      "num_calls": 123
+    }
+  ],
+  "load_testing": 123,
+  "red_teaming": 123,
+  "traits": [
+    {
+      "trait_name": "example_name",
+      "trait_data_type": "BOOLEAN",
+      "value": "string",
+      "is_sip_header": false
+    }
+  ],
+  "num_runs": 123
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "digital_humans": [],
+  "status": "200",
+  "success": true,
+  "test_scenarios": [],
+  "warning": "string"
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def generate_digital_humans(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/generate-digital-humans"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
  Given the simulation ID, and type of digital humans you would like to create, this endpoint generates digital humans returns their data.

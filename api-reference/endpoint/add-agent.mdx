@@ -3,5 +3,135 @@ title: 'Add Agent'
 description: ''
 openapi: 'POST /v1/add-agent'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Add Agent — POST /v1/add-agent
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/add-agent`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| name | body | string | yes | Name of the agent |
+| system_prompt | body | string | yes | System prompt for the agent |
+| knowledge_base | body | string | yes | Knowledge base of the agent |
+| phone_number | body | string (nullable) | no | Phone number associated with the agent |
+| goals | body | array[string] | yes | List of goals for the agent |
+| type | body | string (enum: INBOUND, OUTBOUND) (nullable) | no | INBOUND: Agent receives incoming calls from customers OUTBOUND: Agent makes outgoing calls to customers (default: INBOUND) |
+| connection_type | body | string (enum: SMS, HTTP_WEBHOOK, PHONE, SIP, WEBSOCKET, LIVEKIT, PIPECAT) (nullable) | no | Connection type of the agent (Livekit, Websocket, etc.) |
+| mode | body | string (enum: VOICE, TEXT) (nullable) | no | Modality of the agent (default: VOICE) |
+| keyterms | body | array[string] (nullable) | no | List of keyterms for the agent |
+| external_agent_id | body | string (nullable) | no | External agent ID for the agent |
+| folder | body | string (nullable) | no | Name of the folder to put the agent in |
+| websocket_url | body | string (nullable) | no | WebSocket URL for real-time communication |
+| websocket_username | body | string (nullable) | no | Username for WebSocket authentication |
+| websocket_password | body | string (nullable) | no | Password for WebSocket authentication |
+| sip_uri | body | string (nullable) | no | SIP URI for VoIP calls |
+| sip_username | body | string (nullable) | no | Username for SIP authentication |
+| sip_password | body | string (nullable) | no | Password for SIP authentication |
+| custom_sip_headers | body | object (nullable) | no | Custom headers for SIP requests (Do not include `X-` prefix for the headers, these get added automatically) |
+| redact_pii | body | boolean (nullable) | no | Enable/disable PII redaction (default: False) |
+| livekit_agent_name | body | string (nullable) | no | LiveKit agent name |
+| livekit_metadata | body | object (nullable) | no | LiveKit metadata |
+| pipecat_agent_name | body | string (nullable) | no | Pipecat agent name |
+| pipecat_agent_configuration | body | object (nullable) | no | Pipecat agent configuration |
+| pipecat_room_properties | body | object (nullable) | no | Pipecat room properties |
+| http_webhook | body | string (nullable) | no | HTTP webhook URL for text agent communication |
+| voice_provider | body | string (nullable) | no | Voice provider for the agent |
+| provider_id | body | string (nullable) | no | Provider ID for the agent |
+
+## Request Body Schema
+```json
+{
+  "name": "example_name",
+  "system_prompt": "You are a helpful assistant.",
+  "knowledge_base": "string",
+  "phone_number": "string",
+  "goals": [
+    "string"
+  ],
+  "type": "INBOUND",
+  "connection_type": "SMS",
+  "mode": "VOICE",
+  "keyterms": [
+    "string"
+  ],
+  "external_agent_id": "string",
+  "folder": "string",
+  "websocket_url": "string",
+  "websocket_username": "string",
+  "websocket_password": "string",
+  "sip_uri": "string",
+  "sip_username": "string",
+  "sip_password": "string",
+  "custom_sip_headers": {
+    "key": "value"
+  },
+  "redact_pii": true,
+  "livekit_agent_name": "string",
+  "livekit_metadata": {
+    "key": "value"
+  },
+  "pipecat_agent_name": "string",
+  "pipecat_agent_configuration": {
+    "key": "value"
+  },
+  "pipecat_room_properties": {
+    "key": "value"
+  },
+  "http_webhook": "string",
+  "voice_provider": "string",
+  "provider_id": "string"
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "agent_id": 123,
+  "status": "200",
+  "http_webhook_key": "string"
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def add_agent(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/add-agent"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 Given the name, system prompt, knowledge base, phone number, and goals, this endpoint adds your agent and returns the agent ID.

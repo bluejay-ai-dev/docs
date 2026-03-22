@@ -4,27 +4,62 @@ description: Learn how to connect production conversation data into Bluejay obse
 icon: code
 ---
 
-This tutorial explains the shape of a typical Bluejay observability integration. The goal is to help teams move production conversation data into Bluejay in a clean, repeatable way.
+This tutorial walks you through connecting production conversation data to Bluejay's observability pipeline. By the end, you'll have a working integration that sends calls for evaluation and receives scored results.
 
-## what you need
+## Prerequisites
 
 - A Bluejay account and API key
 - Access to production transcripts, audio, or metadata
 - A place in your stack where completed calls or conversations can be forwarded to Bluejay
 
-## how it is used
+## What You'll Learn
+
+- How to send conversation data to the evaluate endpoint
+- How to receive results via webhook or polling
+- How to structure transcripts, audio, and metadata for best results
+
+## Integration Flow
 
 Most teams connect their runtime or post-call pipeline to the Bluejay evaluate endpoint, attach any useful metadata, and then review the resulting metrics, traces, and alerts inside Monitor.
 
-## recommended flow
+```mermaid
+flowchart LR
+    Provider[Call Provider] --> Capture[Capture Call Data]
+    Capture --> Normalize[Normalize Payload]
+    Normalize --> Send[Send to /evaluate]
+    Send --> Webhook[Receive Results via Webhook]
+    Send --> Poll[Or Poll for Results]
+    Webhook --> Review[Review in Dashboard]
+    Poll --> Review
+```
 
-1. Capture production conversation data from your provider or backend.
-2. Normalize the payload so the transcript, metadata, and identifiers are consistent.
-3. Send the conversation to Bluejay through the observability API.
-4. Review the evaluation output in dashboards, alerts, and downstream tooling.
+## Recommended Steps
 
-## related pages
+<Steps>
+  <Step title="Capture production data">
+    Extract the transcript, audio recording URL, participant roles, and any tool call metadata from your provider or backend.
+  </Step>
+  <Step title="Normalize the payload">
+    Structure the data so the transcript, metadata, and identifiers are consistent with the [evaluate endpoint schema](/api-reference/endpoint/evaluate).
+  </Step>
+  <Step title="Send to Bluejay">
+    POST the conversation to the `/v1/evaluate` endpoint with your API key and agent ID.
+  </Step>
+  <Step title="Receive and review results">
+    Results arrive via your configured [events webhook](/api-reference/webhook/events-webhook) or can be retrieved by [polling the call log](/api-reference/endpoint/retrieve-call-log).
+  </Step>
+</Steps>
 
-- [API Reference introduction](/api-reference/introduction)
-- [Evaluate endpoint](/api-reference/endpoint/evaluate)
-- [Observability overview](/monitor/observability/overview)
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Evaluate Endpoint" icon="code" href="/api-reference/endpoint/evaluate">
+    Full API reference for the evaluate endpoint.
+  </Card>
+  <Card title="Observability Cookbook" icon="book-open" href="/cookbook/observability">
+    Python examples with audio, transcripts, and webhooks.
+  </Card>
+  <Card title="Observability Overview" icon="chart-line" href="/monitor/observability/overview">
+    Understand what gets captured and how results surface.
+  </Card>
+</CardGroup>

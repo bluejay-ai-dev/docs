@@ -3,5 +3,144 @@ title: 'Retrieve Call Logs'
 description: ''
 openapi: 'GET /v1/retrieve-call-logs/{agent_id}'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Retrieve Call Logs — GET /v1/retrieve-call-logs/{agent_id}
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** GET
+- **URL:** `https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}`
+- **Auth:** API Key via `X-API-Key` header
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| agent_id | path | string | yes |  |
+| label | query | string (nullable) | no | Label of the agent to filter by |
+| page_size | query | integer | no | Max calls per page |
+| page | query | integer | no | Page number (1-based) |
+| last | query | string (enum: 1day, 3days, 7days, 30days, 90days, all) | no | Last X days to filter by |
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+
+## Response
+- **Success (200):**
+```json
+{
+  "call_logs": [
+    {
+      "id": "string",
+      "agent_id": "string",
+      "external_agent_id": "string",
+      "recording_url": "string",
+      "start_time_utc": "string",
+      "participants": [
+        {
+          "role": "AGENT",
+          "spoke_first": true,
+          "name": "string",
+          "phone_number": "string"
+        }
+      ],
+      "call_direction": "INBOUND",
+      "interface": "PHONE",
+      "status": "INITIALIZING",
+      "created_at": "string",
+      "transcript_url": "string",
+      "tool_calls": [
+        {
+          "name": "example_name",
+          "start_offset_ms": 123,
+          "description": "string",
+          "parameters": {
+            "key": "value"
+          }
+        }
+      ],
+      "events": [
+        {
+          "title": "string",
+          "start_offset_ms": 123,
+          "description": "string",
+          "end_offset_ms": 123,
+          "tags": [],
+          "metadata": {
+            "key": "value"
+          }
+        }
+      ],
+      "tags": [
+        "string"
+      ],
+      "duration_ms": 123,
+      "evaluations": [
+        {
+          "id": "string",
+          "created_at": "string",
+          "hallucination": true,
+          "hallucination_reasoning": "string",
+          "redundancy": true,
+          "redundancy_reasoning": "string",
+          "agent_speak_percentage": 1.0,
+          "avg_agent_latency": 1.0,
+          "latency": {},
+          "num_turns": 123,
+          "call_summary": "string",
+          "custom_evals": [],
+          "custom_evals_success_rate": 1.0,
+          "goal_success": true,
+          "goal_reasoning": "string",
+          "pronunciation_score": 1.0,
+          "pronunciation_reasoning": "string",
+          "custom_metrics": []
+        }
+      ],
+      "annotations": [],
+      "metadata": {
+        "key": "value"
+      },
+      "custom_metrics": [],
+      "conversation_ended_by": "AGENT"
+    }
+  ],
+  "total_count": 123,
+  "page": 123,
+  "page_size": 123,
+  "total_pages": 123
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**Simple GET:**
+```python
+import requests
+
+def retrieve_call_logs(agent_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 Retrieves the call logs for a specific agent identified by `agent_id`. This endpoint returns detailed information about each call, including evaluations, hallucinations, redundancy, and custom evaluation metrics.

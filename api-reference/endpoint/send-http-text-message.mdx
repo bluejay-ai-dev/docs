@@ -3,5 +3,79 @@ title: 'Send HTTP Text Message'
 description: ''
 openapi: 'POST /v1/send-http-text-message'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Send HTTP Text Message — POST /v1/send-http-text-message
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/send-http-text-message`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| message | body | string | yes | Text message to send |
+| simulation_result_id | body | string | yes | ID of the simulation result (test result) |
+| end_conversation | body | boolean (nullable) | no | If true, skip lambda and end/evaluate the conversation (default: False) |
+| end_turn | body | boolean (nullable) | no | If true, process the message now; if false, stack it for later (default: True) |
+| message_id | body | string (nullable) | no | Unique message ID for deduping within a conversation |
+
+## Request Body Schema
+```json
+{
+  "message": "string",
+  "simulation_result_id": "string",
+  "end_conversation": true,
+  "end_turn": true,
+  "message_id": "string"
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "simulation_result_id": "string",
+  "status": "success",
+  "end_conversation": false
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def send_http_text_message(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/send-http-text-message"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 This endpoint allows you to send HTTP text messages to an active HTTP text simulation run.

@@ -3,5 +3,82 @@ title: 'Queue HTTP Text Simulation Run'
 description: ''
 openapi: 'POST /v1/queue-http-text-simulation-run'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Queue HTTP Text Simulation Run — POST /v1/queue-http-text-simulation-run
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/queue-http-text-simulation-run`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| simulation_id | body | string | yes | ID of the simulation to be run |
+| prompt_id | body | string (nullable) | no | Prompt UUID associated with this run |
+| knowledge_base_id | body | string (nullable) | no | Knowledge base UUID associated with this run |
+| digital_human_ids | body | array[string] (nullable) | no | Digital human IDs to be used in the simulation |
+
+## Request Body Schema
+```json
+{
+  "simulation_id": "string",
+  "prompt_id": "string",
+  "knowledge_base_id": "string",
+  "digital_human_ids": [
+    "string"
+  ]
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "simulation_run_id": "string",
+  "simulation_result_ids": [
+    "string"
+  ],
+  "agent_id": "string",
+  "status": "success"
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def queue_http_text_simulation_run(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/queue-http-text-simulation-run"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 This endpoint initiates a new HTTP text simulation. Once a simulation is started, it is possible to send messages using the "Send HTTP Text Message" endpoint and receive them through the webhook configurable in the agent settings.

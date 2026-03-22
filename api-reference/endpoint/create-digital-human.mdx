@@ -3,5 +3,221 @@ title: 'Create Digital Human'
 description: ''
 openapi: 'POST /v1/create-digital-human'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Create Digital Human — POST /v1/create-digital-human
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/create-digital-human`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+| simulation_ids | body | array[integer] (nullable) | no | List of simulation IDs to associate with this digital human |
+| simulation_id | body | integer (nullable) | no | ID of the associated simulation. Use simulation_ids instead. |
+| digital_human | body | object | yes | Digital human data model for requests (without id and created_at). |
+
+## Request Body Schema
+```json
+{
+  "simulation_ids": [
+    123
+  ],
+  "simulation_id": 123,
+  "digital_human": {
+    "intent": "string",
+    "success_criteria": "string",
+    "name": "string",
+    "tag": "string",
+    "language": "en",
+    "accent": "multilingual",
+    "gender": "male",
+    "background_noise": "none",
+    "voice_speed": "slowest",
+    "audio_quality": "high",
+    "fluency": "beginner",
+    "verbosity": "low",
+    "phone_number": "+15551234567",
+    "outbound_text_number": "string",
+    "background_noise_volume": 1.0,
+    "expected_tool_calls": [
+      {
+        "name": "example_name",
+        "parameters": {
+          "key": "value"
+        }
+      }
+    ],
+    "allow_end_call_tool": true,
+    "endpointing_delay": 1.0,
+    "creativity": 1.0,
+    "hangup_phrases": [
+      "string"
+    ],
+    "hangup_instructions": "string",
+    "silence_timeout": 123,
+    "role_description": "string",
+    "traits": [
+      {
+        "trait_name": "example_name",
+        "trait_data_type": "BOOLEAN",
+        "value": "string",
+        "is_sip_header": false
+      }
+    ],
+    "interruptions": {
+      "type": "none"
+    },
+    "scripted_responses": [
+      {
+        "match_type": "exact",
+        "match_phrase": "string",
+        "response_type": "phrase",
+        "response_value": "string",
+        "occurrence_mode": "always",
+        "occurrence_n": 123,
+        "silence_duration": 123
+      }
+    ],
+    "speaks_first_config": {
+      "speaks_first": true,
+      "mode": "custom",
+      "message": "string"
+    },
+    "original_transcript": "string",
+    "formatted_transcript": [
+      {
+        "key": "value"
+      }
+    ],
+    "num_runs": 123,
+    "livekit_metadata": {
+      "key": "value"
+    }
+  }
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "digital_human": {
+    "id": 123,
+    "intent": "string",
+    "success_criteria": "string",
+    "tag": "string",
+    "name": "string",
+    "language": "en",
+    "accent": "multilingual",
+    "gender": "male",
+    "background_noise": "string",
+    "voice_speed": "string",
+    "audio_quality": "string",
+    "fluency": "string",
+    "verbosity": "string",
+    "phone_number": "string",
+    "outbound_text_number": "string",
+    "websocket_url": "string",
+    "background_noise_volume": 1.0,
+    "expected_tool_calls": [
+      {
+        "name": "example_name",
+        "parameters": {
+          "key": "value"
+        }
+      }
+    ],
+    "allow_end_call_tool": true,
+    "endpointing_delay": 1.0,
+    "creativity": 1.0,
+    "hangup_phrases": [
+      "string"
+    ],
+    "hangup_instructions": "string",
+    "silence_timeout": 123,
+    "role_description": "string",
+    "created_at": "string",
+    "traits": [
+      {
+        "trait_name": "example_name",
+        "trait_data_type": "BOOLEAN",
+        "value": "string",
+        "is_sip_header": false
+      }
+    ],
+    "interruptions": {
+      "key": "value"
+    },
+    "scripted_responses": [
+      {
+        "match_type": "exact",
+        "match_phrase": "string",
+        "response_type": "phrase",
+        "response_value": "string",
+        "occurrence_mode": "always",
+        "occurrence_n": 123,
+        "silence_duration": 123
+      }
+    ],
+    "speaks_first_config": {
+      "speaks_first": true,
+      "mode": "custom",
+      "message": "string"
+    },
+    "original_transcript": "string",
+    "formatted_transcript": [
+      {
+        "key": "value"
+      }
+    ],
+    "livekit_metadata": {
+      "key": "value"
+    }
+  },
+  "simulation_ids": [
+    123
+  ],
+  "simulation_id": 123
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def create_digital_human(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/create-digital-human"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
 
 This endpoint allows you to create a digital human and attach it to a simulation.

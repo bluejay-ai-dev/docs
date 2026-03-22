@@ -2,3 +2,133 @@
 title: 'Evaluate'
 openapi: 'POST /v1/evaluate'
 ---
+<Accordion title="Copy AI Integration Prompt">
+````
+# Integrate Evaluate — POST /v1/evaluate
+
+**You are a senior backend engineer. Your task: integrate the endpoint below into the existing codebase with minimal, surgical changes. Do not refactor, rename, or restructure anything beyond what is required for this integration.**
+
+## Endpoint Details
+- **Method:** POST
+- **URL:** `https://api.getbluejay.ai/v1/evaluate`
+- **Auth:** API Key via `X-API-Key` header
+- **Content-Type:** application/json
+
+## Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| X-API-Key | header | string | yes | API key required to authenticate requests. |
+
+## Request Body Schema
+```json
+{
+  "agent_id": "string",
+  "recording_url": "string",
+  "recording_base64": "string",
+  "start_time_utc": "2024-01-01T00:00:00Z",
+  "participants": [
+    {
+      "role": "AGENT",
+      "spoke_first": true,
+      "name": "string",
+      "phone_number": "string"
+    }
+  ],
+  "call_direction": "INBOUND",
+  "interface": "PHONE",
+  "transcript_url": "string",
+  "transcript": [
+    {
+      "start_offset_ms": 123,
+      "end_offset_ms": 123,
+      "speaker": "AGENT",
+      "utterance": "string"
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "example_name",
+      "start_offset_ms": 123,
+      "description": "string",
+      "parameters": {
+        "key": "value"
+      }
+    }
+  ],
+  "events": [
+    {
+      "title": "string",
+      "start_offset_ms": 123,
+      "description": "string",
+      "end_offset_ms": 123,
+      "tags": [
+        "string"
+      ],
+      "metadata": {
+        "key": "value"
+      }
+    }
+  ],
+  "tags": [
+    "string"
+  ],
+  "trace_id": "string",
+  "created_at": "string",
+  "metadata": {
+    "key": "value"
+  },
+  "webhook_tag": "string",
+  "custom_metrics": [
+    "string"
+  ],
+  "custom_metric_tags": [
+    "string"
+  ],
+  "label": "string",
+  "enable_phrase_latencies": true,
+  "conversation_ended_by": "AGENT",
+  "multichannel": true
+}
+```
+
+## Response
+- **Success (200):**
+```json
+{
+  "status": "string",
+  "call_id": "string",
+  "message": "string"
+}
+```
+- **Key error codes:** 422: Validation Error
+
+## Integration Instructions
+1. Create or locate the appropriate service/module for this API domain.
+2. Implement the API call using the project's existing HTTP client and patterns.
+3. Include proper error handling for the documented error codes.
+4. Add TypeScript types / interfaces for request params and response shape (if TS project).
+5. Export the function so it's consumable by the rest of the codebase.
+
+## Few-Shot Example
+**POST with body:**
+```python
+import requests
+
+def evaluate(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/evaluate"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Constraints
+- **Be concise.** Only add/change files directly needed for this integration.
+- **Match existing patterns** in the codebase (naming, file structure, error handling).
+- **Do not** install new dependencies unless absolutely required.
+- **Do not** modify unrelated files.
+
+**Reminder: Integrate this single endpoint fully and correctly. Minimal diff, maximum correctness.**
+````
+</Accordion>
+
