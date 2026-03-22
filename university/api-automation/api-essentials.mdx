@@ -1,0 +1,124 @@
+---
+title: "API Essentials"
+description: Authenticate, create resources, and run simulations using the Bluejay REST API.
+icon: terminal
+---
+
+<Info>
+**Lesson:** [API & Automation](/university/api-automation/overview) · Topic 1 of 2
+</Info>
+
+## Lesson summary
+
+Everything you can do in the Bluejay dashboard, you can also do through the API. This topic teaches you the basics: how to authenticate, which endpoints matter most, and how to create an Agent and run a simulation with a few HTTP requests. If you are a QA tester who wants to script your tests or plug Bluejay into a pipeline, this is where you start.
+
+## Objectives
+
+- Authenticate API requests with your API key
+- Use the most common endpoints: Agents, Simulations, Evaluate, and Custom Metrics
+- Create an Agent and queue a simulation run programmatically
+- Set up webhooks to receive real-time event notifications
+
+## Video walkthrough
+
+<Note>
+Video coming soon. Follow the written walkthrough below in the meantime.
+</Note>
+
+## Walkthrough
+
+<Steps titleSize="h3">
+  <Step title="Understand the basics">
+    The Bluejay API is a standard REST API. Here are the essentials:
+
+    - **Base URL:** `https://api.getbluejay.ai/v1`
+    - **Authentication:** Include your API key in the `X-API-Key` header on every request
+    - **Format:** All requests and responses use JSON
+
+    ```bash
+    curl -X GET https://api.getbluejay.ai/v1/agents \
+      -H "X-API-Key: YOUR_API_KEY"
+    ```
+
+    For the full API reference, see [API Reference → Introduction](/api-reference/introduction).
+  </Step>
+  <Step title="Learn the key endpoint families">
+    You do not need to memorize every endpoint. Focus on these five families:
+
+    | Family | What it does | Key endpoints |
+    |---|---|---|
+    | **Agents** | Create, update, list, and delete Agents | `POST /agents`, `GET /agents`, `GET /agents/{id}` |
+    | **Simulations** | Create and manage simulation configurations | `POST /simulations`, `GET /simulations` |
+    | **Simulation Runs** | Queue and monitor test runs | `POST /simulations/{id}/run`, `GET /simulation-runs` |
+    | **Evaluate** | Send production calls for scoring | `POST /evaluate` |
+    | **Custom Metrics** | Create and manage evaluation criteria | `POST /custom-metrics`, `GET /custom-metrics` |
+
+    Each family follows the same pattern: create, read, update, delete (CRUD). Once you learn one, the others work the same way.
+  </Step>
+  <Step title="Create an Agent via the API">
+    Here is a complete example that creates an Agent:
+
+    ```bash
+    curl -X POST https://api.getbluejay.ai/v1/agents \
+      -H "X-API-Key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Support Bot v2",
+        "description": "Customer support voice agent",
+        "type": "INBOUND",
+        "mode": "VOICE"
+      }'
+    ```
+
+    The response includes the new Agent's `id`, which you will use in subsequent calls.
+  </Step>
+  <Step title="Queue a simulation run">
+    Once you have a simulation configured (with Digital Humans and metrics attached), you can trigger it from the command line:
+
+    ```bash
+    curl -X POST https://api.getbluejay.ai/v1/simulations/YOUR_SIMULATION_ID/run \
+      -H "X-API-Key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{}'
+    ```
+
+    Bluejay will start the conversations, score them with your Custom Metrics, and store the results. You can retrieve the results later with `GET /simulation-runs`.
+  </Step>
+  <Step title="Set up webhooks">
+    Instead of polling for results, you can have Bluejay notify you when something happens. Webhooks send an HTTP POST to a URL you specify whenever an event occurs.
+
+    The most useful webhook events:
+
+    | Event | When it fires |
+    |---|---|
+    | `simulation_result_evaluated` | A single simulation conversation has been scored |
+    | `simulation_ended` | An entire simulation run has finished |
+    | `observability_call_evaluated` | A production call has been scored |
+
+    To set up webhooks, go to **Settings → Webhooks** in the dashboard or use the API. For the full reference, see [Core Concepts → Webhooks](/core-concepts/webhook).
+  </Step>
+</Steps>
+
+## Activity
+
+<Tip>
+**Hands-on exercise:** Using curl (or your preferred HTTP client), create an Agent via the API. Then list all Agents to verify it was created. Finally, try retrieving the new Agent by its ID. Reference the [API docs](/api-reference/introduction) for exact request and response shapes.
+</Tip>
+
+## Knowledge check
+
+<AccordionGroup>
+  <Accordion title="What header authenticates API requests?">
+    The `X-API-Key` header. Include your API key in this header on every request to the Bluejay API.
+  </Accordion>
+  <Accordion title="What are webhooks used for in Bluejay?">
+    Webhooks send real-time notifications to a URL you specify whenever an event occurs — like a simulation finishing or a production call being scored. They let you react to events without repeatedly polling the API.
+  </Accordion>
+  <Accordion title="Can you do everything through the API that you can do in the dashboard?">
+    Yes. The API provides full CRUD access to Agents, Simulations, Digital Humans, Communities, Custom Metrics, and more. Anything you click in the dashboard has an equivalent API call.
+  </Accordion>
+</AccordionGroup>
+
+## Next topic
+
+Continue to [Topic 2: Workflows & Integrations](/university/api-automation/workflows-integrations).

@@ -1,0 +1,140 @@
+---
+title: "Metrics, Dashboards & Alerts"
+description: Create custom evaluation criteria, visualize quality trends on dashboards, and get notified when things go wrong.
+icon: gauge-high
+---
+
+<Info>
+**Lesson:** [Monitoring, Metrics & Dashboards](/university/observability/overview) · Topic 2 of 2
+</Info>
+
+## Lesson summary
+
+Now that production calls are flowing into Bluejay, you need three things: evaluation criteria that match your business goals, dashboards that show you trends at a glance, and alerts that wake you up when quality drops. This topic covers all three — Custom Metrics, Dashboards, and Alerts — and walks you through setting up each one.
+
+## Objectives
+
+- Create Custom Metrics with clear, specific evaluation criteria
+- Use Metrics Lab to prototype and refine metrics before promoting them
+- Build a dashboard to visualize agent quality over time
+- Set up threshold-based alerts with Slack notifications
+
+## Video walkthrough
+
+<Note>
+Video coming soon. Follow the written walkthrough below in the meantime.
+</Note>
+
+## Walkthrough
+
+<Steps titleSize="h3">
+  <Step title="Create Custom Metrics">
+    Custom Metrics are the evaluation rules Bluejay uses to score every conversation — both simulation runs and production calls. They answer specific questions about the conversation, like "Did the agent confirm the appointment date?" or "Was the disclaimer read aloud?"
+
+    To create one, go to **Custom Metrics** in the sidebar and click **New Metric**. You will need to fill in:
+
+    - **Name:** A short label (e.g., "Greeting check")
+    - **Prompt:** The question Bluejay should answer about the conversation
+    - **Response type:** How the answer should be formatted
+
+    | Response type | What it returns | Example use case |
+    |---|---|---|
+    | **Pass / Fail** | Binary yes/no result | "Did the agent read the required disclaimer?" |
+    | **Yes / No** | Binary with different labeling | "Did the caller express frustration?" |
+    | **Qualitative** | Rating scale (poor / fair / good / excellent) | "Overall conversation quality" |
+    | **Quantitative** | Numeric value | "Number of times the agent interrupted" |
+    | **JSON** | Structured data | "Extract the order details mentioned" |
+    | **Enum** | One value from a predefined list | "Call outcome: resolved / escalated / dropped" |
+
+    For the full reference, see [Key Concepts → Custom Metrics](/key-concepts/custom-metrics/overview).
+  </Step>
+  <Step title="Write effective metrics">
+    The quality of your metrics determines the quality of your scores. Follow these three rules:
+
+    | Rule | Bad example | Good example |
+    |---|---|---|
+    | **Be specific** | "Was the call good?" | "Did the agent confirm the appointment date and time?" |
+    | **Be observable** | "Was the agent helpful?" | "Was the greeting delivered within the first 10 seconds?" |
+    | **Be actionable** | "Rate the call" | "Did the agent offer an escalation path when unable to help?" |
+
+    <Warning>
+    Avoid vague metrics like "Was the call good?" — they produce inconsistent scores and are hard to act on. If you cannot explain exactly what a passing score looks like, the metric needs to be more specific.
+    </Warning>
+  </Step>
+  <Step title="Prototype with Metrics Lab">
+    **Metrics Lab** lets you test a metric against real conversations before you promote it to production scoring. This way you can refine the prompt and see how it scores without affecting live data.
+
+    The workflow:
+    1. Draft a metric in Metrics Lab
+    2. Run it against a set of past conversations (side-by-side comparison)
+    3. Adjust the wording until scores match your expectations
+    4. Promote the metric — it will now score all new conversations automatically
+
+    For the full reference, see [Key Concepts → Metrics Lab](/key-concepts/metrics-lab/overview).
+  </Step>
+  <Step title="Build a dashboard">
+    Dashboards give you a bird's-eye view of agent quality. They combine data from both simulations and production calls into one place.
+
+    What you will see on a dashboard:
+    - **Health scores** — Aggregate pass rates for your Custom Metrics
+    - **Trend lines** — Sparklines showing how metrics change over time
+    - **Alert badges** — Visual indicators when a metric has breached a threshold
+    - **Quick actions** — Run simulations, open call logs, or drill into details
+
+    To create a dashboard, go to the **Dashboards** page and click **New Dashboard**. Select the Agent and metrics you want to track.
+
+    <Tip>
+    Share dashboards with your team by sending them the dashboard URL. Anyone with access to your Bluejay workspace can view it.
+    </Tip>
+
+    For the full reference, see [Key Concepts → Dashboards](/key-concepts/dashboards/overview).
+  </Step>
+  <Step title="Set up alerts">
+    Alerts notify you when a metric drops below a threshold you set. For example, you might want to know the moment your greeting-check metric falls below 80%.
+
+    To create an alert:
+    1. Go to **Monitor → Alarms** and click **New Alarm**
+    2. Select the Custom Metric to watch
+    3. Set the threshold (e.g., "fire when pass rate drops below 80%")
+    4. Choose the notification channel — **Slack** or **email**
+
+    Alerts evaluate after each call is scored. If the threshold is breached, the alert fires immediately.
+
+    For the full reference, see [Key Concepts → Alerts](/key-concepts/alerts/overview).
+  </Step>
+  <Step title="Connect Slack for notifications">
+    To receive alert notifications in Slack:
+
+    1. Go to **Settings → Integrations** and find the **Slack** section
+    2. Click **Connect** and authorize Bluejay in your Slack workspace
+    3. When creating or editing an alarm, select the Slack channel where notifications should go
+
+    When an alert fires, Bluejay sends a message to the channel with the metric name, current value, threshold, and a link to the call log. When the metric recovers above the threshold, it sends a recovery message.
+
+    For the full reference, see [Integrations → Slack](/integrations/slack).
+  </Step>
+</Steps>
+
+## Activity
+
+<Tip>
+**Hands-on exercise:** Create a Custom Metric called "Agent introduction" with a pass/fail response type and the prompt: *"Did the agent introduce itself by name at the start of the conversation?"* Then create an alert (alarm) on this metric that fires when the pass rate drops below 80%. If you have Slack connected, route the alert to a test channel. Verify the alarm appears on the **Monitor → Alarms** page.
+</Tip>
+
+## Knowledge check
+
+<AccordionGroup>
+  <Accordion title="What is the difference between a simulation metric and an observability metric?">
+    There is no structural difference — Custom Metrics are the same entity. They can be used to evaluate both simulation runs and production calls. You create them once and they work everywhere.
+  </Accordion>
+  <Accordion title="How quickly do alerts fire?">
+    Alerts evaluate after each call is scored. If the configured threshold is breached, the alert fires immediately and delivers to the configured channel (Slack or email).
+  </Accordion>
+  <Accordion title="What is Metrics Lab for?">
+    Metrics Lab lets you draft and test a metric against real conversations before promoting it to production. This way you can refine the wording and check that scores match your expectations without affecting live scoring.
+  </Accordion>
+</AccordionGroup>
+
+## Lesson complete
+
+You have finished the Monitoring, Metrics & Dashboards lesson. Continue to [Lesson 4: API & Automation](/university/api-automation/overview).
