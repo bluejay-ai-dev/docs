@@ -671,6 +671,22 @@
                         }
                     },
                     {
+                        "name": "X-Webhook-Secret",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Webhook-Secret"
+                        }
+                    },
+                    {
                         "name": "X-API-Key",
                         "in": "header",
                         "required": true,
@@ -983,7 +999,7 @@
         "/v1/generate-translated-transcript/{test_result_id}": {
             "post": {
                 "summary": "Generate Translated Transcript",
-                "description": "Generate a translated transcript for a given audio file.",
+                "description": "Generate a translated transcript for a given audio file.\n\nArgs:\n    test_result_id: the ID of the test result to generate a translated transcript for.\n\nReturns:\n    a dictionary with the status, message, and translated transcript url.",
                 "operationId": "generate_translated_transcript_v1_generate_translated_transcript__test_result_id__post",
                 "security": [
                     {
@@ -2427,8 +2443,9 @@
                 "tags": [
                     "Simulations"
                 ],
-                "summary": "Add existing digital humans to a simulation",
-                "operationId": "addDigitalHumansToSimulation",
+                "summary": "Add Digital Humans To Simulation",
+                "description": "add existing digital humans to a simulation without replacing existing associations.",
+                "operationId": "add_digital_humans_to_simulation_v1_simulation__simulation_id__add_digital_humans_post",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -2466,27 +2483,11 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Successful Response",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AddDigitalHumansToSimulationResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "404": {
-                        "description": "Simulation not found, or one or more digital humans invalid/inaccessible",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPError"
                                 }
                             }
                         }
@@ -2500,9 +2501,6 @@
                                 }
                             }
                         }
-                    },
-                    "500": {
-                        "description": "Server error"
                     }
                 }
             }
@@ -2512,9 +2510,9 @@
                 "tags": [
                     "Simulations"
                 ],
-                "summary": "Remove digital humans from a simulation (bulk)",
-                "description": "Removes digital humans from a simulation by ID; the digital humans themselves are not deleted.",
-                "operationId": "removeDigitalHumansFromSimulation",
+                "summary": "Remove Digital Humans From Simulation",
+                "description": "remove digital humans from a simulation (unlink only); idempotent for missing links.",
+                "operationId": "remove_digital_humans_from_simulation_v1_simulation__simulation_id__remove_digital_humans_post",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -2552,27 +2550,11 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Successful Response",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RemoveDigitalHumansFromSimulationResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "404": {
-                        "description": "Simulation not found, or validation failed: one or more digital humans were not found or not accessible. Example detail: \"One or more digital humans were not found. Invalid ids: [...]\"",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPError"
                                 }
                             }
                         }
@@ -2586,9 +2568,6 @@
                                 }
                             }
                         }
-                    },
-                    "500": {
-                        "description": "Server error"
                     }
                 }
             }
@@ -3205,14 +3184,14 @@
                 }
             }
         },
-        "/v1/create-alarm": {
+        "/v1/create-alert": {
             "post": {
                 "tags": [
-                    "Alarms"
+                    "Alerts"
                 ],
-                "summary": "Create Alarm",
-                "description": "Create a new alarm with optional agent associations",
-                "operationId": "create_alarm_v1_create_alarm_post",
+                "summary": "Create Alert",
+                "description": "Create a new alert with optional agent associations",
+                "operationId": "create_alert_v1_create_alert_post",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -3234,7 +3213,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateAlarmRequest"
+                                "$ref": "#/components/schemas/CreateAlertRequest"
                             }
                         }
                     }
@@ -3245,7 +3224,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/AlarmResponse"
+                                    "$ref": "#/components/schemas/AlertResponse"
                                 }
                             }
                         }
@@ -3263,14 +3242,14 @@
                 }
             }
         },
-        "/v1/update-alarm/{alarm_id}": {
+        "/v1/update-alert/{alert_id}": {
             "put": {
                 "tags": [
-                    "Alarms"
+                    "Alerts"
                 ],
-                "summary": "Update Alarm",
-                "description": "Update an existing alarm",
-                "operationId": "update_alarm_v1_update_alarm__alarm_id__put",
+                "summary": "Update Alert",
+                "description": "Update an existing alert",
+                "operationId": "update_alert_v1_update_alert__alert_id__put",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -3278,13 +3257,13 @@
                 ],
                 "parameters": [
                     {
-                        "name": "alarm_id",
+                        "name": "alert_id",
                         "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "format": "uuid",
-                            "title": "Alarm Id"
+                            "title": "Alert Id"
                         }
                     },
                     {
@@ -3302,7 +3281,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UpdateAlarmRequest"
+                                "$ref": "#/components/schemas/UpdateAlertRequest"
                             }
                         }
                     }
@@ -3313,7 +3292,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/AlarmResponse"
+                                    "$ref": "#/components/schemas/AlertResponse"
                                 }
                             }
                         }
@@ -3331,14 +3310,14 @@
                 }
             }
         },
-        "/v1/alarm/{alarm_id}": {
+        "/v1/alert/{alert_id}": {
             "delete": {
                 "tags": [
-                    "Alarms"
+                    "Alerts"
                 ],
-                "summary": "Delete Alarm",
-                "description": "Delete an alarm and its agent associations",
-                "operationId": "delete_alarm_v1_alarm__alarm_id__delete",
+                "summary": "Delete Alert",
+                "description": "Delete an alert and its agent associations",
+                "operationId": "delete_alert_v1_alert__alert_id__delete",
                 "security": [
                     {
                         "HTTPBearer": []
@@ -3346,13 +3325,13 @@
                 ],
                 "parameters": [
                     {
-                        "name": "alarm_id",
+                        "name": "alert_id",
                         "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "format": "uuid",
-                            "title": "Alarm Id"
+                            "title": "Alert Id"
                         }
                     },
                     {
@@ -3371,7 +3350,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/DeleteAlarmResponse"
+                                    "$ref": "#/components/schemas/DeleteAlertResponse"
                                 }
                             }
                         }
@@ -4602,6 +4581,119 @@
                                         "$ref": "#/components/schemas/PhoneNumberResponse"
                                     },
                                     "title": "Response Get Phone Numbers V1 Phone Numbers Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/phone-numbers/add": {
+            "post": {
+                "tags": [
+                    "Phone Number Management"
+                ],
+                "summary": "Add Phone Number",
+                "operationId": "add_phone_number_v1_phone_numbers_add_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddPhoneNumberRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddPhoneNumberResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/phone-numbers/{phone_number}/release": {
+            "delete": {
+                "tags": [
+                    "Phone Number Management"
+                ],
+                "summary": "Release Phone Number",
+                "operationId": "release_phone_number_v1_phone_numbers__phone_number__release_delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "phone_number",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Phone Number"
+                        }
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasePhoneNumberResponse"
                                 }
                             }
                         }
@@ -9676,6 +9768,7 @@
                 "enum": [
                     "multilingual",
                     "american",
+                    "american2",
                     "southern",
                     "italian",
                     "indian",
@@ -9763,6 +9856,39 @@
                 ],
                 "title": "AddConversationsToLabResponse",
                 "description": "Response model for adding conversations to a lab"
+            },
+            "AddDigitalHumansToSimulationRequest": {
+                "properties": {
+                    "digital_human_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Digital Human Ids",
+                        "description": "array of existing digital human IDs to add to the simulation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_human_ids"
+                ],
+                "title": "AddDigitalHumansToSimulationRequest",
+                "description": "request body for adding existing digital humans to a simulation."
+            },
+            "AddDigitalHumansToSimulationResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "success message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "title": "AddDigitalHumansToSimulationResponse",
+                "description": "response body for adding digital humans to a simulation."
             },
             "AddMetricsToLabRequest": {
                 "properties": {
@@ -9861,6 +9987,66 @@
                 ],
                 "title": "AddMetricsToLabResponse",
                 "description": "Response model for adding metrics to a lab"
+            },
+            "AddPhoneNumberRequest": {
+                "properties": {
+                    "area_code": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Area Code",
+                        "description": "Optional US area code to bias phone number search (e.g. 415)"
+                    }
+                },
+                "type": "object",
+                "title": "AddPhoneNumberRequest",
+                "description": "Request schema for auto-purchasing a Twilio number for an organization."
+            },
+            "AddPhoneNumberResponse": {
+                "properties": {
+                    "phone_number": {
+                        "type": "string",
+                        "title": "Phone Number",
+                        "description": "Purchased E.164 phone number"
+                    },
+                    "twilio_sid": {
+                        "type": "string",
+                        "title": "Twilio Sid",
+                        "description": "Twilio IncomingPhoneNumber SID"
+                    },
+                    "organization_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Organization Id",
+                        "description": "Organization ID"
+                    },
+                    "purchase_date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Purchase Date",
+                        "description": "Date when purchased"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "title": "Price",
+                        "description": "Stored price in cents"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "phone_number",
+                    "twilio_sid",
+                    "organization_id",
+                    "purchase_date",
+                    "price"
+                ],
+                "title": "AddPhoneNumberResponse",
+                "description": "Response schema after auto-purchasing and storing a phone number."
             },
             "AddToCommunityRequest": {
                 "properties": {
@@ -11357,17 +11543,17 @@
                 "title": "AgentWebhookKeyResponse",
                 "description": "Response model for agent webhook key"
             },
-            "AlarmResponse": {
+            "AlertResponse": {
                 "properties": {
                     "id": {
                         "type": "string",
                         "title": "Id",
-                        "description": "Unique identifier for the alarm"
+                        "description": "Unique identifier for the alert"
                     },
                     "name": {
                         "type": "string",
                         "title": "Name",
-                        "description": "Name of the alarm"
+                        "description": "Name of the alert"
                     },
                     "description": {
                         "anyOf": [
@@ -11379,12 +11565,12 @@
                             }
                         ],
                         "title": "Description",
-                        "description": "Description of the alarm"
+                        "description": "Description of the alert"
                     },
                     "is_enabled": {
                         "type": "boolean",
                         "title": "Is Enabled",
-                        "description": "Whether the alarm is enabled"
+                        "description": "Whether the alert is enabled"
                     },
                     "organization_id": {
                         "type": "string",
@@ -11426,7 +11612,7 @@
                             }
                         ],
                         "title": "Last Triggered At",
-                        "description": "When the alarm was last triggered"
+                        "description": "When the alert was last triggered"
                     },
                     "trigger_count": {
                         "type": "integer",
@@ -11443,12 +11629,12 @@
                             }
                         ],
                         "title": "Created By",
-                        "description": "User who created the alarm"
+                        "description": "User who created the alert"
                     },
                     "applies_to_all_agents": {
                         "type": "boolean",
                         "title": "Applies To All Agents",
-                        "description": "Whether the alarm applies to all agents"
+                        "description": "Whether the alert applies to all agents"
                     },
                     "agents": {
                         "anyOf": [
@@ -11469,7 +11655,7 @@
                         "type": "string",
                         "format": "date-time",
                         "title": "Created At",
-                        "description": "When the alarm was created"
+                        "description": "When the alert was created"
                     },
                     "updated_at": {
                         "anyOf": [
@@ -11482,22 +11668,28 @@
                             }
                         ],
                         "title": "Updated At",
-                        "description": "When the alarm was last updated"
+                        "description": "When the alert was last updated"
                     },
                     "threshold_time_interval": {
                         "type": "integer",
                         "title": "Threshold Time Interval",
-                        "description": "Time window in seconds for the alarm (e.g. 600 for 10 minutes)"
+                        "description": "Time window in seconds for the alert (e.g. 600 for 10 minutes)"
                     },
                     "min_events": {
                         "type": "integer",
                         "title": "Min Events",
-                        "description": "The minimum number of events for the alarm"
+                        "description": "The minimum number of events for the alert"
                     },
-                    "in_alarm": {
+                    "in_alert": {
                         "type": "boolean",
-                        "title": "In Alarm",
-                        "description": "Whether the alarm is in alarm"
+                        "title": "In Alert",
+                        "description": "Whether the alert is in alert"
+                    },
+                    "source_scope": {
+                        "type": "string",
+                        "title": "Source Scope",
+                        "description": "Which data source fires this alert: 'all', 'observability', or 'simulation'",
+                        "default": "all"
                     }
                 },
                 "type": "object",
@@ -11516,10 +11708,10 @@
                     "created_at",
                     "threshold_time_interval",
                     "min_events",
-                    "in_alarm"
+                    "in_alert"
                 ],
-                "title": "AlarmResponse",
-                "description": "Response model for alarm operations"
+                "title": "AlertResponse",
+                "description": "Response model for alert operations"
             },
             "AudioQualityType": {
                 "type": "string",
@@ -12674,12 +12866,12 @@
                 "title": "ConversationRequest",
                 "description": "Pydantic model for conversation in evaluate-conversation request"
             },
-            "CreateAlarmRequest": {
+            "CreateAlertRequest": {
                 "properties": {
                     "name": {
                         "type": "string",
                         "title": "Name",
-                        "description": "Name of the alarm"
+                        "description": "Name of the alert"
                     },
                     "description": {
                         "anyOf": [
@@ -12691,12 +12883,12 @@
                             }
                         ],
                         "title": "Description",
-                        "description": "Description of the alarm"
+                        "description": "Description of the alert"
                     },
                     "is_enabled": {
                         "type": "boolean",
                         "title": "Is Enabled",
-                        "description": "Whether the alarm is enabled",
+                        "description": "Whether the alert is enabled",
                         "default": true
                     },
                     "entity_type": {
@@ -12728,7 +12920,7 @@
                     "applies_to_all_agents": {
                         "type": "boolean",
                         "title": "Applies To All Agents",
-                        "description": "Whether the alarm applies to all agents",
+                        "description": "Whether the alert applies to all agents",
                         "default": true
                     },
                     "agent_ids": {
@@ -12744,19 +12936,24 @@
                             }
                         ],
                         "title": "Agent Ids",
-                        "description": "Agent IDs to associate with this alarm (only used when applies_to_all_agents=False)"
+                        "description": "Agent IDs to associate with this alert (only used when applies_to_all_agents=False)"
                     },
                     "threshold_time_interval": {
                         "type": "integer",
                         "title": "Threshold Time Interval",
-                        "description": "Time window in seconds for the alarm (e.g. 600 for 10 minutes)",
+                        "description": "Time window in seconds for the alert (e.g. 600 for 10 minutes)",
                         "default": 600
                     },
                     "min_events": {
                         "type": "integer",
                         "title": "Min Events",
-                        "description": "The minimum number of events for the alarm",
+                        "description": "The minimum number of events for the alert",
                         "default": 10
+                    },
+                    "source_scope": {
+                        "$ref": "#/components/schemas/SourceScope",
+                        "description": "Which data source fires this alert: 'all', 'observability', or 'simulation'",
+                        "default": "all"
                     }
                 },
                 "type": "object",
@@ -12767,8 +12964,8 @@
                     "operator",
                     "comparison_value"
                 ],
-                "title": "CreateAlarmRequest",
-                "description": "Request model for creating an alarm"
+                "title": "CreateAlertRequest",
+                "description": "Request model for creating an alert"
             },
             "CreateCommunityRequest": {
                 "properties": {
@@ -14188,26 +14385,26 @@
                 ],
                 "title": "DailySchedule"
             },
-            "DeleteAlarmResponse": {
+            "DeleteAlertResponse": {
                 "properties": {
                     "message": {
                         "type": "string",
                         "title": "Message",
                         "description": "Success message"
                     },
-                    "deleted_alarm_id": {
+                    "deleted_alert_id": {
                         "type": "string",
-                        "title": "Deleted Alarm Id",
-                        "description": "ID of the deleted alarm"
+                        "title": "Deleted Alert Id",
+                        "description": "ID of the deleted alert"
                     }
                 },
                 "type": "object",
                 "required": [
                     "message",
-                    "deleted_alarm_id"
+                    "deleted_alert_id"
                 ],
-                "title": "DeleteAlarmResponse",
-                "description": "Response model for deleting an alarm"
+                "title": "DeleteAlertResponse",
+                "description": "Response model for deleting an alert"
             },
             "DeleteCallLogResponse": {
                 "properties": {
@@ -14294,67 +14491,6 @@
                 ],
                 "title": "DeleteLabResponse",
                 "description": "Response model for deleting a lab"
-            },
-            "AddDigitalHumansToSimulationRequest": {
-                "type": "object",
-                "required": [
-                    "digital_human_ids"
-                ],
-                "properties": {
-                    "digital_human_ids": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "title": "Digital Human Ids"
-                    }
-                },
-                "title": "AddDigitalHumansToSimulationRequest"
-            },
-            "AddDigitalHumansToSimulationResponse": {
-                "type": "object",
-                "required": [
-                    "message"
-                ],
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "title": "Message",
-                        "example": "success"
-                    }
-                },
-                "title": "AddDigitalHumansToSimulationResponse"
-            },
-            "RemoveDigitalHumansFromSimulationRequest": {
-                "type": "object",
-                "required": [
-                    "digital_human_ids"
-                ],
-                "properties": {
-                    "digital_human_ids": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "title": "Digital Human Ids",
-                        "description": "IDs to remove from the simulation; must be non-empty"
-                    }
-                },
-                "title": "RemoveDigitalHumansFromSimulationRequest"
-            },
-            "RemoveDigitalHumansFromSimulationResponse": {
-                "type": "object",
-                "required": [
-                    "message"
-                ],
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "title": "Message",
-                        "example": "success"
-                    }
-                },
-                "title": "RemoveDigitalHumansFromSimulationResponse"
             },
             "DeleteSimulationResponse": {
                 "properties": {
@@ -14973,6 +15109,31 @@
                         ],
                         "title": "Formatted Transcript",
                         "description": "Pre-computed structured transcript as [{role, utterance}]. When provided, skips the format-transcript LLM call."
+                    },
+                    "always_on_mode": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Mode",
+                        "description": "Whether always-on mode is enabled",
+                        "default": false
+                    },
+                    "always_on_active": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Active",
+                        "description": "When true, this DH actively receives calls on phone_number. Defaults to True when phone_number is set."
                     },
                     "num_runs": {
                         "anyOf": [
@@ -15616,7 +15777,7 @@
                     "custom_metric"
                 ],
                 "title": "EntityType",
-                "description": "Enum representing the entity types for alarms."
+                "description": "Enum representing the entity types for alerts."
             },
             "EvalRoute": {
                 "type": "string",
@@ -15814,6 +15975,17 @@
                             }
                         ],
                         "description": "Latency metrics for the agent's responses"
+                    },
+                    "filler_ignored_latency": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FillerIgnoredLatency"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Filler ignored latency metrics"
                     },
                     "num_turns": {
                         "anyOf": [
@@ -16173,6 +16345,77 @@
                 ],
                 "title": "ExpectedToolCall",
                 "description": "Represents an expected tool call during a conversation."
+            },
+            "FillerIgnoredLatency": {
+                "properties": {
+                    "avg_filler_ignored_latency": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Avg Filler Ignored Latency",
+                        "description": "Average filler ignored latency",
+                        "default": 0
+                    },
+                    "p50_filler_ignored_latency": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "P50 Filler Ignored Latency",
+                        "description": "50th percentile filler ignored latency",
+                        "default": 0
+                    },
+                    "p90_filler_ignored_latency": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "P90 Filler Ignored Latency",
+                        "description": "90th percentile filler ignored latency",
+                        "default": 0
+                    },
+                    "p95_filler_ignored_latency": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "P95 Filler Ignored Latency",
+                        "description": "95th percentile filler ignored latency",
+                        "default": 0
+                    },
+                    "p99_filler_ignored_latency": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "P99 Filler Ignored Latency",
+                        "description": "99th percentile filler ignored latency",
+                        "default": 0
+                    }
+                },
+                "type": "object",
+                "title": "FillerIgnoredLatency"
             },
             "FluencyType": {
                 "type": "string",
@@ -16738,24 +16981,6 @@
                 ],
                 "title": "GoalAdherence",
                 "description": "Pydantic model for goal adherence in simulation"
-            },
-            "HTTPError": {
-                "type": "object",
-                "properties": {
-                    "detail": {
-                        "description": "FastAPI error; 404 on add may be a string listing invalid ids",
-                        "oneOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "object"
-                            }
-                        ],
-                        "title": "Detail"
-                    }
-                },
-                "title": "HTTPError"
             },
             "HTTPValidationError": {
                 "properties": {
@@ -17798,7 +18023,7 @@
                     "not_contains"
                 ],
                 "title": "Operator",
-                "description": "Enum representing the comparison operators for alarms."
+                "description": "Enum representing the comparison operators for alerts."
             },
             "OptimizeMetricPromptRequest": {
                 "properties": {
@@ -18212,6 +18437,27 @@
                 ],
                 "title": "ReEvaluateSimulationResultResponse"
             },
+            "ReleasePhoneNumberResponse": {
+                "properties": {
+                    "phone_number": {
+                        "type": "string",
+                        "title": "Phone Number",
+                        "description": "Released E.164 phone number"
+                    },
+                    "released": {
+                        "type": "boolean",
+                        "title": "Released",
+                        "description": "Whether the Twilio release was performed"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "phone_number",
+                    "released"
+                ],
+                "title": "ReleasePhoneNumberResponse",
+                "description": "Response schema after releasing a Twilio number."
+            },
             "RemoveConversationsFromLabRequest": {
                 "properties": {
                     "lab_id": {
@@ -18236,6 +18482,39 @@
                 ],
                 "title": "RemoveConversationsFromLabRequest",
                 "description": "Request model for removing conversations from a lab"
+            },
+            "RemoveDigitalHumansFromSimulationRequest": {
+                "properties": {
+                    "digital_human_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Digital Human Ids",
+                        "description": "array of digital human IDs to remove from this simulation"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "digital_human_ids"
+                ],
+                "title": "RemoveDigitalHumansFromSimulationRequest",
+                "description": "request body for removing digital humans from a simulation (unlink only)."
+            },
+            "RemoveDigitalHumansFromSimulationResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "success message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "title": "RemoveDigitalHumansFromSimulationResponse",
+                "description": "response body for removing digital humans from a simulation (does not delete the digital humans)."
             },
             "ReplayTranscriptFromConversation": {
                 "properties": {
@@ -18577,6 +18856,17 @@
                             }
                         ],
                         "title": "Pinned"
+                    },
+                    "always_on": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On"
                     }
                 },
                 "type": "object",
@@ -18780,6 +19070,19 @@
                         ],
                         "title": "Custom Metrics Passing Threshold",
                         "description": "Score threshold at or above which a custom metric is considered passing (0-100)"
+                    },
+                    "always_on": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On",
+                        "description": "When true, simulation has always-on digital humans configured",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -19275,6 +19578,16 @@
                 ],
                 "title": "SingleSimulationResultResponse"
             },
+            "SourceScope": {
+                "type": "string",
+                "enum": [
+                    "all",
+                    "observability",
+                    "simulation"
+                ],
+                "title": "SourceScope",
+                "description": "Allowed data source scope for when an alert fires: all, observability only, or simulation only."
+            },
             "SpeaksFirstConfig": {
                 "properties": {
                     "speaks_first": {
@@ -19488,6 +19801,18 @@
                         "type": "string",
                         "title": "Utterance",
                         "description": "Transcribed text of the utterance"
+                    },
+                    "filler_utterance": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Filler Utterance",
+                        "description": "Whether the utterance is a filler utterance"
                     }
                 },
                 "type": "object",
@@ -19572,7 +19897,7 @@
                 "title": "TranslateTranscriptResponse",
                 "description": "Response model for translated transcript."
             },
-            "UpdateAlarmRequest": {
+            "UpdateAlertRequest": {
                 "properties": {
                     "name": {
                         "anyOf": [
@@ -19584,7 +19909,7 @@
                             }
                         ],
                         "title": "Name",
-                        "description": "Name of the alarm"
+                        "description": "Name of the alert"
                     },
                     "description": {
                         "anyOf": [
@@ -19596,7 +19921,7 @@
                             }
                         ],
                         "title": "Description",
-                        "description": "Description of the alarm"
+                        "description": "Description of the alert"
                     },
                     "is_enabled": {
                         "anyOf": [
@@ -19608,7 +19933,7 @@
                             }
                         ],
                         "title": "Is Enabled",
-                        "description": "Whether the alarm is enabled"
+                        "description": "Whether the alert is enabled"
                     },
                     "entity_type": {
                         "anyOf": [
@@ -19681,7 +20006,7 @@
                             }
                         ],
                         "title": "Applies To All Agents",
-                        "description": "Whether the alarm applies to all agents"
+                        "description": "Whether the alert applies to all agents"
                     },
                     "agent_ids": {
                         "anyOf": [
@@ -19696,7 +20021,7 @@
                             }
                         ],
                         "title": "Agent Ids",
-                        "description": "Agent IDs to associate with this alarm"
+                        "description": "Agent IDs to associate with this alert"
                     },
                     "threshold_time_interval": {
                         "anyOf": [
@@ -19708,7 +20033,7 @@
                             }
                         ],
                         "title": "Threshold Time Interval",
-                        "description": "Time window in seconds for the alarm (e.g. 600 for 10 minutes)"
+                        "description": "Time window in seconds for the alert (e.g. 600 for 10 minutes)"
                     },
                     "min_events": {
                         "anyOf": [
@@ -19720,12 +20045,23 @@
                             }
                         ],
                         "title": "Min Events",
-                        "description": "Minimum number of events to trigger the alarm"
+                        "description": "Minimum number of events to trigger the alert"
+                    },
+                    "source_scope": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SourceScope"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Which data source fires this alert: 'all', 'observability', or 'simulation'"
                     }
                 },
                 "type": "object",
-                "title": "UpdateAlarmRequest",
-                "description": "Request model for updating an alarm"
+                "title": "UpdateAlertRequest",
+                "description": "Request model for updating an alert"
             },
             "UpdateCallLogRequest": {
                 "properties": {
@@ -20604,6 +20940,43 @@
                         ],
                         "title": "Livekit Metadata",
                         "description": "LiveKit-specific configuration and metadata for this digital human. If provided, completely replaces existing metadata."
+                    },
+                    "always_on_mode": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Mode",
+                        "description": "Whether always-on mode is enabled for this digital human"
+                    },
+                    "always_on_active": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Always On Active",
+                        "description": "When true, this DH actively receives calls on phone_number; when false, number is assigned but inactive"
+                    },
+                    "override_conflict": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Override Conflict",
+                        "description": "When true, allows activation to replace an existing always-on active DH using the same phone number.",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -22727,6 +23100,17 @@
                                 ],
                                 "description": "Latency metrics for the agent's responses"
                             },
+                            "filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/FillerIgnoredLatency"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "Filler ignored latency metrics"
+                            },
                             "num_turns": {
                                 "anyOf": [
                                     {
@@ -22933,6 +23317,77 @@
                             "start_offset_ms"
                         ],
                         "title": "Event",
+                        "type": "object"
+                    },
+                    "FillerIgnoredLatency": {
+                        "properties": {
+                            "avg_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "Average filler ignored latency",
+                                "title": "Avg Filler Ignored Latency"
+                            },
+                            "p50_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "50th percentile filler ignored latency",
+                                "title": "P50 Filler Ignored Latency"
+                            },
+                            "p90_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "90th percentile filler ignored latency",
+                                "title": "P90 Filler Ignored Latency"
+                            },
+                            "p95_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "95th percentile filler ignored latency",
+                                "title": "P95 Filler Ignored Latency"
+                            },
+                            "p99_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "99th percentile filler ignored latency",
+                                "title": "P99 Filler Ignored Latency"
+                            }
+                        },
+                        "title": "FillerIgnoredLatency",
                         "type": "object"
                     },
                     "Latency": {
@@ -23741,6 +24196,17 @@
                                 ],
                                 "description": "Latency metrics for the agent's responses"
                             },
+                            "filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/FillerIgnoredLatency"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "Filler ignored latency metrics"
+                            },
                             "num_turns": {
                                 "anyOf": [
                                     {
@@ -23947,6 +24413,77 @@
                             "start_offset_ms"
                         ],
                         "title": "Event",
+                        "type": "object"
+                    },
+                    "FillerIgnoredLatency": {
+                        "properties": {
+                            "avg_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "Average filler ignored latency",
+                                "title": "Avg Filler Ignored Latency"
+                            },
+                            "p50_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "50th percentile filler ignored latency",
+                                "title": "P50 Filler Ignored Latency"
+                            },
+                            "p90_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "90th percentile filler ignored latency",
+                                "title": "P90 Filler Ignored Latency"
+                            },
+                            "p95_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "95th percentile filler ignored latency",
+                                "title": "P95 Filler Ignored Latency"
+                            },
+                            "p99_filler_ignored_latency": {
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": 0,
+                                "description": "99th percentile filler ignored latency",
+                                "title": "P99 Filler Ignored Latency"
+                            }
+                        },
+                        "title": "FillerIgnoredLatency",
                         "type": "object"
                     },
                     "Latency": {
