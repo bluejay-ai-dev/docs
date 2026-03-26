@@ -4803,6 +4803,120 @@
                 ]
             }
         },
+        "/v1/integrations/vapi/sync": {
+            "post": {
+                "tags": [
+                    "vapi"
+                ],
+                "summary": "Sync Vapi Agents",
+                "description": "Trigger an async sync of all Vapi assistants into Bluejay agents.\n\nAdmins may pass organization_id to sync any org.\nNon-admins are restricted to their own org.",
+                "operationId": "sync_vapi_agents_v1_integrations_vapi_sync_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SyncVapiAgentsRequest",
+                                "default": {
+                                    "dry_run": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/integrations/vapi/sync-agent": {
+            "post": {
+                "tags": [
+                    "vapi"
+                ],
+                "summary": "Sync Single Agent From Vapi",
+                "description": "Trigger an async sync of a single Vapi agent's name and prompt from Vapi.",
+                "operationId": "sync_single_agent_from_vapi_v1_integrations_vapi_sync_agent_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SyncSingleAgentFromVapiRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/queue-sms-simulation-run": {
             "post": {
                 "tags": [
@@ -6399,6 +6513,218 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/CommunityResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscription/signup": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Signup",
+                "description": "Create subscription: Stripe customer + Metronome customer + contract.",
+                "operationId": "signup_v1_subscription_signup_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SignupRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SignupResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscription/start-trial": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Start Trial",
+                "description": "Start a 7-day free trial only. Call this when a new account is created.",
+                "operationId": "start_trial_v1_subscription_start_trial_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StartTrialRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SignupResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscription/active-package": {
+            "get": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Get Active Package",
+                "description": "Get the user's active package ID from their Metronome contract.",
+                "operationId": "get_active_package_v1_subscription_active_package_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActivePackageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscription/cancel": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Cancel Subscription",
+                "description": "Cancel subscription self-serve by ending the active Metronome contract\nat the end of the current billing period (updateEndDate).",
+                "operationId": "cancel_subscription_v1_subscription_cancel_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CancelResponse"
                                 }
                             }
                         }
@@ -9789,6 +10115,44 @@
                 "title": "AccentType",
                 "description": "Enum for accent options."
             },
+            "ActivePackageResponse": {
+                "properties": {
+                    "package_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Package Id",
+                        "description": "Active package ID if available"
+                    },
+                    "has_active_contract": {
+                        "type": "boolean",
+                        "title": "Has Active Contract",
+                        "description": "Whether the user has an active contract"
+                    },
+                    "access_ends_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Access Ends At",
+                        "description": "ISO 8601 timestamp when access ends, from Metronome contract ending_before (e.g. cancel at period end or trial end). Null if open-ended or not returned."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "has_active_contract"
+                ],
+                "title": "ActivePackageResponse"
+            },
             "AddConversationsToLabRequest": {
                 "properties": {
                     "lab_id": {
@@ -10079,10 +10443,10 @@
                     "id": {
                         "anyOf": [
                             {
-                                "type": "integer"
+                                "type": "string"
                             },
                             {
-                                "type": "string"
+                                "type": "integer"
                             },
                             {
                                 "type": "null"
@@ -10398,6 +10762,17 @@
                             }
                         ],
                         "title": "Http Webhook Key"
+                    },
+                    "enable_outbound_call_auto_start": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enable Outbound Call Auto Start"
                     }
                 },
                 "type": "object",
@@ -10719,6 +11094,18 @@
                         ],
                         "title": "Provider Id",
                         "description": "Provider ID for the agent"
+                    },
+                    "enable_outbound_call_auto_start": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enable Outbound Call Auto Start",
+                        "description": "Automatically initiate an outbound call when a test result reaches READY state"
                     }
                 },
                 "type": "object",
@@ -11117,6 +11504,18 @@
                         ],
                         "title": "Provider Id",
                         "description": "Provider ID for the agent"
+                    },
+                    "enable_outbound_call_auto_start": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enable Outbound Call Auto Start",
+                        "description": "Automatically initiate an outbound call when a test result reaches READY state"
                     }
                 },
                 "type": "object",
@@ -11483,6 +11882,18 @@
                         ],
                         "title": "Provider Id",
                         "description": "Provider ID for the agent"
+                    },
+                    "enable_outbound_call_auto_start": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enable Outbound Call Auto Start",
+                        "description": "Automatically initiate an outbound call when a test result reaches READY state"
                     }
                 },
                 "type": "object",
@@ -12662,6 +13073,26 @@
                 ],
                 "title": "CallStatus",
                 "description": "Enum representing the possible states of a call."
+            },
+            "CancelResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "Whether the cancel request was accepted"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Response message for the frontend"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "CancelResponse"
             },
             "CommunitiesListResponse": {
                 "properties": {
@@ -18719,6 +19150,46 @@
                 "title": "ScriptedResponse",
                 "description": "Model for a scripted response configuration."
             },
+            "SignupRequest": {
+                "properties": {
+                    "payment_method_id": {
+                        "type": "string",
+                        "title": "Payment Method Id",
+                        "description": "Stripe payment method ID"
+                    },
+                    "package_id": {
+                        "type": "string",
+                        "title": "Package Id",
+                        "description": "Metronome Package ID"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "payment_method_id",
+                    "package_id"
+                ],
+                "title": "SignupRequest"
+            },
+            "SignupResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "Whether the signup was successful"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "Response message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "SignupResponse"
+            },
             "SimpleInterruptionConfig": {
                 "properties": {
                     "type": {
@@ -19189,6 +19660,44 @@
                         "title": "Result",
                         "description": "Result of the simulation run"
                     },
+                    "duration": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration",
+                        "description": "Duration of the simulation run in milliseconds"
+                    },
+                    "start_time": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Start Time",
+                        "description": "Start time of the simulation run"
+                    },
+                    "end_time": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Time",
+                        "description": "End time of the simulation run"
+                    },
                     "custom_metrics": {
                         "anyOf": [
                             {
@@ -19235,6 +19744,21 @@
                         "title": "Latency",
                         "description": "Average latency of the simulation run"
                     },
+                    "events": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Event"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Events",
+                        "description": "Events of the simulation run"
+                    },
                     "transcript_url": {
                         "anyOf": [
                             {
@@ -19258,6 +19782,21 @@
                         ],
                         "title": "Audio Url",
                         "description": "URL to the audio file of the simulation run"
+                    },
+                    "evaluations": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Evaluation"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Evaluations",
+                        "description": "Evaluations of the simulation result"
                     }
                 },
                 "type": "object",
@@ -19545,7 +20084,8 @@
                     "INITIALIZING",
                     "RUNNING",
                     "COMPLETED",
-                    "INCOMPLETED"
+                    "INCOMPLETED",
+                    "INSUFFICIENT_FUNDS"
                 ],
                 "title": "SimulationRunStatus",
                 "description": "Enum representing the possible states of a simulation run."
@@ -19630,6 +20170,59 @@
                 ],
                 "title": "SpeaksFirstConfig",
                 "description": "Configuration for whether the digital human speaks first and how.\nStored as JSONB in Supabase (speaks_first_config)."
+            },
+            "StartTrialRequest": {
+                "properties": {
+                    "payment_method_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Payment Method Id",
+                        "description": "Optional Stripe payment method ID; trial can start without a card"
+                    }
+                },
+                "type": "object",
+                "title": "StartTrialRequest"
+            },
+            "SyncSingleAgentFromVapiRequest": {
+                "properties": {
+                    "agent_id": {
+                        "type": "integer",
+                        "title": "Agent Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "agent_id"
+                ],
+                "title": "SyncSingleAgentFromVapiRequest"
+            },
+            "SyncVapiAgentsRequest": {
+                "properties": {
+                    "organization_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Organization Id"
+                    },
+                    "dry_run": {
+                        "type": "boolean",
+                        "title": "Dry Run",
+                        "default": true
+                    }
+                },
+                "type": "object",
+                "title": "SyncVapiAgentsRequest"
             },
             "TextProcessorRequest": {
                 "properties": {
@@ -23486,7 +24079,8 @@
                             "EVALUATING",
                             "COMPLETED",
                             "INCOMPLETED",
-                            "REJECTED"
+                            "REJECTED",
+                            "INSUFFICIENT_FUNDS"
                         ],
                         "title": "TestResultStatus",
                         "type": "string"
@@ -23929,7 +24523,8 @@
                     "EVALUATING",
                     "COMPLETED",
                     "INCOMPLETED",
-                    "REJECTED"
+                    "REJECTED",
+                    "INSUFFICIENT_FUNDS"
                 ],
                 "title": "TestResultStatus",
                 "type": "string"
@@ -24936,7 +25531,8 @@
                             "EVALUATING",
                             "COMPLETED",
                             "INCOMPLETED",
-                            "REJECTED"
+                            "REJECTED",
+                            "INSUFFICIENT_FUNDS"
                         ],
                         "title": "TestResultStatus",
                         "type": "string"
