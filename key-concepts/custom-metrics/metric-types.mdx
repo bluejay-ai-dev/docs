@@ -1,0 +1,172 @@
+---
+title: Metric Types
+description: Understand the six response types available for Custom Metrics in Bluejay
+icon: shapes
+---
+
+Every Custom Metric has a `response_type` that determines the shape of the score Bluejay produces. Choose the type that matches how you want to reason about the result downstream — in dashboards, alerts, and workflows.
+
+## Pass / Fail
+
+**`response_type: pass_fail`**
+
+The most common type. Bluejay returns either `pass` or `fail` based on whether the conversation meets your criteria.
+
+```json
+{
+  "name": "Identity Verified",
+  "description": "Did the agent verify the customer's identity before sharing account details?",
+  "response_type": "pass_fail"
+}
+```
+
+<Tip>
+  Use Pass / Fail for binary compliance checks, required steps, or any criteria where the outcome is clear-cut. Results aggregate cleanly into pass rates on your dashboard.
+</Tip>
+
+---
+
+## Yes / No
+
+**`response_type: yes_no`**
+
+Semantically identical to Pass / Fail, but the framing better suits question-style prompts. Bluejay returns `yes` or `no`.
+
+```json
+{
+  "name": "Empathy Demonstrated",
+  "description": "Did the agent acknowledge the customer's frustration at any point in the call?",
+  "response_type": "yes_no"
+}
+```
+
+<Tip>
+  Prefer Yes / No when your metric description reads as a direct question. The output is interchangeable with Pass / Fail in most dashboards and workflows.
+</Tip>
+
+---
+
+## Quantitative
+
+**`response_type: quantitative`**
+
+Bluejay returns a numeric score within the range you define using `min_value` and `max_value`. Use this for nuanced scoring on a scale.
+
+```json
+{
+  "name": "Resolution Quality",
+  "description": "Rate the quality of the agent's resolution on a scale from 1 to 10. A 10 means the customer's issue was fully resolved with no further action needed.",
+  "response_type": "quantitative",
+  "min_value": 1,
+  "max_value": 10
+}
+```
+
+<Tip>
+  Use Quantitative when gradations matter — tone of voice, resolution depth, or explanation clarity. Set explicit `min_value` and `max_value` so Bluejay knows the scale boundaries.
+</Tip>
+
+---
+
+## Qualitative
+
+**`response_type: qualitative`**
+
+Bluejay returns a free-form text summary describing its assessment. Useful for generating narrative feedback rather than a structured score.
+
+```json
+{
+  "name": "Objection Handling Summary",
+  "description": "Summarize how the agent handled customer objections during the call. Note specific phrases used and whether they were effective.",
+  "response_type": "qualitative"
+}
+```
+
+<Tip>
+  Use Qualitative for feedback that needs nuance and context — coaching notes, tone summaries, or structured observations. Because results are text, they don't aggregate numerically, so pair them with a quantitative or pass/fail metric if you also need trend tracking.
+</Tip>
+
+---
+
+## Enum
+
+**`response_type: enum`**
+
+Bluejay classifies the conversation into one of the exact labels you define in `enum_options`. This is ideal for categorization tasks.
+
+```json
+{
+  "name": "Call Outcome",
+  "description": "Classify the outcome of this call.",
+  "response_type": "enum",
+  "enum_options": ["resolved", "escalated", "callback_scheduled", "unresolved"]
+}
+```
+
+<Tip>
+  Use Enum when you need consistent, controlled labels — call outcomes, escalation reasons, or issue categories. The discrete labels make it easy to group and filter results across many conversations.
+</Tip>
+
+---
+
+## JSON
+
+**`response_type: json`**
+
+Bluejay returns a structured JSON object, letting you extract multiple signals from a single metric evaluation in one pass.
+
+```json
+{
+  "name": "Compliance Audit",
+  "description": "Evaluate compliance and return a JSON object with keys: 'identity_verified' (boolean), 'disclosure_read' (boolean), 'consent_obtained' (boolean), and 'flags' (array of strings describing any issues).",
+  "response_type": "json"
+}
+```
+
+<Tip>
+  Use JSON when you want to extract multiple structured signals from a single evaluation. Keep the output schema well-defined in your description so Bluejay consistently produces the same shape.
+</Tip>
+
+---
+
+## Quick Reference
+
+| Type | Returns | Best For |
+|---|---|---|
+| `pass_fail` | `pass` or `fail` | Binary compliance checks, required steps |
+| `yes_no` | `yes` or `no` | Question-style criteria |
+| `quantitative` | Number in `[min, max]` | Graded scoring, quality ratings |
+| `qualitative` | Free-form text | Narrative feedback, coaching notes |
+| `enum` | One of your defined labels | Classification, call outcomes |
+| `json` | Structured JSON object | Multi-signal extraction in one pass |
+
+---
+
+## Not Applicable
+
+Any metric type can be configured with `allow_not_applicable: true`. When enabled, Bluejay may return `Not Applicable` if the criteria simply doesn't apply to a given conversation — for example, a transfer metric on a call that never needed a transfer.
+
+```json
+{
+  "name": "Transfer Handled Correctly",
+  "description": "If the customer requested a transfer, did the agent complete it correctly?",
+  "response_type": "pass_fail",
+  "allow_not_applicable": true
+}
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Dynamic Variables" icon="brackets-curly" href="/key-concepts/custom-metrics/dynamic-variables">
+    Inject call-specific context into your metric definitions at evaluation time.
+  </Card>
+  <Card title="Create Custom Metric API" icon="code" href="/api-reference/endpoint/create-custom-metric">
+    Define a new Custom Metric programmatically with any response type.
+  </Card>
+  <Card title="Metrics Lab" icon="flask" href="/key-concepts/metrics-lab/overview">
+    Prototype and refine metrics against sample transcripts before going live.
+  </Card>
+</CardGroup>
