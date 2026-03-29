@@ -1,78 +1,53 @@
 ---
 title: 'Simulation Runs'
-description: 'Learn about Bluejay simulation runs'
+description: 'Learn about the format and lifecycle of Bluejay simulation runs'
 icon: play
 ---
 
-Simulation runs are individual executions or instances of your configured simulations on Bluejay. Each simulation run generates detailed, actionable insights into your voice agent's performance, enabling precise analysis and informed optimization.
+A simulation run is a single execution of a configured [simulation](/test/simulations/overview). Each run captures the full set of interactions between your voice agent and the digital humans defined in the simulation, producing a structured record you can review, compare, and act on.
 
 ## What Is a Simulation Run?
 
-A **Simulation Run** represents one execution instance of a specific simulation scenario. When you initiate a simulation run, Bluejay's digital humans engage your voice agent through realistic interactions, allowing you to measure detailed performance outcomes in a controlled environment.
+A **Simulation Run** represents one execution instance of a specific simulation scenario. When you initiate a simulation run, Bluejay's digital humans engage your voice agent through realistic phone call interactions. The run tracks every call from start to finish and records the data needed to evaluate performance.
 
-## Exploring Simulation Run Results
+## Run Lifecycle
 
-Each simulation run provides an interactive performance dashboard, offering comprehensive insights into how your voice agent interacted with each digital human. Key metrics and data points available include:
+Every simulation run moves through a predictable set of stages:
 
-- **Redundancy and Hallucination Checks**
-  - Evaluates instances where your agent repeats unnecessary information or provides inaccurate or irrelevant responses.
+1. **Queued** — The run has been submitted and is waiting for available capacity.
+2. **In Progress** — Digital humans are actively calling your voice agent and interactions are underway.
+3. **Completed** — All calls in the run have finished and results are ready for review.
+4. **Failed** — The run could not complete due to a configuration or connectivity issue.
 
-- **Average Latency**
-  - Measures response speed, capturing how quickly your agent replies during interactions.
+## Run Structure
 
-- **Goal Outcomes (Pass/Fail)**
-  - Clearly identifies whether your voice agent achieved the predefined goals in each interaction scenario.
+A simulation run is composed of the individual calls placed by each digital human in the simulation. The run record includes:
 
-- **Call Statuses**
-  - Summarizes the outcomes and statuses of individual calls (e.g., successful, escalated, dropped), enabling quick identification of areas needing attention.
+- **Run ID** — A unique identifier for referencing this execution.
+- **Simulation Reference** — The parent simulation the run belongs to.
+- **Timestamp** — When the run was initiated.
+- **Call Count** — The total number of calls placed during the run.
+- **Status** — The current lifecycle stage of the run (queued, in progress, completed, or failed).
 
-- **Agent Speaking Percentage**
-  - Shows how much your agent spoke relative to the customer, indicating conversational balance and engagement.
+## Initiating a Run
 
-## Detailed Call Insights
+You can start a simulation run from the Bluejay dashboard or programmatically through the API:
 
-Beyond high-level metrics, each simulation run offers detailed, individual call-level data, including:
-
-- **Call Logs**
-  - Comprehensive logs tracking every interaction step and agent response during a call.
-
-- **Transcripts**
-  - Complete text records of each call, enabling precise review and analysis of conversation flow and agent performance.
-
-- **Recordings**
-  - Audio recordings of interactions, providing invaluable context for qualitative evaluation and training purposes.
-
-- **Additional Call-specific Data**
-  - Contextual information such as timestamps, customer emotion, agent response accuracy, and scenario-specific details to deeply understand each interaction.
-
-## Why Simulation Runs Matter
-
-Simulation runs provide critical data-driven insights, enabling you to:
-
-- Continuously track and benchmark agent performance in realistic, repeatable conditions.
-- Identify and resolve issues with precise, actionable metrics.
-- Refine agent behavior iteratively based on measurable results and clear feedback loops.
+- **Dashboard** — Navigate to your simulation and click **Run Simulation**.
+- **API** — Use the [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run) endpoint to trigger a run for voice simulations, or [Queue SMS Simulation Run](/api-reference/endpoint/queue-sms-simulation-run) for SMS-based scenarios.
 
 ## Best Practices
 
-- **Regular Execution:** Perform simulation runs frequently to continuously monitor and enhance your agent's effectiveness.
-- **Analyze Trends Over Time:** Compare multiple simulation runs to detect patterns and measure long-term performance improvements or regressions.
-- **Detailed Reviews:** Utilize call logs, transcripts, and recordings to conduct thorough qualitative analyses, supporting quantitative data.
+- **Run frequently** — Execute simulation runs on a regular cadence so you can detect regressions early.
+- **Compare across runs** — Use run timestamps and IDs to track how your agent's behavior evolves over successive executions.
+- **Automate via API** — Integrate simulation runs into your CI/CD pipeline or scheduled workflows to keep testing continuous.
 
-## Example Simulation Run Dashboard Metrics
+## Example Run Record
 
 ```md
-Simulation Run: "Billing Support Stress Test #12"
-
-Summary Metrics:
-- Average Latency: 2.5 seconds
-- Redundancy Checks: Passed
-- Hallucination Checks: 0 incidents
-- Goal Outcomes: 85% Pass rate
-- Call Statuses: 12 Successful, 2 Escalated, 1 Dropped
-- Agent Speaking Percentage: 55%
-
-Individual Call Data:
-- Call Transcript available
-- Call Recording available
-- Detailed call log with timestamps and agent/customer exchanges
+Run ID: run_abc123
+Simulation: "Billing Support Stress Test"
+Status: Completed
+Queued At: 2025-06-14T10:30:00Z
+Completed At: 2025-06-14T10:42:15Z
+Total Calls: 15

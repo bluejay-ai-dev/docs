@@ -1,0 +1,138 @@
+---
+title: Dynamic Variables
+description: Inject call-specific context into your Custom Metric definitions at evaluation time using template variables
+icon: brackets-curly
+---
+
+Dynamic variables let you inject call-specific context directly into your Custom Metric definitions at evaluation time. Instead of writing a static metric that applies the same way to every conversation, you can write a metric template with `{{placeholders}}` that get filled in with real data from each individual call.
+
+This is especially powerful when the right answer depends on information that's unique to each conversation — the customer's name, their account tier, the product they called about, or any other runtime value your agent has access to.
+
+## How It Works
+
+Dynamic variables use a simple `{{key}}` syntax in your metric's `description` or `scoring_guidance`. When Bluejay evaluates a conversation, it replaces each `{{key}}` with the corresponding value from the `metadata` object you pass in the [`/v1/evaluate`](/api-reference/endpoint/evaluate) request.
+
+```
+Metric description:  "Did the agent greet {{customer_name}} by name and confirm the
+                      account ending in {{account_last_four}} before proceeding?"
+
+metadata in request: { "customer_name": "Sarah", "account_last_four": "4821" }
+
+Evaluated as:        "Did the agent greet Sarah by name and confirm the account
+                      ending in 4821 before proceeding?"
+```
+
+---
+
+## Setting Up a Dynamic Variable Metric
+
+<Steps>
+  <Step title="Write your metric with placeholders">
+    Use `{{variable_name}}` anywhere in the `description` or `scoring_guidance` of your Custom Metric:
+
+    ```json
+    {
+      "name": "Correct Product Quoted",
+      "description": "Did the agent correctly describe the {{product_name}} plan, including the price of ${{monthly_price}} per month?",
+      "response_type": "pass_fail"
+    }
+    ```
+  </Step>
+  <Step title="Pass values in the evaluate request">
+    When you submit a call for evaluation, include the matching key-value pairs in the top-level `metadata` field of the request body:
+
+    ```json
+    {
+      "agent_id": "your-agent-id",
+      "transcript": [...],
+      "metadata": {
+        "product_name": "Business Pro",
+        "monthly_price": "149"
+      }
+    }
+    ```
+  </Step>
+  <Step title="Bluejay substitutes and evaluates">
+    At evaluation time, Bluejay substitutes the placeholders before sending the prompt to the LLM judge. The variable replacement is automatic — no extra configuration required.
+  </Step>
+</Steps>
+
+---
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Customer-specific assertions" icon="user-check">
+    Reference the customer's name, account number, or tier directly in your metric criteria so the evaluation is grounded in the actual call context.
+  </Card>
+  <Card title="Product & pricing accuracy" icon="tag">
+    Inject the specific product, plan, or price the customer called about so the metric can verify the agent quoted the right figures.
+  </Card>
+  <Card title="Compliance with call reason" icon="shield-check">
+    Pass the stated reason for the call so compliance metrics can check whether the agent followed the correct protocol for that specific scenario.
+  </Card>
+  <Card title="Dynamic thresholds" icon="sliders">
+    Vary scoring expectations based on call type, customer segment, or business unit — use a single metric template across many different contexts.
+  </Card>
+</CardGroup>
+
+---
+
+## Example: Account Verification
+
+Here's a complete example combining a metric template with the corresponding evaluate request.
+
+**Metric definition**
+```json
+{
+  "name": "Account Verification Passed",
+  "description": "The customer called in about their account ending in {{account_last_four}}. Did the agent verify the customer's identity by confirming at least two of: full name, date of birth, or billing zip code before discussing account details?",
+  "response_type": "pass_fail",
+  "scoring_guidance": "A pass requires the agent to confirm two verification factors before mentioning any account-specific information. If the agent only confirmed one factor or skipped verification entirely, this is a fail."
+}
+```
+
+**Evaluate request**
+```json
+{
+  "agent_id": "your-agent-id",
+  "transcript": [...],
+  "metadata": {
+    "account_last_four": "7732"
+  }
+}
+```
+
+**Result** — Bluejay evaluates the metric as:
+
+> "The customer called in about their account ending in **7732**. Did the agent verify the customer's identity..."
+
+---
+
+## Tips & Gotchas
+
+<Note>
+  If a placeholder key is present in your metric description but not found in `metadata`, Bluejay leaves the `{{key}}` text as-is rather than failing the evaluation. Always verify your metadata keys match the placeholders exactly.
+</Note>
+
+- **Key names are case-sensitive** — `{{Customer_Name}}` and `{{customer_name}}` are treated as different keys.
+- **Values are always coerced to strings** — numbers and booleans work fine as metadata values.
+- **You can use placeholders in both `description` and `scoring_guidance`** — both fields are substituted before evaluation.
+- **Metadata is scoped to the evaluation** — it doesn't need to be declared anywhere in the metric itself; you provide it at call time.
+- **Extra metadata keys are fine** — any keys that don't match a placeholder are simply stored as call context and are accessible in the call trace.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Evaluate Endpoint" icon="play" href="/api-reference/endpoint/evaluate">
+    Full reference for submitting calls and passing metadata for dynamic variable substitution.
+  </Card>
+  <Card title="Metric Types" icon="shapes" href="/key-concepts/custom-metrics/metric-types">
+    Learn which response type is right for each measurement goal.
+  </Card>
+  <Card title="Metrics Lab" icon="flask" href="/key-concepts/metrics-lab/overview">
+    Test your dynamic variable metrics against sample transcripts before going live.
+  </Card>
+</CardGroup>

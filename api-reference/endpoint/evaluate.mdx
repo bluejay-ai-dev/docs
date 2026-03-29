@@ -110,3 +110,43 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+## Using Metadata for Dynamic Variables
+
+The top-level `metadata` field in the request body is a free-form key-value object that serves two purposes:
+
+1. **Storing context alongside the evaluation** — any key-value pairs you include are stored with the call record and are available in traces, dashboards, and the API response.
+2. **Populating dynamic variables in Custom Metrics** — if your custom metric descriptions or scoring guidance contain `{{placeholder}}` syntax, Bluejay substitutes the matching keys from `metadata` before evaluating.
+
+### Example
+
+Suppose you have a custom metric with this description:
+
+```
+"Did the agent correctly greet {{customer_name}} and confirm they were calling about {{call_reason}}?"
+```
+
+When you submit the call for evaluation, pass the corresponding values in `metadata`:
+
+```json
+{
+  "agent_id": "your-agent-id",
+  "transcript": [...],
+  "metadata": {
+    "customer_name": "Marcus",
+    "call_reason": "a billing dispute"
+  }
+}
+```
+
+Bluejay will evaluate the metric as:
+
+> "Did the agent correctly greet **Marcus** and confirm they were calling about **a billing dispute**?"
+
+This lets a single metric definition handle many different call scenarios without needing separate metrics for each context.
+
+<Tip>
+  Any keys in `metadata` that don't match a placeholder in a metric are simply stored as call context — they won't cause errors and are always accessible in the call trace.
+</Tip>
+
+For a full walkthrough of how to build metrics with dynamic variables, see [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables).
+
