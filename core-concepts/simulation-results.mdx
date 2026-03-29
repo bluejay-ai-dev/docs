@@ -1,0 +1,95 @@
+---
+title: 'Simulation Results'
+description: 'Learn how to interpret the results of a Bluejay simulation run'
+icon: chart-mixed
+---
+
+Once a [simulation run](/core-concepts/simulation-runs) completes, Bluejay generates a detailed results report. This page explains the metrics, call-level data, and best practices for interpreting those results so you can turn raw data into actionable improvements.
+
+## Results Overview
+
+Every completed simulation run produces an interactive performance dashboard. The dashboard aggregates data across all calls in the run and surfaces both high-level summary metrics and granular, per-call details.
+
+## Summary Metrics
+
+The top of the results dashboard presents key performance indicators for the entire run:
+
+- **Redundancy and Hallucination Checks**
+  - Flags instances where your agent repeated unnecessary information or generated inaccurate, unsupported responses. A clean check means the agent stayed concise and factually grounded.
+
+- **Average Latency**
+  - The mean response time across all calls in the run. Lower latency generally correlates with a more natural conversational experience.
+
+- **Goal Outcomes (Pass/Fail)**
+  - Shows the percentage of calls where your agent achieved the predefined goals. This is one of the most direct indicators of whether your agent is performing as intended.
+
+- **Call Statuses**
+  - A breakdown of how individual calls concluded — for example, successful, escalated, or dropped. Use this to quickly spot patterns like a high escalation rate.
+
+- **Agent Speaking Percentage**
+  - The proportion of conversation time your agent spoke relative to the digital human. A healthy balance depends on the scenario — support calls may skew toward the agent, while intake calls should let the customer speak more.
+
+## Call-Level Details
+
+Below the summary, you can drill into each individual call for deeper analysis:
+
+- **Transcripts**
+  - Full text records of each conversation. Use transcripts to trace exactly where the agent succeeded or went off-track.
+
+- **Call Logs**
+  - Step-by-step logs of every interaction event, including tool calls, transfers, and hold times. Useful for diagnosing process-level issues.
+
+- **Recordings**
+  - Audio playback of each call. Recordings capture tone, pacing, and naturalness that transcripts alone cannot convey.
+
+- **Call-Specific Metadata**
+  - Contextual data points such as timestamps, detected customer emotion, response accuracy scores, and scenario-specific tags. These help you filter and compare calls within a run.
+
+## Custom Metrics
+
+If you have [custom metrics](/key-concepts/custom-metrics/overview) configured for your agent, their scores will appear alongside the built-in metrics for each call. Custom metrics let you measure domain-specific quality signals — such as compliance adherence, upsell success, or empathy — that the default metrics do not cover.
+
+## Interpreting Results
+
+When reviewing simulation results, consider these guiding questions:
+
+- **Are goals being met?** Start with the pass/fail rate. If it is below your target, drill into the failing calls to identify common failure modes.
+- **Is latency acceptable?** High average latency may point to slow LLM responses, integration bottlenecks, or overly complex prompts.
+- **Is the agent hallucinating?** Even a small number of hallucination incidents warrants investigation — check the transcripts of flagged calls to understand what triggered the inaccurate output.
+- **How do call statuses distribute?** A spike in escalations or dropped calls can signal issues with your agent's ability to handle certain scenarios end-to-end.
+- **What do the recordings reveal?** Quantitative metrics tell you *what* happened; recordings tell you *how* it felt. Listen to a sample of calls to catch issues like unnatural phrasing or awkward pauses.
+
+## Comparing Across Runs
+
+One of the most powerful ways to use simulation results is to compare them over time. By running the same simulation repeatedly — especially after making changes to your agent's prompt, tools, or configuration — you can:
+
+- Track whether goal pass rates trend upward.
+- Confirm that latency stays within acceptable bounds after updates.
+- Verify that fixes for hallucination or redundancy actually hold.
+
+## Best Practices
+
+- **Review results promptly** — Analyze results soon after a run completes so the context behind any changes is still fresh.
+- **Focus on failing calls first** — Start with calls that failed their goals or were flagged for hallucination, then work outward.
+- **Use recordings for qualitative review** — Numbers reveal trends, but listening to calls uncovers nuance.
+- **Leverage custom metrics** — Define metrics that match your business-critical success criteria so the dashboard highlights what matters most to you.
+- **Track trends, not just snapshots** — A single run is a data point; comparing runs over time shows whether your agent is genuinely improving.
+
+## Example Results Dashboard
+
+```md
+Simulation Run: "Billing Support Stress Test #12"
+
+Summary Metrics:
+- Average Latency: 2.5 seconds
+- Redundancy Checks: Passed
+- Hallucination Checks: 0 incidents
+- Goal Outcomes: 85% Pass rate
+- Call Statuses: 12 Successful, 2 Escalated, 1 Dropped
+- Agent Speaking Percentage: 55%
+
+Individual Call Data:
+- Call Transcript available
+- Call Recording available
+- Detailed call log with timestamps and agent/customer exchanges
+```
