@@ -1,0 +1,58 @@
+---
+title: 'Create workflow (v2)'
+description: 'Create an organization-scoped workflows v2 definition as a React Flow graph.'
+openapi: 'POST /v1/workflows-v2'
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Create workflow (v2) — POST /v1/workflows-v2
+
+> **What this endpoint does:** Create a workflows_v2 row with a React Flow graph (`nodes`, `edges`, optional `viewport`).
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/workflows-v2`
+**Auth:** `Authorization: Bearer` (JWT) or `X-API-Key` header
+**Content-Type:** application/json
+
+### Required body fields
+| Name | Type | Description |
+|------|------|-------------|
+| name | string | 1–255 characters |
+| definition | object | Graph with required `nodes`; see this page for the schema |
+
+Optional: `description`, `agent_ids` (omit or null for org-only workflow).
+
+Review the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-workflow-v2. A **400** response may include a `detail` message.
+
+### Example
+```python
+import requests
+
+def create_workflow_v2(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/workflows-v2"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Handle **400** (may include `detail`), **422** (`WorkflowsV2ValidationError`), and **401** as appropriate.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+This endpoint creates a **workflows v2** definition for your organization. Provide a name, optional description, optional agent links, and a React Flow–style graph with `nodes`, `edges`, and optional `viewport`.
