@@ -9111,13 +9111,8 @@
                     "Workflows v2"
                 ],
                 "summary": "Create workflow",
-                "description": "Creates a workflows_v2 row. agent_ids must reference agents in your organization when provided.\n\nDefinition is validated before persist; failures return **400** with a plain-text detail message.\n\n**Typed shapes:** see WorkflowV2Node (discriminated by type) and nested WorkflowV2SingleNodeData, WorkflowV2OptionsNodeData, and WorkflowV2BranchOption in components.\n\n**Validation (create / update definition):**\n- Exactly one node with type: \"start\".\n- At least one content node (type: \"single\" or type: \"options\") reachable from Start via edges to content nodes.\n- **Single** nodes: data.type is required — one of exact, contextual, silence, dtmf. exact/contextual: non-empty data.message. contextual: only when data.speaker is agent (default); not allowed for user. silence: data.duration_ms — finite number, non-negative, at most 86400000 (24h). dtmf: data.digits — non-empty string matching ^[0-9*#]+$ after trim.\n- **Options** nodes: data.branch_options has at least two entries; node speaker must be omitted or \"user\". Each branch: non-empty id; type one of exact, silence, dtmf (not contextual); exact requires message.\n- From an options node, edges continuing the flow should set sourceHandle to the chosen branch id (must match branch_options[].id).\n\n**Rate limiting:** 100 requests per minute per route (middleware).\n\n**Authentication:** JWT (Authorization: Bearer) or X-API-Key header.",
+                "description": "Creates a workflows_v2 row. agent_ids must reference agents in your organization when provided.\n\n**Body:** `name` (non-empty, max 255) and `definition` are required. `definition` may be `{}` — omitted `nodes` or `edges` keys are normalized to `[]` before validation and persist. Minimal valid JSON: `{\"name\": \"...\", \"definition\": {}}`.\n\nOptional: `description` (omit or null); `agent_ids` (omit or null for org-only).\n\nAfter normalization, definition is validated; failures return **400** with a plain-text detail message.\n\n**Typed shapes:** see WorkflowV2Node (discriminated by type) and nested WorkflowV2SingleNodeData, WorkflowV2OptionsNodeData, and WorkflowV2BranchOption in components.\n\n**Validation (non-empty graphs after normalization):**\n- Exactly one node with type: \"start\".\n- At least one content node (type: \"single\" or type: \"options\") reachable from Start via edges to content nodes.\n- **Single** nodes: data.type is required — one of exact, contextual, silence, dtmf. exact/contextual: non-empty data.message. contextual: only when data.speaker is agent (default); not allowed for user. silence: data.duration_ms — finite number, non-negative, at most 86400000 (24h). dtmf: data.digits — non-empty string matching ^[0-9*#]+$ after trim.\n- **Options** nodes: data.branch_options has at least two entries; node speaker must be omitted or \"user\". Each branch: non-empty id; type one of exact, silence, dtmf (not contextual); exact requires message.\n- From an options node, edges continuing the flow should set sourceHandle to the chosen branch id (must match branch_options[].id).\n\n**Rate limiting:** 100 requests per minute per route (middleware).\n\n**Authentication:** X-API-Key header.",
                 "operationId": "createWorkflowV2",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
                 "parameters": [
                     {
                         "name": "X-API-Key",
@@ -9137,6 +9132,13 @@
                                 "$ref": "#/components/schemas/CreateWorkflowV2Request"
                             },
                             "examples": {
+                                "minimalCreate": {
+                                    "summary": "Minimal body (empty graph; nodes/edges normalized to [])",
+                                    "value": {
+                                        "name": "Placeholder",
+                                        "definition": {}
+                                    }
+                                },
                                 "singlePath": {
                                     "summary": "Start → single (exact agent turn)",
                                     "value": {
@@ -9427,11 +9429,6 @@
                 "summary": "List workflows",
                 "description": "Lists workflows for the authenticated user's organization.\n\nOptional agent_id filters to workflows linked to that agent (agent must be in your org).\n\nEach item includes a `definition` graph typed in components: `WorkflowV2Node` (discriminated by `type`), `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption`.",
                 "operationId": "listWorkflowsV2",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
                 "parameters": [
                     {
                         "name": "agent_id",
@@ -9516,11 +9513,6 @@
                 "summary": "Get workflow",
                 "description": "Returns one workflow if it exists and belongs to your organization (otherwise 404).\n\nThe `definition` field is a React Flow graph with the same typed node and `data` shapes as create/update — see `WorkflowV2DefinitionGraph`, `WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption` in components.",
                 "operationId": "getWorkflowV2",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
                 "parameters": [
                     {
                         "name": "X-API-Key",
@@ -9580,13 +9572,8 @@
                     "Workflows v2"
                 ],
                 "summary": "Update workflow",
-                "description": "Partial update. Omitted fields are unchanged.\n\nWhen agent_ids is present in the JSON body (even as []), junction links are replaced: an empty array clears all agent links.\n\nWhen definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as POST /v1/workflows-v2 (`WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
+                "description": "Partial update — no field is required. Sending `{}` changes nothing and returns the current workflow.\n\n**name** — applied only if the key is sent and the value is not null.\n\n**description** — applied only if the key is sent (including an empty string if you send it).\n\n**definition** — replaced only if the key is sent and the value is not null. Same normalization as create: missing `nodes` / `edges` become `[]`. Then validated like create. Typed shapes: `WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`.\n\n**agent_ids** — junction links are updated only if the `agent_ids` key appears in the JSON body. `[]` clears all links. Omitting the key leaves agent links unchanged.",
                 "operationId": "updateWorkflowV2",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
                 "parameters": [
                     {
                         "name": "X-API-Key",
@@ -9678,11 +9665,6 @@
                 "summary": "Delete workflow",
                 "description": "Deletes a workflows_v2 row. This removes the stored React Flow graph (typed nodes/edges as documented under Workflows v2 components).",
                 "operationId": "deleteWorkflowV2",
-                "security": [
-                    {
-                        "HTTPBearer": []
-                    }
-                ],
                 "parameters": [
                     {
                         "name": "X-API-Key",
@@ -22403,6 +22385,7 @@
             },
             "CreateWorkflowV2Request": {
                 "type": "object",
+                "description": "Requires non-empty name and a definition object (definition may be `{}`). Omitted nodes/edges in definition are normalized to empty arrays before validation.",
                 "required": [
                     "name",
                     "definition"
@@ -22441,13 +22424,15 @@
                         "title": "Description"
                     },
                     "definition": {
-                        "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+                        "$ref": "#/components/schemas/WorkflowV2DefinitionGraph",
+                        "description": "Must be present. May be `{}` or omit `nodes` / `edges`; missing keys normalize to `[]`."
                     }
                 },
                 "title": "CreateWorkflowV2Request"
             },
             "UpdateWorkflowV2Request": {
                 "type": "object",
+                "description": "All fields optional. `{}` is a no-op. See PUT operation description for name, description, definition, and agent_ids semantics.",
                 "properties": {
                     "name": {
                         "type": "string",
@@ -22468,7 +22453,7 @@
                             }
                         ],
                         "title": "Agent Ids",
-                        "description": "When this field is sent, replaces all agent links. Use [] to clear. Agents must belong to your organization when non-empty."
+                        "description": "If this key is present in the JSON body, junction links are replaced: [] clears all links. Omit the key entirely to leave agent links unchanged. When non-empty, agents must belong to your organization."
                     },
                     "description": {
                         "anyOf": [
@@ -22490,17 +22475,14 @@
                                 "type": "null"
                             }
                         ],
-                        "description": "Full graph replacement when provided."
+                        "description": "Full graph replacement when the key is sent and value is not null. Omitted nodes/edges keys normalize to []."
                     }
                 },
                 "title": "UpdateWorkflowV2Request"
             },
             "WorkflowV2DefinitionGraph": {
                 "type": "object",
-                "required": [
-                    "nodes"
-                ],
-                "description": "React Flow graph. nodes must be a JSON array. edges defaults to empty if omitted in storage; the API requires nodes on create/update. Optional keys such as viewport are allowed. Stored graphs may include extra React Flow / UI fields on nodes and edges (additionalProperties).",
+                "description": "React Flow graph. `nodes` and `edges` are optional in the request JSON; omitted or missing keys are normalized to `[]` before validation and storage. Optional keys such as `viewport` are allowed. Stored graphs may include extra React Flow / UI fields on nodes and edges (additionalProperties).",
                 "properties": {
                     "nodes": {
                         "type": "array",
@@ -22991,7 +22973,7 @@
             },
             "WorkflowV2Response": {
                 "type": "object",
-                "description": "One workflows v2 record. `definition` is a React Flow graph with discriminated `WorkflowV2Node` entries and typed `data` (see `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
+                "description": "One workflows v2 record. Persisted `definition` always includes normalized `nodes` and `edges` arrays (possibly empty). Node entries use discriminated `WorkflowV2Node` and typed `data` (see `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
                 "required": [
                     "id",
                     "name",

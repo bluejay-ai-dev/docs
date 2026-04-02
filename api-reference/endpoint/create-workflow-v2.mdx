@@ -12,19 +12,21 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Create workflow (v2) — POST /v1/workflows-v2
 
-> **What this endpoint does:** Create a workflows_v2 row with a React Flow graph (`nodes`, `edges`, optional `viewport`).
+> **What this endpoint does:** Create a workflows_v2 row. You must send `name` and `definition`; `definition` can be `{}` and may omit `nodes` / `edges` (they become `[]` before persist).
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/workflows-v2`
-**Auth:** `Authorization: Bearer` (JWT) or `X-API-Key` header
+**Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
-### Required body fields
-| Name | Type | Description |
-|------|------|-------------|
-| name | string | 1–255 characters |
-| definition | object | Graph with required `nodes`; see this page for the schema |
+### Body fields
+| Name | Required? | Notes |
+|------|-----------|--------|
+| name | Yes | Non-empty string, max 255 characters |
+| definition | Yes | Must be present; may be `{}`. `nodes` and `edges` are optional in JSON—omitted keys normalize to `[]`. |
+| description | No | Omit or null |
+| agent_ids | No | Omit or null for org-only; if set, agents must be in your org |
 
-Optional: `description`, `agent_ids` (omit or null for org-only workflow).
+Minimal body: `{"name": "My workflow", "definition": {}}`.
 
 Review the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-workflow-v2. A **400** response may include a `detail` message.
 
@@ -55,4 +57,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint creates a **workflows v2** definition for your organization. Provide a name, optional description, optional agent links, and a React Flow–style graph with `nodes`, `edges`, and optional `viewport`.
+This endpoint creates a **workflows v2** definition for your organization. Provide a name and a `definition` object (it can be empty); add optional description, agent links, and any `nodes`, `edges`, or `viewport` when you are ready.

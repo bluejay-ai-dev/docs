@@ -1,6 +1,6 @@
 ---
 title: 'Update workflow (v2)'
-description: 'Partially update workflows v2; replacing definition re-validates the same typed React Flow graph as create.'
+description: 'Partially update workflows v2; all body fields optional, including a no-op {}.'
 openapi: 'PUT /v1/workflows-v2/{workflow_id}'
 ---
 <div className="ai-prompt-box">
@@ -12,18 +12,21 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Update workflow (v2) — PUT /v1/workflows-v2/{workflow_id}
 
-> **What this endpoint does:** Partial update of name, description, `agent_ids`, and/or `definition`.
+> **What this endpoint does:** Partial update — nothing in the body is required. `{}` changes nothing and returns the current workflow.
 
 **Endpoint:** PUT `https://api.getbluejay.ai/v1/workflows-v2/{workflow_id}`
-**Auth:** `Authorization: Bearer` (JWT) or `X-API-Key` header
+**Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
-### Important semantics
-- Omitted fields are left unchanged.
-- If `agent_ids` appears in the body (including `[]`), all agent junction links are **replaced**; `[]` clears links.
-- If `definition` appears, it is **fully replaced** and validated like create.
+### Semantics
+| Field | Effect |
+|------|--------|
+| `name` | Applied only if the key is sent and the value is not null. |
+| `description` | Applied only if the key is sent (you may send an empty string). |
+| `definition` | Replaced only if the key is sent and the value is not null. Same normalization as create: missing `nodes` / `edges` become `[]`, then the same checks as **POST** apply to the graph. |
+| `agent_ids` | If the **`agent_ids` key appears** in the JSON, junction rows are updated; `[]` clears all links. **Omit the key** entirely to leave agent links unchanged. |
 
-When you send `definition`, it must use the same discriminated types as **POST** `/v1/workflows-v2`: `WorkflowV2Node` (by node `type`), `WorkflowV2SingleNodeData` / `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption` for options branches. See [Create workflow (v2)](/api-reference/endpoint/create-workflow-v2) for validation rules and examples.
+For non-empty graphs after normalization, node/`data` shapes match **POST** `/v1/workflows-v2` (see [Create workflow (v2)](/api-reference/endpoint/create-workflow-v2) and this page’s schema).
 
 ### Example
 ```python
@@ -39,7 +42,7 @@ def update_workflow_v2(workflow_id: str, payload: dict, api_key: str) -> dict:
 
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
-- Handle **400** (invalid graph / business validation, `detail` message), **404**, **422** (`WorkflowsV2ValidationError`), and **401** as appropriate.
+- Handle **400** (may include `detail`), **404**, **422** (`WorkflowsV2ValidationError`), and **401** as appropriate.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -52,4 +55,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Sends only the fields you want to change; include `definition` only when replacing the entire React Flow graph. The replaced graph is checked against the same rules and typed `data` shapes as on create.
+Send only the keys you want to change. To replace the graph, include `definition` (not null); omitted `nodes` / `edges` inside it still normalize to `[]` like on create.
