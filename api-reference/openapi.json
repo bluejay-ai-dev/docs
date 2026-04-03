@@ -9848,6 +9848,116 @@
                 }
             }
         },
+        "/v1/workflows-v2/{workflow_id}/duplicate": {
+            "post": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "Duplicate workflow",
+                "description": "Creates a new workflows_v2 row by copying an existing one. The source workflow must belong to the caller's organization (otherwise 404).\n\n**What is copied:** `definition` (deep copy, re-validated through the same rules as create — cycles, orphans, content-node checks; stored graphs that no longer pass current rules return **400**), `description` (including null), and agent links (same `agent_ids` as the source; agents must still belong to the org and be VOICE agents — **400** if TEXT agents are linked, **404** if agents are not found).\n\n**What is not copied:** `id` (new UUID), `created_at` (set on insert), and `name` (see name rules below).\n\n**Name rules:** If `name` is omitted, null, or whitespace-only, the copy is named `Copy of {original name}`. If the resulting string exceeds 255 characters it is truncated to 255. Pass an explicit `name` to override.\n\n**Rate limiting:** 100 requests per minute.\n\n**Authentication:** JWT (Authorization: Bearer) or X-API-Key header.",
+                "operationId": "duplicateWorkflowV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Source workflow UUID"
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DuplicateWorkflowV2Request"
+                            },
+                            "examples": {
+                                "defaultName": {
+                                    "summary": "Use auto-generated name",
+                                    "value": {}
+                                },
+                                "customName": {
+                                    "summary": "Provide a custom name",
+                                    "value": {
+                                        "name": "Billing flow (staging)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Duplicated workflow",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowV2Response"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Copied definition fails current validation rules, or source agent links include TEXT-mode agents",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source workflow not found or belongs to a different organization; or linked agents not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/workflow/{workflow_id}/duplicate": {
             "post": {
                 "tags": [
@@ -23230,6 +23340,27 @@
                     }
                 },
                 "title": "DeleteWorkflowV2Response"
+            },
+            "DuplicateWorkflowV2Request": {
+                "type": "object",
+                "description": "Optional body for duplicating a workflow. All fields are optional.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 255
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Name for the copy, 1–255 characters. If omitted, null, or whitespace-only, defaults to \"Copy of {original name}\" (truncated to 255 characters if needed)."
+                    }
+                },
+                "title": "DuplicateWorkflowV2Request"
             },
             "WorkflowV2WireTurn": {
                 "type": "object",
