@@ -549,7 +549,7 @@
         "/v1/generate-digital-humans": {
             "post": {
                 "summary": "Generate Digital Humans",
-                "description": "Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.",
+                "description": "Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.\n\n**Per scenario:** Non-empty `enriched_playback` forces `description` and `success_criteria` to empty strings. If scenario tags match workflow playback (tag lowercased contains `workflow`), the same clearing applies and `role_description` is forced to null (even without enriched_playback).\n\n**Batch:** Objectives / intent-summary generation runs only for created rows with non-empty description — workflow-style rows with empty description are skipped.\n\n**Workflows v2:** `auto_gen_workflow_v2_adherence_scenarios` feeds this endpoint when `workflow_adherence_v2` is used (empty description/success_criteria, filled enriched_playback).",
                 "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
                 "security": [
                     {
@@ -584,6 +584,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/src__main__DigitalHumanResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request or generation constraint violation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
                                 }
                             }
                         }
@@ -5268,7 +5278,7 @@
                     "Digital Humans"
                 ],
                 "summary": "Create Digital Human",
-                "description": "Create a new digital human.",
+                "description": "Create a new digital human.\n\n**Enriched playback:** If `digital_human.enriched_playback` is a non-empty list, transcript LLM paths for intent are skipped; `description` and `success_criteria` are stored as empty strings; `generate_objectives_and_intent_summary` is not run when description stays blank.\n\n**Workflow-tagged** (tag lowercased contains `workflow`): **400** if non-empty intent, success_criteria, or role_description (after trim); if `original_transcript` or `formatted_transcript` is sent; or if `enriched_playback` is missing, not a list, or empty. `role_description` is stored as null when omitted.\n\n**always_on_active default:** If `always_on_active` is omitted, it defaults to `true` whenever `phone_number` is set, and `false` otherwise.\n\n**Always-on constraints:** If attaching to an always-on simulation, the digital human must have `always_on_mode: true` (400 otherwise). If `always_on_mode` and `always_on_active` are both true, the phone number must not already be in use by another always-on active digital human (409 otherwise). SIP provisioning also requires the agent to have a phone number configured (400 if missing).\n\nSee docs: Workflow tags & enriched playback.",
                 "operationId": "create_digital_human_v1_create_digital_human_post",
                 "security": [
                     {
@@ -5303,6 +5313,46 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/src__models__digital_humans__digital_human_response__DigitalHumanResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Workflow-tagged or business-rule violation (e.g. always-on mode mismatch, invalid phone number, missing SIP prerequisites)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Phone number conflict: another always-on active digital human already uses this phone number",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "example": "ALWAYS_ON_PHONE_CONFLICT"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "phone_number": {
+                                            "type": "string"
+                                        },
+                                        "conflict": {
+                                            "type": "object",
+                                            "properties": {
+                                                "digital_human_id": {"type": "integer"},
+                                                "digital_human_name": {"type": "string"},
+                                                "phone_number": {"type": "string"}
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -5360,6 +5410,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/src__models__digital_humans__digital_human_response__DigitalHumanResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied — digital human belongs to a different organization",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
                                 }
                             }
                         }
@@ -5476,6 +5536,16 @@
                             }
                         }
                     },
+                    "404": {
+                        "description": "Simulation not found or belongs to a different organization",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -5495,7 +5565,7 @@
                     "Digital Humans"
                 ],
                 "summary": "Update Digital Human",
-                "description": "Update a digital human by ID.",
+                "description": "Update a digital human by ID. Returns 404 if the digital human does not exist or belongs to a different organization.\n\n**Effective tag:** If the body includes `tag`, workflow rules use that tag; otherwise they use existing stored tags.\n\n**Workflow-tagged (tag lowercased contains `workflow`):** **400** if intent, success_criteria, role_description, original_transcript, or formatted_transcript **change** from stored values. Same values as DB (idempotent full PUT) are OK. `enriched_playback` remains updatable.\n\n**Transcript update behavior (three cases):**\n- `original_transcript` only: the middleware calls an LLM formatter to produce `formatted_transcript`; both are stored.\n- Both `original_transcript` and `formatted_transcript`: LLM formatting is skipped; both values are stored as-is and intent/description is derived from the formatted transcript.\n- `formatted_transcript` only: LLM formatting is skipped; `formatted_transcript` is stored, `original_transcript` is set to null in the DB, and intent/description is derived from the formatted transcript.\n\nSee docs: Workflow tags & enriched playback.",
                 "operationId": "update_digital_human_v1_update_digital_human__digital_human_id__put",
                 "security": [
                     {
@@ -5543,6 +5613,26 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "Workflow-tagged digital human: field changes not allowed, or business-rule violation (e.g. invalid phone number, invalid accent)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Digital human not found or belongs to a different organization",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -5562,7 +5652,7 @@
                     "Digital Humans"
                 ],
                 "summary": "Generate Objectives Endpoint",
-                "description": "Generate objectives for a test case from its intent.",
+                "description": "Generate objectives for a test case from its intent.\n\n**400** if the test case tags indicate workflow playback (tag lowercased contains `workflow`): workflow-tagged digital humans use enriched playback on the agent; objectives are not applicable.",
                 "operationId": "generate_objectives_endpoint_v1_generate_objectives_post",
                 "security": [
                     {
@@ -5601,6 +5691,16 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "Workflow-tagged test case: objectives not applicable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -5620,7 +5720,7 @@
                     "Digital Humans"
                 ],
                 "summary": "Generate Intent Summary Endpoint",
-                "description": "Generate intent summary for a test case (only if intent exceeds character limit).",
+                "description": "Generate intent summary for a test case (only if intent exceeds character limit).\n\n**400** if the test case tags indicate workflow playback (tag lowercased contains `workflow`): workflow-tagged digital humans use enriched playback on the agent; intent summary is not applicable.",
                 "operationId": "generate_intent_summary_endpoint_v1_generate_intent_summary_post",
                 "security": [
                     {
@@ -5655,6 +5755,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GenerateIntentSummaryResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Workflow-tagged test case: intent summary not applicable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
                                 }
                             }
                         }
@@ -9098,6 +9208,749 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/workflows-v2": {
+            "post": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "Create workflow",
+                "description": "Creates a workflows_v2 row. agent_ids must reference agents in your organization when provided.\n\nDefinition is validated before persist; failures return **400** with a plain-text detail message.\n\n**Typed shapes:** see WorkflowV2Node (discriminated by type) and nested WorkflowV2SingleNodeData, WorkflowV2OptionsNodeData, and WorkflowV2BranchOption in components.\n\n**Draft vs. validated graph:** If the definition contains no content nodes (no `single` or `options` nodes), the graph is stored as a draft with minimal validation — only duplicate start nodes are rejected. Once at least one content node is present, full export validation runs.\n\n**Validation (when content nodes are present):**\n- At most one node with type `start` is allowed (duplicate start nodes are always rejected, even in draft mode). Having zero start nodes with content nodes results in a \"No paths from Start\" error.\n- At least one content node (`single` or `options`) must be reachable from the start node via edges. Orphaned content nodes not on any path from Start are rejected.\n- The graph must not contain directed cycles.\n- **Single** nodes: data.type is required — one of exact, contextual, silence, dtmf. exact/contextual: non-empty data.message. contextual: only when data.speaker is agent (default); not allowed for user. silence: data.duration_ms — finite number, non-negative, at most 86400000 (24h). dtmf: data.digits — non-empty string containing only 0-9, *, #, and A-D (case-insensitive) after trim.\n- **Options** nodes: data.branch_options has at least two entries; node speaker must be omitted or \"user\". Each branch: non-empty id; type one of exact, silence, dtmf (not contextual); exact requires message.\n- From an options node, edges continuing the flow should set sourceHandle to the chosen branch id (must match branch_options[].id).\n\n**Rate limiting:** 100 requests per minute per route (middleware).\n\n**Authentication:** JWT (Authorization: Bearer) or X-API-Key header.",
+                "operationId": "createWorkflowV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateWorkflowV2Request"
+                            },
+                            "examples": {
+                                "singlePath": {
+                                    "summary": "Start → single (exact agent turn)",
+                                    "value": {
+                                        "name": "Greeting",
+                                        "description": "One agent line",
+                                        "agent_ids": [
+                                            1
+                                        ],
+                                        "definition": {
+                                            "nodes": [
+                                                {
+                                                    "id": "start-1",
+                                                    "type": "start",
+                                                    "position": {
+                                                        "x": 0,
+                                                        "y": 0
+                                                    },
+                                                    "data": {}
+                                                },
+                                                {
+                                                    "id": "agent-hello",
+                                                    "type": "single",
+                                                    "position": {
+                                                        "x": 240,
+                                                        "y": 0
+                                                    },
+                                                    "data": {
+                                                        "type": "exact",
+                                                        "speaker": "agent",
+                                                        "message": "Hello, how can I help?"
+                                                    }
+                                                }
+                                            ],
+                                            "edges": [
+                                                {
+                                                    "id": "e1",
+                                                    "source": "start-1",
+                                                    "target": "agent-hello"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "contextualAgent": {
+                                    "summary": "Single node — contextual (agent only)",
+                                    "value": {
+                                        "name": "Flexible agent line",
+                                        "definition": {
+                                            "nodes": [
+                                                {
+                                                    "id": "s0",
+                                                    "type": "start",
+                                                    "position": {
+                                                        "x": 0,
+                                                        "y": 0
+                                                    },
+                                                    "data": {}
+                                                },
+                                                {
+                                                    "id": "n1",
+                                                    "type": "single",
+                                                    "position": {
+                                                        "x": 200,
+                                                        "y": 0
+                                                    },
+                                                    "data": {
+                                                        "type": "contextual",
+                                                        "speaker": "agent",
+                                                        "message": "Ask how you can help today"
+                                                    }
+                                                }
+                                            ],
+                                            "edges": [
+                                                {
+                                                    "id": "e0",
+                                                    "source": "s0",
+                                                    "target": "n1"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "userExactSilenceDtmf": {
+                                    "summary": "Single — user exact, silence, DTMF",
+                                    "value": {
+                                        "name": "User turns",
+                                        "definition": {
+                                            "nodes": [
+                                                {
+                                                    "id": "s0",
+                                                    "type": "start",
+                                                    "position": {
+                                                        "x": 0,
+                                                        "y": 0
+                                                    },
+                                                    "data": {}
+                                                },
+                                                {
+                                                    "id": "u1",
+                                                    "type": "single",
+                                                    "position": {
+                                                        "x": 200,
+                                                        "y": -40
+                                                    },
+                                                    "data": {
+                                                        "type": "exact",
+                                                        "speaker": "user",
+                                                        "message": "Yes, I need a refund"
+                                                    }
+                                                },
+                                                {
+                                                    "id": "u2",
+                                                    "type": "single",
+                                                    "position": {
+                                                        "x": 400,
+                                                        "y": 0
+                                                    },
+                                                    "data": {
+                                                        "type": "silence",
+                                                        "speaker": "user",
+                                                        "duration_ms": 1500
+                                                    }
+                                                },
+                                                {
+                                                    "id": "u3",
+                                                    "type": "single",
+                                                    "position": {
+                                                        "x": 600,
+                                                        "y": 40
+                                                    },
+                                                    "data": {
+                                                        "type": "dtmf",
+                                                        "speaker": "user",
+                                                        "digits": "1"
+                                                    }
+                                                }
+                                            ],
+                                            "edges": [
+                                                {
+                                                    "id": "e1",
+                                                    "source": "s0",
+                                                    "target": "u1"
+                                                },
+                                                {
+                                                    "id": "e2",
+                                                    "source": "u1",
+                                                    "target": "u2"
+                                                },
+                                                {
+                                                    "id": "e3",
+                                                    "source": "u2",
+                                                    "target": "u3"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "optionsBranches": {
+                                    "summary": "Options node — two branches with sourceHandle",
+                                    "value": {
+                                        "name": "Menu",
+                                        "definition": {
+                                            "nodes": [
+                                                {
+                                                    "id": "s0",
+                                                    "type": "start",
+                                                    "position": {
+                                                        "x": 0,
+                                                        "y": 0
+                                                    },
+                                                    "data": {}
+                                                },
+                                                {
+                                                    "id": "opt1",
+                                                    "type": "options",
+                                                    "position": {
+                                                        "x": 220,
+                                                        "y": 0
+                                                    },
+                                                    "data": {
+                                                        "branch_options": [
+                                                            {
+                                                                "id": "yes",
+                                                                "type": "exact",
+                                                                "message": "Yes",
+                                                                "label": "Confirm"
+                                                            },
+                                                            {
+                                                                "id": "pound",
+                                                                "type": "dtmf",
+                                                                "digits": "#",
+                                                                "label": "Hash key"
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                {
+                                                    "id": "after-yes",
+                                                    "type": "single",
+                                                    "position": {
+                                                        "x": 480,
+                                                        "y": -60
+                                                    },
+                                                    "data": {
+                                                        "type": "exact",
+                                                        "speaker": "agent",
+                                                        "message": "Great, continuing."
+                                                    }
+                                                }
+                                            ],
+                                            "edges": [
+                                                {
+                                                    "id": "e0",
+                                                    "source": "s0",
+                                                    "target": "opt1"
+                                                },
+                                                {
+                                                    "id": "e-yes",
+                                                    "source": "opt1",
+                                                    "target": "after-yes",
+                                                    "sourceHandle": "yes"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Created workflow",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowV2Response"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid definition or graph validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Request body schema validation failed (Pydantic)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowsV2ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "List workflows",
+                "description": "Lists workflows for the authenticated user's organization.\n\nOptional agent_id filters to workflows linked to that agent (agent must be in your org).\n\nEach item includes a `definition` graph typed in components: `WorkflowV2Node` (discriminated by `type`), `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption`.",
+                "operationId": "listWorkflowsV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "If set, only workflows linked to this agent."
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowsV2ListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid query parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowsV2ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/workflows-v2/{workflow_id}": {
+            "parameters": [
+                {
+                    "name": "workflow_id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "description": "Workflow UUID"
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "Get workflow",
+                "description": "Returns one workflow if it exists and belongs to your organization (otherwise 404).\n\nThe `definition` field is a React Flow graph with the same typed node and `data` shapes as create/update — see `WorkflowV2DefinitionGraph`, `WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption` in components.",
+                "operationId": "getWorkflowV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workflow",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowV2Response"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found or no access",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "Update workflow",
+                "description": "Partial update. Omitted fields are unchanged.\n\nWhen agent_ids is present in the JSON body (even as [] or null), junction links are replaced atomically: an empty array or null clears all agent links.\n\nWhen definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as POST /v1/workflows-v2 (`WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
+                "operationId": "updateWorkflowV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateWorkflowV2Request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated workflow",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowV2Response"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid definition",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found or no access",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Request body validation failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowsV2ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "Delete workflow",
+                "description": "Deletes a workflows_v2 row. This removes the stored React Flow graph (typed nodes/edges as documented under Workflows v2 components).",
+                "operationId": "deleteWorkflowV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteWorkflowV2Response"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found or no access",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/workflows-v2/{workflow_id}/duplicate": {
+            "post": {
+                "tags": [
+                    "Workflows v2"
+                ],
+                "summary": "Duplicate workflow",
+                "description": "Creates a new workflows_v2 row by copying an existing one. The source workflow must belong to the caller's organization (otherwise 404).\n\n**What is copied:** `definition` (deep copy, re-validated through the same rules as create — cycles, orphans, content-node checks; stored graphs that no longer pass current rules return **400**), `description` (including null), and agent links (same `agent_ids` as the source; agents must still belong to the org and be VOICE agents — **400** if TEXT agents are linked, **404** if agents are not found).\n\n**What is not copied:** `id` (new UUID), `created_at` (set on insert), and `name` (see name rules below).\n\n**Name rules:** If `name` is omitted, null, or whitespace-only, the copy is named `Copy of {original name}`. If the resulting string exceeds 255 characters it is truncated to 255. Pass an explicit `name` to override.\n\n**Rate limiting:** 100 requests per minute.\n\n**Authentication:** JWT (Authorization: Bearer) or X-API-Key header.",
+                "operationId": "duplicateWorkflowV2",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "Source workflow UUID"
+                    },
+                    {
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "API key required to authenticate requests."
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DuplicateWorkflowV2Request"
+                            },
+                            "examples": {
+                                "defaultName": {
+                                    "summary": "Use auto-generated name",
+                                    "value": {}
+                                },
+                                "customName": {
+                                    "summary": "Provide a custom name",
+                                    "value": {
+                                        "name": "Billing flow (staging)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Duplicated workflow",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkflowV2Response"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Copied definition fails current validation rules, or source agent links include TEXT-mode agents",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Source workflow not found or belongs to a different organization; or linked agents not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPError"
                                 }
                             }
                         }
@@ -13853,7 +14706,7 @@
                     "digital_human"
                 ],
                 "title": "CreateDigitalHumanRequest",
-                "description": "Request model for creating a digital human."
+                "description": "Request model for creating a digital human. Workflow-tag and enriched_playback rules: see POST /v1/create-digital-human."
             },
             "CreateKeyIn": {
                 "properties": {
@@ -15180,19 +16033,21 @@
                     "agent_id"
                 ],
                 "title": "DigitalHumanRequest",
-                "description": "Pydantic model for digital humans (simulation type) request"
+                "description": "Pydantic model for digital humans (simulation type) request. Scenario building applies workflow-tag and enriched_playback rules (see POST /v1/generate-digital-humans description)."
             },
             "DigitalHumanRequestData": {
                 "properties": {
                     "intent": {
                         "type": "string",
                         "title": "Intent",
-                        "description": "Description of the digital human"
+                        "description": "Test-case intent / description. Defaults to empty string when omitted. Workflow-tagged creates cannot send non-empty intent (after trim).",
+                        "default": ""
                     },
                     "success_criteria": {
                         "type": "string",
                         "title": "Success Criteria",
-                        "description": "Success criteria for the digital human"
+                        "description": "Success criteria. Defaults to empty string when omitted. Workflow-tagged creates cannot send non-empty value (after trim).",
+                        "default": ""
                     },
                     "name": {
                         "anyOf": [
@@ -15216,7 +16071,7 @@
                             }
                         ],
                         "title": "Tag",
-                        "description": "Tag for categorizing the digital human"
+                        "description": "Tag stored on the test case. If the lowercased tag contains \"workflow\" (e.g. Workflow Adherence), workflow playback rules apply on create/update/generate."
                     },
                     "language": {
                         "anyOf": [
@@ -15450,7 +16305,7 @@
                             }
                         ],
                         "title": "Role Description",
-                        "description": "Description of the role for the digital human"
+                        "description": "Workflow-tagged creates: must be empty after trim in request; stored as null if omitted. Non-workflow: role description for the digital human."
                     },
                     "traits": {
                         "anyOf": [
@@ -15541,6 +16396,22 @@
                         "title": "Formatted Transcript",
                         "description": "Pre-computed structured transcript as [{role, utterance}]. When provided, skips the format-transcript LLM call."
                     },
+                    "enriched_playback": {
+                        "anyOf": [
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enriched Playback",
+                        "description": "Non-empty list skips transcript LLM intent paths and forces empty stored description/success_criteria. Required non-empty for workflow-tagged creates."
+                    },
                     "always_on_mode": {
                         "anyOf": [
                             {
@@ -15596,12 +16467,10 @@
                 },
                 "type": "object",
                 "required": [
-                    "intent",
-                    "success_criteria",
                     "phone_number"
                 ],
                 "title": "DigitalHumanRequestData",
-                "description": "Digital human data model for requests (without id and created_at)."
+                "description": "Digital human data model for requests (without id and created_at). intent and success_criteria default to empty strings. Workflow-tag and enriched_playback rules apply (see POST /v1/create-digital-human)."
             },
             "DigitalHumanResponseData": {
                 "properties": {
@@ -21129,7 +21998,7 @@
                             }
                         ],
                         "title": "Intent",
-                        "description": "Description of the digital human"
+                        "description": "Maps to stored description. When effective tags are workflow, **400** if value differs from DB (same value idempotent)."
                     },
                     "success_criteria": {
                         "anyOf": [
@@ -21141,7 +22010,7 @@
                             }
                         ],
                         "title": "Success Criteria",
-                        "description": "Success criteria for the digital human"
+                        "description": "When effective tags are workflow, **400** if value differs from DB (same value idempotent)."
                     },
                     "name": {
                         "anyOf": [
@@ -21165,7 +22034,7 @@
                             }
                         ],
                         "title": "Tag",
-                        "description": "Tag for categorizing the digital human"
+                        "description": "If sent, workflow rules use this tag; otherwise existing stored tags apply."
                     },
                     "language": {
                         "anyOf": [
@@ -21465,7 +22334,7 @@
                             }
                         ],
                         "title": "Role Description",
-                        "description": "Description of the role for the digital human"
+                        "description": "When effective tags are workflow, **400** if value differs from DB (same value idempotent)."
                     },
                     "speaks_first_config": {
                         "anyOf": [
@@ -21488,7 +22357,7 @@
                             }
                         ],
                         "title": "Original Transcript",
-                        "description": "Original transcript text. If changed from the current value, utterances are re-extracted and the intent is regenerated."
+                        "description": "When effective tags are workflow, **400** if value differs from DB. Otherwise, if changed from current value, utterances may be re-extracted."
                     },
                     "formatted_transcript": {
                         "anyOf": [
@@ -21506,7 +22375,23 @@
                             }
                         ],
                         "title": "Formatted Transcript",
-                        "description": "Pre-computed structured transcript as [{role, utterance}]. When provided alongside original_transcript, skips the LLM formatting call."
+                        "description": "When effective tags are workflow, **400** if value differs from DB. Otherwise see create semantics for LLM skip behavior."
+                    },
+                    "enriched_playback": {
+                        "anyOf": [
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enriched Playback",
+                        "description": "Updatable for workflow-tagged digital humans; when not null, written to DB."
                     },
                     "num_runs": {
                         "anyOf": [
@@ -21574,7 +22459,7 @@
                 },
                 "type": "object",
                 "title": "UpdateDigitalHumanRequest",
-                "description": "Request model for updating a digital human - contains only the digital human data."
+                "description": "Partial update body for a digital human. Effective workflow tag rules: see PUT /v1/update-digital-human/{digital_human_id}."
             },
             "UpdateLabRequest": {
                 "properties": {
@@ -21767,6 +22652,803 @@
                 "type": "object",
                 "title": "UpdateWorkflowRequest",
                 "description": "API request to update an existing workflow"
+            },
+            "CreateWorkflowV2Request": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "definition"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "title": "Name"
+                    },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids",
+                        "description": "Owning agents; omit or null for org-only workflow."
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "definition": {
+                        "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+                    }
+                },
+                "title": "CreateWorkflowV2Request"
+            },
+            "UpdateWorkflowV2Request": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "title": "Name"
+                    },
+                    "agent_ids": {
+                        "anyOf": [
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Agent Ids",
+                        "description": "When this field is sent, replaces all agent links. Use [] to clear. Agents must belong to your organization when non-empty."
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "definition": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Full graph replacement when provided."
+                    }
+                },
+                "title": "UpdateWorkflowV2Request"
+            },
+            "WorkflowV2DefinitionGraph": {
+                "type": "object",
+                "description": "React Flow graph. Both nodes and edges are optional — omitting either defaults to []. Optional keys such as viewport are allowed. Stored graphs may include extra React Flow / UI fields on nodes and edges (additionalProperties).",
+                "properties": {
+                    "nodes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkflowV2Node"
+                        }
+                    },
+                    "edges": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkflowV2Edge"
+                        }
+                    },
+                    "viewport": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2DefinitionGraph"
+            },
+            "WorkflowV2SingleDataExact": {
+                "type": "object",
+                "description": "Verbatim line. message must be non-empty after trim (OpenAPI cannot express trim; avoid whitespace-only).",
+                "required": [
+                    "type",
+                    "message"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "exact"
+                        ]
+                    },
+                    "message": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "agent",
+                            "user"
+                        ],
+                        "description": "Defaults to agent when omitted."
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2SingleDataExact"
+            },
+            "WorkflowV2SingleDataContextual": {
+                "type": "object",
+                "description": "Agent paraphrase / direction. Only valid when speaker is agent (default). Do not set speaker to user.",
+                "required": [
+                    "type",
+                    "message"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "contextual"
+                        ]
+                    },
+                    "message": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "agent"
+                        ],
+                        "description": "Omit or agent only."
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2SingleDataContextual"
+            },
+            "WorkflowV2SingleDataSilence": {
+                "type": "object",
+                "description": "Silence duration in ms. Must be a JSON number (not boolean), finite, 0 ≤ value ≤ 86400000.",
+                "required": [
+                    "type",
+                    "duration_ms"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "silence"
+                        ]
+                    },
+                    "duration_ms": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 86400000
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "agent",
+                            "user"
+                        ]
+                    },
+                    "response_after_silence": {
+                        "type": "string",
+                        "description": "Optional hint used when flattening to wire turns (not validated on export)."
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2SingleDataSilence"
+            },
+            "WorkflowV2SingleDataDtmf": {
+                "type": "object",
+                "description": "DTMF digits after trim must be non-empty and contain only 0-9, *, #, and A-D (case-insensitive).",
+                "required": [
+                    "type",
+                    "digits"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "dtmf"
+                        ]
+                    },
+                    "digits": {
+                        "type": "string",
+                        "pattern": "^[0-9*#A-Da-d]+$",
+                        "minLength": 1
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "agent",
+                            "user"
+                        ]
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2SingleDataDtmf"
+            },
+            "WorkflowV2SingleNodeData": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2SingleDataExact"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2SingleDataContextual"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2SingleDataSilence"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2SingleDataDtmf"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "exact": "#/components/schemas/WorkflowV2SingleDataExact",
+                        "contextual": "#/components/schemas/WorkflowV2SingleDataContextual",
+                        "silence": "#/components/schemas/WorkflowV2SingleDataSilence",
+                        "dtmf": "#/components/schemas/WorkflowV2SingleDataDtmf"
+                    }
+                },
+                "title": "WorkflowV2SingleNodeData"
+            },
+            "WorkflowV2BranchOptionExact": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "message"
+                ],
+                "description": "Customer branch with fixed utterance. id matches edge.sourceHandle when continuing.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "exact"
+                        ]
+                    },
+                    "message": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ],
+                        "description": "Omit or user only."
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2BranchOptionExact"
+            },
+            "WorkflowV2BranchOptionSilence": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "duration_ms"
+                ],
+                "description": "Same duration_ms rules as on a single silence turn.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "silence"
+                        ]
+                    },
+                    "duration_ms": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 86400000
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ]
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "response_after_silence": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2BranchOptionSilence"
+            },
+            "WorkflowV2BranchOptionDtmf": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "digits"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "dtmf"
+                        ]
+                    },
+                    "digits": {
+                        "type": "string",
+                        "pattern": "^[0-9*#A-Da-d]+$",
+                        "minLength": 1
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ]
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2BranchOptionDtmf"
+            },
+            "WorkflowV2BranchOption": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2BranchOptionExact"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2BranchOptionSilence"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2BranchOptionDtmf"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "exact": "#/components/schemas/WorkflowV2BranchOptionExact",
+                        "silence": "#/components/schemas/WorkflowV2BranchOptionSilence",
+                        "dtmf": "#/components/schemas/WorkflowV2BranchOptionDtmf"
+                    }
+                },
+                "title": "WorkflowV2BranchOption"
+            },
+            "WorkflowV2OptionsNodeData": {
+                "type": "object",
+                "description": "Customer branch point. At least two branch_options. Omit speaker or set user only.",
+                "required": [
+                    "branch_options"
+                ],
+                "properties": {
+                    "branch_options": {
+                        "type": "array",
+                        "minItems": 2,
+                        "items": {
+                            "$ref": "#/components/schemas/WorkflowV2BranchOption"
+                        }
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ]
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2OptionsNodeData"
+            },
+            "WorkflowV2StartNode": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type"
+                ],
+                "description": "Exactly one start node per graph. data is usually {}; UI metadata allowed.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "start"
+                        ],
+                        "title": "Type"
+                    },
+                    "position": {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "type": "number"
+                            },
+                            "y": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "data": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2StartNode"
+            },
+            "WorkflowV2SingleNode": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "data"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "single"
+                        ],
+                        "title": "Type"
+                    },
+                    "position": {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "type": "number"
+                            },
+                            "y": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/WorkflowV2SingleNodeData"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2SingleNode"
+            },
+            "WorkflowV2OptionsNode": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "data"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "options"
+                        ],
+                        "title": "Type"
+                    },
+                    "position": {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "type": "number"
+                            },
+                            "y": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/WorkflowV2OptionsNodeData"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2OptionsNode"
+            },
+            "WorkflowV2Node": {
+                "description": "React Flow node discriminated by type. The server accepts extra properties on nodes (e.g. selected, width).",
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2StartNode"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2SingleNode"
+                    },
+                    {
+                        "$ref": "#/components/schemas/WorkflowV2OptionsNode"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "start": "#/components/schemas/WorkflowV2StartNode",
+                        "single": "#/components/schemas/WorkflowV2SingleNode",
+                        "options": "#/components/schemas/WorkflowV2OptionsNode"
+                    }
+                },
+                "title": "WorkflowV2Node"
+            },
+            "WorkflowV2Edge": {
+                "type": "object",
+                "description": "React Flow edge. For edges leaving an options node, set sourceHandle to the branch_options[].id being taken when continuing to another content node.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "source": {
+                        "type": "string",
+                        "title": "Source"
+                    },
+                    "target": {
+                        "type": "string",
+                        "title": "Target"
+                    },
+                    "sourceHandle": {
+                        "type": "string",
+                        "title": "Source Handle"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2Edge"
+            },
+            "WorkflowV2Response": {
+                "type": "object",
+                "description": "One workflows v2 record. `definition` is a React Flow graph with discriminated `WorkflowV2Node` entries and typed `data` (see `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
+                "required": [
+                    "id",
+                    "name",
+                    "definition",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "organization_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Organization Id"
+                    },
+                    "agent_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "default": [],
+                        "title": "Agent Ids"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "definition": {
+                        "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "title": "WorkflowV2Response"
+            },
+            "WorkflowsV2ListResponse": {
+                "type": "object",
+                "description": "Paged-style list: each `workflows` item is a `WorkflowV2Response` with the same typed `definition` graph as get/create/update.",
+                "required": [
+                    "workflows",
+                    "total_count"
+                ],
+                "properties": {
+                    "workflows": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WorkflowV2Response"
+                        },
+                        "title": "Workflows"
+                    },
+                    "total_count": {
+                        "type": "integer",
+                        "title": "Total Count"
+                    }
+                },
+                "title": "WorkflowsV2ListResponse"
+            },
+            "DeleteWorkflowV2Response": {
+                "type": "object",
+                "description": "Confirmation after deleting a workflows v2 row (including its stored typed graph).",
+                "required": [
+                    "message",
+                    "deleted_workflow_id"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Workflow deleted successfully",
+                        "title": "Message"
+                    },
+                    "deleted_workflow_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Deleted Workflow Id"
+                    }
+                },
+                "title": "DeleteWorkflowV2Response"
+            },
+            "DuplicateWorkflowV2Request": {
+                "type": "object",
+                "description": "Optional body for duplicating a workflow. All fields are optional.",
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 255
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "Name for the copy, 1–255 characters. If omitted, null, or whitespace-only, defaults to \"Copy of {original name}\" (truncated to 255 characters if needed)."
+                    }
+                },
+                "title": "DuplicateWorkflowV2Request"
+            },
+            "WorkflowV2WireTurn": {
+                "type": "object",
+                "description": "Flattened playback turn after resolving a path through the graph. Options nodes do not appear as a turn type; each branch becomes exact, contextual, silence, or dtmf with optional node_id referencing the options node. Not returned by workflows v2 CRUD routes.",
+                "properties": {
+                    "turn": {
+                        "type": "integer",
+                        "title": "Turn"
+                    },
+                    "speaker": {
+                        "type": "string",
+                        "enum": [
+                            "agent",
+                            "user"
+                        ],
+                        "title": "Speaker"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "exact",
+                            "contextual",
+                            "silence",
+                            "dtmf"
+                        ],
+                        "title": "Type"
+                    },
+                    "node_id": {
+                        "type": "string",
+                        "title": "Node Id"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "duration_ms": {
+                        "type": "integer",
+                        "title": "Duration Ms"
+                    },
+                    "digits": {
+                        "type": "string",
+                        "title": "Digits"
+                    },
+                    "label": {
+                        "type": "string",
+                        "title": "Label"
+                    },
+                    "response_after_silence": {
+                        "type": "string",
+                        "title": "Response After Silence"
+                    }
+                },
+                "additionalProperties": true,
+                "title": "WorkflowV2WireTurn"
+            },
+            "HTTPError": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {}
+                            }
+                        ],
+                        "title": "Detail"
+                    }
+                },
+                "title": "HTTPError",
+                "description": "Middleware error payload with string or structured detail."
+            },
+            "WorkflowsV2ValidationError": {
+                "type": "object",
+                "description": "FastAPI / Pydantic validation error payload for Workflows v2 routes. Named separately because ValidationError in this spec is the Pydantic error item used inside HTTPValidationError elsewhere.",
+                "properties": {
+                    "detail": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": true
+                        },
+                        "title": "Detail"
+                    }
+                },
+                "title": "WorkflowsV2ValidationError"
             },
             "ValidationError": {
                 "properties": {

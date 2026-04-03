@@ -1,0 +1,55 @@
+---
+title: 'Update workflow (v2)'
+description: 'Partially update workflows v2; replacing definition re-validates the same typed React Flow graph as create.'
+openapi: 'PUT /v1/workflows-v2/{workflow_id}'
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Update workflow (v2) — PUT /v1/workflows-v2/{workflow_id}
+
+> **What this endpoint does:** Partial update of name, description, `agent_ids`, and/or `definition`.
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/workflows-v2/{workflow_id}`
+**Auth:** `Authorization: Bearer` (JWT) or `X-API-Key` header
+**Content-Type:** application/json
+
+### Important semantics
+- Omitted fields are left unchanged.
+- If `agent_ids` appears in the body (including `[]`), all agent junction links are **replaced**; `[]` clears links.
+- If `definition` appears, it is **fully replaced** and validated like create.
+
+When you send `definition`, it must use the same discriminated types as **POST** `/v1/workflows-v2`: `WorkflowV2Node` (by node `type`), `WorkflowV2SingleNodeData` / `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption` for options branches. See [Create workflow (v2)](/api-reference/endpoint/create-workflow-v2) for validation rules and examples.
+
+### Example
+```python
+import requests
+
+def update_workflow_v2(workflow_id: str, payload: dict, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/workflows-v2/{workflow_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Handle **400** (invalid graph / business validation, `detail` message), **404**, **422** (`WorkflowsV2ValidationError`), and **401** as appropriate.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Sends only the fields you want to change; include `definition` only when replacing the entire React Flow graph. The replaced graph is checked against the same rules and typed `data` shapes as on create.
