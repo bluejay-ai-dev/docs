@@ -1,6 +1,6 @@
 ---
-title: 'Delete Workflow'
-description: ''
+title: 'Delete workflow'
+description: 'Delete a workflow and its stored typed React Flow graph by UUID.'
 openapi: 'DELETE /v1/workflow/{workflow_id}'
 ---
 <div className="ai-prompt-box">
@@ -10,9 +10,9 @@ openapi: 'DELETE /v1/workflow/{workflow_id}'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Delete Workflow — DELETE /v1/workflow/{workflow_id}
+## Delete workflow — DELETE /v1/workflow/{workflow_id}
 
-> **What this endpoint does:** Delete a specific workflow by ID.
+> **What this endpoint does:** Deletes a workflow row. This removes the stored React Flow graph (typed nodes/edges as documented under Workflows components).
 
 **Endpoint:** DELETE `https://api.getbluejay.ai/v1/workflow/{workflow_id}`
 **Auth:** `X-API-Key` header
@@ -20,7 +20,6 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
-| workflow_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
 ### Example
@@ -39,7 +38,7 @@ def delete_workflow(workflow_id: str, api_key: str) -> dict:
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 401: Unauthorized; 404: Not found or no access; 500: Server error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -52,4 +51,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Given the workflow ID, this endpoint permanently deletes the workflow.
+Successful responses include `message` and `deleted_workflow_id` (UUID of the removed workflow).

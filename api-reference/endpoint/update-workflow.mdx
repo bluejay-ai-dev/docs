@@ -1,7 +1,7 @@
 ---
-title: 'Update Workflow'
-description: ''
-openapi: 'PUT /v1/update-workflow/{workflow_id}'
+title: 'Update workflow'
+description: 'Partially update a workflow; replacing definition re-validates the same typed React Flow graph as create.'
+openapi: 'PUT /v1/workflow/{workflow_id}'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,27 +10,30 @@ openapi: 'PUT /v1/update-workflow/{workflow_id}'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Update Workflow — PUT /v1/update-workflow/{workflow_id}
+## Update workflow — PUT /v1/workflow/{workflow_id}
 
-> **What this endpoint does:** Update a specific workflow by ID.
+> **What this endpoint does:** Partial update. Omitted fields are unchanged. When agent_ids is present in the JSON body (even as [] or null), junction links are replaced atomically: an empty array or null clears all agent links. When definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as **POST** `/v1/workflow` (see **components**).
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-workflow/{workflow_id}`
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/workflow/{workflow_id}`
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
-| workflow_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-workflow and include any optional parameters (e.g., `name`, `workflow`, `agent_ids`, `enabled_for_evaluation`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-workflow and include any optional parameters (e.g., `name`, `agent_ids`, `description`, `definition`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body
 ```json
 {
-  "name": "string",
-  "workflow": {
+  "name": "example_name",
+  "agent_ids": [
+    123
+  ],
+  "description": "string",
+  "definition": {
     "nodes": [
       {
         "id": "string",
@@ -40,8 +43,7 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
           "y": 1.0
         },
         "data": {
-          "label": "string",
-          "description": "string"
+          "key": "value"
         }
       }
     ],
@@ -50,15 +52,13 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
         "id": "string",
         "source": "string",
         "target": "string",
-        "label": "string",
-        "type": "string"
+        "sourceHandle": "string"
       }
-    ]
-  },
-  "agent_ids": [
-    123
-  ],
-  "enabled_for_evaluation": true
+    ],
+    "viewport": {
+      "key": "value"
+    }
+  }
 }
 ```
 
@@ -68,7 +68,7 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
 import requests
 
 def update_workflow(workflow_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/update-workflow/{workflow_id}"
+    url = f"https://api.getbluejay.ai/v1/workflow/{workflow_id}"
     headers = {"X-API-Key": api_key}
     response = requests.put(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -78,7 +78,7 @@ def update_workflow(workflow_id: str, payload: dict, api_key: str) -> dict:
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 400: Invalid definition; 401: Unauthorized; 404: Not found or no access.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -91,4 +91,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Given the workflow ID and, optionally, the name and workflow structure, this endpoint updates your workflow and returns the updated workflow.
+Omitted fields are left unchanged. If `agent_ids` appears in the body (including `[]`), all agent links are **replaced**; `[]` clears links. If `definition` appears, it is **fully replaced** and validated like **POST** `/v1/workflow` (same discriminated node and `data` types as [Create workflow](/api-reference/endpoint/create-workflow)).
+
+Sends only the fields you want to change; include `definition` only when replacing the entire React Flow graph.

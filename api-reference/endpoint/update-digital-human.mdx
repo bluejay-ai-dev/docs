@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Update Digital Human — PUT /v1/update-digital-human/{digital_human_id}
 
-> **What this endpoint does:** Update a digital human by ID.
+> **What this endpoint does:** Update a digital human by ID. Returns 404 if the digital human does not exist or belongs to a different organization. **Effective tag:** If the body includes `tag`, workflow rules use that tag; otherwise they use existing stored tags. **Workflow-tagged (tag lowercased contains `workflow`):** **400** if intent, success_criteria, role_description, original_transcript, or formatted_transcript **change** from stored values. Same values as DB (idempotent full PUT) are OK. `enriched_playback` remains updatable. **Transcript update behavior (three cases):** - `original_transcript` only: the middleware calls an LLM formatter to produce `formatted_transcript`; both are stored. - Both `original_transcript` and `formatted_transcript`: LLM formatting is skipped; both values are stored as-is and intent/description is derived from the formatted transcript. - `formatted_transcript` only: LLM formatting is skipped; `formatted_transcript` is stored, `original_transcript` is set to null in the DB, and intent/description is derived from the formatted transcript. See docs: Workflow tags & enriched playback.
 
 **Endpoint:** PUT `https://api.getbluejay.ai/v1/update-digital-human/{digital_human_id}`
 **Auth:** `X-API-Key` header
@@ -97,10 +97,18 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
       "key": "value"
     }
   ],
+  "enriched_playback": [
+    {
+      "key": "value"
+    }
+  ],
   "num_runs": 123,
   "livekit_metadata": {
     "key": "value"
-  }
+  },
+  "always_on_mode": true,
+  "always_on_active": true,
+  "override_conflict": true
 }
 ```
 
@@ -120,7 +128,7 @@ def update_digital_human(digital_human_id: int, payload: dict, api_key: str) -> 
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 400: Workflow-tagged digital human: field changes not allowed, or business-rule violation (e.g. invalid phone number, invalid accent); 404: Digital human not found or belongs to a different organization; 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -133,4 +141,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to update an existing digital human. Provide the digital human ID and updated details to update the metric.
+This endpoint allows you to update an existing digital human. Effective **tag** (body vs stored) can affect validation; see the OpenAPI schema and response codes on this page for update constraints.

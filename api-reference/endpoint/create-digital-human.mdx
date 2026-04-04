@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Create Digital Human — POST /v1/create-digital-human
 
-> **What this endpoint does:** Create a new digital human.
+> **What this endpoint does:** Create a new digital human. **Enriched playback:** If `digital_human.enriched_playback` is a non-empty list, transcript LLM paths for intent are skipped; `description` and `success_criteria` are stored as empty strings; `generate_objectives_and_intent_summary` is not run when description stays blank. **Workflow-tagged** (tag lowercased contains `workflow`): **400** if non-empty intent, success_criteria, or role_description (after trim); if `original_transcript` or `formatted_transcript` is sent; or if `enriched_playback` is missing, not a list, or empty. `role_description` is stored as null when omitted. **always_on_active default:** If `always_on_active` is omitted, it defaults to `true` whenever `phone_number` is set, and `false` otherwise. **Always-on constraints:** If attaching to an always-on simulation, the digital human must have `always_on_mode: true` (400 otherwise). If `always_on_mode` and `always_on_active` are both true, the phone number must not already be in use by another always-on active digital human (409 otherwise). SIP provisioning also requires the agent to have a phone number configured (400 if missing). See docs: Workflow tags & enriched playback.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/create-digital-human`
 **Auth:** `X-API-Key` header
@@ -22,7 +22,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| digital_human | object | Digital human data model for requests (without id and created_at). |
+| digital_human | object | Digital human data model for requests (without id and created_at). intent and success_criteria default to empty strings. Workflow-tag and enriched_playback rules apply (see POST /v1/create-digital-human). |
 
 Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-digital-human and include any optional parameters (e.g., `simulation_ids`, `simulation_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
@@ -30,8 +30,8 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
 ```json
 {
   "digital_human": {
-    "intent": "string",
-    "success_criteria": "string",
+    "intent": "",
+    "success_criteria": "",
     "name": "string",
     "tag": "string",
     "language": "en",
@@ -95,6 +95,13 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
         "key": "value"
       }
     ],
+    "enriched_playback": [
+      {
+        "key": "value"
+      }
+    ],
+    "always_on_mode": true,
+    "always_on_active": true,
     "num_runs": 123,
     "livekit_metadata": {
       "key": "value"
@@ -121,7 +128,7 @@ def create_digital_human(payload: dict, api_key: str) -> dict:
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 400: Workflow-tagged or business-rule violation (e.g. always-on mode mismatch, invalid phone number, missing SIP prerequisites); 409: Phone number conflict: another always-on active digital human already uses this phone number; 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -134,4 +141,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to create a digital human and attach it to a simulation.
+This endpoint allows you to create a digital human and attach it to a simulation. Field requirements depend on tags and optional playback payloads; see the OpenAPI schema on this page.

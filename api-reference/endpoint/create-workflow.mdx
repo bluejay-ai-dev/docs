@@ -1,7 +1,7 @@
 ---
-title: 'Create Workflow'
-description: ''
-openapi: 'POST /v1/workflows'
+title: 'Create workflow'
+description: 'Create a workflow definition as a React Flow graph.'
+openapi: 'POST /v1/workflow'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,11 +10,11 @@ openapi: 'POST /v1/workflows'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Workflow — POST /v1/workflows
+## Create workflow — POST /v1/workflow
 
-> **What this endpoint does:** Create a new workflow.
+> **What this endpoint does:** Creates a workflow row. agent_ids must reference agents in your organization when provided. Definition is validated before persist; failures return **400** with a plain-text detail message. **Typed shapes:** discriminated graph nodes and `data` variants are defined in **components** (the `WorkflowGraph*` component schemas describe graph workflows; legacy automation models live on **Deprecated** routes). **Draft vs. validated graph:** If the definition contains no content nodes (no `single` or `options` nodes), the graph is stored as a draft with minimal validation — only duplicate start nodes are rejected. Once at least one content node is present, full export validation runs. **Validation (when content nodes are present):** - At most one node with type `start` is allowed (duplicate start nodes are always rejected, even in draft mode). Having zero start nodes with content nodes results in a "No paths from Start" error. - At least one content node (`single` or `options`) must be reachable from the start node via edges. Orphaned content nodes not on any path from Start are rejected. - The graph must not contain directed cycles. - **Single** nodes: data.type is required — one of exact, contextual, silence, dtmf. exact/contextual: non-empty data.message. contextual: only when data.speaker is agent (default); not allowed for user. silence: data.duration_ms — finite number, non-negative, at most 86400000 (24h). dtmf: data.digits — non-empty string containing only 0-9, *, #, and A-D (case-insensitive) after trim. - **Options** nodes: data.branch_options has at least two entries; node speaker must be omitted or "user". Each branch: non-empty id; type one of exact, silence, dtmf (not contextual); exact requires message. - From an options node, edges continuing the flow should set sourceHandle to the chosen branch id (must match branch_options[].id). **Rate limiting:** 100 requests per minute per route (middleware). **Authentication:** JWT (Authorization: Bearer) or X-API-Key header.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/workflows`
+**Endpoint:** POST `https://api.getbluejay.ai/v1/workflow`
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
@@ -22,16 +22,16 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| name | string | Name of the workflow |
-| workflow | object | Input model for workflow data (with optional position fields) |
+| name | string |  |
+| definition | object | React Flow graph. Both nodes and edges are optional — omitting either defaults to []. Optional keys such as viewport are allowed. Stored graphs may include extra React Flow / UI fields on nodes and edges (additionalProperties). |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-workflow and include any optional parameters (e.g., `agent_ids`, `enabled_for_evaluation`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-workflow and include any optional parameters (e.g., `agent_ids`, `description`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
 {
   "name": "example_name",
-  "workflow": {
+  "definition": {
     "nodes": [
       {
         "id": "string",
@@ -41,8 +41,7 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
           "y": 1.0
         },
         "data": {
-          "label": "string",
-          "description": "string"
+          "key": "value"
         }
       }
     ],
@@ -51,10 +50,12 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
         "id": "string",
         "source": "string",
         "target": "string",
-        "label": "string",
-        "type": "string"
+        "sourceHandle": "string"
       }
-    ]
+    ],
+    "viewport": {
+      "key": "value"
+    }
   }
 }
 ```
@@ -67,7 +68,7 @@ Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/cr
 import requests
 
 def create_workflow(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/workflows"
+    url = "https://api.getbluejay.ai/v1/workflow"
     headers = {"X-API-Key": api_key}
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -77,7 +78,7 @@ def create_workflow(payload: dict, api_key: str) -> dict:
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 400: Invalid definition or graph validation error; 401: Unauthorized; 422: Request body schema validation failed (Pydantic).
 
 ### Integration Checklist
 Before writing code, verify:
@@ -90,4 +91,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to create a workflow for an agent. Provide the agent ID, workflow name, and workflow structure with nodes and edges.
+This endpoint creates a workflow definition for your organization. Provide a name, optional description, optional agent links, and a React Flow–style graph with `nodes`, `edges`, and optional `viewport`.

@@ -4,554 +4,468 @@ description: "Creating and Managing Agent Workflows with Bluejay"
 icon: diagram-project
 ---
 
+<video
+  controls
+  className="w-full aspect-video rounded-xl"
+  src="https://okihfrlvyycxyylukqey.supabase.co/storage/v1/object/public/bluejay-docs-files/workflows.mp4"
+></video>
 ## Workflows with the Bluejay API
 
-Bluejay provides powerful workflow management capabilities that allow you to define, create, and manage conversation flows for your AI agents. Workflows help structure how your agents handle different conversation paths, making them more predictable and easier to evaluate. This cookbook will guide you through using the workflows API with practical Python examples.
-
-### Understanding Workflows
-
-Workflows in Bluejay are visual representations of conversation flows that define how your agent should handle different customer interaction paths. They consist of nodes (conversation steps) and edges (transitions between steps) that create a structured map of possible conversation outcomes.
-
-**Key Features:**
-
-- **Visual Flow Design**: Create intuitive conversation flows with nodes and edges
-- **Agent Association**: Link workflows to specific agents for targeted behavior
-- **Evaluation Integration**: Use workflows for agent performance evaluation
-- **Flexible Structure**: Support for complex branching and decision points
-- **Auto-positioning**: Automatic layout generation for visual clarity
+This cookbook covers workflows. Workflows are a great way to test your agent across multiple conversation paths.
 
 ### Workflow Structure
 
-A workflow consists of two main components:
+A workflow is a **directed graph** of **agent** and **user** turns.
 
-1. **Nodes**: Individual conversation steps or decision points
-   - `start`: Beginning of the conversation
-   - `end`: End of the conversation  
-   - `editable`: Intermediate conversation steps
+- Agent turns define what your agent should say or do. Simulations evaluate against this to make sure your agent said what it was supposed to.
+- User nodes let you define what our digital human says during a simulation.
 
-2. **Edges**: Connections between nodes representing customer responses or interaction paths
+<img
+  src="/images/workflows.png"
+  alt="Workflow graph: start node, alternating agent and user turns, an options branch with edges labeled by sourceHandle, and leaves — each start-to-leaf walk becomes one digital human."
+  style={{ maxWidth: '100%', borderRadius: '0.5rem' }}
+/>
 
-### Quick Start: Creating a Simple Workflow
+Each unique path through your workflow creates one digital human to test that path.
 
-<Accordion title="Show code">
-```python
-import requests
-import json
-from datetime import datetime, timezone
+### Node Types
 
-def create_simple_workflow(agent_id, api_key):
-    """Create a basic customer service workflow"""
+#### `start`
 
-    base_url = "https://api.getbluejay.ai/v1"
+Every workflow has exactly one start node. It has no `data` requirements — just an `id` and `type: "start"`.
 
-    # Define workflow structure
-    workflow_data = {
-        "agent_id": agent_id,
-        "name": "Customer Service Flow",
-        "enabled_for_evaluation": True,
-        "workflow": {
-            "nodes": [
-                {
-                    "id": "start-node",
-                    "type": "start",
-                    "data": {
-                        "label": "Start Conversation",
-                        "description": "Customer initiates contact"
-                    }
-                },
-                {
-                    "id": "greeting",
-                    "type": "editable",
-                    "data": {
-                        "label": "Greeting and Identification",
-                        "description": "Welcome customer and identify their needs"
-                    }
-                },
-                {
-                    "id": "problem-solving",
-                    "type": "editable",
-                    "data": {
-                        "label": "Problem Resolution",
-                        "description": "Address customer's specific issue"
-                    }
-                },
-                {
-                    "id": "end-node",
-                    "type": "end",
-                    "data": {
-                        "label": "End Conversation",
-                        "description": "Conversation completed successfully"
-                    }
-                }
-            ],
-            "edges": [
-                {
-                    "id": "edge-1",
-                    "source": "start-node",
-                    "target": "greeting",
-                    "label": "Customer calls in",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-2",
-                    "source": "greeting",
-                    "target": "problem-solving",
-                    "label": "Customer explains issue",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-3",
-                    "source": "problem-solving",
-                    "target": "end-node",
-                    "label": "Issue resolved",
-                    "type": "connector"
-                }
-            ]
-        }
-    }
+#### `single` — one conversation turn
 
-    # Submit workflow creation request
-    headers = {
-        "X-API-Key": api_key,
-        "Content-Type": "application/json"
-    }
+Single nodes represent one turn in the conversation, either from the agent or the user. The `data.type` field controls the turn's behavior:
 
-    response = requests.post(
-        f"{base_url}/workflows",
-        headers=headers,
-        json=workflow_data
-    )
+| `data.type` | Speaker | What it models |
+|---|---|---|
+| `exact` | agent or user | A verbatim utterance. Requires a non-empty `message`. |
+| `contextual` | agent only | A direction the agent should paraphrase in its own words. Requires a non-empty `message`. Cannot be used for user turns. |
+| `silence` | agent or user | A pause. Requires `duration_ms` (number, 0–86,400,000 ms). |
+| `dtmf` | agent or user | A keypress sequence. Requires `digits` (characters `0-9`, `*`, `#`, `A-D`, case-insensitive). |
 
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Workflow created successfully!")
-        print(f"Workflow ID: {result['id']}")
-        print(f"Name: {result['name']}")
-        return result
-    else:
-        print(f"Error creating workflow: {response.status_code} - {response.text}")
-        return None
+The `speaker` field defaults to `"agent"` when omitted.
 
-# Usage
-api_key = "your-api-key-here"
-agent_id = 123
-workflow = create_simple_workflow(agent_id, api_key)
-```
-</Accordion>
+#### `options` — user branch point
 
-![Simple Workflow](/images/simple-workflow.png)
+Suppose you were testing a workflow where your agent says a phrase like "Press 1 for English or 2 for Spanish", you would then want to test both cases where our digital human presses 1, and the other where it presses 2. You can do this by adding another option to a user node.
+<img
+  src="/images/workflows-option-node.png"
+  alt="Workflow graph: start node, alternating agent and user turns, an options branch with edges labeled by sourceHandle, and leaves — each start-to-leaf walk becomes one digital human."
+  style={{ display: 'block', margin: '0 auto', width: '50%', borderRadius: '0.5rem' }}
+/>
 
-### Advanced: Complex Order Processing Workflow
+Options nodes model a point where the user picks from multiple paths — pressing a key, saying a specific phrase, or staying silent. 
+Each branch is defined in `data.branch_options` (minimum 2 entries). Options nodes are always user-only.
 
-Here's a more sophisticated example for an order processing system with multiple decision points:
+Each branch option has:
+- `id` — a unique string used to match outgoing edges via `sourceHandle`
+- `type` — `exact`, `silence`, or `dtmf` (no `contextual`)
+- `message` / `duration_ms` / `digits` depending on the type
+
+When an options node continues to another content node, the edge must set `sourceHandle` to the branch's `id` so Bluejay knows which path was taken.
+
+<Note>
+**Workflows is currently for VOICE agents only.** Linking a TEXT-mode agent returns a 400 error. TEXT support is coming soon.
+</Note>
+
+---
+
+### Creating a Workflow
+
+#### Simple Linear Workflow
+
+A straightforward flow: the agent greets the customer, the customer states their issue, the agent resolves it.
 
 <Accordion title="Show code">
 ```python
 import requests
-import json
-from datetime import datetime, timezone
 
-def create_order_processing_workflow(agent_id, api_key):
-    """Create a comprehensive order processing workflow with branching logic"""
+BASE_URL = "https://api.getbluejay.ai/v1"
 
-    base_url = "https://api.getbluejay.ai/v1"
+def create_linear_workflow(api_key, agent_id=None, name="Customer Service Flow"):
+    """Create a simple linear workflow with agent and user turns."""
 
-    # Complex workflow with multiple paths
-    workflow_data = {
-        "agent_id": agent_id,
-        "name": "Order Processing & Support",
-        "enabled_for_evaluation": True,
-        "workflow": {
-            "nodes": [
-                {
-                    "id": "start-node",
-                    "type": "start",
-                    "data": {
-                        "label": "Start Conversation",
-                        "description": "Customer initiates order-related contact"
-                    }
-                },
-                {
-                    "id": "greeting",
-                    "type": "editable",
-                    "data": {
-                        "label": "Greeting and Identification",
-                        "description": "Warmly welcome customer and ask for their order number"
-                    }
-                },
-                {
-                    "id": "order-lookup",
-                    "type": "editable",
-                    "data": {
-                        "label": "Order Lookup",
-                        "description": "Retrieve and review customer's order details"
-                    }
-                },
-                {
-                    "id": "order-status",
-                    "type": "editable",
-                    "data": {
-                        "label": "Status Update",
-                        "description": "Provide current order status and tracking information"
-                    }
-                },
-                {
-                    "id": "order-changes",
-                    "type": "editable",
-                    "data": {
-                        "label": "Order Modifications",
-                        "description": "Handle order changes, cancellations, or modifications"
-                    }
-                },
-                {
-                    "id": "payment-issues",
-                    "type": "editable",
-                    "data": {
-                        "label": "Payment Resolution",
-                        "description": "Address payment problems or billing questions"
-                    }
-                },
-                {
-                    "id": "shipping-issues",
-                    "type": "editable",
-                    "data": {
-                        "label": "Shipping Support",
-                        "description": "Handle delivery problems, address changes, or shipping questions"
-                    }
-                },
-                {
-                    "id": "order-confirmation",
-                    "type": "editable",
-                    "data": {
-                        "label": "Order Confirmation",
-                        "description": "Confirm order details and provide next steps"
-                    }
-                },
-                {
-                    "id": "escalation",
-                    "type": "editable",
-                    "data": {
-                        "label": "Escalation",
-                        "description": "Transfer to human agent for complex issues"
-                    }
-                },
-                {
-                    "id": "end-node",
-                    "type": "end",
-                    "data": {
-                        "label": "End Conversation",
-                        "description": "Conversation completed"
-                    }
+    definition = {
+        "nodes": [
+            {
+                "id": "start",
+                "type": "start",
+                "data": {}
+            },
+            {
+                "id": "agent-greeting",
+                "type": "single",
+                "data": {
+                    "type": "exact",
+                    "speaker": "agent",
+                    "message": "Thank you for calling. How can I help you today?"
                 }
-            ],
-            "edges": [
-                {
-                    "id": "edge-1",
-                    "source": "start-node",
-                    "target": "greeting",
-                    "label": "Customer calls in",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-2",
-                    "source": "greeting",
-                    "target": "order-lookup",
-                    "label": "Customer provides order number",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-3",
-                    "source": "order-lookup",
-                    "target": "order-status",
-                    "label": "Order found - provide status",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-4",
-                    "source": "order-lookup",
-                    "target": "order-changes",
-                    "label": "Customer wants to modify order",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-5",
-                    "source": "order-lookup",
-                    "target": "payment-issues",
-                    "label": "Payment or billing issue",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-6",
-                    "source": "order-lookup",
-                    "target": "shipping-issues",
-                    "label": "Shipping or delivery problem",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-7",
-                    "source": "order-status",
-                    "target": "order-confirmation",
-                    "label": "Customer satisfied with status",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-8",
-                    "source": "order-changes",
-                    "target": "order-confirmation",
-                    "label": "Changes processed successfully",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-9",
-                    "source": "payment-issues",
-                    "target": "order-confirmation",
-                    "label": "Payment issue resolved",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-10",
-                    "source": "shipping-issues",
-                    "target": "order-confirmation",
-                    "label": "Shipping issue resolved",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-11",
-                    "source": "order-lookup",
-                    "target": "escalation",
-                    "label": "Complex issue requires human agent",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-12",
-                    "source": "order-confirmation",
-                    "target": "end-node",
-                    "label": "Customer satisfied",
-                    "type": "connector"
-                },
-                {
-                    "id": "edge-13",
-                    "source": "escalation",
-                    "target": "end-node",
-                    "label": "Transferred to human agent",
-                    "type": "connector"
+            },
+            {
+                "id": "user-issue",
+                "type": "single",
+                "data": {
+                    "type": "exact",
+                    "speaker": "user",
+                    "message": "I'm calling about my order — it still hasn't arrived."
                 }
-            ]
-        }
+            },
+            {
+                "id": "agent-resolution",
+                "type": "single",
+                "data": {
+                    "type": "exact",
+                    "speaker": "agent",
+                    "message": "I've resolved that for you. Is there anything else I can help with?"
+                }
+            }
+        ],
+        "edges": [
+            {"id": "e1", "source": "start", "target": "agent-greeting"},
+            {"id": "e2", "source": "agent-greeting", "target": "user-issue"},
+            {"id": "e3", "source": "user-issue", "target": "agent-resolution"}
+        ]
     }
 
-    headers = {
-        "X-API-Key": api_key,
-        "Content-Type": "application/json"
-    }
+    body = {"name": name, "definition": definition}
+    if agent_id is not None:
+        body["agent_ids"] = [agent_id]
 
     response = requests.post(
-        f"{base_url}/workflows",
-        headers=headers,
-        json=workflow_data
+        f"{BASE_URL}/workflow",
+        headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+        json=body
     )
-
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Complex workflow created successfully!")
-        print(f"Workflow ID: {result['id']}")
-        print(f"Nodes: {len(result['workflow']['nodes'])}")
-        print(f"Edges: {len(result['workflow']['edges'])}")
-        return result
-    else:
-        print(f"Error creating workflow: {response.status_code} - {response.text}")
-        return None
+    response.raise_for_status()
+    result = response.json()
+    print(f"Created workflow: {result['name']} (ID: {result['id']})")
+    return result
 
 # Usage
-workflow = create_order_processing_workflow(agent_id, api_key)
+workflow = create_linear_workflow(api_key="your-api-key", agent_id=123)
 ```
 </Accordion>
 
-![Complex Workflow](/images/complex-workflow.png)
+#### Branching Workflow with an Options Node
 
-### Retrieving and Managing Workflows
+This example models an IVR-style menu where the user either presses a DTMF key for customer support or says a phrase to reach billing. Each branch continues to a different agent response.
 
-#### Get All Workflows for an Agent
-
+<Accordion title="Show code">
 ```python
-def get_agent_workflows(agent_id, api_key):
-    """Retrieve all workflows associated with an agent"""
+import requests
 
-    base_url = "https://api.getbluejay.ai/v1"
+BASE_URL = "https://api.getbluejay.ai/v1"
 
-    headers = {
-        "X-API-Key": api_key
+def create_branching_workflow(api_key, agent_id=None):
+    """
+    Workflow with an options node where the user chooses a path.
+    Branch 1: user presses 1 (DTMF) → customer support
+    Branch 2: user says a billing phrase (exact) → billing
+    """
+
+    definition = {
+        "nodes": [
+            {
+                "id": "start",
+                "type": "start",
+                "data": {}
+            },
+            {
+                "id": "agent-menu",
+                "type": "single",
+                "data": {
+                    "type": "exact",
+                    "speaker": "agent",
+                    "message": "Press 1 for customer support, or say billing to reach our billing team."
+                }
+            },
+            # Options node: user picks a branch
+            {
+                "id": "user-choice",
+                "type": "options",
+                "data": {
+                    "branch_options": [
+                        {
+                            "id": "branch-support",
+                            "type": "dtmf",
+                            "digits": "1"
+                        },
+                        {
+                            "id": "branch-billing",
+                            "type": "exact",
+                            "message": "Billing"
+                        }
+                    ]
+                }
+            },
+            # Branch 1 continuation
+            {
+                "id": "agent-support",
+                "type": "single",
+                "data": {
+                    "type": "contextual",
+                    "speaker": "agent",
+                    "message": "Acknowledge the customer and begin troubleshooting their support issue."
+                }
+            },
+            # Branch 2 continuation
+            {
+                "id": "agent-billing",
+                "type": "single",
+                "data": {
+                    "type": "contextual",
+                    "speaker": "agent",
+                    "message": "Pull up the customer's account and address their billing question."
+                }
+            }
+        ],
+        "edges": [
+            {"id": "e1", "source": "start", "target": "agent-menu"},
+            {"id": "e2", "source": "agent-menu", "target": "user-choice"},
+            # sourceHandle must match the branch_options id
+            {
+                "id": "e3",
+                "source": "user-choice",
+                "target": "agent-support",
+                "sourceHandle": "branch-support"
+            },
+            {
+                "id": "e4",
+                "source": "user-choice",
+                "target": "agent-billing",
+                "sourceHandle": "branch-billing"
+            }
+        ]
     }
 
-    response = requests.get(
-        f"{base_url}/workflows/by-agent/{agent_id}",
-        headers=headers
-    )
+    body = {"name": "Support & Billing Menu", "definition": definition}
+    if agent_id is not None:
+        body["agent_ids"] = [agent_id]
 
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Found {result['total_count']} workflows for agent {agent_id}")
-        
-        for workflow in result['workflows']:
-            print(f"- {workflow['name']} (ID: {workflow['id']})")
-            print(f"  Created: {workflow['created_at']}")
-            print(f"  Evaluation enabled: {workflow['enabled_for_evaluation']}")
-            print()
-        
-        return result
-    else:
-        print(f"Error retrieving workflows: {response.status_code} - {response.text}")
-        return None
+    response = requests.post(
+        f"{BASE_URL}/workflow",
+        headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+        json=body
+    )
+    response.raise_for_status()
+    result = response.json()
+    print(f"Created workflow: {result['name']} (ID: {result['id']})")
+    print(f"Agent links: {result['agent_ids']}")
+    return result
 
 # Usage
-workflows = get_agent_workflows(agent_id, api_key)
+workflow = create_branching_workflow(api_key="your-api-key", agent_id=123)
 ```
+</Accordion>
 
-#### Get a Specific Workflow
+<Note>
+The `sourceHandle` on each edge **must match the `id` of a `branch_options` entry** on the options node. This is how Bluejay knows which branch a given edge continues.
+</Note>
+
+---
+
+### Managing Workflows
+
+#### List Workflows
 
 ```python
-def get_workflow_details(workflow_id, api_key):
-    """Retrieve detailed information about a specific workflow"""
+def list_workflows(api_key, agent_id=None):
+    """List all workflows for your organization. Optionally filter by agent."""
 
-    base_url = "https://api.getbluejay.ai/v1"
-
-    headers = {
-        "X-API-Key": api_key
-    }
+    params = {}
+    if agent_id is not None:
+        params["agent_id"] = agent_id
 
     response = requests.get(
-        f"{base_url}/workflows/{workflow_id}",
-        headers=headers
+        f"{BASE_URL}/workflow",
+        headers={"X-API-Key": api_key},
+        params=params
     )
+    response.raise_for_status()
+    result = response.json()
 
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Workflow: {result['name']}")
-        print(f"Agent ID: {result['agent_id']}")
-        print(f"Nodes: {len(result['workflow']['nodes'])}")
-        print(f"Edges: {len(result['workflow']['edges'])}")
-        
-        # Display node details
-        print("\nNodes:")
-        for node in result['workflow']['nodes']:
-            print(f"  - {node['data']['label']} ({node['type']})")
-            if node['data']['description']:
-                print(f"    Description: {node['data']['description']}")
-        
-        # Display edge details
-        print("\nEdges:")
-        for edge in result['workflow']['edges']:
-            print(f"  - {edge['source']} → {edge['target']}: {edge['label']}")
-        
-        return result
-    else:
-        print(f"Error retrieving workflow: {response.status_code} - {response.text}")
-        return None
+    print(f"Found {result['total_count']} workflow(s)")
+    for wf in result["workflows"]:
+        print(f"  {wf['name']} — {wf['id']} (created {wf['created_at']})")
+    return result
 
-# Usage
-workflow_details = get_workflow_details(workflow_id, api_key)
+# All workflows in your org
+list_workflows(api_key="your-api-key")
+
+# Only workflows linked to a specific agent
+list_workflows(api_key="your-api-key", agent_id=123)
 ```
 
-### Updating Workflows
+#### Get a Workflow
 
 ```python
-def update_workflow(workflow_id, api_key, new_name=None, new_workflow_data=None):
-    """Update an existing workflow"""
+def get_workflow(api_key, workflow_id):
+    """Retrieve a single workflow by ID."""
 
-    base_url = "https://api.getbluejay.ai/v1"
+    response = requests.get(
+        f"{BASE_URL}/workflow/{workflow_id}",
+        headers={"X-API-Key": api_key}
+    )
+    response.raise_for_status()
+    result = response.json()
 
-    # Prepare update data
-    update_data = {}
-    if new_name:
-        update_data["name"] = new_name
-    if new_workflow_data:
-        update_data["workflow"] = new_workflow_data
+    print(f"Workflow: {result['name']}")
+    print(f"Agents: {result['agent_ids']}")
+    nodes = result["definition"].get("nodes", [])
+    print(f"Nodes: {len(nodes)}")
+    return result
+```
 
-    headers = {
-        "X-API-Key": api_key,
-        "Content-Type": "application/json"
-    }
+#### Update a Workflow
+
+The update is a partial PATCH-style PUT — only fields you include are changed. If you include `agent_ids` (even as `[]` or `null`), all existing agent links are replaced.
+
+```python
+def update_workflow(api_key, workflow_id, name=None, description=None,
+                    agent_ids=None, definition=None):
+    """Partially update a workflow. Omitted fields are left unchanged."""
+
+    body = {}
+    if name is not None:
+        body["name"] = name
+    if description is not None:
+        body["description"] = description
+    if agent_ids is not None:
+        body["agent_ids"] = agent_ids
+    if definition is not None:
+        body["definition"] = definition
 
     response = requests.put(
-        f"{base_url}/workflows/{workflow_id}",
-        headers=headers,
-        json=update_data
+        f"{BASE_URL}/workflow/{workflow_id}",
+        headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+        json=body
     )
+    response.raise_for_status()
+    result = response.json()
+    print(f"Updated: {result['name']}")
+    return result
 
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Workflow updated successfully!")
-        print(f"Updated name: {result['name']}")
-        print(f"Last updated: {result['updated_at']}")
-        return result
-    else:
-        print(f"Error updating workflow: {response.status_code} - {response.text}")
-        return None
+# Rename only
+update_workflow(api_key="your-api-key", workflow_id="<uuid>", name="Renamed Flow")
 
-# Example: Update workflow name
-updated_workflow = update_workflow(
-    workflow_id=workflow_id,
-    api_key=api_key,
-    new_name="Updated Customer Service Flow"
-)
+# Swap agent links
+update_workflow(api_key="your-api-key", workflow_id="<uuid>", agent_ids=[456])
+
+# Clear all agent links
+update_workflow(api_key="your-api-key", workflow_id="<uuid>", agent_ids=[])
 ```
 
-### Deleting Workflows
+#### Delete a Workflow
 
 ```python
-def delete_workflow(workflow_id, api_key):
-    """Delete a workflow"""
-
-    base_url = "https://api.getbluejay.ai/v1"
-
-    headers = {
-        "X-API-Key": api_key
-    }
+def delete_workflow(api_key, workflow_id):
+    """Delete a workflow and its agent links."""
 
     response = requests.delete(
-        f"{base_url}/workflows/{workflow_id}",
-        headers=headers
+        f"{BASE_URL}/workflow/{workflow_id}",
+        headers={"X-API-Key": api_key}
     )
-
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Workflow deleted successfully!")
-        print(f"Deleted workflow ID: {result['id']}")
-        return result
-    else:
-        print(f"Error deleting workflow: {response.status_code} - {response.text}")
-        return None
-
-# Usage
-delete_result = delete_workflow(workflow_id, api_key)
+    response.raise_for_status()
+    result = response.json()
+    print(f"Deleted workflow: {result['deleted_workflow_id']}")
+    return result
 ```
 
-### Workflow Validation and Best Practices
+---
 
-#### Validation Rules
+### Generating Digital Humans from a Workflow
 
-Bluejay automatically validates workflows to ensure they're properly structured:
+Once your workflow is created, you can use it to automatically generate digital humans — one per unique path through the graph.
 
-1. **Exactly one start node**: Every workflow must have exactly one node with `type: "start"`
-2. **At least one end node**: Every workflow must have at least one node with `type: "end"`
-3. **Unique IDs**: All node and edge IDs must be unique within the workflow
-4. **Valid connections**: All edges must reference existing source and target nodes
+<Accordion title="Show code">
+```python
+import requests
 
+BASE_URL = "https://api.getbluejay.ai/v1"
 
-#### Best Practices
+def generate_digital_humans_from_workflow(
+    api_key,
+    agent_id,
+    simulation_id,
+    workflow_v2_id,
+    count=10
+):
+    """
+    Generate digital humans from a Workflows definition.
+    Each unique path through the workflow becomes a separate digital human.
+    Count is capped at 200 per workflow.
+    """
 
-1. **Clear Node Labels**: Use descriptive labels that clearly indicate the conversation step
-2. **Detailed Descriptions**: Provide comprehensive descriptions for each node to guide agent behavior
-3. **Logical Flow**: Ensure edges represent realistic customer responses and conversation paths
-4. **Error Handling**: Include paths for error scenarios and edge cases
-5. **Evaluation Focus**: Design workflows that align with your evaluation criteria
+    body = {
+        "agent_id": agent_id,
+        "simulation_id": simulation_id,
+        "workflow_adherence_v2": {
+            workflow_v2_id: count  # up to 200
+        }
+    }
 
+    response = requests.post(
+        f"{BASE_URL}/generate-digital-humans",
+        headers={"X-API-Key": api_key, "Content-Type": "application/json"},
+        json=body
+    )
+    response.raise_for_status()
+    result = response.json()
 
-### Next Steps
+    created = result.get("digital_humans", [])
+    print(f"Generated {len(created)} digital human(s) from workflow {workflow_v2_id}")
+    for dh in created:
+        print(f"  - {dh['name']} (ID: {dh['id']})")
+    return result
 
-- **Workflow Design**: Use the Bluejay dashboard to visually design and test your workflows
-- **Agent Integration**: Associate workflows with specific agents to control their conversation behavior
-- **Evaluation Setup**: Enable workflows for evaluation to measure agent performance against expected conversation flows
-- **Continuous Improvement**: Regularly update workflows based on real conversation data and performance metrics
-- **Team Collaboration**: Share workflow designs with your team for review and iteration
+# Usage
+generate_digital_humans_from_workflow(
+    api_key="your-api-key",
+    agent_id=123,
+    simulation_id=456,
+    workflow_v2_id="your-workflow-uuid",
+    count=50
+)
+```
+</Accordion>
 
+You can also pass several workflow IDs in the same request:
+
+```python
+body = {
+    "agent_id": agent_id,
+    "simulation_id": simulation_id,
+    "workflow_adherence_v2": {
+        "workflow-uuid-1": 20,
+        "workflow-uuid-2": 50
+    }
+}
+```
+
+---
+
+### Validation Rules
+
+Bluejay validates your graph when it contains content nodes. A graph with only a start node (or no nodes at all) is saved as a **draft** without validation — useful while you're building.
+
+Once you add a `single` or `options` node, the following rules apply:
+
+1. **At most one start node** — having two or more start nodes is always rejected, even in draft mode
+2. **No directed cycles** — the graph must be acyclic
+3. **No orphaned content nodes** — every `single` or `options` node must be reachable from the start node via edges
+4. **Single node rules**
+   - `data.type` is required (`exact`, `contextual`, `silence`, or `dtmf`)
+   - `exact` and `contextual`: `message` must be non-empty
+   - `contextual`: `speaker` must be `"agent"` (or omitted); not allowed for user turns
+   - `silence`: `duration_ms` must be a finite number between 0 and 86,400,000
+   - `dtmf`: `digits` must be non-empty, containing only `0-9`, `*`, `#`, `A-D` (case-insensitive)
+5. **Options node rules**
+   - At least 2 entries in `branch_options`
+   - Speaker must be `"user"` or omitted
+   - Each branch type must be `exact`, `silence`, or `dtmf` — not `contextual`
+   - Each branch needs a unique non-empty `id`
+
+### Best Practices
+- **Keep branch IDs stable** — `branch_options[].id` values are referenced by edge `sourceHandle`; changing them breaks existing edges

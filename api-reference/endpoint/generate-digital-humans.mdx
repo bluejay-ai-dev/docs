@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Generate Digital Humans — POST /v1/generate-digital-humans
 
-> **What this endpoint does:** Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.
+> **What this endpoint does:** Given an agent this endpoint generates digital humans to test that agent based on varying simulation types. **Per scenario:** Non-empty `enriched_playback` forces `description` and `success_criteria` to empty strings. If scenario tags match workflow playback (tag lowercased contains `workflow`), the same clearing applies and `role_description` is forced to null (even without enriched_playback). **Batch:** Objectives / intent-summary generation runs only for created rows with non-empty description — workflow-style rows with empty description are skipped. **Graph workflows (`workflow_adherence_v2`):** Each value in the dictionary is the number of paths to generate for that workflow. Counts are silently capped at **200 paths per workflow** — values above 200 are treated as 200, not rejected. `auto_gen_workflow_v2_adherence_scenarios` feeds this endpoint when `workflow_adherence_v2` is used (empty description/success_criteria, filled enriched_playback).
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/generate-digital-humans`
 **Auth:** `X-API-Key` header
@@ -24,7 +24,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | X-API-Key | string | API key required to authenticate requests. |
 | agent_id | string | ID of the agent to be used to generate the digital humans |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/generate-digital-humans and include any optional parameters (e.g., `simulation_id`, `prompt_id`, `knowledge_base_id`, `goal_adherence`, `workflow_adherence`, `replay_transcript`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/generate-digital-humans and include any optional parameters (e.g., `simulation_id`, `prompt_id`, `knowledge_base_id`, `goal_adherence`, `workflow_adherence`, `workflow_adherence_v2`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
@@ -51,7 +51,7 @@ def generate_digital_humans(payload: dict, api_key: str) -> dict:
 ### Constraints
 - Minimal changes — only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 400: Request or generation constraint violation; 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -63,4 +63,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
- Given the simulation ID, and type of digital humans you would like to create, this endpoint generates digital humans returns their data.
+Given the simulation ID and generation options, this endpoint creates digital humans from scenarios. Payload shape and validation rules (including workflow-based generation) are documented in the OpenAPI schema on this page. For graph-based paths, see [Create workflow](/api-reference/endpoint/create-workflow) and the [Workflows cookbook](/cookbook/workflows).

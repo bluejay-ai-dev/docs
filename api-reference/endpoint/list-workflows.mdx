@@ -1,0 +1,56 @@
+---
+title: 'List workflows'
+description: 'List workflows for your org; each item includes a typed React Flow definition (discriminated nodes and data).'
+openapi: 'GET /v1/workflow'
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## List workflows — GET /v1/workflow
+
+> **What this endpoint does:** Lists workflows for the authenticated user's organization. Optional agent_id filters to workflows linked to that agent (agent must be in your org). Each item includes a `definition` graph; node and `data` types are the same as in **GET**/**POST** `/v1/workflow` (see **components**).
+
+**Endpoint:** GET `https://api.getbluejay.ai/v1/workflow`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-workflows and include any optional parameters (e.g., `agent_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Example
+**Simple GET:**
+```python
+import requests
+
+def list_workflows(api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/workflow"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 401: Unauthorized; 422: Invalid query parameters; 500: Server error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Returns `workflows` and `total_count`. Every element’s `definition.nodes` / `definition.edges` follow the discriminated schemas in the OpenAPI components (not a loose blob). The agent filter only applies when the agent belongs to your organization.
