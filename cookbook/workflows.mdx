@@ -102,9 +102,9 @@ def create_linear_workflow(api_key, agent_id=None, name="Customer Service Flow")
                 "id": "user-issue",
                 "type": "single",
                 "data": {
-                    "type": "contextual",
-                    "speaker": "agent",
-                    "message": "Listen to the customer's issue and acknowledge their concern before resolving it."
+                    "type": "exact",
+                    "speaker": "user",
+                    "message": "I'm calling about my order — it still hasn't arrived."
                 }
             },
             {
@@ -156,8 +156,8 @@ BASE_URL = "https://api.getbluejay.ai/v1"
 def create_branching_workflow(api_key, agent_id=None):
     """
     Workflow with an options node where the user chooses a path.
-    Branch 1: user presses 1 → customer support
-    Branch 2: user presses 2 → billing support
+    Branch 1: user presses 1 (DTMF) → customer support
+    Branch 2: user says a billing phrase (exact) → billing
     """
 
     definition = {
@@ -173,7 +173,7 @@ def create_branching_workflow(api_key, agent_id=None):
                 "data": {
                     "type": "exact",
                     "speaker": "agent",
-                    "message": "Press 1 for customer support, or press 2 for billing."
+                    "message": "Press 1 for customer support, or say billing to reach our billing team."
                 }
             },
             # Options node: user picks a branch
@@ -189,8 +189,8 @@ def create_branching_workflow(api_key, agent_id=None):
                         },
                         {
                             "id": "branch-billing",
-                            "type": "dtmf",
-                            "digits": "2"
+                            "type": "exact",
+                            "message": "Billing"
                         }
                     ]
                 }
