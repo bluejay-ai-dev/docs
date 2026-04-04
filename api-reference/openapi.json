@@ -197,6 +197,61 @@
         }
       }
     },
+    "/v1/generate-workflow-graph": {
+      "post": {
+        "summary": "Generate Workflow Graph",
+        "description": "Generate a workflow graph from a system prompt.\n\nAccepts a WorkflowGenerationRequest with the following structure:\n{\n    system_prompt: string;\n}\n\nReturns a workflow graph with nodes and edges representing the conversational flow.",
+        "operationId": "generate_workflow_graph_v1_generate_workflow_graph_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowGenerationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGenerationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/move-regen-test-scenarios": {
       "post": {
         "summary": "Move Regen Test Scenarios Endpoint",
@@ -23487,6 +23542,54 @@
         ],
         "title": "WorkflowEdge",
         "description": "Connection between two nodes representing a customer interaction path"
+      },
+      "WorkflowGenerationRequest": {
+        "properties": {
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt",
+            "description": "System prompt describing the agent's behavior and capabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "system_prompt"
+        ],
+        "title": "WorkflowGenerationRequest",
+        "description": "Pydantic model for workflow generation request"
+      },
+      "WorkflowGenerationResponse": {
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/src__main__WorkflowEdge"
+            },
+            "type": "array",
+            "title": "Edges",
+            "description": "List of workflow edges"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/src__main__WorkflowNode"
+            },
+            "type": "array",
+            "title": "Nodes",
+            "description": "List of workflow nodes"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the response",
+            "default": "200"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edges",
+          "nodes"
+        ],
+        "title": "WorkflowGenerationResponse",
+        "description": "Pydantic model for workflow generation response"
       },
       "WorkflowNodeInput": {
         "properties": {
