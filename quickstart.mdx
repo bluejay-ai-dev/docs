@@ -340,46 +340,9 @@ Get from account creation to running Simulations, evaluating production calls, a
       </Step>
 
       <Step title="Test Agents via Workflows">
-        Workflows let you chain Simulation Runs, evaluations, and notifications into automated pipelines. Schedule them on a cron cadence to run nightly regression suites or weekly quality checks.
+        Workflows let you chain Simulation Runs, evaluations, and notifications into automated pipelines. Configure pipelines in the Bluejay dashboard, then attach a cron cadence with the [Create Schedule API](/api-reference/endpoint/create-schedule) for nightly regression suites or weekly quality checks.
 
-        ```python
-        workflow = requests.post(
-            f"{BASE_URL}/workflows",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "name": "Nightly Regression Suite",
-                "agent_ids": [agent_id],
-                "workflow": {
-                    "nodes": [
-                        {
-                            "id": "start",
-                            "type": "start",
-                            "data": {"label": "Start", "description": "Begin nightly regression"}
-                        },
-                        {
-                            "id": "run_sim",
-                            "type": "simulation",
-                            "data": {"label": "Run Simulation", "description": "Execute regression suite"}
-                        },
-                        {
-                            "id": "evaluate",
-                            "type": "evaluate",
-                            "data": {"label": "Evaluate", "description": "Score results"}
-                        }
-                    ],
-                    "edges": [
-                        {"id": "e1", "source": "start", "target": "run_sim"},
-                        {"id": "e2", "source": "run_sim", "target": "evaluate"}
-                    ]
-                },
-                "enabled_for_evaluation": True
-            }
-        ).json()
-
-        print(f"Workflow created: {workflow['id']}")
-        ```
-
-        Learn more in the [Workflows overview](/key-concepts/workflows/overview). You can also attach a cron schedule via the [Create Schedule API reference](/api-reference/endpoint/create-schedule). See [Create Workflow API reference](/api-reference/endpoint/create-workflow) for the full reference.
+        For **conversation-path** workflows (React Flow graphs used with simulations and digital humans), see the [Workflows overview](/key-concepts/workflows/overview), the [Workflows cookbook](/cookbook/workflows), and [Create workflow](/api-reference/endpoint/create-workflow-v2) (**POST** `/v1/workflow`).
       </Step>
 
       <Step title="Version Prompts via Prompt Versioning">

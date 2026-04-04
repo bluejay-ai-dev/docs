@@ -1,54 +1,7 @@
 ---
-title: 'Get workflow (v2)'
-description: 'Fetch one workflows v2 by UUID, including the full typed React Flow definition.'
-openapi: 'GET /v1/workflows-v2/{workflow_id}'
+title: 'Get workflow'
+description: 'Fetch one workflow by UUID, including the full typed React Flow definition.'
+openapi: 'GET /v1/workflow/{workflow_id}'
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
-
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
-
-## Get workflow (v2) — GET /v1/workflows-v2/{workflow_id}
-
-> **What this endpoint does:** Return one workflows v2 row if it exists and belongs to your organization.
-
-**Endpoint:** GET `https://api.getbluejay.ai/v1/workflows-v2/{workflow_id}`
-**Auth:** `Authorization: Bearer` (JWT) or `X-API-Key` header
-
-The response `definition` uses the same typed graph as create/update (`WorkflowV2DefinitionGraph` → `WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`). Full schema: https://docs.getbluejay.ai/api-reference/endpoint/get-workflow-v2
-
-### Path parameters
-| Name | Type | Description |
-|------|------|-------------|
-| workflow_id | uuid | Workflow identifier |
-
-### Example
-```python
-import requests
-
-def get_workflow_v2(workflow_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/workflows-v2/{workflow_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Treat **404** as not found or no access.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
 
 Use this to load the full graph (`definition`) for editing or execution setup. Interpret `nodes`/`edges` using the discriminated OpenAPI types so `single` vs `options` vs `start` and each `data` variant deserialize correctly.
