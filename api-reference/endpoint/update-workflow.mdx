@@ -1,9 +1,96 @@
 ---
-title: 'Update Workflow'
-description: ''
-openapi: 'PUT /v1/update-workflow/{workflow_id}'
+title: 'Update workflow'
+description: 'Partially update a workflow; replacing definition re-validates the same typed React Flow graph as create.'
+openapi: 'PUT /v1/workflow/{workflow_id}'
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-This endpoint is **deprecated**. For new integrations, use [Update workflow](/api-reference/endpoint/update-workflow-v2) (`PUT /v1/workflow/{workflow_id}`) with the React Flow graph format.
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-Given the workflow ID and, optionally, the name and workflow structure, this legacy endpoint updates your automation-style workflow. See the OpenAPI schema on this page for the request shape.
+## Update workflow — PUT /v1/workflow/{workflow_id}
+
+> **What this endpoint does:** Partial update. Omitted fields are unchanged. When agent_ids is present in the JSON body (even as [] or null), junction links are replaced atomically: an empty array or null clears all agent links. When definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as **POST** `/v1/workflow` (see **components**).
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/workflow/{workflow_id}`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-workflow and include any optional parameters (e.g., `name`, `agent_ids`, `description`, `definition`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
+```json
+{
+  "name": "example_name",
+  "agent_ids": [
+    123
+  ],
+  "description": "string",
+  "definition": {
+    "nodes": [
+      {
+        "id": "string",
+        "type": "start",
+        "position": {
+          "x": 1.0,
+          "y": 1.0
+        },
+        "data": {
+          "key": "value"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "string",
+        "source": "string",
+        "target": "string",
+        "sourceHandle": "string"
+      }
+    ],
+    "viewport": {
+      "key": "value"
+    }
+  }
+}
+```
+
+### Example
+**PUT with body:**
+```python
+import requests
+
+def update_workflow(workflow_id: str, payload: dict, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/workflow/{workflow_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 400: Invalid definition; 401: Unauthorized; 404: Not found or no access.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Omitted fields are left unchanged. If `agent_ids` appears in the body (including `[]`), all agent links are **replaced**; `[]` clears links. If `definition` appears, it is **fully replaced** and validated like **POST** `/v1/workflow` (same discriminated node and `data` types as [Create workflow](/api-reference/endpoint/create-workflow)).
+
+Sends only the fields you want to change; include `definition` only when replacing the entire React Flow graph.

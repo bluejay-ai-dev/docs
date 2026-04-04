@@ -549,7 +549,7 @@
     "/v1/generate-digital-humans": {
       "post": {
         "summary": "Generate Digital Humans",
-        "description": "Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.\n\n**Per scenario:** Non-empty `enriched_playback` forces `description` and `success_criteria` to empty strings. If scenario tags match workflow playback (tag lowercased contains `workflow`), the same clearing applies and `role_description` is forced to null (even without enriched_playback).\n\n**Batch:** Objectives / intent-summary generation runs only for created rows with non-empty description \u2014 workflow-style rows with empty description are skipped.\n\n**Workflows v2 (`workflow_adherence_v2`):** Each value in the dictionary is the number of paths to generate for that workflow. Counts are silently capped at **200 paths per workflow** \u2014 values above 200 are treated as 200, not rejected. `auto_gen_workflow_v2_adherence_scenarios` feeds this endpoint when `workflow_adherence_v2` is used (empty description/success_criteria, filled enriched_playback).",
+        "description": "Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.\n\n**Per scenario:** Non-empty `enriched_playback` forces `description` and `success_criteria` to empty strings. If scenario tags match workflow playback (tag lowercased contains `workflow`), the same clearing applies and `role_description` is forced to null (even without enriched_playback).\n\n**Batch:** Objectives / intent-summary generation runs only for created rows with non-empty description \u2014 workflow-style rows with empty description are skipped.\n\n**Graph workflows (`workflow_adherence_v2`):** Each value in the dictionary is the number of paths to generate for that workflow. Counts are silently capped at **200 paths per workflow** \u2014 values above 200 are treated as 200, not rejected. `auto_gen_workflow_v2_adherence_scenarios` feeds this endpoint when `workflow_adherence_v2` is used (empty description/success_criteria, filled enriched_playback).",
         "operationId": "generate_digital_humans_v1_generate_digital_humans_post",
         "security": [
           {
@@ -9058,7 +9058,7 @@
           "Workflows"
         ],
         "summary": "Get workflow",
-        "description": "Returns one workflow if it exists and belongs to your organization (otherwise 404).\n\nThe `definition` field is a React Flow graph with the same typed node and `data` shapes as create/update \u2014 see `WorkflowV2DefinitionGraph`, `WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption` in components.",
+        "description": "Returns one workflow if it exists and belongs to your organization (otherwise 404).\n\nThe `definition` field is a React Flow graph with the same typed node and `data` shapes as create/update (see **components** \u2014 graph definition, nodes, and branch-option schemas).",
         "operationId": "getWorkflow",
         "security": [
           {
@@ -9082,7 +9082,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowV2Response"
+                  "$ref": "#/components/schemas/WorkflowGraphResponse"
                 }
               }
             }
@@ -9124,7 +9124,7 @@
           "Workflows"
         ],
         "summary": "Update workflow",
-        "description": "Partial update. Omitted fields are unchanged.\n\nWhen agent_ids is present in the JSON body (even as [] or null), junction links are replaced atomically: an empty array or null clears all agent links.\n\nWhen definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as POST /v1/workflow (`WorkflowV2Node`, `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
+        "description": "Partial update. Omitted fields are unchanged.\n\nWhen agent_ids is present in the JSON body (even as [] or null), junction links are replaced atomically: an empty array or null clears all agent links.\n\nWhen definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as **POST** `/v1/workflow` (see **components**).",
         "operationId": "updateWorkflow",
         "security": [
           {
@@ -9147,7 +9147,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateWorkflowV2Request"
+                "$ref": "#/components/schemas/UpdateWorkflowGraphRequest"
               }
             }
           }
@@ -9158,7 +9158,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowV2Response"
+                  "$ref": "#/components/schemas/WorkflowGraphResponse"
                 }
               }
             }
@@ -9198,7 +9198,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowsV2ValidationError"
+                  "$ref": "#/components/schemas/WorkflowGraphValidationError"
                 }
               }
             }
@@ -9244,7 +9244,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteWorkflowV2Response"
+                  "$ref": "#/components/schemas/DeleteWorkflowGraphResponse"
                 }
               }
             }
@@ -9357,7 +9357,7 @@
           "Workflows"
         ],
         "summary": "Create workflow",
-        "description": "Creates a workflow row. agent_ids must reference agents in your organization when provided.\n\nDefinition is validated before persist; failures return **400** with a plain-text detail message.\n\n**Typed shapes:** see WorkflowV2Node (discriminated by type) and nested WorkflowV2SingleNodeData, WorkflowV2OptionsNodeData, and WorkflowV2BranchOption in components.\n\n**Draft vs. validated graph:** If the definition contains no content nodes (no `single` or `options` nodes), the graph is stored as a draft with minimal validation \u2014 only duplicate start nodes are rejected. Once at least one content node is present, full export validation runs.\n\n**Validation (when content nodes are present):**\n- At most one node with type `start` is allowed (duplicate start nodes are always rejected, even in draft mode). Having zero start nodes with content nodes results in a \"No paths from Start\" error.\n- At least one content node (`single` or `options`) must be reachable from the start node via edges. Orphaned content nodes not on any path from Start are rejected.\n- The graph must not contain directed cycles.\n- **Single** nodes: data.type is required \u2014 one of exact, contextual, silence, dtmf. exact/contextual: non-empty data.message. contextual: only when data.speaker is agent (default); not allowed for user. silence: data.duration_ms \u2014 finite number, non-negative, at most 86400000 (24h). dtmf: data.digits \u2014 non-empty string containing only 0-9, *, #, and A-D (case-insensitive) after trim.\n- **Options** nodes: data.branch_options has at least two entries; node speaker must be omitted or \"user\". Each branch: non-empty id; type one of exact, silence, dtmf (not contextual); exact requires message.\n- From an options node, edges continuing the flow should set sourceHandle to the chosen branch id (must match branch_options[].id).\n\n**Rate limiting:** 100 requests per minute per route (middleware).\n\n**Authentication:** JWT (Authorization: Bearer) or X-API-Key header.",
+        "description": "Creates a workflow row. agent_ids must reference agents in your organization when provided.\n\nDefinition is validated before persist; failures return **400** with a plain-text detail message.\n\n**Typed shapes:** discriminated graph nodes and `data` variants are defined in **components** (the `WorkflowGraph*` component schemas describe graph workflows; legacy automation models live on **Deprecated** routes).\n\n**Draft vs. validated graph:** If the definition contains no content nodes (no `single` or `options` nodes), the graph is stored as a draft with minimal validation \u2014 only duplicate start nodes are rejected. Once at least one content node is present, full export validation runs.\n\n**Validation (when content nodes are present):**\n- At most one node with type `start` is allowed (duplicate start nodes are always rejected, even in draft mode). Having zero start nodes with content nodes results in a \"No paths from Start\" error.\n- At least one content node (`single` or `options`) must be reachable from the start node via edges. Orphaned content nodes not on any path from Start are rejected.\n- The graph must not contain directed cycles.\n- **Single** nodes: data.type is required \u2014 one of exact, contextual, silence, dtmf. exact/contextual: non-empty data.message. contextual: only when data.speaker is agent (default); not allowed for user. silence: data.duration_ms \u2014 finite number, non-negative, at most 86400000 (24h). dtmf: data.digits \u2014 non-empty string containing only 0-9, *, #, and A-D (case-insensitive) after trim.\n- **Options** nodes: data.branch_options has at least two entries; node speaker must be omitted or \"user\". Each branch: non-empty id; type one of exact, silence, dtmf (not contextual); exact requires message.\n- From an options node, edges continuing the flow should set sourceHandle to the chosen branch id (must match branch_options[].id).\n\n**Rate limiting:** 100 requests per minute per route (middleware).\n\n**Authentication:** JWT (Authorization: Bearer) or X-API-Key header.",
         "operationId": "createWorkflow",
         "security": [
           {
@@ -9380,7 +9380,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateWorkflowV2Request"
+                "$ref": "#/components/schemas/CreateWorkflowGraphRequest"
               },
               "examples": {
                 "singlePath": {
@@ -9619,7 +9619,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowV2Response"
+                  "$ref": "#/components/schemas/WorkflowGraphResponse"
                 }
               }
             }
@@ -9649,7 +9649,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowsV2ValidationError"
+                  "$ref": "#/components/schemas/WorkflowGraphValidationError"
                 }
               }
             }
@@ -9671,7 +9671,7 @@
           "Workflows"
         ],
         "summary": "List workflows",
-        "description": "Lists workflows for the authenticated user's organization.\n\nOptional agent_id filters to workflows linked to that agent (agent must be in your org).\n\nEach item includes a `definition` graph typed in components: `WorkflowV2Node` (discriminated by `type`), `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, and `WorkflowV2BranchOption`.",
+        "description": "Lists workflows for the authenticated user's organization.\n\nOptional agent_id filters to workflows linked to that agent (agent must be in your org).\n\nEach item includes a `definition` graph; node and `data` types are the same as in **GET**/**POST** `/v1/workflow` (see **components**).",
         "operationId": "listWorkflows",
         "security": [
           {
@@ -9704,7 +9704,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowsV2ListResponse"
+                  "$ref": "#/components/schemas/WorkflowGraphListResponse"
                 }
               }
             }
@@ -9724,7 +9724,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowsV2ValidationError"
+                  "$ref": "#/components/schemas/WorkflowGraphValidationError"
                 }
               }
             }
@@ -9781,7 +9781,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DuplicateWorkflowV2Request"
+                "$ref": "#/components/schemas/DuplicateWorkflowGraphRequest"
               },
               "examples": {
                 "defaultName": {
@@ -9804,7 +9804,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkflowV2Response"
+                  "$ref": "#/components/schemas/WorkflowGraphResponse"
                 }
               }
             }
@@ -15785,8 +15785,8 @@
                 "type": "null"
               }
             ],
-            "title": "Workflow Adherence V2",
-            "description": "Dictionary of workflows_v2 IDs and their requested path counts (uses the React Flow graph definition format). Each count is silently capped at 200 \u2014 requests above that generate at most 200 digital humans per workflow, not an error."
+            "title": "Workflow adherence (graph)",
+            "description": "Dictionary of workflow UUIDs (React Flow graph definitions from **GET** `/v1/workflow`) and requested path counts. Each count is silently capped at 200 \u2014 requests above that generate at most 200 digital humans per workflow, not an error."
           },
           "replay_transcript": {
             "anyOf": [
@@ -22506,7 +22506,7 @@
         "title": "UpdateWorkflowRequest",
         "description": "API request to update an existing workflow"
       },
-      "CreateWorkflowV2Request": {
+      "CreateWorkflowGraphRequest": {
         "type": "object",
         "required": [
           "name",
@@ -22546,12 +22546,12 @@
             "title": "Description"
           },
           "definition": {
-            "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+            "$ref": "#/components/schemas/WorkflowGraphDefinition"
           }
         },
-        "title": "CreateWorkflowRequest"
+        "title": "CreateConversationWorkflowRequest"
       },
-      "UpdateWorkflowV2Request": {
+      "UpdateWorkflowGraphRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -22589,7 +22589,7 @@
           "definition": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+                "$ref": "#/components/schemas/WorkflowGraphDefinition"
               },
               {
                 "type": "null"
@@ -22598,22 +22598,22 @@
             "description": "Full graph replacement when provided."
           }
         },
-        "title": "UpdateWorkflowRequest"
+        "title": "UpdateConversationWorkflowRequest"
       },
-      "WorkflowV2DefinitionGraph": {
+      "WorkflowGraphDefinition": {
         "type": "object",
         "description": "React Flow graph. Both nodes and edges are optional \u2014 omitting either defaults to []. Optional keys such as viewport are allowed. Stored graphs may include extra React Flow / UI fields on nodes and edges (additionalProperties).",
         "properties": {
           "nodes": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowV2Node"
+              "$ref": "#/components/schemas/WorkflowGraphNode"
             }
           },
           "edges": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowV2Edge"
+              "$ref": "#/components/schemas/WorkflowGraphEdge"
             }
           },
           "viewport": {
@@ -22622,9 +22622,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2DefinitionGraph"
+        "title": "WorkflowDefinitionGraph"
       },
-      "WorkflowV2SingleDataExact": {
+      "WorkflowGraphSingleDataExact": {
         "type": "object",
         "description": "Verbatim line. message must be non-empty after trim (OpenAPI cannot express trim; avoid whitespace-only).",
         "required": [
@@ -22652,9 +22652,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2SingleDataExact"
+        "title": "WorkflowSingleDataExact"
       },
-      "WorkflowV2SingleDataContextual": {
+      "WorkflowGraphSingleDataContextual": {
         "type": "object",
         "description": "Agent paraphrase / direction. Only valid when speaker is agent (default). Do not set speaker to user.",
         "required": [
@@ -22681,9 +22681,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2SingleDataContextual"
+        "title": "WorkflowSingleDataContextual"
       },
-      "WorkflowV2SingleDataSilence": {
+      "WorkflowGraphSingleDataSilence": {
         "type": "object",
         "description": "Silence duration in ms. Must be a JSON number (not boolean), finite, 0 \u2264 value \u2264 86400000.",
         "required": [
@@ -22715,9 +22715,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2SingleDataSilence"
+        "title": "WorkflowSingleDataSilence"
       },
-      "WorkflowV2SingleDataDtmf": {
+      "WorkflowGraphSingleDataDtmf": {
         "type": "object",
         "description": "DTMF digits after trim must be non-empty and contain only 0-9, *, #, and A-D (case-insensitive).",
         "required": [
@@ -22745,35 +22745,35 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2SingleDataDtmf"
+        "title": "WorkflowSingleDataDtmf"
       },
-      "WorkflowV2SingleNodeData": {
+      "WorkflowGraphSingleNodeData": {
         "oneOf": [
           {
-            "$ref": "#/components/schemas/WorkflowV2SingleDataExact"
+            "$ref": "#/components/schemas/WorkflowGraphSingleDataExact"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2SingleDataContextual"
+            "$ref": "#/components/schemas/WorkflowGraphSingleDataContextual"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2SingleDataSilence"
+            "$ref": "#/components/schemas/WorkflowGraphSingleDataSilence"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2SingleDataDtmf"
+            "$ref": "#/components/schemas/WorkflowGraphSingleDataDtmf"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "exact": "#/components/schemas/WorkflowV2SingleDataExact",
-            "contextual": "#/components/schemas/WorkflowV2SingleDataContextual",
-            "silence": "#/components/schemas/WorkflowV2SingleDataSilence",
-            "dtmf": "#/components/schemas/WorkflowV2SingleDataDtmf"
+            "exact": "#/components/schemas/WorkflowGraphSingleDataExact",
+            "contextual": "#/components/schemas/WorkflowGraphSingleDataContextual",
+            "silence": "#/components/schemas/WorkflowGraphSingleDataSilence",
+            "dtmf": "#/components/schemas/WorkflowGraphSingleDataDtmf"
           }
         },
-        "title": "WorkflowV2SingleNodeData"
+        "title": "WorkflowSingleNodeData"
       },
-      "WorkflowV2BranchOptionExact": {
+      "WorkflowGraphBranchOptionExact": {
         "type": "object",
         "required": [
           "id",
@@ -22808,9 +22808,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2BranchOptionExact"
+        "title": "WorkflowBranchOptionExact"
       },
-      "WorkflowV2BranchOptionSilence": {
+      "WorkflowGraphBranchOptionSilence": {
         "type": "object",
         "required": [
           "id",
@@ -22848,9 +22848,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2BranchOptionSilence"
+        "title": "WorkflowBranchOptionSilence"
       },
-      "WorkflowV2BranchOptionDtmf": {
+      "WorkflowGraphBranchOptionDtmf": {
         "type": "object",
         "required": [
           "id",
@@ -22884,31 +22884,31 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2BranchOptionDtmf"
+        "title": "WorkflowBranchOptionDtmf"
       },
-      "WorkflowV2BranchOption": {
+      "WorkflowGraphBranchOption": {
         "oneOf": [
           {
-            "$ref": "#/components/schemas/WorkflowV2BranchOptionExact"
+            "$ref": "#/components/schemas/WorkflowGraphBranchOptionExact"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2BranchOptionSilence"
+            "$ref": "#/components/schemas/WorkflowGraphBranchOptionSilence"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2BranchOptionDtmf"
+            "$ref": "#/components/schemas/WorkflowGraphBranchOptionDtmf"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "exact": "#/components/schemas/WorkflowV2BranchOptionExact",
-            "silence": "#/components/schemas/WorkflowV2BranchOptionSilence",
-            "dtmf": "#/components/schemas/WorkflowV2BranchOptionDtmf"
+            "exact": "#/components/schemas/WorkflowGraphBranchOptionExact",
+            "silence": "#/components/schemas/WorkflowGraphBranchOptionSilence",
+            "dtmf": "#/components/schemas/WorkflowGraphBranchOptionDtmf"
           }
         },
-        "title": "WorkflowV2BranchOption"
+        "title": "WorkflowBranchOption"
       },
-      "WorkflowV2OptionsNodeData": {
+      "WorkflowGraphOptionsNodeData": {
         "type": "object",
         "description": "Customer branch point. At least two branch_options. Omit speaker or set user only.",
         "required": [
@@ -22919,7 +22919,7 @@
             "type": "array",
             "minItems": 2,
             "items": {
-              "$ref": "#/components/schemas/WorkflowV2BranchOption"
+              "$ref": "#/components/schemas/WorkflowGraphBranchOption"
             }
           },
           "speaker": {
@@ -22930,9 +22930,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2OptionsNodeData"
+        "title": "WorkflowOptionsNodeData"
       },
-      "WorkflowV2StartNode": {
+      "WorkflowGraphStartNode": {
         "type": "object",
         "required": [
           "id",
@@ -22968,9 +22968,9 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2StartNode"
+        "title": "WorkflowStartNode"
       },
-      "WorkflowV2SingleNode": {
+      "WorkflowGraphSingleNode": {
         "type": "object",
         "required": [
           "id",
@@ -23001,13 +23001,13 @@
             }
           },
           "data": {
-            "$ref": "#/components/schemas/WorkflowV2SingleNodeData"
+            "$ref": "#/components/schemas/WorkflowGraphSingleNodeData"
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2SingleNode"
+        "title": "WorkflowSingleNode"
       },
-      "WorkflowV2OptionsNode": {
+      "WorkflowGraphOptionsNode": {
         "type": "object",
         "required": [
           "id",
@@ -23038,36 +23038,36 @@
             }
           },
           "data": {
-            "$ref": "#/components/schemas/WorkflowV2OptionsNodeData"
+            "$ref": "#/components/schemas/WorkflowGraphOptionsNodeData"
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2OptionsNode"
+        "title": "WorkflowOptionsNode"
       },
-      "WorkflowV2Node": {
+      "WorkflowGraphNode": {
         "description": "React Flow node discriminated by type. The server accepts extra properties on nodes (e.g. selected, width).",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/WorkflowV2StartNode"
+            "$ref": "#/components/schemas/WorkflowGraphStartNode"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2SingleNode"
+            "$ref": "#/components/schemas/WorkflowGraphSingleNode"
           },
           {
-            "$ref": "#/components/schemas/WorkflowV2OptionsNode"
+            "$ref": "#/components/schemas/WorkflowGraphOptionsNode"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "start": "#/components/schemas/WorkflowV2StartNode",
-            "single": "#/components/schemas/WorkflowV2SingleNode",
-            "options": "#/components/schemas/WorkflowV2OptionsNode"
+            "start": "#/components/schemas/WorkflowGraphStartNode",
+            "single": "#/components/schemas/WorkflowGraphSingleNode",
+            "options": "#/components/schemas/WorkflowGraphOptionsNode"
           }
         },
-        "title": "WorkflowV2Node"
+        "title": "WorkflowGraphNode"
       },
-      "WorkflowV2Edge": {
+      "WorkflowGraphEdge": {
         "type": "object",
         "description": "React Flow edge. For edges leaving an options node, set sourceHandle to the branch_options[].id being taken when continuing to another content node.",
         "properties": {
@@ -23089,11 +23089,11 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2Edge"
+        "title": "WorkflowGraphEdge"
       },
-      "WorkflowV2Response": {
+      "WorkflowGraphResponse": {
         "type": "object",
-        "description": "One workflows v2 record. `definition` is a React Flow graph with discriminated `WorkflowV2Node` entries and typed `data` (see `WorkflowV2SingleNodeData`, `WorkflowV2OptionsNodeData`, `WorkflowV2BranchOption`).",
+        "description": "One graph workflow record. `definition` is a React Flow graph with discriminated `WorkflowGraphNode` entries and typed `data` (see `WorkflowGraphSingleNodeData`, `WorkflowGraphOptionsNodeData`, `WorkflowGraphBranchOption`).",
         "required": [
           "id",
           "name",
@@ -23141,7 +23141,7 @@
             "title": "Description"
           },
           "definition": {
-            "$ref": "#/components/schemas/WorkflowV2DefinitionGraph"
+            "$ref": "#/components/schemas/WorkflowGraphDefinition"
           },
           "created_at": {
             "type": "string",
@@ -23149,11 +23149,11 @@
             "title": "Created At"
           }
         },
-        "title": "WorkflowResponse"
+        "title": "ConversationWorkflow"
       },
-      "WorkflowsV2ListResponse": {
+      "WorkflowGraphListResponse": {
         "type": "object",
-        "description": "Paged-style list: each `workflows` item is a `WorkflowV2Response` with the same typed `definition` graph as get/create/update.",
+        "description": "Paged-style list: each `workflows` item uses the same typed `definition` graph as get/create/update.",
         "required": [
           "workflows",
           "total_count"
@@ -23162,7 +23162,7 @@
           "workflows": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowV2Response"
+              "$ref": "#/components/schemas/WorkflowGraphResponse"
             },
             "title": "Workflows"
           },
@@ -23171,11 +23171,11 @@
             "title": "Total Count"
           }
         },
-        "title": "WorkflowsListResponse"
+        "title": "ConversationWorkflowListResponse"
       },
-      "DeleteWorkflowV2Response": {
+      "DeleteWorkflowGraphResponse": {
         "type": "object",
-        "description": "Confirmation after deleting a workflows row (including its stored typed graph).",
+        "description": "Confirmation after deleting a workflow row (including its stored typed graph).",
         "required": [
           "message",
           "deleted_workflow_id"
@@ -23192,9 +23192,9 @@
             "title": "Deleted Workflow Id"
           }
         },
-        "title": "DeleteWorkflowResponse"
+        "title": "DeleteConversationWorkflowResponse"
       },
-      "DuplicateWorkflowV2Request": {
+      "DuplicateWorkflowGraphRequest": {
         "type": "object",
         "description": "Optional body for duplicating a workflow. All fields are optional.",
         "properties": {
@@ -23215,9 +23215,9 @@
         },
         "title": "DuplicateWorkflowRequest"
       },
-      "WorkflowV2WireTurn": {
+      "WorkflowGraphWireTurn": {
         "type": "object",
-        "description": "Flattened playback turn after resolving a path through the graph. Options nodes do not appear as a turn type; each branch becomes exact, contextual, silence, or dtmf with optional node_id referencing the options node. Not returned by workflows v2 CRUD routes.",
+        "description": "Flattened playback turn after resolving a path through the graph. Options nodes do not appear as a turn type; each branch becomes exact, contextual, silence, or dtmf with optional node_id referencing the options node. Not returned by `/v1/workflow` CRUD routes.",
         "properties": {
           "turn": {
             "type": "integer",
@@ -23267,7 +23267,7 @@
           }
         },
         "additionalProperties": true,
-        "title": "WorkflowV2WireTurn"
+        "title": "WorkflowWireTurn"
       },
       "HTTPError": {
         "type": "object",
@@ -23288,9 +23288,9 @@
         "title": "HTTPError",
         "description": "Middleware error payload with string or structured detail."
       },
-      "WorkflowsV2ValidationError": {
+      "WorkflowGraphValidationError": {
         "type": "object",
-        "description": "FastAPI / Pydantic validation error payload for Workflows v2 routes. Named separately because ValidationError in this spec is the Pydantic error item used inside HTTPValidationError elsewhere.",
+        "description": "FastAPI / Pydantic validation error payload for `/v1/workflow` routes. Named separately because ValidationError in this spec is the Pydantic error item used inside HTTPValidationError elsewhere.",
         "properties": {
           "detail": {
             "type": "array",
@@ -23301,7 +23301,7 @@
             "title": "Detail"
           }
         },
-        "title": "WorkflowsValidationError"
+        "title": "WorkflowGraphValidationError"
       },
       "ValidationError": {
         "properties": {

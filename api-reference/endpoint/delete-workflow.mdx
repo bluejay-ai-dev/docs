@@ -1,9 +1,54 @@
 ---
-title: 'Delete Workflow'
-description: ''
+title: 'Delete workflow'
+description: 'Delete a workflow and its stored typed React Flow graph by UUID.'
 openapi: 'DELETE /v1/workflow/{workflow_id}'
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-Prefer the primary reference: [Delete workflow](/api-reference/endpoint/delete-workflow-v2).
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-Given the workflow ID, **DELETE** `/v1/workflow/{workflow_id}` permanently removes that workflow row and its stored definition.
+## Delete workflow — DELETE /v1/workflow/{workflow_id}
+
+> **What this endpoint does:** Deletes a workflow row. This removes the stored React Flow graph (typed nodes/edges as documented under Workflows components).
+
+**Endpoint:** DELETE `https://api.getbluejay.ai/v1/workflow/{workflow_id}`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+
+### Example
+**DELETE request:**
+```python
+import requests
+
+def delete_workflow(workflow_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/workflow/{workflow_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.delete(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 401: Unauthorized; 404: Not found or no access; 500: Server error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Successful responses include `message` and `deleted_workflow_id` (UUID of the removed workflow).

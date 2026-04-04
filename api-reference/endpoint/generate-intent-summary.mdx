@@ -3,20 +3,63 @@ title: 'Generate intent summary'
 description: 'Generate an intent summary for a test case when intent exceeds a character limit.'
 openapi: 'POST /v1/generate-intent-summary'
 ---
-
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
 ## Generate intent summary — POST /v1/generate-intent-summary
+
+> **What this endpoint does:** Generate intent summary for a test case (only if intent exceeds character limit). **400** if the test case tags indicate workflow playback (tag lowercased contains `workflow`): workflow-tagged digital humans use enriched playback on the agent; intent summary is not applicable.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/generate-intent-summary`
 **Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| test_case_id | integer | ID of the test case |
+
+### Request Body (required fields)
+```json
+{
+  "test_case_id": 123
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/generate-intent-summary. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def generate_intent_summary(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/generate-intent-summary"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
 
 ### Constraints
-- **400** when the test case is **workflow-tagged** (tag lowercased contains `workflow`): intent summary is not applicable; the digital human relies on **enriched playback**.
-- Handle **422** for validation errors.
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 400: Workflow-tagged test case: intent summary not applicable; 422: Validation Error.
 
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-For workflow-tagged digital humans this route returns **400**; see [Workflow tags & enriched playback](/key-concepts/digital-humans/workflow-and-enriched-playback).
+
+For some workflow-driven digital humans this route returns **400**; see the constraints above and the OpenAPI description.

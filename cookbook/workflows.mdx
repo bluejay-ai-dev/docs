@@ -4,32 +4,29 @@ description: "Creating and Managing Agent Workflows with Bluejay"
 icon: diagram-project
 ---
 
+<video
+  controls
+  className="w-full aspect-video rounded-xl"
+  src="https://okihfrlvyycxyylukqey.supabase.co/storage/v1/object/public/bluejay-docs-files/workflows.mp4"
+></video>
 ## Workflows with the Bluejay API
 
-Bluejay provides powerful workflow management capabilities that allow you to define, create, and manage conversation flows for your AI agents. Workflows help structure how your agents handle different conversation paths, making them more predictable and easier to evaluate. This cookbook will guide you through using the workflows API with practical Python examples.
-
-### Understanding Workflows
-
-Workflows in Bluejay are visual representations of conversation flows that define how your agent should handle different customer interaction paths. They consist of agent nodes (define what your agent should say or do so simulations can evaluate against it) and user nodes (script the digital human's side of the conversation for simulations) that create a structured map of possible conversation outcomes.
-
-When you run a simulation from a workflow, Bluejay identifies every unique path through the graph and turns each one into its own digital human. A workflow with two branches produces two digital humans — each simulating a different route through the conversation. This means the structure of your workflow directly determines the coverage of your simulation.
-
-**Key Features:**
-
-- **Visual Flow Design**: Create intuitive conversation flows with nodes and edges
-- **Agent Association**: Link workflows to specific agents for targeted behavior
-- **Evaluation Integration**: Use workflows for agent performance evaluation
-- **Flexible Structure**: Support for complex branching and decision points
-- **Auto-positioning**: Automatic layout generation for visual clarity
+This cookbook covers workflows. Workflows are a great way to test your agent across multiple conversation paths.
 
 ### Workflow Structure
 
-A Workflows definition is a **React Flow graph** with two arrays:
+A workflow is a **directed graph** of **agent** and **user** turns.
 
-- **`nodes`** — individual conversation steps
-- **`edges`** — directed connections between nodes
+- Agent turns define what your agent should say or do. Simulations evaluate against this to make sure your agent said what it was supposed to.
+- User nodes let you define what our digital human says during a simulation.
 
-Both arrays are optional on create (an empty graph is saved as a draft). Full validation only runs once your graph contains at least one content node.
+<img
+  src="/images/workflows.png"
+  alt="Workflow graph: start node, alternating agent and user turns, an options branch with edges labeled by sourceHandle, and leaves — each start-to-leaf walk becomes one digital human."
+  style={{ maxWidth: '100%', borderRadius: '0.5rem' }}
+/>
+
+Each unique path through your workflow creates one digital human to test that path.
 
 ### Node Types
 
@@ -52,11 +49,19 @@ The `speaker` field defaults to `"agent"` when omitted.
 
 #### `options` — user branch point
 
-Options nodes model a point where the user picks from multiple paths — pressing a key, saying a specific phrase, or staying silent. Each branch is defined in `data.branch_options` (minimum 2 entries). Options nodes are always user-only.
+Suppose you were testing a workflow where your agent says a phrase like "Press 1 for English or 2 for Spanish", you would then want to test both cases where our digital huma presses 1, and the other where it presses 2. You can do this by adding another option to a user node.
+<img
+  src="/images/workflows-option-node.png"
+  alt="Workflow graph: start node, alternating agent and user turns, an options branch with edges labeled by sourceHandle, and leaves — each start-to-leaf walk becomes one digital human."
+  style={{ display: 'block', margin: '0 auto', width: '50%', borderRadius: '0.5rem' }}
+/>
+
+Options nodes model a point where the user picks from multiple paths — pressing a key, saying a specific phrase, or staying silent. 
+Each branch is defined in `data.branch_options` (minimum 2 entries). Options nodes are always user-only.
 
 Each branch option has:
 - `id` — a unique string used to match outgoing edges via `sourceHandle`
-- `type` — `exact`, `silence`, or `dtmf` (not `contextual`)
+- `type` — `exact`, `silence`, or `dtmf` (no `contextual`)
 - `message` / `duration_ms` / `digits` depending on the type
 
 When an options node continues to another content node, the edge must set `sourceHandle` to the branch's `id` so Bluejay knows which path was taken.
@@ -372,9 +377,7 @@ def delete_workflow(api_key, workflow_id):
 
 ### Generating Digital Humans from a Workflow
 
-Once your workflow is created, you can use it to automatically generate digital humans — one per unique path through the graph. Pass the workflow's UUID and a count to `workflow_adherence_v2` on the `POST /v1/generate-digital-humans` endpoint.
-
-Bluejay enumerates every distinct start-to-leaf path through the graph and generates a digital human for each one. The `count` in the dict is how many digital humans you want; if the workflow has fewer paths than the count only the available paths are used. Counts above **200 are silently capped at 200** — the call never fails due to a high count, it just generates at most 200 digital humans per workflow.
+Once your workflow is created, you can use it to automatically generate digital humans — one per unique path through the graph.
 
 <Accordion title="Show code">
 ```python
@@ -465,6 +468,4 @@ Once you add a `single` or `options` node, the following rules apply:
    - Each branch needs a unique non-empty `id`
 
 ### Best Practices
-
-- **Draft first** — send an empty `definition: {}` to create the workflow row, then update it incrementally with `PUT` as you build the graph
 - **Keep branch IDs stable** — `branch_options[].id` values are referenced by edge `sourceHandle`; changing them breaks existing edges
