@@ -4720,7 +4720,7 @@
           "retell"
         ],
         "summary": "Handle Webhook",
-        "description": "Handle Retell webhook events",
+        "description": "Handle Retell webhook events. Signature verification runs before any business logic\n(including the call_analysis wait path) so unauthenticated clients cannot elicit 200s.",
         "operationId": "handle_webhook_v1_integrations_retell_post",
         "responses": {
           "200": {
@@ -5248,6 +5248,202 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WebhookKeyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integrations": {
+      "get": {
+        "tags": [
+          "Integration Keys"
+        ],
+        "summary": "Get Integrations",
+        "description": "Return integration metadata for the authenticated org.\nSecret fields are returned as null with companion _set booleans.",
+        "operationId": "get_integrations_v1_integrations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Integration Keys"
+        ],
+        "summary": "Patch Integrations",
+        "description": "Update integration fields. Secret fields are encrypted before storage.\nSend null to clear a field. Only include fields that changed.\nPrefer POST /update-integrations for a typed, agent-style contract.",
+        "operationId": "patch_integrations_v1_integrations_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/get-integration-key": {
+      "post": {
+        "tags": [
+          "Integration Keys"
+        ],
+        "summary": "Get Integration Key",
+        "description": "Decrypt and return a single integration secret field.",
+        "operationId": "get_integration_key_v1_get_integration_key_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationKeyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationKeyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/update-integrations": {
+      "post": {
+        "tags": [
+          "Integration Keys"
+        ],
+        "summary": "Update Integrations",
+        "description": "Update integration fields for the authenticated org (middleware encrypts secrets before DB write).\nSame semantics as PATCH /integrations: only send fields to change; null clears a field.",
+        "operationId": "update_integrations_v1_update_integrations_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationsUpdateResponse"
                 }
               }
             }
@@ -7201,6 +7397,82 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agent_id}/prompts/promote": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "summary": "Promote Production Label Agent Scoped",
+        "description": "Move the production label to the latest prompt version, or to the version identified by prompt_id.",
+        "operationId": "promote_production_label_agent_scoped_v1_agents__agent_id__prompts_promote_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "prompt_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "If set, attach the production label to this prompt version; otherwise attach to the latest version.",
+              "title": "Prompt Id"
+            },
+            "description": "If set, attach the production label to this prompt version; otherwise attach to the latest version."
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key required to authenticate requests."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptResponse"
+                }
               }
             }
           },
@@ -10391,10 +10663,10 @@
           "id": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
@@ -17697,6 +17969,67 @@
         ],
         "title": "HumanEvaluationResponse",
         "description": "Response model for human evaluation operations"
+      },
+      "IntegrationKeyRequest": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field",
+            "description": "The secret field name to retrieve"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field"
+        ],
+        "title": "IntegrationKeyRequest"
+      },
+      "IntegrationKeyResponse": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "description": "The decrypted plaintext value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "IntegrationKeyResponse"
+      },
+      "IntegrationsUpdateResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Whether the update succeeded",
+            "default": true
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable result message"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status code string for clients",
+            "default": "200"
+          },
+          "integrations": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Integrations",
+            "description": "Current integration row with secrets masked (same shape as GET /integrations)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "integrations"
+        ],
+        "title": "IntegrationsUpdateResponse"
       },
       "KeyOut": {
         "properties": {
