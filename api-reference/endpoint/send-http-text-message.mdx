@@ -22,16 +22,37 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| message | string | Text message to send |
 | simulation_result_id | string | ID of the simulation result (test result) |
+| message | string | Text message to send (required when `type="message"`) |
+| name | string | Tool name (required when `type="tool_call"`) |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/send-http-text-message and include any optional parameters (e.g., `end_conversation`, `end_turn`, `message_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+### Optional Parameters
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| type | string | `"message"` | `"message"` for a conversation turn; `"tool_call"` to log a tool invocation without affecting the transcript |
+| parameters | object | null | Tool input parameters (used when `type="tool_call"`) |
+| output | any | null | Tool return value (used when `type="tool_call"`) |
+| end_conversation | boolean | false | End and evaluate the conversation |
+| end_turn | boolean | true | Process immediately (true) or stack for batching (false) |
+| message_id | string | null | Deduplication key |
 
-### Request Body (required fields)
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/send-http-text-message and include any optional parameters that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body examples
 ```json
+// Regular message turn
 {
-  "message": "string",
-  "simulation_result_id": "string"
+  "simulation_result_id": "string",
+  "message": "string"
+}
+
+// Tool call log (does not affect transcript or trigger agent response)
+{
+  "simulation_result_id": "string",
+  "type": "tool_call",
+  "name": "tool_name",
+  "parameters": {},
+  "output": {}
 }
 ```
 
