@@ -205,11 +205,38 @@ curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `message` | string | Yes | The text message to send |
+| `message` | string | Yes (when `type="message"`) | The text message to send |
 | `simulation_result_id` | string | Yes | ID of the simulation result |
+| `type` | string | No | `"message"` (default) for conversation turns; `"tool_call"` to log a tool call |
 | `end_conversation` | boolean | No | If `true`, ends and evaluates the conversation |
 | `end_turn` | boolean | No | If `true` (default), processes the message immediately; if `false`, stacks it for later |
 | `message_id` | string | No | Unique ID for deduplication |
+| `name` | string | Yes (when `type="tool_call"`) | Name of the tool that was called |
+| `parameters` | object | No | Input parameters passed to the tool |
+| `output` | any | No | Return value or result from the tool |
+
+### Logging Tool Calls Live
+
+If your agent invokes tools during the conversation, you can log them in real time by sending a request with `type="tool_call"`. This records the tool call against the simulation result for evaluation — it does **not** append anything to the conversation transcript or trigger a digital human response.
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "simulation_result_id": "13062",
+    "type": "tool_call",
+    "name": "lookup_order",
+    "parameters": {"order_id": "ORD-2024-001"},
+    "output": {"status": "shipped", "tracking_number": "1Z999AA1234567890"}
+}'
+```
+
+Send one request per tool call, as close to when the tool runs as possible. Bluejay will automatically calculate the `start_offset_ms` from the conversation start time.
+
+<Tip>
+  Tool call logs sent via `type="tool_call"` are available for evaluation immediately. You can mix regular messages and tool call logs freely — send them in whichever order they occur in your agent's execution.
+</Tip>
   </Step>
 
   <Step title="Receive Webhook Responses">
