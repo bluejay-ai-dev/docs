@@ -86,6 +86,8 @@ Trigger: After the agent says "Please enter your account number followed by the 
 
 Configure a Digital Human to **stay silent** for a specified duration. This tests how your agent handles dead air -- does it re-prompt the customer? Does it escalate? Does it hang up too early?
 
+Separately, the API stores **`allow_silence_tool`** (boolean) and **`silence_tool_instructions`** (string) on each digital human. When `allow_silence_tool` is true, the voice runtime *may* use a silence tool according to its own rules. Use the literal string `"default"` for instructions to mean “built-in product behavior”; any other non-empty string is custom guidance for that runtime. Ending a call is analogous but not identical: **`allow_end_call_tool`** plus optional **`hangup_instructions`** (often null when you do not want custom hangup copy). Whether the silence tool actually runs is enforced in the simulation execution layer, not in the API middleware alone.
+
 ### IVR System Simulation
 
 Digital Humans can **simulate an IVR (Interactive Voice Response) system** so your agent can navigate through it. This is the inverse of the typical setup -- instead of a human calling your agent, your agent is calling into a phone tree, and the Digital Human plays the role of that phone tree.
