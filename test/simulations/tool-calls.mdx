@@ -20,7 +20,7 @@ flowchart LR
 
 ## Integration Methods
 
-Bluejay supports two methods for passing the `X-Simulation-Result-Id` to your agent, depending on your infrastructure.
+Bluejay supports three methods for tool call tracking, depending on your infrastructure.
 
 ### SIP Integration (Recommended for Phone Systems)
 
@@ -49,6 +49,19 @@ WebSocket integration using the CHIRP protocol provides real-time, bidirectional
 4. After the call ends, you must send the collected data to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result)
 
 [WebSocket Integration Guide →](/simulation-integrations/websockets)
+
+### LiveKit Integration
+
+**Best for**: agents built on the LiveKit Agents framework.
+
+Bluejay joins the LiveKit room alongside your agent. When your agent invokes a tool, publish a data packet to a configured topic and Bluejay ingests it automatically — no post-call API call needed.
+
+**Flow:**
+1. Set the **LiveKit Customer Tool Topic** in your Agent Connection settings
+2. Publish a JSON packet to that topic whenever your agent calls a tool
+3. Bluejay ingests packets in real time and persists them when the call ends
+
+[LiveKit Integration Guide →](/simulation-integrations/livekit#tool-call-tracking)
 
 ### Why SIP for Phone-Based Agents?
 

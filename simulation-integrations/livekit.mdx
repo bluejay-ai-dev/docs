@@ -23,3 +23,41 @@ Bluejay will create a room inside of your livekit cloud instance and dispatch yo
 ## Room Metadata
 
 Optionally, you can add any metadata you want to be included in the room on room creation. Simply add the JSON metadata to the metadata section in the Agent Connection settings.
+
+## Tool Call Tracking
+
+Bluejay can capture tool calls your agent makes during a simulation. Just publish a data packet to a LiveKit topic and Bluejay can ingest it.
+
+### Setup
+
+In your Agent Connection settings, set the **LiveKit Customer Tool Topic** field to the topic name your code will publish to (e.g. `customer.tool.calls`).
+
+### Publishing a Tool Call
+
+Whenever your agent invokes a tool, publish a JSON payload to your configured topic:
+
+```python
+import json
+from livekit import rtc
+
+async def report_tool_call(room: rtc.Room, tool_name: str, parameters: dict, output):
+    payload = json.dumps({
+        "name": tool_name,
+        "parameters": parameters,
+        "output": output,
+    }).encode()
+    await room.local_participant.publish_data(payload, topic="customer.tool.calls")
+```
+
+The only required field is `name`. Everything else is optional:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | **Required.** The tool that was invoked |
+| `parameters` | object | Input parameters passed to the tool |
+| `output` | any | Return value of the tool |
+| `invocation_id` | string | Unique ID to prevent duplicate ingestion on retries |
+| `start_offset_ms` | integer | Milliseconds from call start (Bluejay calculates if omitted) |
+| `client_ts` | string | ISO 8601 timestamp, used to calculate offset if `start_offset_ms` is not set |
+
+Bluejay buffers packets during the call and persists them automatically when the simulation ends.
