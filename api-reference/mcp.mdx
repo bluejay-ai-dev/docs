@@ -1,0 +1,233 @@
+---
+title: 'MCP Server'
+description: 'Connect AI agents and coding assistants to Bluejay using the Model Context Protocol'
+icon: 'robot'
+---
+
+Bluejay exposes a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives AI assistants — Claude, Cursor, Windsurf, and any other MCP-compatible client — direct, structured access to the full Bluejay API. Instead of writing HTTP calls by hand, your AI assistant can run simulations, manage agents, queue test runs, and retrieve results as native tool calls.
+
+## MCP Endpoint
+
+```
+https://api.getbluejay.ai/mcp
+```
+
+The server uses **stateless HTTP** (MCP Streamable HTTP transport). Every request to `/mcp` is a standard HTTP POST that returns the tool result inline. No persistent connection or SSE stream is required.
+
+## Authentication
+
+All requests to the MCP server must be authenticated. The recommended method is an **API key** passed in the `X-API-Key` header.
+
+### Get your API key
+
+1. Sign in to [app.getbluejay.ai](https://app.getbluejay.ai)
+2. Navigate to **Settings > API Keys**
+3. Click **Generate API Key** and copy the value immediately — it is only shown once
+
+### Pass your API key
+
+Include your key in the `X-API-Key` header on every request to the MCP server:
+
+```http
+X-API-Key: bj_your_api_key_here
+```
+
+### Error responses
+
+| Status | Meaning |
+|--------|---------|
+| `401`  | Missing or invalid credential |
+| `403`  | Valid JWT but user has no organization |
+
+Unauthenticated requests receive a JSON body: `{ "error": "Unauthorized", "detail": "<reason>" }`.
+
+## Configuring your MCP client
+
+### Claude Desktop
+
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "bluejay": {
+      "type": "http",
+      "url": "https://api.getbluejay.ai/mcp",
+      "headers": {
+        "X-API-Key": "bj_your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Cursor / Windsurf
+
+Add a remote MCP server in your editor's MCP settings:
+
+- **URL**: `https://api.getbluejay.ai/mcp`
+- **Auth header**: `X-API-Key: bj_your_api_key_here`
+
+### Claude Code (CLI)
+
+```bash
+claude mcp add --transport http bluejay https://api.getbluejay.ai/mcp \
+  --header "X-API-Key: bj_your_api_key_here"
+```
+
+## Available tools
+
+Every tool maps 1-to-1 with a Bluejay REST endpoint. The MCP server injects your identity from the `X-API-Key` header automatically — you never pass credentials as tool arguments.
+
+### Agents
+
+| Tool | Description |
+|------|-------------|
+| `add_agent` | Create a new agent |
+| `update_agent` | Update an agent by ID |
+| `update_agent_by_external_id` | Update an agent by your own external ID |
+| `get_agent` | Fetch a single agent |
+| `get_agent_by_external_id` | Fetch an agent by external ID |
+| `get_agents_by_folder` | List agents in a folder |
+| `list_agents` | List all agents in your organization |
+| `delete_agent` | Delete an agent |
+
+### Simulations
+
+| Tool | Description |
+|------|-------------|
+| `create_simulation` | Create a new simulation |
+| `update_simulation` | Update a simulation |
+| `get_simulation` | Fetch a simulation |
+| `list_simulations` | List all simulations |
+| `get_simulations_by_agent` | List simulations for a given agent |
+| `get_simulation_runs` | List runs for a simulation |
+| `delete_simulation` | Delete a simulation |
+
+### Digital Humans
+
+| Tool | Description |
+|------|-------------|
+| `create_digital_human` | Create a single digital human |
+| `bulk_create_digital_humans` | Create multiple digital humans at once |
+| `generate_digital_humans` | AI-generate digital humans for a simulation |
+| `update_digital_human` | Update a digital human |
+| `get_digital_human` | Fetch a digital human |
+| `get_digital_humans_by_simulation` | List digital humans for a simulation |
+| `delete_digital_human` | Delete a digital human |
+
+### Simulation Runs
+
+| Tool | Description |
+|------|-------------|
+| `queue_simulation_run` | Queue a voice simulation run |
+| `queue_sms_simulation_run` | Queue an SMS simulation run |
+| `queue_http_text_simulation_run` | Queue an HTTP/text simulation run |
+| `get_simulation_results` | List results for a simulation run |
+| `get_simulation_result` | Fetch a single simulation result |
+
+### Evaluation & Observability
+
+| Tool | Description |
+|------|-------------|
+| `evaluate` | Submit a production call for evaluation |
+| `send_http_text_message` | Send a message in an active HTTP/text simulation |
+| `translate_transcript` | Translate a call transcript |
+| `end_conversations` | End one or more active conversations |
+| `delete_call_log` | Delete a call log |
+| `update_call_log` | Update a call log |
+
+### Custom Metrics
+
+| Tool | Description |
+|------|-------------|
+| `create_custom_metric` | Create a custom evaluation metric |
+| `create_custom_metrics` | Bulk-create custom metrics |
+| `update_custom_metric` | Update a custom metric |
+| `get_custom_metric` | Fetch a custom metric |
+| `list_custom_metrics` | List all custom metrics |
+| `get_custom_metrics_by_agent` | List custom metrics for an agent |
+| `delete_custom_metric` | Delete a custom metric |
+| `bulk_delete_custom_metrics` | Delete multiple custom metrics |
+
+### Folders
+
+| Tool | Description |
+|------|-------------|
+| `create_folder` | Create a folder |
+| `update_folder` | Update a folder |
+| `get_folder` | Fetch a folder |
+| `list_folders` | List all folders |
+| `move_agent_to_folder` | Move an agent into a folder |
+| `delete_folder` | Delete a folder |
+
+### Prompts
+
+| Tool | Description |
+|------|-------------|
+| `create_prompt_version` | Create a new prompt version |
+| `get_prompt` | Fetch a prompt |
+| `list_prompts` | List all prompts |
+| `list_prompt_versions` | List versions of a prompt |
+| `get_prompt_version` | Fetch a specific prompt version |
+| `add_prompt_version_labels` | Add labels to a prompt version |
+| `get_prompt_version_labels` | Get labels for a prompt version |
+| `delete_prompt_version_labels` | Remove labels from a prompt version |
+| `delete_prompt` | Delete a prompt |
+| `delete_prompt_version` | Delete a prompt version |
+
+### Labels
+
+| Tool | Description |
+|------|-------------|
+| `create_label` | Create a label |
+| `list_labels` | List all labels |
+| `get_label` | Fetch a label |
+| `update_label` | Update a label |
+| `delete_label` | Delete a label |
+
+### Communities
+
+| Tool | Description |
+|------|-------------|
+| `create_community` | Create a community |
+| `update_community` | Update a community |
+| `get_community` | Fetch a community |
+| `list_communities` | List all communities |
+| `delete_community` | Delete a community |
+
+### Workflows
+
+| Tool | Description |
+|------|-------------|
+| `create_workflow` | Create a workflow |
+| `update_workflow` | Update a workflow |
+| `get_workflow` | Fetch a workflow |
+| `list_workflows` | List all workflows |
+| `delete_workflow` | Delete a workflow |
+
+### Schedules
+
+| Tool | Description |
+|------|-------------|
+| `create_schedule` | Schedule a recurring simulation run |
+| `update_schedule` | Update a schedule |
+| `get_schedule` | Fetch a schedule |
+| `list_schedules` | List all schedules |
+| `delete_schedule` | Delete a schedule |
+
+### Phone Numbers
+
+| Tool | Description |
+|------|-------------|
+| `list_phone_numbers` | List phone numbers in your organization |
+| `add_phone_number` | Add a phone number |
+| `release_phone_number` | Release a phone number |
+
+## Example: Run a simulation end-to-end
+
+With the MCP server connected, you can ask your AI assistant:
+
+> "List my agents, pick the one named 'Support Bot', create a simulation called 'Regression Test', generate 5 digital humans, and queue a simulation run."
+
+The assistant will chain the `list_agents` → `create_simulation` → `generate_digital_humans` → `queue_simulation_run` tools automatically, without you writing any code.
