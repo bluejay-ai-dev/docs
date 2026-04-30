@@ -1,0 +1,163 @@
+---
+title: Prompting Guide
+description: Best practices for writing Digital Human intents and success criteria
+icon: pen-fancy
+---
+
+A Digital Human is a test case for your agent. The intent is the input, the success criteria are the assertion, and the wording you give both is what the model uses to play the customer and to grade the call afterward.
+
+The biggest payoff of a well-written prompt is instruction following. When the intent is precise, the Digital Human navigates the IVR you wanted it to navigate, asks the question you wanted it to ask, and walks away when it should walk away. Loose intents leave room for the model to improvise, and an improvising Digital Human stops testing the thing you wrote it to test.
+
+## Treat Digital Humans Like Test Cases
+
+Every Digital Human is a unit test against your agent. Treat the intent the way you would treat the input to a unit test: name the actions, list the facts the agent will need, and stop. The more general the intent, the more freedom the model has on the call, and the more your test starts measuring the model's creativity instead of your agent's behavior.
+
+Tighten the intent when you want a deterministic test. Keep it general when you want broad coverage, and accept that the trade-off is verifiability.
+
+<Tip>
+Treat the trait fields as your fixtures. Account numbers, member IDs, names, and order details belong there rather than buried in the intent prose. The agent has a single place to look, and you can swap fixtures without rewriting the intent.
+</Tip>
+
+## Core Principles
+
+<CardGroup cols={3}>
+  <Card title="Write instructions the model can follow" icon="list-check">
+    State the actions you want the Digital Human to take, in the order you want them taken. Anything you do not specify, the model fills in on its own.
+  </Card>
+  <Card title="Anchor actions to moments in the call" icon="anchor">
+    Tie behavior to specific points in the conversation. "When the agent asks for a customer ID, say you do not have one" produces a deterministic call.
+  </Card>
+  <Card title="Match specificity to the test" icon="bullseye">
+    Specific intents grade cleanly and run consistently. General intents give coverage at the cost of verifiability.
+  </Card>
+</CardGroup>
+
+## Writing Intents
+
+A good intent describes the actions the Digital Human takes during the call. The easier those actions are to verify from a transcript, the better the intent. Length is not the goal. A two-sentence intent that names a clear sequence of actions beats a five-paragraph backstory every time.
+
+<Check>
+**Good intents** describe verifiable actions:
+
+- Order a cheeseburger with no onions and a small drink for pickup at the closest location.
+- Navigate the IVR to retrieve the balance on your checking account ending in 4821.
+- Call in to refill a prescription you placed last week. When the agent asks for a customer ID, say you do not have one.
+
+A reader can look at a transcript and tell whether each action took place.
+</Check>
+
+<Warning>
+**Bad intent:** _"The customer calls in and answers all the agent's questions correctly."_
+
+The word "correctly" is doing the entire job, and it is undefined. The model running the Digital Human has its own definition of correct, your team has another, and they will not line up.
+</Warning>
+
+<Tip>
+If you reach for a word like "correctly," "appropriately," or "successfully" in an intent, you are usually describing what the agent should do. Move that idea to the success criteria and rewrite the intent in terms of the Digital Human's actions.
+</Tip>
+
+### Common intent mistakes
+
+**Not providing enough information.** A Digital Human can only act on what you tell it. If the call requires an account number, a date of birth, an order ID, or an address, include it in the intent or the trait fields. Without that information, the call fails for reasons that have nothing to do with your agent.
+
+**Describing your agent's behavior inside the intent.** The intent is the script for the Digital Human. Lines like "the agent should ask for verification" belong in the success criteria. When you mix the two, the model occasionally tries to play both sides of the call, and the Digital Human starts coaching the agent toward the right answer.
+
+**Providing conflicting information.** If the intent says the customer is calling about a dog and then later refers to a cat, the model picks one and may switch mid-call. Keep the facts consistent across the intent and the trait fields.
+
+**Providing incomplete information.** If a successful call requires the Digital Human to provide a member ID, make sure the Digital Human has one. The same goes for order numbers, prescription IDs, and verification details. Without the data the agent will ask for, the call dead-ends before your agent gets a chance to demonstrate the behavior you wanted to test.
+
+## Writing Success Criteria
+
+A success criterion is good when it is verifiable from the transcript and scoped to exactly what you care about.
+
+<Check>
+**Good success criteria** are verifiable facts:
+
+- The agent books the appointment for the customer and provides a confirmation of the booking.
+- The agent refuses to provide assistance to a customer who cannot provide a valid member ID.
+
+Both can be confirmed by reading the transcript. Neither asks the evaluator to define a fuzzy word like "good" or "right."
+</Check>
+
+### Common success criteria mistakes
+
+**Too vague.** _"The agent does the right thing in the conversation."_ The definition of "right" lives in your head. The model uses its own definition. Pass rates drift away from what your team would have said.
+
+**Over-scoped.** _"The agent books the appointment, notifies the customer that the appointment was booked, and asks if they have any other questions."_ If the only thing you cared about was whether the appointment was booked, the second and third clauses are an overreach. The criterion now fails any call where the agent booked the appointment cleanly but skipped the trailing question. Scope the criterion to exactly what matters and no more.
+
+**Stacking unrelated outcomes.** If you genuinely care about more than one outcome, split them into separate Custom Metrics. One failure will not mask the others, and your dashboard will tell you which behavior actually broke.
+
+## Examples Across Industries
+
+<Tabs>
+  <Tab title="Healthcare">
+    **Scenario:** Prescription refill without a customer ID.
+
+    **Intent**
+
+    > You are calling to check the status of a prescription refill you placed last week. When the agent asks for your customer ID, say you do not have one and have never been issued one.
+
+    **Success Criteria**
+
+    > The agent declined to provide service or look up the order without a valid customer ID.
+  </Tab>
+  <Tab title="Restaurant Services">
+    **Scenario:** Reservation for Friday night.
+
+    **Intent**
+
+    > You are calling to book a table for four at 7:30 PM this Friday under the name Jordan Lee. If 7:30 PM is unavailable, accept any time within thirty minutes of that slot.
+
+    **Success Criteria**
+
+    > The agent confirmed a reservation for four people for this Friday within thirty minutes of 7:30 PM under the name Jordan Lee.
+  </Tab>
+  <Tab title="Food">
+    **Scenario:** Cheeseburger pickup order.
+
+    **Intent**
+
+    > You are calling the closest location to place a pickup order. You want one cheeseburger with no onions and a small fountain drink. You will pay at the counter when you arrive.
+
+    **Success Criteria**
+
+    > The agent confirmed an order of one cheeseburger with no onions and one small fountain drink, and quoted a pickup time.
+  </Tab>
+  <Tab title="Telecom">
+    **Scenario:** Billing dispute over a \$60 overcharge.
+
+    **Intent**
+
+    > You were charged \$189 on your last bill instead of the usual \$129. You want the \$60 difference refunded to the original payment method. If a refund is not possible, accept an account credit for the same amount.
+
+    **Success Criteria**
+
+    > The agent acknowledged the \$60 overcharge and either refunded the \$60 to the original payment method, issued an account credit for the same amount, or escalated the request to a team that could.
+  </Tab>
+</Tabs>
+
+<Tip>
+Once an intent works, drop it into a Community. The same Digital Human becomes a regression test you can rerun on every agent version, so a fix in one release does not silently regress in the next.
+</Tip>
+
+## Checklist
+
+Before saving a Digital Human, run through this list.
+
+- The intent describes the actions the Digital Human takes during the call.
+- Every piece of information the agent will ask for is present in the intent or traits.
+- The intent does not describe what the agent should do.
+- The intent does not contain contradictions.
+- Each success criterion is verifiable from a transcript.
+- Each success criterion captures exactly what you care about and nothing more.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/key-concepts/digital-humans/configuration">
+    Pair a strong prompt with the right voice, language, and call-flow configuration.
+  </Card>
+  <Card title="Custom Metrics Prompting" icon="pen-fancy" href="/key-concepts/custom-metrics/prompting-guide">
+    Apply the same principles to the LLM-as-a-Judge prompts that score your calls.
+  </Card>
+</CardGroup>
