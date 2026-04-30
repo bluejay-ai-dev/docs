@@ -1,0 +1,107 @@
+---
+title: "Bluejay as Code"
+description: "Manage agents, simulations, digital humans, and custom metrics as version-controlled config"
+icon: code-branch
+---
+
+## What is Bluejay as Code?
+
+Bluejay as Code lets you treat your Bluejay configuration the same way you treat source code — define everything in a file, commit it, and push it to apply changes. It is a **pull / push** workflow:
+
+- **Pull** exports your current configuration (one simulation + its agent, digital humans, and custom metrics) as a JSON payload.
+- **Push** applies a payload to Bluejay, creating or updating each entity as needed.
+
+This is ideal for CI/CD pipelines, GitOps workflows, and keeping your agent configuration reproducible across environments.
+
+---
+
+## The Payload
+
+Every Bluejay-as-Code operation revolves around a single payload shape:
+
+```json
+{
+  "agents": [ { ... } ],
+  "simulations": [ { ... } ],
+  "digital_humans": [ { ... }, { ... } ],
+  "custom_metrics": [ { ... } ]
+}
+```
+
+The payload must contain **exactly one agent and one simulation**. Digital humans and custom metrics are arrays of any size (including empty).
+
+### `bluejay_as_code_id`
+
+Every entity in the payload has a `bluejay_as_code_id` field. This is the stable identifier Bluejay uses to match payload entries to existing database records across pushes — like a Terraform resource address or a Kubernetes resource name.
+
+- On **push**, Bluejay looks up each entity by its `bluejay_as_code_id`. If found, it diffs and updates; if not, it creates.
+- On **pull**, `bluejay_as_code_id` values are populated automatically from whatever is stored in the database.
+
+When creating a new entity, generate a UUID (`uuid.uuid4()` in Python) and hardcode it into your config file. Keep these IDs stable — changing a `bluejay_as_code_id` is equivalent to deleting the old entity and creating a new one.
+
+---
+
+## How Diffing Works
+
+Bluejay only writes when a value has actually changed — entities already in sync are left untouched.
+
+| Scenario | What happens |
+|---|---|
+| Entity not in Bluejay (new `bluejay_as_code_id`) | Created |
+| Entity in Bluejay, fields unchanged | No-op |
+| Entity in Bluejay, fields changed | Updated |
+| Entity in Bluejay but absent from payload (digital humans / custom metrics) | Detached from the simulation or agent |
+| Agent or simulation `bluejay_as_code_id` not in Bluejay | Created |
+
+Digital humans in the payload that already exist elsewhere (linked to another simulation) are re-linked rather than duplicated.
+
+---
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Pull" icon="download" href="/api-reference/endpoint/pull-bluejay-as-code">
+    Export a simulation's full config as a payload.
+  </Card>
+  <Card title="Push" icon="upload" href="/api-reference/endpoint/push-bluejay-as-code">
+    Apply a payload — create or update each entity.
+  </Card>
+</CardGroup>
+
+---
+
+## Full Example — Pull, Edit, Push
+
+```python
+import json
+import uuid
+import requests
+
+BASE_URL = "https://api.getbluejay.ai/v1"
+API_KEY  = "your-api-key"
+SIM_ID   = "your-simulation-uuid"
+
+headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
+
+# 1. Pull current config
+payload = requests.get(f"{BASE_URL}/bluejay-as-code/pull/{SIM_ID}", headers=headers).json()
+
+# 2. Edit — update the agent system prompt
+payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
+
+# 3. Add a new digital human — generate a UUID once and commit it to your config file
+payload["digital_humans"].append({
+    "bluejay_as_code_id": str(uuid.uuid4()),  # generate once, then hardcode in your config
+    "human_name": "Frustrated Caller",
+    "description": "A customer who has been on hold for 20 minutes and wants a quick resolution.",
+    "language": "en",
+    "simulations": [payload["simulations"][0]["bluejay_as_code_id"]],
+})
+
+# 4. Push
+result = requests.post(f"{BASE_URL}/bluejay-as-code/push", headers=headers, json=payload).json()
+
+assert result["valid"], result["errors"]
+for action in result["actions"]:
+    print(action)
+```
