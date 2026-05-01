@@ -1,4 +1,67 @@
 ---
 title: "Push Bluejay as Code"
-openapi: "POST /v1/bluejay-as-code/push"
+openapi: "POST /v1/bluejay-as-code/simulation"
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Push Bluejay as Code — POST /v1/bluejay-as-code/simulation
+
+> **What this endpoint does:** Apply a Bluejay as Code payload to Bluejay. Each entity in the payload is matched by its `bluejay_as_code_id` — created if not found, updated if fields changed, left untouched if identical. Returns a list of actions taken and any validation errors.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/bluejay-as-code/simulation`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| agents | array | Array containing exactly one agent object. |
+| simulations | array | Array containing exactly one simulation object. |
+| digital_humans | array | Array of digital human objects (can be empty). |
+| custom_metrics | array | Array of custom metric objects (can be empty). |
+
+Review the full schema at https://docs.getbluejay.ai/api-reference/endpoint/push-bluejay-as-code.
+
+### Request Body (required fields)
+```json
+{
+  "agents": [ { "bluejay_as_code_id": "...", ... } ],
+  "simulations": [ { "bluejay_as_code_id": "...", ... } ],
+  "digital_humans": [ { "bluejay_as_code_id": "...", ... } ],
+  "custom_metrics": [ { "bluejay_as_code_id": "...", ... } ]
+}
+```
+
+### Example
+```python
+import requests
+
+def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/bluejay-as-code/simulation"
+    headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- `bluejay_as_code_id` values must be stable UUIDs hardcoded in your config — never generate them dynamically at push time.
+- Include error handling for 422: Validation Error and check `result["valid"]` before proceeding.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>

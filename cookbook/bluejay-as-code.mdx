@@ -1,59 +1,89 @@
 ---
 title: "Bluejay as Code"
-description: "Manage agents, simulations, digital humans, and custom metrics as version-controlled config"
+description: "Manage your Bluejay's resources declarativley - similarly to terraform"
 icon: code-branch
 ---
 
 ## What is Bluejay as Code?
 
-Bluejay as Code lets you treat your Bluejay configuration the same way you treat source code — define everything in a file, commit it, and push it to apply changes. It is a **pull / push** workflow:
+Bluejay as Code lets you manage your agent configuration as version-controlled files. Pull your current setup to export it as a JSON payload, edit it like source code, then push to apply changes — Bluejay creates or updates each entity as needed.
 
-- **Pull** exports your current configuration (one simulation + its agent, digital humans, and custom metrics) as a JSON payload.
-- **Push** applies a payload to Bluejay, creating or updating each entity as needed.
 
-This is ideal for CI/CD pipelines, GitOps workflows, and keeping your agent configuration reproducible across environments.
+
+```mermaid
+sequenceDiagram
+    participant Config File
+    participant Bluejay
+
+    Config File->>Bluejay: GET /bluejay-as-code/simulation/{simulation_id}
+    Bluejay-->>Config File: JSON payload
+    note over Config File: Edit fields, add/remove entities, commit
+    Config File->>Bluejay: POST /bluejay-as-code/simulation
+    Bluejay-->>Config File: { valid, actions[] }
+```
+
 
 ---
 
 ## The Payload
 
-Every Bluejay-as-Code operation revolves around a single payload shape:
+The payload describes a single simulation and all the objects that belong to it — its agent, the digital humans that participate in it, and the custom metrics used to evaluate it.
 
 ```json
 {
   "agents": [ { ... } ],
   "simulations": [ { ... } ],
   "digital_humans": [ { ... }, { ... } ],
-  "custom_metrics": [ { ... } ]
+  "custom_metrics": [ { ... }  { ... } ]
 }
 ```
 
 The payload must contain **exactly one agent and one simulation**. Digital humans and custom metrics are arrays of any size (including empty).
 
+<Note>
+  Bluejay as Code currently operates at the simulation level, with broader scopes planned for future releases.
+</Note>
+
 ### `bluejay_as_code_id`
 
-Every entity in the payload has a `bluejay_as_code_id` field. This is the stable identifier Bluejay uses to match payload entries to existing database records across pushes — like a Terraform resource address or a Kubernetes resource name.
+Every entity in the payload has a `bluejay_as_code_id`. This is **not** the same as Bluejay's internal database ID — it is the stable handle used exclusively within the Bluejay as Code system to uniquely identify and track objects across operations.
 
-- On **push**, Bluejay looks up each entity by its `bluejay_as_code_id`. If found, it diffs and updates; if not, it creates.
-- On **pull**, `bluejay_as_code_id` values are populated automatically from whatever is stored in the database.
 
-When creating a new entity, generate a UUID (`uuid.uuid4()` in Python) and hardcode it into your config file. Keep these IDs stable — changing a `bluejay_as_code_id` is equivalent to deleting the old entity and creating a new one.
+<Tip>
+  You own the BaC IDs — and that's intentional. Defining them yourself gives you full control over what Bluejay creates, updates, or re-links. Never let them be auto-generated at runtime.
+</Tip>
 
----
+#### On Pull
 
-## How Diffing Works
+Pulling a simulation returns each entity with its `bluejay_as_code_id`. 
 
-Bluejay only writes when a value has actually changed — entities already in sync are left untouched.
+```mermaid
+sequenceDiagram
+    participant Config File
+    participant Bluejay
 
-| Scenario | What happens |
-|---|---|
-| Entity not in Bluejay (new `bluejay_as_code_id`) | Created |
-| Entity in Bluejay, fields unchanged | No-op |
-| Entity in Bluejay, fields changed | Updated |
-| Entity in Bluejay but absent from payload (digital humans / custom metrics) | Detached from the simulation or agent |
-| Agent or simulation `bluejay_as_code_id` not in Bluejay | Created |
+    Config File->>Bluejay: GET /simulation/{simulation_id}
+    Bluejay-->>Config File: Entities with bluejay_as_code_ids populated
+    note over Config File: Commit IDs to your config
+```
 
-Digital humans in the payload that already exist elsewhere (linked to another simulation) are re-linked rather than duplicated.
+#### On Push
+
+Pushing a Bluejay as Code payload reconciles your config file with the live simulation. Depending on the changes you commit, Bluejay will:
+
+- Create new objects when it sees a `bluejay_as_code_id` that doesn’t already exist (generate a stable ID such as a UUID once and reuse it).
+- Update existing objects based on any field edits you’ve made in the payload.
+- Remove digital humans or custom metrics from the simulation when you delete them from the payload.
+
+```mermaid
+sequenceDiagram
+    participant Config File
+    participant Bluejay
+
+    Config File->>Bluejay: POST /simulation (payload)
+    Bluejay-->>Config File: { valid, actions[] }
+    note over Bluejay: Create / update / remove entities
+```
 
 ---
 
@@ -84,7 +114,7 @@ SIM_ID   = "your-simulation-uuid"
 headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
 
 # 1. Pull current config
-payload = requests.get(f"{BASE_URL}/bluejay-as-code/pull/{SIM_ID}", headers=headers).json()
+payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", headers=headers).json()
 
 # 2. Edit — update the agent system prompt
 payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
@@ -99,7 +129,7 @@ payload["digital_humans"].append({
 })
 
 # 4. Push
-result = requests.post(f"{BASE_URL}/bluejay-as-code/push", headers=headers, json=payload).json()
+result = requests.post(f"{BASE_URL}/bluejay-as-code/simulation", headers=headers, json=payload).json()
 
 assert result["valid"], result["errors"]
 for action in result["actions"]:
