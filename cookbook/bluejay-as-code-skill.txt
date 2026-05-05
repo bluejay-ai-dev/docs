@@ -46,26 +46,28 @@ Every entity in the payload has a `bluejay_as_code_id`. This is distinct from Bl
 
 ## Endpoints
 
-### Pull — GET /v1/bluejay-as-code/pull/{simulation_id}
+### Pull — GET /v1/bluejay-as-code/{root_type}/{root_id}
 
-Exports a simulation's full configuration as a BaC payload, with all `bluejay_as_code_id` values populated from Bluejay's database.
+Exports a Bluejay configuration bundle as a BaC payload, with all `bluejay_as_code_id` values populated from Bluejay's database. The bundle is rooted at any of four entity types — pick whichever entity is most natural to anchor on.
 
 **Auth:** `X-API-Key` header
 
-**Path parameter:**
+**Path parameters:**
 | Name | Type | Description |
 |------|------|-------------|
-| simulation_id | string | The Bluejay simulation ID to export. |
+| root_type | string | One of `simulation`, `agent`, `digital-human`, `custom-metric`. |
+| root_id | string | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity. |
 
 **Response:** Full BaC payload with `bluejay_as_code_id` populated on every entity.
 
-**Usage pattern:** Pull once to bootstrap your config file. Commit the returned IDs — they are your source of truth going forward.
+**Usage pattern:** For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked digital human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
 
 ```python
 import requests
 
-def pull_bluejay_as_code(simulation_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/pull/{simulation_id}"
+def pull_bluejay_as_code(root_id: str, api_key: str, root_type: str = "simulation") -> dict:
+    # root_type can also be "agent", "digital-human", or "custom-metric"
+    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
     headers = {"X-API-Key": api_key}
     response = requests.get(url, headers=headers)
     response.raise_for_status()
@@ -74,9 +76,9 @@ def pull_bluejay_as_code(simulation_id: str, api_key: str) -> dict:
 
 ---
 
-### Push — POST /v1/bluejay-as-code/push
+### Push — POST /v1/bluejay-as-code
 
-Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id` and created, updated, or left untouched depending on whether it exists and whether its fields have changed.
+Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id` and created, updated, or left untouched depending on whether it exists and whether its fields have changed. The endpoint is the same regardless of which root_type was used to pull the bundle.
 
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
@@ -91,11 +93,22 @@ Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id`
 | Digital human exists on another simulation | Re-linked, not duplicated |
 
 **Response:**
+| Field | Type | Description |
+|-------|------|-------------|
+| valid | boolean | True iff the payload passed validation. Always check this before treating a push as successful. |
+| errors | EntityValidationError[] | Per-entity validation errors. Empty when `valid` is true. |
+| actions | string[] | Human-readable lines describing every create/update/link/detach Bluejay performed. |
+| simulation_id | integer \| null | Resolved Bluejay ID of the simulation in the bundle (when present). |
+
 ```json
 {
   "valid": true,
-  "actions": [ "created agent ...", "updated digital_human ..." ],
-  "errors": []
+  "errors": [],
+  "actions": [
+    "Updated agent 'Front Desk Scheduler'",
+    "Created digital human 'Eleanor Pham'"
+  ],
+  "simulation_id": 1284
 }
 ```
 
@@ -103,7 +116,7 @@ Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id`
 import requests
 
 def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/bluejay-as-code/push"
+    url = "https://api.getbluejay.ai/v1/bluejay-as-code"
     headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -127,8 +140,8 @@ SIM_ID   = "your-simulation-uuid"
 
 headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
 
-# 1. Pull current config
-payload = requests.get(f"{BASE_URL}/bluejay-as-code/pull/{SIM_ID}", headers=headers).json()
+# 1. Pull current config — anchored on the simulation
+payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", headers=headers).json()
 
 # 2. Edit — update the agent system prompt
 payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
@@ -143,14 +156,16 @@ payload["digital_humans"].append({
     "simulations": [payload["simulations"][0]["bluejay_as_code_id"]],
 })
 
-# 4. Push
-result = requests.post(f"{BASE_URL}/bluejay-as-code/push", headers=headers, json=payload).json()
+# 4. Push — single unified endpoint regardless of which root_type you pulled from
+result = requests.post(f"{BASE_URL}/bluejay-as-code", headers=headers, json=payload).json()
 
 if not result["valid"]:
     raise ValueError(result["errors"])
 
 for action in result["actions"]:
     print(action)
+
+# result["simulation_id"] is the resolved Bluejay ID of the simulation in the bundle
 ```
 
 ---
