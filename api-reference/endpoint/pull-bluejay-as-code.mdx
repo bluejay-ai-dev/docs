@@ -1,6 +1,6 @@
 ---
 title: "Pull Bluejay as Code"
-openapi: "GET /v1/bluejay-as-code/simulation/{simulation_bluejay_id}"
+openapi: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -9,18 +9,19 @@ openapi: "GET /v1/bluejay-as-code/simulation/{simulation_bluejay_id}"
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Pull Bluejay as Code — GET /v1/bluejay-as-code/simulation/{simulation_bluejay_id}
+## Pull Bluejay as Code — GET /v1/bluejay-as-code/{root_type}/{root_id}
 
-> **What this endpoint does:** Export a simulation's full configuration as a JSON payload. Returns the simulation, its agent, all linked digital humans, and all associated custom metrics — each with their `bluejay_as_code_id` populated. Use this payload as the starting point for version-controlled config management.
+> **What this endpoint does:** Export a Bluejay configuration as a JSON payload, rooted at any of four entity types. The simulation root (`/v1/bluejay-as-code/simulation/{id}`) is the most common — it returns the simulation, its agent, all linked digital humans, and all associated custom metrics, each with `bluejay_as_code_id` populated. Use this payload as the starting point for version-controlled config management.
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/bluejay-as-code/simulation/{simulation_bluejay_id}`
+**Endpoint:** GET `https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| simulation_bluejay_id | string (path) | The ID of the simulation to export. |
+| root_type | string (path) | One of `simulation`, `agent`, `digital-human`, `custom-metric`. Determines which entity anchors the bundle. |
+| root_id | string (path) | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity to export. |
 
 Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/pull-bluejay-as-code.
 
@@ -39,6 +40,8 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
 import requests
 
 def pull_bluejay_as_code(simulation_id: str, api_key: str) -> dict:
+    # Most integrations anchor on a simulation. You can also use root_type
+    # "agent", "digital-human", or "custom-metric" to anchor on those entities.
     url = f"https://api.getbluejay.ai/v1/bluejay-as-code/simulation/{simulation_id}"
     headers = {"X-API-Key": api_key}
     response = requests.get(url, headers=headers)
