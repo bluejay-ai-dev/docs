@@ -20,8 +20,8 @@ sequenceDiagram
     Config File->>Bluejay: GET /bluejay-as-code/simulation/{simulation_id}
     Bluejay-->>Config File: JSON payload
     note over Config File: Edit fields, add/remove entities, commit
-    Config File->>Bluejay: POST /bluejay-as-code/simulation
-    Bluejay-->>Config File: { valid, actions[] }
+    Config File->>Bluejay: POST /bluejay-as-code
+    Bluejay-->>Config File: { valid, actions[], simulation_id }
 ```
 
 <Steps>
@@ -33,6 +33,10 @@ sequenceDiagram
       -H "X-API-Key: $BLUEJAY_API_KEY" \
       -o simulation.json
     ```
+
+    <Tip>
+      The pull endpoint also accepts three other root types if you'd rather anchor your bundle on something else: `GET /v1/bluejay-as-code/agent/{id}`, `/digital-human/{id}`, or `/custom-metric/{id}`. Each one walks the same graph and returns the same payload shape — pick whichever entity is most natural for your workflow. The rest of this guide uses the simulation root because it's the most common.
+    </Tip>
   </Step>
 
   <Step title="Inspect the file you pulled">
@@ -140,7 +144,7 @@ sequenceDiagram
     The response lists every action taken so you can confirm the reconciliation matches your diff.
 
     ```bash
-    curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation \
+    curl https://api.getbluejay.ai/v1/bluejay-as-code \
       -H "X-API-Key: $BLUEJAY_API_KEY" \
       -H "Content-Type: application/json" \
       --data @simulation.json
@@ -149,14 +153,21 @@ sequenceDiagram
     ```json response
     {
       "valid": true,
+      "errors": [],
       "actions": [
-        { "type": "update", "entity": "agent", "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33" },
-        { "type": "create", "entity": "digital_human", "bluejay_as_code_id": "7e2c9a1b-3d4f-4a8e-b612-9c5f0d3a1e88" }
-      ]
+        "Updated agent 'Front Desk Scheduler'",
+        "Created digital human 'Eleanor Pham'",
+        "Linked 1 existing digital human(s) to simulation"
+      ],
+      "simulation_id": 1284
     }
     ```
   </Step>
 </Steps>
+
+<Note>
+  The push endpoint is a single `POST /v1/bluejay-as-code` regardless of which root type you pulled from — the payload itself describes everything Bluejay needs to reconcile. On success, the response includes the resolved `simulation_id` for the simulation in the bundle so you can deep-link straight into the UI.
+</Note>
 
 ## Endpoints
 
@@ -198,7 +209,7 @@ payload["digital_humans"].append({
 })
 
 # 4. Push
-result = requests.post(f"{BASE_URL}/bluejay-as-code/simulation", headers=headers, json=payload).json()
+result = requests.post(f"{BASE_URL}/bluejay-as-code", headers=headers, json=payload).json()
 
 assert result["valid"], result["errors"]
 for action in result["actions"]:

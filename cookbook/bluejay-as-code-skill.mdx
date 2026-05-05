@@ -77,27 +77,36 @@ You own the BaC IDs. This is intentional — it gives you full control over what
 
 ## Endpoints
 
-### Pull — GET /v1/bluejay-as-code/pull/{simulation_id}
+### Pull — GET /v1/bluejay-as-code/{root_type}/{root_id}
 
-Exports a simulation's full configuration as a BaC payload, with all bluejay_as_code_id values populated from Bluejay's database.
+Exports a Bluejay configuration bundle as a BaC payload, with all bluejay_as_code_id values populated from Bluejay's database. The bundle is rooted at any of four entity types — pick whichever entity is most natural to anchor on.
 
 Auth: X-API-Key header
 
-Path parameter:
+Path parameters:
 | Name | Type | Description |
 |------|------|-------------|
-| simulation_id | string | The Bluejay simulation ID to export. |
+| root_type | string | One of `simulation`, `agent`, `digital-human`, `custom-metric`. |
+| root_id | string | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity. |
 
 Response: Full BaC payload with bluejay_as_code_id populated on every entity.
 
-Usage pattern: Pull once to bootstrap your config file. Commit the returned IDs — they are your source of truth going forward.
+Usage pattern: For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked digital human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
 
-### Push — POST /v1/bluejay-as-code/push
+### Push — POST /v1/bluejay-as-code
 
-Applies a BaC payload to Bluejay. Each entity is matched by bluejay_as_code_id and created, updated, or left untouched depending on whether it exists and whether its fields have changed.
+Applies a BaC payload to Bluejay. Each entity is matched by bluejay_as_code_id and created, updated, or left untouched depending on whether it exists and whether its fields have changed. The endpoint is the same regardless of which root_type was used to pull the bundle.
 
 Auth: X-API-Key header
 Content-Type: application/json
+
+Response shape:
+| Field | Type | Description |
+|-------|------|-------------|
+| valid | boolean | True iff the payload passed validation. Always check this before treating a push as successful. |
+| errors | EntityValidationError[] | Per-entity validation errors. Empty when `valid` is true. |
+| actions | string[] | Human-readable lines describing every create/update/link/detach Bluejay performed. |
+| simulation_id | integer \| null | Resolved Bluejay ID of the simulation in the bundle (when present). |
 
 Diffing behaviour:
 | Scenario | Result |
