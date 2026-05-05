@@ -30,7 +30,7 @@ Claude will follow the integration constraints and checklist defined in the skil
 
 ## Skill contents
 
-```text
+````text
 # Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the system, then plan the integration, then implement with minimal changes.
@@ -49,29 +49,31 @@ The payload is simulation-centric: it describes a single simulation and all the 
 
 Every BaC operation revolves around a single payload:
 
+```json
 {
   "agents": [ { "bluejay_as_code_id": "...", ... } ],
   "simulations": [ { "bluejay_as_code_id": "...", ... } ],
   "digital_humans": [ { "bluejay_as_code_id": "...", ... } ],
   "custom_metrics": [ { "bluejay_as_code_id": "...", ... } ]
 }
+```
 
-Constraints:
+**Constraints:**
 - The payload must contain exactly one agent and one simulation.
-- digital_humans and custom_metrics are arrays of any size (including empty).
+- `digital_humans` and `custom_metrics` are arrays of any size (including empty).
 
 ---
 
-## The bluejay_as_code_id
+## The `bluejay_as_code_id`
 
-Every entity in the payload has a bluejay_as_code_id. This is distinct from Bluejay's internal database ID — it is the stable handle used exclusively within the BaC system to identify and track objects across operations.
+Every entity in the payload has a `bluejay_as_code_id`. This is distinct from Bluejay's internal database ID — it is the stable handle used exclusively within the BaC system to identify and track objects across operations.
 
-Rules:
-- You define it. Generate a UUID once and hardcode it in your config file. Bluejay never assigns these for you.
-- Keep it stable. Changing a bluejay_as_code_id is equivalent to deleting the old entity and creating a new one.
-- It is BaC-scoped. Bluejay uses it only for push/pull — never in simulations or the UI.
+**Rules:**
+- **You define it.** Generate a UUID once and hardcode it in your config file. Bluejay never assigns these for you.
+- **Keep it stable.** Changing a `bluejay_as_code_id` is equivalent to deleting the old entity and creating a new one.
+- **It is BaC-scoped.** Bluejay uses it only for push/pull — never in simulations or the UI.
 
-You own the BaC IDs. This is intentional — it gives you full control over what Bluejay creates, updates, or re-links. Never auto-generate them at runtime.
+> You own the BaC IDs. This is intentional — it gives you full control over what Bluejay creates, updates, or re-links. Never auto-generate them at runtime.
 
 ---
 
@@ -79,28 +81,51 @@ You own the BaC IDs. This is intentional — it gives you full control over what
 
 ### Pull — GET /v1/bluejay-as-code/{root_type}/{root_id}
 
-Exports a Bluejay configuration bundle as a BaC payload, with all bluejay_as_code_id values populated from Bluejay's database. The bundle is rooted at any of four entity types — pick whichever entity is most natural to anchor on.
+Exports a Bluejay configuration bundle as a BaC payload, with all `bluejay_as_code_id` values populated from Bluejay's database. The bundle is rooted at any of four entity types — pick whichever entity is most natural to anchor on.
 
-Auth: X-API-Key header
+**Auth:** `X-API-Key` header
 
-Path parameters:
+**Path parameters:**
 | Name | Type | Description |
 |------|------|-------------|
 | root_type | string | One of `simulation`, `agent`, `digital-human`, `custom-metric`. |
 | root_id | string | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity. |
 
-Response: Full BaC payload with bluejay_as_code_id populated on every entity.
+**Response:** Full BaC payload with `bluejay_as_code_id` populated on every entity.
 
-Usage pattern: For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked digital human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
+**Usage pattern:** For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked digital human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
+
+```python
+import requests
+
+def pull_bluejay_as_code(root_id: str, api_key: str, root_type: str = "simulation") -> dict:
+    # root_type can also be "agent", "digital-human", or "custom-metric"
+    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+---
 
 ### Push — POST /v1/bluejay-as-code
 
-Applies a BaC payload to Bluejay. Each entity is matched by bluejay_as_code_id and created, updated, or left untouched depending on whether it exists and whether its fields have changed. The endpoint is the same regardless of which root_type was used to pull the bundle.
+Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id` and created, updated, or left untouched depending on whether it exists and whether its fields have changed. The endpoint is the same regardless of which root_type was used to pull the bundle.
 
-Auth: X-API-Key header
-Content-Type: application/json
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
 
-Response shape:
+**Diffing behaviour:**
+| Scenario | Result |
+|----------|--------|
+| `bluejay_as_code_id` not found in Bluejay | Entity is created |
+| Found, fields unchanged | No-op |
+| Found, fields changed | Entity is updated |
+| Digital human absent from payload | Detached from simulation (not deleted) |
+| Digital human exists on another simulation | Re-linked, not duplicated |
+
+**Response:**
 | Field | Type | Description |
 |-------|------|-------------|
 | valid | boolean | True iff the payload passed validation. Always check this before treating a push as successful. |
@@ -108,24 +133,83 @@ Response shape:
 | actions | string[] | Human-readable lines describing every create/update/link/detach Bluejay performed. |
 | simulation_id | integer \| null | Resolved Bluejay ID of the simulation in the bundle (when present). |
 
-Diffing behaviour:
-| Scenario | Result |
-|----------|--------|
-| bluejay_as_code_id not found in Bluejay | Entity is created |
-| Found, fields unchanged | No-op |
-| Found, fields changed | Entity is updated |
-| Digital human absent from payload | Detached from simulation (not deleted) |
-| Digital human exists on another simulation | Re-linked, not duplicated |
+```json
+{
+  "valid": true,
+  "errors": [],
+  "actions": [
+    "Updated agent 'Front Desk Scheduler'",
+    "Created digital human 'Eleanor Pham'"
+  ],
+  "simulation_id": 1284
+}
+```
+
+```python
+import requests
+
+def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/bluejay-as-code"
+    headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    result = response.json()
+    if not result["valid"]:
+        raise ValueError(f"Push failed: {result['errors']}")
+    return result
+```
+
+---
+
+## Full End-to-End Example
+
+```python
+import uuid
+import requests
+
+BASE_URL = "https://api.getbluejay.ai/v1"
+API_KEY  = "your-api-key"
+SIM_ID   = "your-simulation-uuid"
+
+headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
+
+# 1. Pull current config — anchored on the simulation
+payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", headers=headers).json()
+
+# 2. Edit — update the agent system prompt
+payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
+
+# 3. Add a new digital human
+#    Generate a UUID once, then hardcode it in your config — never regenerate at runtime
+payload["digital_humans"].append({
+    "bluejay_as_code_id": str(uuid.uuid4()),
+    "human_name": "Frustrated Caller",
+    "description": "A customer who has been on hold for 20 minutes and wants a quick resolution.",
+    "language": "en",
+    "simulations": [payload["simulations"][0]["bluejay_as_code_id"]],
+})
+
+# 4. Push — single unified endpoint regardless of which root_type you pulled from
+result = requests.post(f"{BASE_URL}/bluejay-as-code", headers=headers, json=payload).json()
+
+if not result["valid"]:
+    raise ValueError(result["errors"])
+
+for action in result["actions"]:
+    print(action)
+
+# result["simulation_id"] is the resolved Bluejay ID of the simulation in the bundle
+```
 
 ---
 
 ## Integration Constraints
 
-- Minimal changes — only add or modify files required for this integration.
-- Match existing patterns — follow the project's naming conventions, file structure, and error-handling style.
-- Stable IDs — bluejay_as_code_id values must be hardcoded UUIDs in your config file, never generated dynamically at push time.
-- Always check valid — inspect result["valid"] and surface result["errors"] before treating a push as successful.
-- Handle 422 — include error handling for HTTP 422 Validation Error.
+- **Minimal changes** — only add or modify files required for this integration.
+- **Match existing patterns** — follow the project's naming conventions, file structure, and error-handling style.
+- **Stable IDs** — `bluejay_as_code_id` values must be hardcoded UUIDs in your config file, never generated dynamically at push time.
+- **Always check `valid`** — inspect `result["valid"]` and surface `result["errors"]` before treating a push as successful.
+- **Handle 422** — include error handling for HTTP 422 Validation Error.
 
 ---
 
@@ -141,4 +225,4 @@ Then implement the integration, export it from the appropriate module, and confi
 ---
 
 Full API reference: https://docs.getbluejay.ai/api-reference/endpoint/pull-bluejay-as-code
-```
+````
