@@ -1,0 +1,64 @@
+---
+title: 'Claude Code & Claude Desktop'
+description: 'Connect Bluejay MCP server to Claude Code CLI and Claude Desktop'
+icon: 'terminal'
+---
+
+## Prerequisites
+
+- Bluejay API key — go to **Settings > API Keys** in [app.getbluejay.ai](https://app.getbluejay.ai)
+- Claude Desktop or Claude Code CLI installed
+
+## MCP Endpoint
+
+```
+https://api.getbluejay.ai/mcp
+```
+
+## Claude Desktop
+
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "bluejay": {
+      "type": "http",
+      "url": "https://api.getbluejay.ai/mcp",
+      "headers": {
+        "X-API-Key": "<your_api_key_here>"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop after saving.
+
+## Claude Code (CLI)
+
+```bash
+claude mcp add --transport http bluejay https://api.getbluejay.ai/mcp \
+  --header "X-API-Key: <your_api_key_here>"
+```
+
+## Authentication
+
+All requests require an API key in the `X-API-Key` header.
+
+### Error responses
+
+| Status | Meaning |
+|--------|---------|
+| `401`  | Missing or invalid credential |
+| `403`  | Valid JWT but user has no organization |
+
+Unauthenticated requests receive a JSON body: `{ "error": "Unauthorized", "detail": "<reason>" }`.
+
+## Example: Run a simulation end-to-end
+
+With the MCP server connected, you can ask your AI assistant:
+
+> "List my agents, pick the one named 'Support Bot', create a simulation called 'Regression Test', generate 5 digital humans, and queue a simulation run."
+
+The assistant will chain the `list_agents` → `create_simulation` → `generate_digital_humans` → `queue_simulation_run` tools automatically, without you writing any code.
