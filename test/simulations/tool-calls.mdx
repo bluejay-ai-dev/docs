@@ -63,6 +63,14 @@ Bluejay joins the LiveKit room alongside your agent. When your agent invokes a t
 
 [LiveKit Integration Guide →](/simulation-integrations/livekit#tool-call-tracking)
 
+### ElevenLabs Integration
+
+**Best for**: agents hosted on ElevenLabs Conversational AI.
+
+Bluejay captures both client- and server-side tool calls automatically — no agent code or post-call API call required. Client tools are observed live on the conversation WebSocket; server-side webhook tools are pulled from ElevenLabs' conversation history at call end and merged into the same simulation result.
+
+[ElevenLabs Integration Guide →](/simulation-integrations/eleven-labs)
+
 ### Why SIP for Phone-Based Agents?
 
 If your agent runs through traditional phone systems (PSTN), basic telephony integration does **not** support tool call enrichment. To unlock tool call and metadata tracking for phone-based agents, you need SIP.
@@ -83,18 +91,19 @@ If your agent runs through traditional phone systems (PSTN), basic telephony int
 
 - **Phone-based agents** → follow the [SIP Integration Guide](/simulation-integrations/sip)
 - **Web-based agents** → follow the [WebSocket Integration Guide](/simulation-integrations/websockets)
+- **ElevenLabs Conversational AI agents** → no setup needed; tool calls are captured automatically by the [ElevenLabs Integration](/simulation-integrations/eleven-labs)
 
 ### 2. Track Tool Calls in Your Agent
 
 Implement tool call tracking wherever your agent invokes external tools, APIs, or business logic during a call:
 
 ```python
-def track_tool_call(tool_name, parameters, result, timestamp):
+def track_tool_call(name, parameters, output, start_offset_ms):
     return {
-        "tool_name": tool_name,
+        "name": name,
         "parameters": parameters,
-        "result": result,
-        "timestamp": timestamp
+        "output": output,
+        "start_offset_ms": start_offset_ms,
     }
 ```
 
@@ -126,10 +135,10 @@ After the call ends, use the `X-Simulation-Result-Id` to call the [`/v1/update-s
   ],
   "tool_calls": [
     {
-      "tool_name": "transfer_funds",
+      "name": "transfer_funds",
       "parameters": {"from": "12345", "to": "67890", "amount": 500},
-      "result": {"transaction_id": "txn_abc123", "status": "completed"},
-      "timestamp": "2024-01-15T10:32:00Z"
+      "output": {"transaction_id": "txn_abc123", "status": "completed"},
+      "start_offset_ms": 120000
     }
   ],
   "metadata": {
@@ -155,10 +164,10 @@ Track tool calls across agent handoffs and escalation workflows:
 {
   "tool_calls": [
     {
-      "tool_name": "route_to_specialist",
+      "name": "route_to_specialist",
       "parameters": {"customer_issue": "billing_inquiry", "current_agent": "tier1_support"},
-      "result": {"routed_to": "billing_specialist", "agent_id": "agent_billing_001"},
-      "timestamp": "2024-01-15T10:30:00Z"
+      "output": {"routed_to": "billing_specialist", "agent_id": "agent_billing_001"},
+      "start_offset_ms": 30000
     }
   ],
   "metadata": {
@@ -177,16 +186,16 @@ Monitor critical financial operations with audit trails:
 {
   "tool_calls": [
     {
-      "tool_name": "verify_account_ownership",
+      "name": "verify_account_ownership",
       "parameters": {"account_id": "12345", "verification_method": "voice_biometric"},
-      "result": {"verified": true, "confidence_score": 0.95},
-      "timestamp": "2024-01-15T10:30:00Z"
+      "output": {"verified": true, "confidence_score": 0.95},
+      "start_offset_ms": 30000
     },
     {
-      "tool_name": "initiate_wire_transfer",
+      "name": "initiate_wire_transfer",
       "parameters": {"from_account": "12345", "to_account": "67890", "amount": 1000.00},
-      "result": {"transaction_id": "wire_xyz789", "status": "pending_approval"},
-      "timestamp": "2024-01-15T10:31:00Z"
+      "output": {"transaction_id": "wire_xyz789", "status": "pending_approval"},
+      "start_offset_ms": 90000
     }
   ],
   "metadata": {
@@ -205,16 +214,16 @@ Track customer service interactions with order processing systems:
 {
   "tool_calls": [
     {
-      "tool_name": "lookup_order",
+      "name": "lookup_order",
       "parameters": {"order_id": "ORD-2024-001"},
-      "result": {"order_status": "shipped", "tracking_number": "1Z999AA1234567890"},
-      "timestamp": "2024-01-15T14:20:00Z"
+      "output": {"order_status": "shipped", "tracking_number": "1Z999AA1234567890"},
+      "start_offset_ms": 45000
     },
     {
-      "tool_name": "initiate_return",
+      "name": "initiate_return",
       "parameters": {"order_id": "ORD-2024-001", "reason": "size_issue"},
-      "result": {"return_id": "RET-2024-456", "prepaid_label": true},
-      "timestamp": "2024-01-15T14:21:00Z"
+      "output": {"return_id": "RET-2024-456", "prepaid_label": true},
+      "start_offset_ms": 105000
     }
   ],
   "metadata": {
