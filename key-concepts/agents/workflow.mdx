@@ -1,0 +1,56 @@
+---
+title: Workflow
+description: Sync multi-agent workflows from external platforms into Bluejay
+icon: diagram-project
+---
+
+Many teams build voice agents as **multi-agent workflows** on platforms like ElevenLabs: a root agent that hands off to specialised sub-agents via `agent_transfer` tools. Bluejay stores that workflow on the agent record so you can visualise it, test it, and keep it in sync with the source platform.
+
+## What You'll Learn
+
+- What an agent workflow is and how Bluejay stores it
+- How to sync workflows from ElevenLabs (and push edits back)
+- How workflows power the "Generate From Workflow" simulation type
+
+## How It Works
+
+Each Bluejay agent has two related fields:
+
+- **`provider`** — the source platform (`CUSTOM`, `ELEVENLABS`). This tells Bluejay how to parse the workflow JSON.
+- **`workflow`** — the provider's raw agent definition, stored as JSON. For ElevenLabs this is the full `Get Agent` response, plus any sub-agents resolved recursively.
+
+The Workflow tab in Agent Settings appears only for providers that support workflow integration. Today that's ElevenLabs; more providers will follow.
+
+## Supported Providers
+
+<CardGroup cols={2}>
+  <Card title="ElevenLabs" icon="audio-waveform">
+    Full Convai agent definitions including sub-agent transfers and tools.
+  </Card>
+  <Card title="Custom (default)" icon="code">
+    A single system-prompt agent without a workflow. The Workflow tab is hidden.
+  </Card>
+</CardGroup>
+
+## Syncing With ElevenLabs
+
+1. **Add agent** — In *Add Agent*, choose **ElevenLabs**, enter your `xi-api-key` if it isn't already configured, then pick an agent from the list under the Agent ID field. The agent's workflow is pulled into Bluejay on save.
+2. **Re-sync** — From *Agent Settings → Workflow*, click **Sync** to replace the local workflow with the latest from ElevenLabs.
+3. **Push** — Click **Push to ElevenLabs** to send the stored workflow back via the Update Agent endpoint. Useful when you're managing the canonical version in Bluejay.
+
+Sync replaces the local workflow blob. Push replaces the ElevenLabs copy. There is no field-level merge.
+
+## Driving Simulations
+
+The **Generate From Workflow** simulation type enumerates every distinct path through the synced workflow (root agent → sub-agent chain → leaf). You set how many digital humans to generate per path; Bluejay generates intents and success criteria that target each path. Each generated digital human is a single conversation that drives the agent along its assigned route.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="ElevenLabs integration" icon="audio-waveform" href="/integrations/eleven-labs">
+    Set up the ElevenLabs API key and webhook.
+  </Card>
+  <Card title="Scenario Builder" icon="diagram-project" href="/key-concepts/scenario-builder/overview">
+    Author conversation scenarios path-by-path for fine-grained simulation control.
+  </Card>
+</CardGroup>
