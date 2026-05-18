@@ -58,3 +58,37 @@ This guide will walk you through how to connect your Eleven Labs agents to Bluej
 <video controls className="w-full aspect-video rounded-xl" src="/videos/add-eleven-labs-id.mov"></video>
 
 
+## Workflow Integration
+
+ElevenLabs is a first-class provider for Bluejay's [**Workflow**](/key-concepts/agents/workflow) feature. When you register an agent as ElevenLabs, Bluejay can pull its full Convai workflow definition, render it as an editable graph in the **Workflow** tab of Agent Settings, push edits back, and use it to generate digital humans that test every path through the flow.
+
+### Adding an ElevenLabs Agent
+
+In **Add Agent → ElevenLabs**, paste your `xi-api-key` (stored in dev `integrations.eleven_labs_api_key`) and click **Save & Load Agents**. Pick an agent from the picker — the Agent ID field doubles as a filter. On save Bluejay calls `GET /v1/convai/agents/{id}` and stores the response on `agents.workflow`. Sub-agents referenced by `agent_transfer` tools are resolved recursively in the same step so the whole graph is local before the first render.
+
+### What Gets Synced
+
+ElevenLabs exposes the workflow under one of three shapes in the `Get Agent` response — Bluejay probes them in this order and uses whichever it finds:
+
+1. **Inline workflow editor format**: `workflow.nodes` + `workflow.edges` (the new Convai workflow editor)
+2. `conversation_config.workflow.nodes` + `conversation_config.workflow.edges` (older inline format)
+3. Sub-agent transfer graph: root agent with `agent_transfer` tools pointing to other agents, traversed via the `subagents` dict on the stored workflow blob
+
+Edges carry their human-readable trigger under `forward_condition.condition`; Bluejay pulls that text and uses it to label the edge in the graph + feed it into the prompt when generating digital humans.
+
+### Sync, Push, Merge
+
+The **Workflow** tab surfaces three actions and a branch dropdown:
+
+- **Sync** — pulls the latest workflow off ElevenLabs for the current branch and replaces the local copy. Also mirrors the agent-level system prompt into Bluejay's Prompt tab as the `latest` label, idempotently.
+- **Push** — sends the local workflow back via `PATCH /v1/convai/agents/{id}`. Bluejay filters the payload to ElevenLabs's accepted top-level allowlist (`name`, `conversation_config`, `platform_settings`, `tags`, `workflow`) and strips the expanded `tools` field when `tool_ids` is present to avoid the "both `tools` and `tool_ids` provided" 400.
+- **Branch dropdown** — lists all branches via the ElevenLabs branch API. Switching auto-syncs that branch into Bluejay. **Merge to Main** calls the branch-merge endpoint.
+
+### Editing Nodes Inline
+
+The side panel mirrors ElevenLabs's per-node configuration: **General** (Voice, LLM, Eagerness, Spelling patience, Speculative turn, Auto-advance, each with "Using default" indicators), **Tools** (six built-in toggles plus `additional_tool_ids` add/remove), and **Edges** (outgoing transitions with editable condition writing back to `forward_condition.condition`). Drawing a new edge creates an empty `Add condition` pill on it; click the pill to open the edge editor.
+
+### Generate From Workflow
+
+Once the workflow is synced, the [**Generate From Workflow**](/key-concepts/agents/workflow#driving-simulations) simulation type enumerates every distinct path through the graph — for the inline format that's every Start-to-leaf walk; for the sub-agent graph it's every `agent_transfer` chain — and produces digital humans whose intents naturally drive the agent down each path. The path strand stays attached to each digital human card so you can see which route a given DH is testing.
+

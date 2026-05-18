@@ -1,56 +1,60 @@
 ---
 title: Workflow
-description: Sync multi-agent workflows from external platforms into Bluejay
+description: Sync your agent's multi-agent workflow into Bluejay and use it to drive simulations
 icon: diagram-project
 ---
 
-Many teams build voice agents as **multi-agent workflows** on platforms like ElevenLabs: a root agent that hands off to specialised sub-agents via `agent_transfer` tools. Bluejay stores that workflow on the agent record so you can visualise it, test it, and keep it in sync with the source platform.
+Many teams build voice agents as **multi-agent workflows**: a root agent that hands off to specialised sub-agents as the conversation progresses (e.g. *Greeting* → *Gather Details* → *Resolve*). Bluejay can pull that workflow off your provider, store it on the agent record, render it as an editable graph, and use it to generate digital humans that test every path through the flow.
 
 ## What You'll Learn
 
 - What an agent workflow is and how Bluejay stores it
-- How to sync workflows from ElevenLabs (and push edits back)
-- How workflows power the "Generate From Workflow" simulation type
+- What the Workflow tab in Agent Settings lets you do
+- How workflows power the **Generate From Workflow** simulation type
 
 ## How It Works
 
-Each Bluejay agent has two related fields:
+Each Bluejay agent has two related fields that drive the Workflow feature:
 
-- **`provider`** — the source platform (`CUSTOM`, `ELEVENLABS`). This tells Bluejay how to parse the workflow JSON.
-- **`workflow`** — the provider's raw agent definition, stored as JSON. For ElevenLabs this is the full `Get Agent` response, plus any sub-agents resolved recursively.
+- **`provider`** — the source platform the agent's workflow comes from (e.g. `ELEVENLABS`). Tells Bluejay how to parse the workflow JSON and which integration to use for sync / push.
+- **`workflow`** — the provider's raw graph stored as JSON. Bluejay treats this as the source of truth for the agent's flow.
 
-The Workflow tab in Agent Settings appears only for providers that support workflow integration. Today that's ElevenLabs; more providers will follow.
+The **Workflow** tab in Agent Settings only appears for agents whose `provider` supports workflow integration. For unsupported providers (including the default `CUSTOM` single-prompt agent) the tab is hidden.
+
+## What The Workflow Tab Gives You
+
+- **Visualise** — render the synced workflow as a node-and-edge graph in the same look-and-feel as the Scenario Builder canvas.
+- **Edit** — open any node to change its name, system prompt, voice, LLM, eagerness, spelling patience, speculative-turn, auto-advance, and tool toggles. Click an edge to set its transition condition inline.
+- **Sync from provider** — pull the latest workflow off the provider, overwriting the local copy.
+- **Push to provider** — send local edits back through the provider's update endpoint so the canonical version stays in lockstep.
+- **Branches** — if your provider supports versioned branches of a workflow, switch between them and merge edits up to main.
+
+Sync replaces the local workflow blob wholesale. Push replaces the provider copy wholesale. There is no field-level merge — pick one source of truth at a time.
+
+## Driving Simulations
+
+The **Generate From Workflow** simulation type enumerates every distinct path through the synced workflow (Start → step → step → …) and generates digital humans whose intents naturally drive the agent down each path. Each path becomes its own digital human card with the path strand visible underneath the success criteria in the Persona tab.
+
+You pick how many digital humans to generate per path. Three discovered paths × four digital humans = twelve scenarios, each tailored to drive its assigned path — generated in parallel, one LLM call per path.
 
 ## Supported Providers
 
 <CardGroup cols={2}>
-  <Card title="ElevenLabs" icon="audio-waveform">
-    Full Convai agent definitions including sub-agent transfers and tools.
+  <Card title="ElevenLabs" icon="audio-waveform" href="/integrations/eleven-labs#workflow-integration">
+    Full Convai agent definitions including sub-agent transfers, inline workflow nodes, and branches. See the integration page for provider-specific details on sync, push, and the inline editor.
   </Card>
-  <Card title="Custom (default)" icon="code">
-    A single system-prompt agent without a workflow. The Workflow tab is hidden.
+  <Card title="More coming soon" icon="rocket">
+    Workflow integration is built provider-by-provider. If your provider isn't listed yet, ping the Bluejay team — adding a provider is mostly a parser for the provider's workflow shape.
   </Card>
 </CardGroup>
-
-## Syncing With ElevenLabs
-
-1. **Add agent** — In *Add Agent*, choose **ElevenLabs**, enter your `xi-api-key` if it isn't already configured, then pick an agent from the list under the Agent ID field. The agent's workflow is pulled into Bluejay on save.
-2. **Re-sync** — From *Agent Settings → Workflow*, click **Sync** to replace the local workflow with the latest from ElevenLabs.
-3. **Push** — Click **Push to ElevenLabs** to send the stored workflow back via the Update Agent endpoint. Useful when you're managing the canonical version in Bluejay.
-
-Sync replaces the local workflow blob. Push replaces the ElevenLabs copy. There is no field-level merge.
-
-## Driving Simulations
-
-The **Generate From Workflow** simulation type enumerates every distinct path through the synced workflow (root agent → sub-agent chain → leaf). You set how many digital humans to generate per path; Bluejay generates intents and success criteria that target each path. Each generated digital human is a single conversation that drives the agent along its assigned route.
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="ElevenLabs integration" icon="audio-waveform" href="/integrations/eleven-labs">
-    Set up the ElevenLabs API key and webhook.
-  </Card>
   <Card title="Scenario Builder" icon="diagram-project" href="/key-concepts/scenario-builder/overview">
-    Author conversation scenarios path-by-path for fine-grained simulation control.
+    Author your own conversation flows path-by-path when you don't have a provider workflow to sync.
+  </Card>
+  <Card title="Agents Deep Dive" icon="book" href="/core-concepts/agents">
+    Field-level reference for how Agents are stored and configured.
   </Card>
 </CardGroup>
