@@ -1,0 +1,72 @@
+---
+title: 'ElevenLabs Simulations'
+description: 'Pull ElevenLabs multi-agent workflows into Bluejay, edit them, and use them to drive simulations'
+icon: '/logo/elevenlabs.svg'
+---
+
+ElevenLabs is a first-class provider for Bluejay's [**Workflow**](/key-concepts/agents/workflow) feature. Once you register an agent as ElevenLabs, Bluejay can pull its full multi-agent Convai workflow, render it as an editable graph in the **Workflow** tab of Agent Settings, push your edits back to ElevenLabs, and use the workflow to generate digital humans that test every path through the flow.
+
+This page covers the ElevenLabs-specific bits. For the generic concept of an agent workflow, see [Key Concepts → Workflow](/key-concepts/agents/workflow).
+
+<Note>
+  For the Observability integration (webhooks for production calls), see [ElevenLabs Observability](/integrations/eleven-labs).
+</Note>
+
+## Adding an ElevenLabs Agent
+
+In **Add Agent → ElevenLabs**, paste your `xi-api-key` (stored in dev under `integrations.eleven_labs_api_key`) and click **Save & Load Agents**. Pick an agent from the picker — the Agent ID field doubles as a filter. On save Bluejay calls `GET /v1/convai/agents/{id}` and stores the response on `agents.workflow`. Sub-agents referenced by `agent_transfer` tools are resolved recursively in the same step so the whole graph is local before the first render.
+
+## What Gets Synced
+
+ElevenLabs exposes the workflow under one of three shapes in the `Get Agent` response — Bluejay probes them in this order and uses whichever it finds:
+
+1. **Inline workflow editor format**: `workflow.nodes` + `workflow.edges` (the new Convai workflow editor)
+2. Older inline format: `conversation_config.workflow.nodes` + `conversation_config.workflow.edges`
+3. **Sub-agent transfer graph**: root agent with `agent_transfer` tools pointing to other agents, traversed via the `subagents` dict on the stored workflow blob
+
+Edges carry their human-readable trigger under `forward_condition.condition`. Bluejay pulls that text and uses it to label the edge in the graph and feed it into the prompt when generating digital humans, so every generated intent naturally drives the agent down the path it's testing.
+
+## The Workflow Tab
+
+Open **Agent Settings → Workflow** to see the synced graph. The tab is gated on the agent's `provider` being `ELEVENLABS`. The canvas mirrors the Scenario Builder look-and-feel — same node cards, same handles, same selection ring — so the graph reads consistently regardless of which feature you're in.
+
+### Sync, Push, Merge
+
+Three actions plus a branch dropdown live in the top-right of the canvas:
+
+- **Sync** — pulls the latest workflow off ElevenLabs for the current branch and replaces the local copy. Also mirrors the agent-level system prompt into Bluejay's Prompt tab as the `latest` label, idempotently.
+- **Push to ElevenLabs** — sends the local workflow back via `PATCH /v1/convai/agents/{id}`. Bluejay filters the payload to ElevenLabs's accepted top-level allowlist (`name`, `conversation_config`, `platform_settings`, `tags`, `workflow`) and strips the expanded `tools` field when `tool_ids` is present to avoid the "both `tools` and `tool_ids` provided" 400.
+- **Branch dropdown** — lists every branch on the agent via the ElevenLabs branch API. Switching auto-syncs that branch into Bluejay. **Merge to Main** calls the branch-merge endpoint.
+
+Sync replaces the local workflow blob wholesale. Push replaces the ElevenLabs copy wholesale. There is no field-level merge — pick one source of truth at a time.
+
+### Editing Nodes Inline
+
+Click any node to open the side panel. It mirrors ElevenLabs's per-node configuration:
+
+- **General** — Voice, LLM, Eagerness, Spelling patience, Speculative turn, Auto-advance. Each field shows a "Using default" indicator when it inherits from the agent-level config.
+- **Tools** — six built-in toggles (`end_call`, `language_detection`, etc.) plus `additional_tool_ids` add/remove.
+- **Edges** — outgoing transitions with editable condition that writes back to `forward_condition.condition` on the edge.
+
+Drawing a new edge between two nodes creates an empty **Add condition** pill on the connection — click the pill to open the edge editor and type the trigger. Inline node actions (duplicate, delete) appear on the selected node card. Cmd+Z / Cmd+Shift+Z give you undo/redo over canvas edits.
+
+## Generate From Workflow
+
+Once the workflow is synced, the **Generate From Workflow** simulation type becomes available in the Create Simulation dialog for this agent.
+
+Bluejay enumerates every distinct path through the graph — for the inline format that's every Start-to-leaf walk; for the sub-agent graph it's every `agent_transfer` chain — and shows them on a preview screen as numbered step pills. You pick how many digital humans to generate per path; three discovered paths × four digital humans = twelve test scenarios.
+
+Each scenario is generated by a single LLM call per path running in parallel, producing N diverse customer intents that all naturally satisfy the path's transition conditions (so the customer's request actually drives the agent down that path rather than diverging). The generated digital humans land in the dialog with the path strand visible underneath the success criteria in the Persona tab.
+
+After saving, the path strand persists on every digital human card via `test_cases.tested_path`, so when you reopen the simulation's Digital Humans tab you can still see which route each DH is testing.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Workflow (concept)" icon="diagram-project" href="/key-concepts/agents/workflow">
+    The provider-agnostic concept page for Bluejay's Workflow feature.
+  </Card>
+  <Card title="ElevenLabs Observability" icon="/logo/elevenlabs.svg" href="/integrations/eleven-labs">
+    Wire up webhooks so production ElevenLabs calls flow into Bluejay's Monitor.
+  </Card>
+</CardGroup>
