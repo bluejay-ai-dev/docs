@@ -1,51 +1,8 @@
 ---
 title: "Kore.ai"
 description: "Test Kore.ai chatbots end-to-end with Bluejay's digital humans"
-icon: robot
+icon: '/logo/kore.svg'
 ---
-
-## How It Works
-
-Bluejay provisions a per-agent **Webhook URL** and **Access Token** that you paste into your Kore.ai bot's Webhook channel. Bluejay handles the bidirectional translation between its HTTP webhook contract (HMAC-signed) and Kore.ai's Webhook V2 API (HS256 JWT) — no customer-hosted shim required.
-
-<Tabs>
-<Tab title="Simple">
-
-```mermaid
-sequenceDiagram
-    participant Kore.ai Bot
-    participant Bluejay
-    participant Digital Human
-
-    Digital Human->>Bluejay: Send user message
-    Bluejay->>Kore.ai Bot: POST /chatbot/v2/webhook/{botId}<br/>(HS256 JWT)
-    Kore.ai Bot-->>Bluejay: Async reply to Webhook URL<br/>(Bearer access token)
-    Bluejay->>Digital Human: Forward bot reply
-```
-
-</Tab>
-
-<Tab title="Technical">
-
-```mermaid
-sequenceDiagram
-    participant DH as Bluejay Digital Human
-    participant BJ as Bluejay
-    participant K as Kore.ai Webhook Channel
-
-    DH->>BJ: Generate user utterance
-    BJ->>BJ: Mint HS256 JWT (client_id + client_secret)
-    BJ->>K: POST {kore_host}/chatbot/v2/webhook/{bot_id}<br/>Authorization: bearer <JWT><br/>body: {message:{type:"text",val:"..."}, from:{id:"<sim_id>"}}
-    K-->>BJ: 200 OK (sync) + async reply later
-    K->>BJ: POST {bluejay}/v1/kore-webhook/{agent_id}<br/>Authorization: bearer <access_token><br/>body: {to:"<sim_id>", data:[{type:"text",val:"..."}], ...}
-    BJ->>BJ: Verify access token (constant-time)
-    BJ->>BJ: Parse data[] (text + template payloads)
-    BJ->>DH: Forward bot reply, continue conversation
-    BJ->>BJ: Evaluate conversation
-```
-
-</Tab>
-</Tabs>
 
 ## Prerequisites
 
@@ -81,23 +38,6 @@ In the Kore.ai Bot Builder, go to **Channels & Flows → Webhook → Configurati
 
 <Step title="Create the agent in Bluejay">
 
-<Tabs>
-<Tab title="Website">
-Go to **Agents → New Agent**. Choose **Mode = Text** and **Text Connection Type = Kore.ai**. Fill in:
-
-- **Kore Host** — paste the Host URL from step 1
-- **Bot ID** — paste the Bot ID from step 1
-- **Client ID** — paste the Client ID from step 1
-- **Client Secret** — paste the Client Secret from step 1
-
-Click **Create**. Bluejay will generate the Webhook URL and Access Token in the dialog. Copy both — the Access Token is shown **once**.
-
-<Frame>
-  <img src="/images/kore-1.png" alt="Create Kore.ai Agent" />
-</Frame>
-</Tab>
-
-<Tab title="API">
 Use the [Add Agent endpoint](/api-reference/endpoint/add-agent) and pass `connection_type: "KORE"` with all four Kore fields:
 
 ```bash
@@ -120,8 +60,6 @@ curl -X POST https://api.getbluejay.ai/v1/add-agent \
 ```
 
 Then call `/v1/generate-kore-inbound-token` with the returned `agent_id` to receive the plaintext access token (shown once).
-</Tab>
-</Tabs>
 
 </Step>
 
@@ -147,11 +85,7 @@ Back in the Kore.ai Bot Builder → **Channels & Flows → Webhook → Configura
 
 <Tabs>
 <Tab title="Website">
-Create digital humans, then queue a chat simulation against the Kore.ai agent. Bluejay's first user message is POSTed to Kore.ai; Kore.ai's async reply lands on Bluejay's Webhook URL and continues the turn loop.
-
-<Frame>
-  <img src="/images/kore-2.png" alt="Run Kore.ai Simulation" />
-</Frame>
+In Bluejay, open **Agents & Simulations** and select the agent you connected above. Create a simulation, add digital humans with scenarios and success criteria, then click **Create and start** to queue a run.
 </Tab>
 
 <Tab title="API">
@@ -169,16 +103,6 @@ curl -X POST https://api.getbluejay.ai/v1/queue-http-text-simulation-run \
 </Step>
 </Steps>
 
-## How Bluejay parses Kore.ai replies
-
-Kore.ai's V2 webhook replies put text in the `data[]` array, not in a top-level `text` field. Bluejay automatically extracts user-facing content from:
-
-- `data[].type == "text"` → uses `data[].val` directly
-- `data[].type == "template"` → uses `payload.text` plus button `title` values (rendered as `Options: A | B | C`)
-- Pure event/echo packets (where `to` is a bot ID, or `data[]` is empty) → skipped, no transcript impact
-
-Kore's `endOfTask` and `endReason` fields are logged but do **not** terminate the Bluejay conversation — only the digital human's turn-limit / goal-achievement logic ends the run. This is intentional: a "task ended" in Kore (e.g. `Failed_TaskFailureEvent_Triggered` for a KB miss) just means the current intent finished; the user can ask a follow-up.
-
 ## Rotating credentials
 
 - **Access Token** — click **Regenerate access token** in Bluejay's Connection Settings. The old token is invalidated immediately; re-paste the new one into Kore.ai.
@@ -194,9 +118,3 @@ Kore's `endOfTask` and `endReason` fields are logged but do **not** terminate th
 | URL contains `/chatbot/v2/webhook/...` doubled | `kore_host` was set to the full Post URL instead of just the host | Edit Kore Host to just `https://<platform>` |
 | Inbound `POST /v1/kore-webhook/{id}` returns 401 | Access Token in Kore doesn't match Bluejay's encrypted token | Click **Regenerate access token** in Bluejay and re-paste in Kore |
 | Bot replies appear in Kore but never reach Bluejay | Webhook channel set to **Synchronous** instead of **Asynchronous** | Switch to Asynchronous and re-publish |
-
-## Out of scope
-
-- **Voice mode** — Kore.ai supports voice channels, but the Bluejay Kore integration is text-only.
-- **Tool-call traces** — Kore's V2 webhook channel does not expose internal integration calls (KB lookup, IDP query, agent transfer). The final bot reply is the only signal Bluejay receives; tool-adherence evaluations against Kore agents are thinner than against agents that emit `tool_call` payloads directly.
-- **Multi-turn template forms** — Kore can prompt with structured forms; Bluejay flattens the visible text into the transcript and skips the form fields.
