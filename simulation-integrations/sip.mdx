@@ -70,9 +70,85 @@ def handle_sip_invite(invite_message):
 
 Using this header, you can now enrich your simulation evaluations by calling the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint.
 
-For more information, see the [Tool Calls & Metadata](/test/simulations/tool-calls#3-send-data-to-bluejay) documentation.
+For more information, see the [Tool Calls & Metadata](/test/simulations/tool-calls#3-send-data-to-bluejay) documentation. You can also link [OpenTelemetry traces](/core-concepts/traces/overview#linking-traces-to-simulation-results) to simulation results using the same endpoint.
 
 ## Integrations Guides
+
+<Accordion title="Connecting With LiveKit via SIP">
+
+<Note>
+  For most LiveKit users, the [direct LiveKit integration](/simulation-integrations/livekit) is the recommended approach — Bluejay manages room creation and joins the room directly alongside your agent. SIP connectivity for LiveKit is a more custom option for teams that need SIP-level control or are running LiveKit with an existing SIP infrastructure.
+</Note>
+
+To connect Bluejay to a LiveKit agent via SIP, you need to configure your LiveKit SIP inbound trunk to forward custom headers so your agent can receive the `X-Simulation-Result-Id`.
+
+### 1. Configure Header Forwarding on Your SIP Trunk
+
+LiveKit drops custom SIP headers by default. You must add `headers_to_attributes` to your SIP inbound trunk configuration:
+
+```bash
+# Find your trunk ID
+lk sip inbound list
+
+# Add header forwarding (re-include your allowed_addresses or numbers)
+echo '{
+  "headers_to_attributes": {
+    "X-Simulation-Result-Id": "X-Simulation-Result-Id"
+  },
+  "allowed_addresses": ["0.0.0.0/0"]
+}' | lk sip inbound update --id <TRUNK_ID> -
+```
+
+After this, `X-Simulation-Result-Id` will appear in `participant.attributes` alongside the standard `sip.*` keys.
+
+### 2. Extract the Simulation Result ID
+
+Once header forwarding is configured, `X-Simulation-Result-Id` appears directly in the SIP participant's attributes:
+
+```python
+def get_simulation_result_id(ctx):
+    for p in ctx.room.remote_participants.values():
+        sim_id = p.attributes.get("X-Simulation-Result-Id")
+        if sim_id:
+            return sim_id
+    return None
+```
+
+### 3. Send Data to Bluejay
+
+After the call ends, use the extracted `simulation_result_id` to call the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint with tool calls, metadata, and trace IDs.
+
+```python
+import requests
+
+url = "https://api.getbluejay.ai/v1/update-simulation-result"
+headers = {
+    "X-API-Key": "<your-api-key>"
+}
+
+def update_simulation_result(simulation_result_id, tool_calls, metadata, trace_ids=None):
+    data = {
+        "simulation_result_id": simulation_result_id,
+        "tool_calls": tool_calls,
+        "metadata": metadata,
+    }
+    if trace_ids:
+        data["trace_ids"] = trace_ids
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+```
+
+### 4. Configure Agent Connection
+
+In the Bluejay dashboard, set your agent connection type to **SIP** with your LiveKit SIP URI:
+
+```
+sip:<subdomain>.sip.livekit.cloud
+```
+
+The subdomain is your LiveKit Cloud project's SIP hostname.
+
+</Accordion>
 
 <Accordion title="Connecting With VAPI">
 1. Start by create a SIP URI in VAPI, go to phone numbers and click on the create a new phone number. Click on the Free VAPI SIP option and specify the SIP identifier you want to use in your URI.
