@@ -56,8 +56,79 @@ The only required field is `name`. Everything else is optional:
 | `name` | string | **Required.** The tool that was invoked |
 | `parameters` | object | Input parameters passed to the tool |
 | `output` | any | Return value of the tool |
-| `invocation_id` | string | Unique ID to prevent duplicate ingestion on retries |
 | `start_offset_ms` | integer | Milliseconds from call start (Bluejay calculates if omitted) |
-| `client_ts` | string | ISO 8601 timestamp, used to calculate offset if `start_offset_ms` is not set |
 
 Bluejay buffers packets during the call and persists them automatically when the simulation ends.
+
+## Sending Traces to Bluejay
+
+Export OpenTelemetry traces from your LiveKit agent to Bluejay so traces are used and displayed for simulation evaluations.
+
+```python
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from livekit.agents.telemetry import set_tracer_provider
+import opentelemetry.trace as otel_trace
+
+resource = Resource.create({SERVICE_NAME: "my-agent"})
+tracer_provider = trace_sdk.TracerProvider(resource=resource)
+tracer_provider.add_span_processor(
+    SimpleSpanProcessor(
+        OTLPSpanExporter(
+            "https://otlp.getbluejay.ai/v1/traces",
+            headers={"X-API-KEY": BLUEJAY_API_KEY},
+        )
+    )
+)
+
+# Set both LiveKit internal + global OpenTelemetry
+set_tracer_provider(tracer_provider)
+otel_trace.set_tracer_provider(tracer_provider)
+```
+
+After `session.start()`, LiveKit's agent session span is active in the OpenTelemetry context. Capture the trace ID from it:
+
+```python
+import opentelemetry.trace as otel_trace
+
+await session.start(agent=MyAgent(), room=ctx.room)
+
+current_span = otel_trace.get_current_span()
+span_ctx = current_span.get_span_context()
+if span_ctx.is_valid:
+    trace_ids = [format(span_ctx.trace_id, "032x")]
+```
+
+## Linking Information to Simulation Results
+
+POST trace IDs and tool calls at shutdown via `ctx.add_shutdown_callback()`:
+
+```python
+async def on_shutdown():
+    span.end()
+    tracer_provider.force_flush()
+
+    if simulation_result_id and (trace_ids or tool_calls):
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                "https://api.getbluejay.ai/v1/update-simulation-result",
+                json={
+                    "simulation_result_id": simulation_result_id,
+                    "trace_ids": trace_ids,
+                    "tool_calls": tool_calls
+                },
+                headers={"X-API-Key": BLUEJAY_API_KEY},
+            )
+
+    tracer_provider.shutdown()
+
+ctx.add_shutdown_callback(on_shutdown)
+```
+
+<Tip>
+  Ordering matters: `span.end()` → `force_flush()` → POST → `tracer_provider.shutdown()`. If you POST before ending the span, the trace may not be in Bluejay yet.
+</Tip>
+
+For the full traces concept, see the [Traces](/core-concepts/traces/overview) documentation.
