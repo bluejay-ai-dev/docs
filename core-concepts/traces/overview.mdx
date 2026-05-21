@@ -4,6 +4,15 @@ description: "Send OpenTelemetry traces to Bluejay for production observability 
 icon: route
 ---
 
+<iframe
+  src="https://www.youtube.com/embed/wNhFpwT3dTQ"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
 ## What are Traces?
 
 As part of your voice-agent stack, traces are used to monitor and observe the behavior of your application in real-time. They provide insights into the execution flow, latency, and performance of your system.
@@ -17,20 +26,11 @@ Bluejay accepts traces for two purposes:
 
 Bluejay supports any traces that conform to the [OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) standard, this includes OpenInference, Langfuse, OpenLLMetry, and more.
 
-<iframe
-  src="https://www.youtube.com/embed/wNhFpwT3dTQ"
-  width="100%"
-  height="450"
-  frameBorder="0"
-  allowFullScreen
-  style={{ borderRadius: '0.5rem' }}
-></iframe>
+### Using the OpenTelemetry SDK
 
-### Using OpenInference
+Configure the OpenTelemetry SDK to export traces to Bluejay:
 
-Send traces to Bluejay using OpenInference by configuring your OpenTelemetry SDK with the appropriate exporter. Below is an example of how to set up the OpenTelemetry SDK to send traces to Bluejay:
-
-```python highlight={14-15}
+```python
 from opentelemetry.sdk import trace as trace_sdk
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
@@ -44,7 +44,6 @@ headers = {
     "X-API-KEY": "[BLUEJAY PROVISIONED API KEY]"
 }
 
-# utilize this tracer_provider with any OpenTelemetry/OpenInference instrumentation
 tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint, headers=headers)))
 ```
 
