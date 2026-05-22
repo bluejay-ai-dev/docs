@@ -1,0 +1,78 @@
+---
+title: 'Get All Digital Humans'
+description: ''
+openapi: 'GET /v1/digital-humans'
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Get All Digital Humans — GET /v1/digital-humans
+
+> **What this endpoint does:** Get a paginated list of all digital humans in your organization.
+
+**Endpoint:** GET `https://api.getbluejay.ai/v1/digital-humans`
+**Auth:** `X-API-Key` header
+
+### Query Parameters
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| page | integer | 1 | Page number (1-based) |
+| page_size | integer | 20 | Max digital humans per page (1–100) |
+| X-API-Key | string | — | API key required to authenticate requests. |
+
+### Response Fields
+| Field | Type | Description |
+|-------|------|-------------|
+| digital_humans | array | List of digital human objects for this page |
+| total_count | integer | Total number of digital humans in the organization |
+| page | integer | Current page number |
+| page_size | integer | Number of results per page |
+| total_pages | integer | Total number of pages |
+
+### Example
+**Paginated fetch:**
+```python
+import requests
+
+def get_all_digital_humans(api_key: str, page: int = 1, page_size: int = 20) -> dict:
+    url = "https://api.getbluejay.ai/v1/digital-humans"
+    headers = {"X-API-Key": api_key}
+    params = {"page": page, "page_size": page_size}
+    response = requests.get(url, headers=headers, params=params)
+    response.raise_for_status()
+    return response.json()
+
+# Fetch all pages
+def get_all_digital_humans_paged(api_key: str) -> list:
+    all_dhs = []
+    page = 1
+    while True:
+        result = get_all_digital_humans(api_key, page=page, page_size=100)
+        all_dhs.extend(result["digital_humans"])
+        if page >= result["total_pages"]:
+            break
+        page += 1
+    return all_dhs
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 400: Page out of range; 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+This endpoint returns a paginated list of all digital humans in your organization, ordered by creation date (newest first). Use the `page` and `page_size` query parameters to navigate results.
