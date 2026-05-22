@@ -1,0 +1,30 @@
+---
+title: "Traces"
+description: "Link OpenTelemetry traces to production conversation evaluations"
+icon: route
+---
+
+Link OTLP traces to production conversation evaluations so the trace flamegraph appears alongside call evaluations in the Bluejay dashboard.
+
+```mermaid
+flowchart LR
+    App[Your Agent] -->|OTLP Spans| Collector[Bluejay Collector]
+    App --> End[Call Ends]
+    End --> Eval["POST /v1/evaluate<br/>with trace_id"]
+    Eval --> Dash[Dashboard: Evaluation + Trace]
+```
+
+## How It Works
+
+1. **Instrument your agent** to export OTLP traces to Bluejay — see [Sending Traces to Bluejay](/core-concepts/traces/overview).
+2. **Include the `trace_id`** in your request to the [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint.
+3. **Visualize** traces alongside call evaluations in the Bluejay dashboard.
+
+<CardGroup cols={2}>
+  <Card title="Evaluate Endpoint" icon="code" href="/api-reference/endpoint/evaluate">
+    Full reference for the evaluate endpoint.
+  </Card>
+  <Card title="Sending Traces to Bluejay" icon="route" href="/core-concepts/traces/overview">
+    OTLP setup and instrumentation.
+  </Card>
+</CardGroup>

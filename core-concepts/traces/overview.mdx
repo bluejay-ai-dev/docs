@@ -1,0 +1,81 @@
+---
+title: "Overview"
+description: "Send OpenTelemetry traces to Bluejay for production observability and simulation analysis"
+icon: route
+---
+
+<iframe
+  src="https://www.youtube.com/embed/wNhFpwT3dTQ"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+## What are Traces?
+
+As part of your voice-agent stack, traces are used to monitor and observe the behavior of your application in real-time. They provide insights into the execution flow, latency, and performance of your system.
+
+Bluejay accepts traces for two purposes:
+
+- **Production observability** — link traces to call evaluations via the [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint
+- **Simulation analysis** — link traces to simulation results via the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint
+
+## Sending Traces to Bluejay
+
+Bluejay supports any traces that conform to the [OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) standard, this includes OpenInference, Langfuse, OpenLLMetry, and more.
+
+### Using the OpenTelemetry SDK
+
+Configure the OpenTelemetry SDK to export traces to Bluejay:
+
+```python
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+
+endpoint = "https://otlp.getbluejay.ai/v1/traces"
+resource = Resource.create({SERVICE_NAME: "<your_service_name>"})
+
+tracer_provider = trace_sdk.TracerProvider(resource=resource)
+headers = {
+    "X-API-KEY": "[BLUEJAY PROVISIONED API KEY]"
+}
+
+tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint, headers=headers)))
+```
+
+OpenAI Example:
+```python
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+
+OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+{/* ### Using Langfuse
+
+```python
+OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp.getbluejay.ai/v1/traces"
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <BASE64_ENCODED_TRACE_KEY>"
+
+# collect traces via langfuse as normal
+``` */}
+
+### Using LiveKit
+
+LiveKit requires additional setup — see the [LiveKit Traces guide](/simulation-integrations/livekit#linking-traces-to-simulation-results).
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Traces for Observability" icon="eye" href="/monitor/observability/traces">
+    Link traces to production conversation evaluations.
+  </Card>
+  <Card title="Traces for Simulations" icon="flask-vial" href="/test/simulations/traces">
+    Link traces to simulation results.
+  </Card>
+</CardGroup>
