@@ -1,0 +1,151 @@
+---
+title: 'Simulation Statuses'
+description: 'Understand every status a simulation result or simulation run can take, what each one means, and what to do about it'
+icon: signal-bars
+---
+
+Every test call in Bluejay reports a status. So does every simulation run that groups those calls together. This page is a complete reference for those statuses — what each one means, why a call might land in each one, and what action (if any) you should take.
+
+## Two layers of status
+
+Bluejay tracks status at two levels. Knowing the difference makes everything else easier to read.
+
+<CardGroup cols={2}>
+  <Card title="Simulation Result" icon="phone">
+    One row per **test call**. The status tells you where the call is in the pipeline and, if it ended in failure, exactly why.
+  </Card>
+  <Card title="Simulation Run" icon="layer-group">
+    One row per **group of calls** launched together. The status tells you whether the group is still progressing or has finished — the pass/fail/cancel mix is shown next to the badge.
+  </Card>
+</CardGroup>
+
+## Simulation Result statuses
+
+A simulation result is one test call. Its status moves through several **in‑progress** states, then lands on exactly one **terminal** state.
+
+### In progress
+
+These appear for a few seconds to a couple of minutes during a normal run. No action needed — they progress automatically.
+
+| Status | What it means |
+|---|---|
+| **Initializing** | The test has been created and is being prepared. |
+| **Queued** | Waiting for a worker to pick it up. |
+| **Ready** | For inbound digital humans (ones that receive calls). The digital human is online and waiting for your agent to call in. |
+| **Dispatched** | The worker is starting the call. The phone hasn't connected yet. |
+| **Running** | The call is connected and the conversation is happening. |
+| **Evaluation Pending** | We've queued your call for evaluation. Scoring will happen momentarily. |
+| **Evaluating** | The transcript is being scored against your success criteria. |
+
+### Completed
+
+| Status | What it means |
+|---|---|
+| **Completed** | The call ran end‑to‑end and was scored. Pass or fail against your success criteria is shown separately. |
+
+### Failure buckets
+
+When a call doesn't reach **Completed**, it lands in one of five failure buckets. Each one tells you *who* needs to do something about it.
+
+<AccordionGroup>
+  <Accordion title="No Connection — couldn't reach your agent" icon="plug-circle-xmark">
+    **What happened:** We couldn't reach your agent at all. Possible causes include bad credentials for your provider, a wrong agent ID, an unverified caller ID, an unreachable SIP destination, or your provider's concurrency limit was hit before the call could connect.
+
+    **Who needs to fix it:** Usually your config; sometimes your provider's plan limits.
+
+    **What to do:** Click the row in the simulation results table to see the specific error code and message.
+
+    - If it's about credentials or agent IDs, check your integration settings in **Settings → Integrations**.
+    - If it's about concurrency, either raise the limit on your provider account or stagger your runs so fewer calls go out at once.
+    - If it's about caller ID or SIP routing, confirm the number/destination is verified on your side.
+  </Accordion>
+
+  <Accordion title="No Answer — reached the line but nobody engaged" icon="phone-slash">
+    **What happened:** We reached your phone number or SIP endpoint, but nobody actually engaged. Either nobody picked up, the call was rejected, or the agent hung up before speaking.
+
+    **Who needs to fix it:** Customer side (your agent or your line).
+
+    **What to do:** Check that:
+
+    - Your agent is configured to accept calls from Bluejay's caller ID.
+    - Your agent is actually online.
+    - Your phone or SIP routing is healthy and routes Bluejay traffic correctly.
+  </Accordion>
+
+  <Accordion title="Call Dropped — call started, then died mid-conversation" icon="phone-arrow-down-left">
+    **What happened:** The call connected and a real conversation started, but the line dropped mid‑call. Most often a provider‑side issue on your agent.
+
+    **Who needs to fix it:** Customer side (your agent or your provider).
+
+    **What to do:** The transcript up to the drop point is still available and gets scored normally — you don't lose the data from before the drop. If you see a cluster of dropped calls in a single run:
+
+    - Check your voice provider's status page.
+    - Review any recent agent config changes that may have introduced instability.
+  </Accordion>
+
+  <Accordion title="Out of Funds — Bluejay balance exhausted" icon="wallet">
+    **What happened:** Your Bluejay balance was exhausted before the call could complete.
+
+    **Who needs to fix it:** Bluejay account admin.
+
+    **What to do:** Top up your balance in **Settings → Billing**, then re‑run the affected calls.
+  </Accordion>
+
+  <Accordion title="System Error — something inside Bluejay broke" icon="triangle-exclamation">
+    **What happened:** Something inside Bluejay broke. This includes things like the evaluation pipeline, recording upload, or an internal service failing during your call.
+
+    **Who needs to fix it:** Bluejay.
+
+    **What to do:** Reach out to the Bluejay team to learn more about why your call failed. We log every failure and often have a fix in hand before customers even reach out, so getting in touch is the fastest way to find out where things stand.
+  </Accordion>
+</AccordionGroup>
+
+### Cancelled
+
+| Status | What it means |
+|---|---|
+| **Cancelled** | You stopped the test before it started running. Only available while a test is still in the early stages (Initializing, Queued, Ready, or Dispatched). Once a call is actually running, you can't cancel it — it will either complete or drop. |
+
+## Simulation Run statuses
+
+A simulation run is the *group* of test calls you launched together. Its status is simpler than the per‑call status: a run is either still happening or it has finished.
+
+| Status | What it means |
+|---|---|
+| **Running** | At least one test in the run is still in flight (queued, dispatched, running, or being evaluated). |
+| **Completed** | Every test in the run has reached an end state — whether they passed, failed, or were cancelled. |
+
+The pass/fail/cancel breakdown is shown alongside the status. For example, a finished run might display:
+
+> **Completed** · 47 passed · 2 failed · 1 cancelled (out of 50)
+
+<Note>
+A simulation run is **Completed** as soon as there's nothing left to wait on — including runs where every test failed or every test was cancelled. The mix of outcomes is shown in the counters next to the status, not in the status itself. This keeps "is the run done?" a clean yes/no question.
+</Note>
+
+## Quick reference — what to do at a glance
+
+If you're scanning a run and want to know what to investigate first, this table is the shortcut.
+
+| If you see lots of… | Most likely cause | First thing to check |
+|---|---|---|
+| **No Connection** | Misconfigured integration or hitting a provider concurrency limit | Your provider's API key, agent ID, and current concurrency setting |
+| **No Answer** | Your agent isn't picking up | Your agent's phone routing, allowed‑caller‑ID list, online status |
+| **Call Dropped** | Your provider is unstable for a window | Your provider's status page; any recent agent config changes |
+| **Out of Funds** | Bluejay account balance ran out | Your Bluejay billing settings |
+| **System Error** | A Bluejay‑side problem | Reach out to the Bluejay team — we often have a fix in hand before customers ask |
+
+<Tip>
+For any specific failure, click the row in the simulation results table to see the exact error code, a detailed message, and — where relevant — a one‑click action to fix it.
+</Tip>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Simulation Runs" icon="play" href="/core-concepts/simulation-runs">
+    How a simulation run is structured and how to launch one.
+  </Card>
+  <Card title="Simulation Results" icon="chart-mixed" href="/core-concepts/simulation-results">
+    How to interpret the metrics and per‑call data a completed run produces.
+  </Card>
+</CardGroup>
