@@ -58,6 +58,18 @@ When a call doesn't reach **Completed**, it lands in one of five failure buckets
     - If it's about credentials or agent IDs, check your integration settings in **Settings → Integrations**.
     - If it's about concurrency, raise the limit on your provider account or stagger your runs so fewer calls go out at once.
     - If it's about caller ID or SIP routing, confirm the number or destination is verified on your side.
+
+    **Error codes you might see:**
+
+    | Group | Codes | What they mean |
+    |---|---|---|
+    | Provider authentication | `ELEVEN_LABS_AUTH_FAILED`, `RETELL_AUTH_FAILED`, `VAPI_AUTH_FAILED`, `WEBSOCKET_AUTH_FAILED` | Your provider rejected the API key Bluejay has on file. |
+    | Missing integration | `MISSING_ELEVEN_LABS_INTEGRATION`, `MISSING_RETELL_INTEGRATION`, `MISSING_VAPI_INTEGRATION`, `MISSING_PIPECAT_INTEGRATION`, `NO_PIPECAT_AGENT_NAME` | The provider integration isn't connected to your organization, or isn't fully configured. |
+    | Missing agent ID | `MISSING_ELEVEN_LABS_AGENT_ID`, `MISSING_RETELL_AGENT_ID`, `MISSING_VAPI_ASSISTANT_ID` | This digital human's agent or assistant ID is empty. |
+    | Credential decryption | `ELEVEN_LABS_INTEGRATION_DECRYPT_FAILED`, `RETELL_INTEGRATION_DECRYPT_FAILED`, `VAPI_INTEGRATION_DECRYPT_FAILED` | We have credentials on file but couldn't decrypt them. Usually fixed by reconnecting the integration. |
+    | Bridge connect | `ELEVEN_LABS_BRIDGE_CONNECT_FAILED`, `RETELL_BRIDGE_CONNECT_FAILED`, `VAPI_BRIDGE_CONNECT_FAILED`, `ELEVEN_LABS_SESSION_SETUP_FAILED`, `RETELL_SESSION_SETUP_FAILED`, `VAPI_SESSION_SETUP_FAILED` | The provider accepted the connection request but failed to start a session. Often a transient provider issue. |
+    | Telephony / SIP | `UNUSABLE_CALLER_ID`, `INVALID_PHONE_NUMBER`, `INVALID_SIP_DESTINATION`, `SIP_DIAL_FAILED` | The outbound call couldn't be placed because the caller ID isn't verified, the destination is malformed, or the SIP dial itself failed. |
+    | Concurrency and pre-start | `CUSTOMER_CONCURRENCY_LIMIT`, `BRIDGE_PRE_START_FAILED`, `NO_CONNECTION_TYPE` | Your provider's concurrent-call limit was hit, pre-flight bridge setup failed, or the digital human has no configured connection type. |
   </Accordion>
 
   <Accordion title="No Answer: reached the line but nobody engaged" icon="phone-slash">
@@ -70,6 +82,15 @@ When a call doesn't reach **Completed**, it lands in one of five failure buckets
     - Your agent is configured to accept calls from Bluejay's caller ID.
     - Your agent is online.
     - Your phone or SIP routing is healthy and routes Bluejay traffic correctly.
+
+    **Error codes you might see:**
+
+    | Code | What it means |
+    |---|---|
+    | `NO_ANSWER` | The phone rang out without anyone picking up. |
+    | `CALL_REJECTED` | Your agent received the call and explicitly rejected it (SIP 486 or 603). |
+    | `AGENT_HUNG_UP_BEFORE_SPEECH` | Your agent picked up but hung up before speaking. |
+    | `INBOUND_NO_INCOMING_CALL` | For inbound digital humans: the digital human waited for a call from your agent but never received one. |
   </Accordion>
 
   <Accordion title="Call Dropped: call started, then died mid-conversation" icon="phone-arrow-down-left">
@@ -81,6 +102,15 @@ When a call doesn't reach **Completed**, it lands in one of five failure buckets
 
     - Check your voice provider's status page.
     - Review any recent agent config changes that may have introduced instability.
+
+    **Error codes you might see:**
+
+    | Group | Codes | What they mean |
+    |---|---|---|
+    | Provider agent error | `ELEVEN_LABS_AGENT_ERROR`, `RETELL_AGENT_ERROR`, `VAPI_AGENT_ERROR` | Your provider's voice agent reported an error mid-call. |
+    | Provider agent start failure | `ELEVEN_LABS_AGENT_START_FAILED`, `RETELL_AGENT_START_FAILED`, `VAPI_AGENT_START_FAILED` | Your provider's agent failed to start its turn during the call. |
+    | Provider monitoring error | `ELEVEN_LABS_MONITORING_ERROR`, `RETELL_MONITORING_ERROR`, `VAPI_MONITORING_ERROR` | Bluejay lost the monitoring connection to your provider mid-call. |
+    | Bridge disconnect | `PIPECAT_CONNECTION_FAILED`, `BRIDGE_DISCONNECTED` | The audio bridge between Bluejay and your provider went down. |
   </Accordion>
 
   <Accordion title="Out of Funds: Bluejay balance exhausted" icon="wallet">
@@ -89,6 +119,12 @@ When a call doesn't reach **Completed**, it lands in one of five failure buckets
     **Who needs to fix it:** Bluejay account admin.
 
     **What to do:** Top up your balance in **Settings → Billing**, then re‑run the affected calls.
+
+    **Error codes you might see:**
+
+    | Code | What it means |
+    |---|---|
+    | `INSUFFICIENT_BALANCE` | Your Bluejay account balance reached zero before the call could complete. |
   </Accordion>
 
   <Accordion title="System Error: something inside Bluejay broke" icon="triangle-exclamation">
@@ -97,6 +133,23 @@ When a call doesn't reach **Completed**, it lands in one of five failure buckets
     **Who needs to fix it:** Bluejay.
 
     **What to do:** Reach out to the Bluejay team to learn more about why your call failed. We log every failure and often have a fix in hand before customers reach out, so getting in touch is the fastest way to find out where things stand.
+
+    **Error codes you might see:**
+
+    | Code | What it means |
+    |---|---|
+    | `HYDRATION_FAILED` | Bluejay couldn't load the test configuration at call start. |
+    | `EVAL_HYDRATION_FAILED` | Bluejay couldn't load the test configuration when evaluation started. |
+    | `EVAL_NO_TRANSCRIPT` | Evaluation started but no transcript was found. |
+    | `EVAL_AUDIO_CONVERSION_FAILED` | The recorded audio file couldn't be converted for evaluation. |
+    | `EVAL_PIPELINE_FAILED` | The evaluation pipeline crashed before producing a result. |
+    | `RECORDING_URL_FAILED` | We couldn't generate the recording URL after the call ended. |
+    | `EVAL_QUEUE_FAILED` | The evaluation job couldn't be queued. |
+    | `END_SIGNAL_TIMEOUT` | The call didn't report an end signal in time, so our watchdog closed it. |
+    | `SIP_TRUNK_RECYCLED` | The SIP trunk carrying the call was forcibly recycled mid-call. |
+    | `DB_WRITE_FAILED` | We couldn't persist the test result to the database. |
+    | `UNKNOWN_LEGACY` | An older record from before Bluejay tracked detailed failure reasons. The code itself isn't actionable; the call's outcome is what matters. |
+    | `UNKNOWN` | A catch-all that should rarely appear. If you see it, please reach out. |
   </Accordion>
 </AccordionGroup>
 
