@@ -1,0 +1,142 @@
+---
+title: 'Vapi Simulations'
+description: 'Run Bluejay simulations against your Vapi assistants with one-click sync and tool-call capture'
+icon: '/logo/vapi.svg'
+---
+
+
+This guide walks you through running Bluejay simulations directly against your Vapi assistants. Once configured, every simulation Bluejay runs against a Vapi-bound agent will route inbound through the Vapi bridge automatically, and every tool call the assistant makes during the conversation will land in Bluejay's Tool Adherence tab.
+
+<iframe
+  src="https://www.youtube.com/embed/jw_gipBfr3Y"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+### Quick Prerequisites
+
+- **Vapi public + private API keys**
+- **At least one Vapi assistant**
+- **A Bluejay Account**
+
+### Setting Up the Integration
+
+### 1. Grab Your Vapi Keys
+
+1. In Vapi → **Settings** → **API Keys**, copy your **public API key** and your **private API key**
+2. The public key is used as the `secret` header on the webhook; the private key authenticates Bluejay's sync requests
+
+{/* SCREENSHOT — Vapi API Keys page with public + private keys highlighted. */}
+![Vapi API keys](/images/vapi-sim-api-keys.png)
+
+### 2. Set the Webhook URL on Your Vapi Assistant
+
+Vapi's **new agent builder** is now the default — these steps follow that layout. (If you're on the classic UI, the same fields live under **Messaging** instead of **Advanced**.)
+
+1. In Vapi → your assistant → **Advanced** tab → scroll to the **Webhook Server** section
+2. Paste this URL into the **Server URL** field:
+
+```
+https://api.getbluejay.ai/v1/integrations/vapi
+```
+
+3. Leave **Timeout** at the default (65 sec is fine)
+4. Under **Authorization**, click **Add New** → create a custom credential with a header named `secret` and your **public API key** as the value, then select it in the **Credential** dropdown
+5. Scroll down to **Server Messages** and keep only `end-of-call-report` enabled (drop the rest to avoid noisy traffic)
+6. Click **Publish**
+
+{/* SCREENSHOT — Vapi Advanced tab showing Webhook Server with Server URL set to https://api.getbluejay.ai/v1/integrations/vapi. */}
+![Vapi webhook configuration](/images/vapi-sim-webhook.png)
+
+### 3. Save Your Keys in Bluejay and Sync
+
+1. In Bluejay → **Settings** → **Integrations** → **Vapi** tab
+2. Paste both your **Vapi API Key** (public) and **Vapi Private API Key**, then click **Save API Key**
+3. Click **Sync Agents from Vapi** — confirm in the prompt
+4. Within 5–15 seconds, every Vapi assistant in your workspace appears in Bluejay as a native agent under the auto-created **Synced from Vapi** folder
+
+{/* SCREENSHOT — Bluejay Integrations → Vapi tab with both key fields and Sync button visible. */}
+![Save Vapi keys in Bluejay](/images/vapi-sim-save-keys.png)
+
+<Tip>
+  You can also configure your key inline from the **Create Agent** modal — pick the Vapi tile and the "Add API key" panel will save + sync in one step.
+</Tip>
+
+### 4. Pick Your Vapi Assistant on a Bluejay Agent
+
+You can either use a freshly synced agent as-is (its **VAPI Assistant ID** is already hydrated under **Agent Settings → Connection**), or wire a brand-new Bluejay agent to one of your assistants:
+
+1. Click **Create Agent** anywhere in Bluejay
+2. Set **Agent type** to **Inbound** (Vapi is inbound-only — Outbound is intentionally disabled)
+3. Pick **Voice** mode → choose the **VAPI** tile under **Voice Connection Type**
+4. If you haven't saved your private key yet, a **Configure VAPI** panel appears inline — paste your private key and click **Save & Sync** to import every assistant in one step (no need to bounce to Settings)
+5. Pick the assistant from the **VAPI Assistant ID** picker — every synced assistant from your workspace shows up by name and ID
+6. Click **Create**
+
+{/* SCREENSHOT — Create Agent modal with VAPI tile selected, inline Configure VAPI panel + Save & Sync, and the populated synced-assistants picker. */}
+![Bluejay agent with Vapi connection](/images/vapi-sim-connection.png)
+
+## You're Done — Run a Simulation
+
+Create a test case with a Digital Human persona, then click **Run Simulation**. Bluejay routes the call through its Vapi inbound bridge, the assistant runs the conversation against your Digital Human, and once the call lands you'll see every tool call captured in two places:
+
+- **Transcript** tab — each tool call renders inline at the moment the assistant invoked it, with parameters + output expandable in-place
+- **Tool Adherence** tab — consolidated list with name, parameters, timing, and (for tools that hit your backend) the full response body
+
+<Note>
+  **`No result returned` outputs come from Vapi, not Bluejay.** If you see Vapi's standard "No result returned. If this is unexpected, see troubleshooting tips at [docs.vapi.ai/.../no-result-returned-error]..." string in a tool's Output, that's Vapi's own custom-tools layer reporting that your tool didn't return a value in time. Bluejay captures the response Vapi sent us faithfully — fix it on the Vapi side and re-run.
+</Note>
+
+## What Gets Captured
+
+| Tool type | Name + arguments + timing | Result content |
+|---|---|---|
+| **Custom Function** (calls your API) | ✅ | ✅ — full response body |
+| **Built-ins** (`endCall`, `transferCall`, `dtmf`, etc.) | ✅ | n/a |
+
+<Note>
+  The webhook's `x-vapi-secret` header check is strict by default. If you skipped the secret header in step 2, the webhook will reject events and tool calls won't appear. Double-check the header name is exactly `secret` and the value is your **public** Vapi key.
+</Note>
+
+## Re-Syncing
+
+Click **Sync Agents from Vapi** in Settings → Integrations → Vapi any time:
+
+- Assistants are matched by Vapi `assistant_id` — **never duplicated**
+- Name changes in Vapi update the Bluejay agent name
+- Prompt changes create a new prompt version with commit message `"synced from Vapi"` (only when text actually changed)
+- New assistants land in the **Synced from Vapi** folder; existing agents keep their current folder
+
+## Total Onboarding Time
+
+About **5 minutes**, copy-paste only. Step 1 takes ~30s, Step 2 is a few clicks in Vapi, Steps 3–4 are a couple of clicks in Bluejay. No code on your side. No infrastructure.
+
+## Common Gotchas
+
+| Problem | Cause | Fix |
+|---|---|---|
+| Simulation runs but no tool calls show up | Webhook events never reached Bluejay (wrong `secret` header or Server URL) | Re-check the header name is `secret` and the value is your public Vapi key |
+| Sync runs but synced agents are missing | Private key not saved | Make sure both **public** *and* **private** keys are saved in Settings → Integrations → Vapi |
+| Agent shows up but its prompt is empty | The assistant uses a Vapi workflow, not a single system prompt | Expected — workflow steps live in Vapi; edit the workflow there and re-sync |
+| "Outbound" option is greyed out on the Connection tab | Vapi is inbound-only on Bluejay | Use a different connection type (SIP, LiveKit, Phone) if you need outbound |
+| Webhook returns 401 in your Vapi logs | `VAPI_WEBHOOK_REQUIRE_SECRET` is strict and the header check failed | Confirm the `secret` header matches the public key on the integration record |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Vapi Observability" icon="eye" href="/integrations/vapi">
+    Set up production-call evaluation with the Vapi webhook.
+  </Card>
+  <Card title="Simulation Overview" icon="flask-vial" href="/test/simulations/overview">
+    Learn how simulations work in Bluejay end-to-end.
+  </Card>
+  <Card title="Tool Calls" icon="wrench" href="/test/simulations/tool-calls">
+    Understand how Bluejay handles tool call enrichment.
+  </Card>
+  <Card title="Customer Journeys" icon="route" href="/test/simulations/customer-journeys">
+    Run multi-step journeys (book → confirm → cancel) with locked identity.
+  </Card>
+</CardGroup>
