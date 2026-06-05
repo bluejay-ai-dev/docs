@@ -1,0 +1,226 @@
+---
+title: "LiveKit Observability"
+description: "Send your production LiveKit calls to Bluejay for transcripts, recordings, and evals"
+icon: "/logo/livekit.svg"
+---
+
+This guide walks you through how to connect your production LiveKit agents to Bluejay's observability software. Once connected, every call shows up in your logs view shortly after it ends.
+
+LiveKit is a media transport layer, so there are two ways to connect:
+
+- **[Per-project](#per-project)** — No-code solution to add **all** agents in a project.
+- **[Per-agent](#per-agent)** — Use Bluejay's API to add a shutdown callback to your agent.
+
+<hr style={{ border: "none", borderTop: "1px solid rgba(128, 128, 128, 0.45)" }} />
+
+## Per-project
+
+This integration will enable Bluejay to observe every call for all agents in the project, using a webhook.
+
+<Warning>
+  This integration method cannot observe tool calls. Use the [API integration](#per-agent) if you need them.
+</Warning>
+
+{/* TODO: walkthrough video — /videos/livekit-integrations-tab.mp4 */}
+
+### Prerequisites
+
+- A LiveKit Cloud project (API Key, API Secret, and Server URL)
+- A Bluejay account
+
+### 1. Add your LiveKit credentials
+
+1. In Bluejay, click **Settings** in the bottom left corner.
+2. Select **Integrations** and open the **LiveKit** tab.
+3. Enter your **API Key**, **API Secret**, and **URL** from LiveKit, then click **Save**.
+4. Click **Show configuration** and copy your **webhook URL**.
+
+### 2. Add the webhook in LiveKit Cloud
+
+1. In the **LiveKit Cloud** dashboard, go to **Settings → Webhooks**.
+2. Add the webhook URL you copied, signed with your **API Key**.
+
+### 3. Ensure your agent has a dispatch name
+
+Bluejay observes calls based on your agent's dispatch name (`agent_name` set in your agent's code).
+
+Agents created with `lk agent create` already have a dispatch name.
+
+On the first call, Bluejay will automatically create an agent with the same dispatch name and use it for future calls.
+
+<Note>
+  The dispatch name (`agent_name`) is what Bluejay groups on. It is not the **display name** (`Participant.name`, set via `req.accept(name=...)`) or the title shown in the LiveKit dashboard's **Agents** tab.
+</Note>
+
+<Accordion title="Set or change your agent's dispatch name">
+  Set `agent_name` in your worker's `WorkerOptions` then redeploy:
+
+  ```python
+  from livekit.agents import WorkerOptions, cli
+
+  cli.run_app(
+      WorkerOptions(
+          agent_name="set-the-name-here",
+      )
+  )
+  ```
+</Accordion>
+
+### 4. Improve your evals (optional)
+
+1. In Bluejay, click **Agent Settings** and find your agent.
+2. Paste your agent's **system prompt** to unlock goals and custom metrics.
+
+<hr style={{ border: "none", borderTop: "1px solid rgba(128, 128, 128, 0.45)" }} />
+
+## Per-agent
+
+This integration method will enable Bluejay to observe every call per agent. Your agent POSTs the finished call to Bluejay's `/evaluate` endpoint when the session ends.
+
+<Note>
+  If you already configured the [per-project webhook](#per-project) in the same LiveKit project, set the `bluejay.bypass_webhook` attribute to `true` when the agent joins. Otherwise, the call will be ingested twice.
+
+  ```python
+  await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "true"}, ...)
+  ```
+</Note>
+
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## LiveKit Observability — POST /v1/evaluate
+
+> **What this endpoint does:** Report a finished LiveKit call (transcript, tool calls, and optionally a recording) to Bluejay from your agent's shutdown callback, so it appears in the logs view with evals.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/evaluate`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| agent_id | string | Existing Bluejay agent to attribute the call to (the endpoint does not auto-create it). |
+| start_time_utc | string | Call start, ISO 8601 UTC, captured at call start. |
+| participants | array | Call roles, e.g. `[{"role": "AGENT"}, {"role": "USER"}]`. |
+| transcript / recording_url | array / string | Provide at least one: the transcript turns and/or a recording URL (a recording also unlocks audio-derived metrics). |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/evaluate and include any optional parameters (e.g., `tool_calls`, `recording_url`, `metadata`, `label`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
+```json
+{
+  "agent_id": "<your-bluejay-agent-id>",
+  "start_time_utc": "2026-01-01T00:00:00Z",
+  "participants": [{"role": "AGENT"}, {"role": "USER"}],
+  "transcript": [
+    {"start_offset_ms": 0, "end_offset_ms": 1500, "speaker": "AGENT", "utterance": "Hi, how can I help?"}
+  ],
+  "tool_calls": [
+    {"name": "lookup_order", "start_offset_ms": 4200, "parameters": {"id": "123"}, "output": "shipped"}
+  ],
+  "recording_url": "https://...optional..."
+}
+```
+
+### Example
+**Register a shutdown callback that assembles the call and POSTs it:**
+```python
+import os, httpx
+from livekit.agents import JobContext
+
+async def entrypoint(ctx: JobContext):
+    # ... agent setup + session.start(...) ...
+    async def report_to_bluejay():
+        payload = {
+            "agent_id": os.environ["BLUEJAY_AGENT_ID"],
+            "start_time_utc": started_at_iso,  # ISO 8601, UTC, captured at call start
+            "participants": [{"role": "AGENT"}, {"role": "USER"}],
+            "transcript": transcript,   # [{start_offset_ms,end_offset_ms,speaker,utterance}, ...]
+            "tool_calls": tool_calls,   # [{name,parameters,output,start_offset_ms}, ...]
+        }
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(
+                "https://api.getbluejay.ai/v1/evaluate",
+                json=payload,
+                headers={"X-API-Key": os.environ["BLUEJAY_API_KEY"]},
+            )
+            r.raise_for_status()
+    ctx.add_shutdown_callback(report_to_bluejay)
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Capture `start_time_utc` at call start (ISO 8601, UTC), and handle a 422 Validation Error from the endpoint.
+- If this LiveKit project also has the Bluejay Cloud webhook configured, set `attributes={"bluejay.bypass_webhook": "true"}` on `req.accept(...)` so the call isn't ingested twice.
+
+### Integration Checklist
+Before writing code, verify:
+1. Where does the agent build/track the transcript and tool calls during the session?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are the Bluejay API key and agent id available as config/env?
+
+Then implement the shutdown callback, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+### Prerequisites
+
+- A Bluejay API key (Settings → API Keys)
+- Access to your agent's code
+
+### 1. Create a Bluejay agent
+
+The `/evaluate` endpoint attributes each call to an existing Bluejay agent, so create one first.
+
+1. In Bluejay, create an agent (or open an existing one) and copy its **Agent ID**.
+2. In **Settings → Advanced Settings**, set the **Voice AI Provider** to **LiveKit**.
+
+### 2. POST the finished call at shutdown
+
+Register a shutdown callback that assembles the call and POSTs it to Bluejay. Include `tool_calls` for tool-adherence metrics, and `recording_url` for audio-derived metrics.
+
+```python
+import os
+import httpx
+from livekit.agents import JobContext
+
+# ... your code ...
+
+async def entrypoint(ctx: JobContext):
+    # ... your code ...
+
+    async def report_to_bluejay():
+        payload = {
+            "agent_id": "<your-bluejay-agent-id>",
+            "start_time_utc": started_at_iso,  # ISO 8601, UTC, captured at call start
+            "participants": [{"role": "AGENT"}, {"role": "USER"}],
+            # [{"start_offset_ms", "end_offset_ms", "speaker", "utterance"}, ...]
+            "transcript": transcript,
+            # [{"name", "parameters", "output", "start_offset_ms"}, ...]
+            "tool_calls": tool_calls,
+            # Optional — audio-derived metrics (latency, talk ratio, WER):
+            # "recording_url": recording_url,
+        }
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                "https://api.getbluejay.ai/v1/evaluate",
+                json=payload,
+                headers={"X-API-Key": os.environ["BLUEJAY_API_KEY"]},
+            )
+
+    ctx.add_shutdown_callback(report_to_bluejay)
+```
+
+When the call ends, the callback submits it and the evaluated call appears in your logs view. See the [`/evaluate` API reference](/api-reference/endpoint/evaluate) for the full request shape.
+
+### Up Next
+
+<Card title="LiveKit Simulations" icon="flask-vial" href="/simulation-integrations/livekit">
+  Run Bluejay simulations against your LiveKit agents.
+</Card>
