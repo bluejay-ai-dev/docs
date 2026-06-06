@@ -45,7 +45,7 @@ These appear for a few seconds to a couple of minutes during a normal run. No ac
 
 ### Failure buckets
 
-When a call doesn't reach **Completed**, it lands in one of five failure buckets. Each one tells you *who* needs to do something about it.
+When a call doesn't reach **Completed**, it lands in one of six failure buckets. Each one tells you *who* needs to do something about it.
 
 <AccordionGroup>
   <Accordion title="No Connection: couldn't reach your agent" icon="plug-circle-xmark">
@@ -113,6 +113,26 @@ When a call doesn't reach **Completed**, it lands in one of five failure buckets
     | Bridge disconnect | `PIPECAT_CONNECTION_FAILED`, `BRIDGE_DISCONNECTED` | The audio bridge between Bluejay and your provider went down. |
   </Accordion>
 
+  <Accordion title="Agent Rejection: your agent hit a system failure, so the call couldn't be evaluated" icon="ban">
+    **What happened:** Your agent did speak, but its output was a system‑ or infrastructure‑level failure on your side — phrases like "not enough funds," "max concurrency reached," "servers overloaded," "out of memory," or "internal error" — instead of actually handling the scenario. A system error took the place of real work, so there was no meaningful conversation to score. This can show up at the very start of the call or after the agent breaks part‑way through.
+
+    **Who needs to fix it:** Customer side (your agent or its upstream limits).
+
+    **What to do:** Click the row to see the exact failure message your agent returned. Then:
+
+    - If it's a capacity or concurrency message, raise the limit on your provider or stagger your runs so fewer calls go out at once.
+    - If it's a billing/funds message, top up the balance on your own provider account (this is your agent's balance, not your Bluejay balance).
+    - If it's a generic "servers overloaded / try again later," check your provider's status and any recent deploys.
+
+    To retry these automatically, enable **Rerun Simulation Results On An Error** and its **Include Rerunning On Agent Rejection** option in **Settings → Simulations**; matching results then rerun up to 3 times.
+
+    **Error codes you might see:**
+
+    | Code | What it means |
+    |---|---|
+    | `AGENT_REJECTED` | Your agent returned a system/infrastructure failure message (out of resources, out of funds, internal error, etc.) instead of handling the call, leaving no real content to evaluate. |
+  </Accordion>
+
   <Accordion title="Out of Funds: Bluejay balance exhausted" icon="wallet">
     **What happened:** Your Bluejay balance ran out before the call could complete.
 
@@ -166,6 +186,7 @@ A simulation run is **Completed** as soon as there's nothing left to wait on. Th
 | **No Connection** | Misconfigured integration or hitting a provider concurrency limit | Your provider's API key, agent ID, and current concurrency setting |
 | **No Answer** | Your agent isn't picking up | Your agent's phone routing, allowed‑caller‑ID list, online status |
 | **Call Dropped** | Your provider is unstable for a window | Your provider's status page; any recent agent config changes |
+| **Agent Rejection** | Your agent returns a system failure (capacity, funds, overload, internal error) instead of running the call | Your provider's concurrency/funds limits; the exact failure message on the row |
 | **Out of Funds** | Bluejay account balance ran out | Your Bluejay billing settings |
 | **System Error** | A Bluejay‑side problem | Reach out to the Bluejay team. We often have a fix in hand before customers ask |
 
