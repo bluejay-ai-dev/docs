@@ -6,7 +6,7 @@ icon: brackets-curly
 
 Dynamic variables let you inject call-specific context directly into your Custom Metric definitions at evaluation time. Instead of writing a static metric that applies the same way to every conversation, you can write a metric template with `{{placeholders}}` that get filled in with real data from each individual call.
 
-This is especially powerful when the right answer depends on information that's unique to each conversation — the customer's name, their account tier, the product they called about, or any other runtime value your agent has access to.
+This is especially powerful when the right answer depends on information that's unique to each conversation, such as the customer's name, their account tier, the product they called about, or any other runtime value your agent has access to.
 
 ## How It Works
 
@@ -53,7 +53,7 @@ Evaluated as:        "Did the agent greet Sarah by name and confirm the account
     ```
   </Step>
   <Step title="Bluejay substitutes and evaluates">
-    At evaluation time, Bluejay substitutes the placeholders before sending the prompt to the LLM judge. The variable replacement is automatic — no extra configuration required.
+    At evaluation time, Bluejay substitutes the placeholders before sending the prompt to the LLM judge. The variable replacement is automatic. No extra configuration is required.
   </Step>
 </Steps>
 
@@ -72,7 +72,7 @@ Evaluated as:        "Did the agent greet Sarah by name and confirm the account
     Pass the stated reason for the call so compliance metrics can check whether the agent followed the correct protocol for that specific scenario.
   </Card>
   <Card title="Dynamic thresholds" icon="sliders">
-    Vary scoring expectations based on call type, customer segment, or business unit — use a single metric template across many different contexts.
+    Vary scoring expectations based on call type, customer segment, or business unit. Use a single metric template across many different contexts.
   </Card>
 </CardGroup>
 
@@ -103,7 +103,7 @@ Here's a complete example combining a metric template with the corresponding eva
 }
 ```
 
-**Result** — Bluejay evaluates the metric as:
+**Result.** Bluejay evaluates the metric as:
 
 > "The customer called in about their account ending in **7732**. Did the agent verify the customer's identity..."
 
@@ -115,24 +115,39 @@ Here's a complete example combining a metric template with the corresponding eva
   If a placeholder key is present in your metric description but not found in `metadata`, Bluejay leaves the `{{key}}` text as-is rather than failing the evaluation. Always verify your metadata keys match the placeholders exactly.
 </Note>
 
-- **Key names are case-sensitive** — `{{Customer_Name}}` and `{{customer_name}}` are treated as different keys.
-- **Values are always coerced to strings** — numbers and booleans work fine as metadata values.
-- **You can use placeholders in both `description` and `scoring_guidance`** — both fields are substituted before evaluation.
-- **Metadata is scoped to the evaluation** — it doesn't need to be declared anywhere in the metric itself; you provide it at call time.
-- **Extra metadata keys are fine** — any keys that don't match a placeholder are simply stored as call context and are accessible in the call trace.
+<AccordionGroup>
+  <Accordion title="Key names are case-sensitive" icon="font-case">
+    `{{Customer_Name}}` and `{{customer_name}}` are treated as different keys. Match the casing in your metric exactly to the casing in your metadata payload.
+  </Accordion>
+  <Accordion title="Values are coerced to strings" icon="quote-left">
+    Numbers and booleans work fine as metadata values. Bluejay converts them to strings before substituting into the prompt.
+  </Accordion>
+  <Accordion title="Placeholders work in description and scoring_guidance" icon="brackets-curly">
+    Both fields are substituted before evaluation, so you can split context (description) from grading rules (scoring_guidance) and still reference the same dynamic values in each.
+  </Accordion>
+  <Accordion title="Metadata is scoped to the evaluation" icon="layer-group">
+    You do not need to declare metadata anywhere on the metric itself. Provide the keys you want substituted at call time, and Bluejay uses them only for that evaluation.
+  </Accordion>
+  <Accordion title="Extra metadata keys are fine" icon="circle-plus">
+    Any keys that do not match a placeholder are simply stored as call context. They remain accessible in the call trace for debugging.
+  </Accordion>
+</AccordionGroup>
 
 ---
 
-## Next Steps
+## Resources
 
 <CardGroup cols={2}>
-  <Card title="Evaluate Endpoint" icon="play" href="/api-reference/endpoint/evaluate">
-    Full reference for submitting calls and passing metadata for dynamic variable substitution.
+  <Card title="Prompting Guide" icon="pen-fancy" href="/key-concepts/custom-metrics/prompting-guide">
+    Write the surrounding metric prompt that the variables plug into.
   </Card>
   <Card title="Metric Types" icon="shapes" href="/key-concepts/custom-metrics/metric-types">
-    Learn which response type is right for each measurement goal.
+    Pick the right response type for each measurement goal.
   </Card>
   <Card title="Metrics Lab" icon="flask" href="/key-concepts/metrics-lab/overview">
-    Test your dynamic variable metrics against sample transcripts before going live.
+    Test dynamic variable metrics against sample transcripts before going live.
+  </Card>
+  <Card title="Evaluate Endpoint" icon="play" href="/api-reference/endpoint/evaluate">
+    Submit calls and pass metadata for variable substitution.
   </Card>
 </CardGroup>
