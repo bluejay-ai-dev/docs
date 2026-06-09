@@ -8,19 +8,31 @@ Digital Humans are highly configurable. You can change their accents, languages,
 
 ## Voice & Speech Settings
 
-These settings control how the Digital Human sounds during a conversation with your agent.
+These settings control how the **Digital Human** sounds during a conversation with your agent. Click each setting to see example values.
 
-| Setting | Description | Example Values |
-|---|---|---|
-| **Language** | The language the Digital Human speaks | English, Spanish, Mandarin, Hindi, French |
-| **Accent** | Regional accent applied to speech | British, Southern US, Latin American, Australian |
-| **Speaking Speed** | How fast or slow the Digital Human talks | Slow, Normal, Fast |
-| **Emotion** | The emotional tone of the conversation | Calm, Frustrated, Anxious, Cheerful, Angry |
-| **Volume** | How loudly the Digital Human speaks | Quiet, Normal, Loud |
-| **Background Noise** | Ambient sounds during the conversation | Office, Street, Airport, Car, None |
+<AccordionGroup>
+  <Accordion title="Language" icon="language">
+    The language the Digital Human speaks. Examples: English, Spanish, Mandarin, Hindi, French.
+  </Accordion>
+  <Accordion title="Accent" icon="globe">
+    Regional accent applied to speech. Examples: British, Southern US, Latin American, Australian.
+  </Accordion>
+  <Accordion title="Speaking Speed" icon="gauge">
+    How fast or slow the Digital Human talks. Examples: Slow, Normal, Fast.
+  </Accordion>
+  <Accordion title="Emotion" icon="face-smile">
+    The emotional tone of the conversation. Examples: Calm, Frustrated, Anxious, Cheerful, Angry.
+  </Accordion>
+  <Accordion title="Volume" icon="volume-high">
+    How loudly the Digital Human speaks. Examples: Quiet, Normal, Loud.
+  </Accordion>
+  <Accordion title="Background Noise" icon="waveform">
+    Ambient sounds during the conversation. Examples: Office, Street, Airport, Car, None.
+  </Accordion>
+</AccordionGroup>
 
 <Tip>
-Combining settings creates realistic personas. A frustrated customer calling from a noisy airport behaves very differently from a calm customer in a quiet home office -- and your agent should handle both.
+Combining settings creates realistic personas. A frustrated customer calling from a noisy airport behaves very differently from a calm customer in a quiet home office, and your agent should handle both.
 </Tip>
 
 ## Intent & Success Criteria
@@ -50,7 +62,7 @@ Success Criteria:
 ```
 
 <Note>
-The more specific your success criteria, the more actionable your simulation results will be. Avoid vague criteria like "the agent was helpful" -- instead, define exactly what "helpful" means for that scenario.
+The more specific your success criteria, the more actionable your simulation results will be. Avoid vague criteria like "the agent was helpful." Define exactly what "helpful" means for that scenario.
 </Note>
 
 ## Advanced Behaviors
@@ -63,10 +75,10 @@ Configure a Digital Human to provide **specific responses depending on what your
 
 <Steps>
   <Step title="Define trigger phrases">
-    Specify what the agent might say that should trigger a scripted response -- for example, "Can I have your account number?"
+    Specify what the agent might say that should trigger a scripted response. For example, "Can I have your account number?"
   </Step>
   <Step title="Map scripted replies">
-    Define the exact response the Digital Human should give when the trigger is matched -- for example, "Sure, it's 4829-3371."
+    Define the exact response the Digital Human should give when the trigger is matched. For example, "Sure, it's 4829-3371."
   </Step>
   <Step title="Set fallback behavior">
     Decide what happens when no trigger matches. The Digital Human can continue with natural conversation or stay on script.
@@ -75,7 +87,7 @@ Configure a Digital Human to provide **specific responses depending on what your
 
 ### DTMF Codes
 
-Digital Humans can **send DTMF (touch-tone) codes** during a call. This is critical for testing agents that require keypad input -- such as entering an account number, selecting a menu option, or confirming a PIN.
+Digital Humans can **send DTMF (touch-tone) codes** during a call. This is critical for testing agents that require keypad input, such as entering an account number, selecting a menu option, or confirming a PIN.
 
 ```md
 DTMF Sequence: "1" → "4829" → "#"
@@ -84,13 +96,13 @@ Trigger: After the agent says "Please enter your account number followed by the 
 
 ### Silence Simulation
 
-Configure a Digital Human to **stay silent** for a specified duration. This tests how your agent handles dead air -- does it re-prompt the customer? Does it escalate? Does it hang up too early?
+Configure a Digital Human to **stay silent** for a specified duration. This tests how your agent handles dead air. Does it re-prompt the customer? Does it escalate? Does it hang up too early?
 
 Separately, the API stores **`allow_silence_tool`** (boolean) and **`silence_tool_instructions`** (string) on each digital human. When `allow_silence_tool` is true, the voice runtime *may* use a silence tool according to its own rules. Use the literal string `"default"` for instructions to mean “built-in product behavior”; any other non-empty string is custom guidance for that runtime. Ending a call is analogous but not identical: **`allow_end_call_tool`** plus optional **`hangup_instructions`** (often null when you do not want custom hangup copy). Whether the silence tool actually runs is enforced in the simulation execution layer, not in the API middleware alone.
 
 ### IVR System Simulation
 
-Digital Humans can **simulate an IVR (Interactive Voice Response) system** so your agent can navigate through it. This is the inverse of the typical setup -- instead of a human calling your agent, your agent is calling into a phone tree, and the Digital Human plays the role of that phone tree.
+Digital Humans can **simulate an IVR (Interactive Voice Response) system** so your agent can navigate through it. This flips the typical setup: instead of a human calling your agent, your agent is calling into a phone tree, and the Digital Human plays the role of that phone tree.
 
 <Steps>
   <Step title="Define the IVR menu tree">
@@ -137,13 +149,19 @@ The power of Digital Humans comes from combining these settings. Here are a few 
   </Card>
 </CardGroup>
 
-## Next Steps
+## Resources
 
 <CardGroup cols={2}>
+  <Card title="Prompting Guide" icon="pen-fancy" href="/key-concepts/digital-humans/prompting-guide">
+    Write intents and success criteria that pair cleanly with these settings.
+  </Card>
   <Card title="Use Cases" icon="lightbulb" href="/key-concepts/digital-humans/use-cases">
-    See real-world patterns for building effective Digital Human test suites.
+    Real-world patterns for combining these configuration levers.
+  </Card>
+  <Card title="Deep Dive" icon="book" href="/core-concepts/digital-humans">
+    Full field reference, including silence tool and end-call tool flags.
   </Card>
   <Card title="Generate via API" icon="code" href="/api-reference/endpoint/generate-digital-humans">
-    Create Digital Humans programmatically with the generation endpoint.
+    Create Digital Humans programmatically.
   </Card>
 </CardGroup>

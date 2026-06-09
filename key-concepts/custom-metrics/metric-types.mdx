@@ -4,7 +4,7 @@ description: Understand the six response types available for Custom Metrics in B
 icon: shapes
 ---
 
-Every Custom Metric has a `response_type` that determines the shape of the score Bluejay produces. Choose the type that matches how you want to reason about the result downstream — in dashboards, alerts, and workflows.
+Every Custom Metric has a `response_type` that determines the shape of the score Bluejay produces. Choose the type that matches how you want to reason about the result downstream, whether that's in dashboards, alerts, or workflows.
 
 ## Pass / Fail
 
@@ -23,15 +23,7 @@ flowchart LR
     B -->|No| D[fail]
 ```
 
-### Example
-
-**Input:** A metric named **Identity Verified** with the description _"Did the agent verify the customer's identity before sharing account details?"_ and `response_type: pass_fail`.
-
-**Output:** **`pass`** — The agent asked for the customer's date of birth and last four digits of their SSN before disclosing any balance information. The verification step was completed prior to sensitive disclosure.
-
-### Creating a Pass / Fail metric via API
-
-Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `pass_fail`. The endpoint accepts optional fields such as `agent_id`, `agent_ids`, `category`, `tags`, and `allow_not_applicable` — see the full request schema on that page.
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `pass_fail`. The endpoint accepts optional fields such as `agent_id`, `agent_ids`, `category`, `tags`, and `allow_not_applicable`. See the full request schema on that page.
 
 ---
 
@@ -40,7 +32,7 @@ Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) end
 **`response_type: quantitative`**
 
 <Tip>
-  Use Quantitative when gradations matter — tone of voice, resolution depth, or explanation clarity. Set explicit `min_value` and `max_value` so Bluejay knows the scale boundaries.
+  Use Quantitative when gradations matter, such as tone of voice, resolution depth, or explanation clarity. Set explicit `min_value` and `max_value` so Bluejay knows the scale boundaries.
 </Tip>
 
 Bluejay returns a numeric score within the range you define using `min_value` and `max_value`. Use this for nuanced scoring on a scale.
@@ -51,15 +43,7 @@ flowchart LR
     B --> C["Result: number in [min, max]"]
 ```
 
-### Example
-
-**Input:** A metric named **Resolution Quality** with the description _"Rate the quality of the agent's resolution on a scale from 1 to 10. A 10 means the customer's issue was fully resolved with no further action needed."_, `response_type: quantitative`, `min_value: 1`, and `max_value: 10`.
-
-**Output:** **`7`** — The agent correctly diagnosed the billing error, issued a credit, and confirmed the corrected amount — but forgot to send the follow-up email the customer requested. The core issue was resolved while a minor follow-up action was missed.
-
-### Creating a Quantitative metric via API
-
-Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `quantitative` and include **`min_value`** and **`max_value`** so Bluejay knows the allowed range.
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `quantitative` and include **`min_value`** and **`max_value`** so Bluejay knows the allowed range.
 
 ---
 
@@ -68,7 +52,7 @@ Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) end
 **`response_type: qualitative`**
 
 <Tip>
-  Use Qualitative for feedback that needs nuance and context — coaching notes, tone summaries, or structured observations. Because results are text, they don't aggregate numerically, so pair them with a quantitative or pass/fail metric if you also need trend tracking.
+  Use Qualitative for feedback that needs nuance and context, such as coaching notes, tone summaries, or structured observations. Because results are text, they don't aggregate numerically, so pair them with a quantitative or pass/fail metric if you also need trend tracking.
 </Tip>
 
 Bluejay returns a free-form text summary describing its assessment. Useful for generating narrative feedback rather than a structured score.
@@ -79,15 +63,7 @@ flowchart LR
     B --> C[Free-form text summary]
 ```
 
-### Example
-
-**Input:** A metric named **Objection Handling Summary** with the description _"Summarize how the agent handled customer objections during the call. Note specific phrases used and whether they were effective."_ and `response_type: qualitative`.
-
-**Output:** _"The customer objected to the renewal price twice. The agent responded with 'I hear you — let me see what options I have' and offered a 15% loyalty discount. The first objection was handled smoothly; the second required a supervisor mention before the customer agreed. Overall effective, though the escalation hint could have been avoided with a stronger initial offer."_
-
-### Creating a Qualitative metric via API
-
-Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `qualitative`. No extra type-specific fields are required beyond `name` and `description`.
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `qualitative`. No extra type-specific fields are required beyond `name` and `description`.
 
 ---
 
@@ -96,7 +72,7 @@ Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) end
 **`response_type: enum`**
 
 <Tip>
-  Use Enum when you need consistent, controlled labels — call outcomes, escalation reasons, or issue categories. The discrete labels make it easy to group and filter results across many conversations.
+  Use Enum when you need consistent, controlled labels, such as call outcomes, escalation reasons, or issue categories. The discrete labels make it easy to group and filter results across many conversations.
 </Tip>
 
 Bluejay classifies the conversation into one of the exact labels you define in `enum_options`. This is ideal for categorization tasks.
@@ -110,15 +86,7 @@ flowchart TD
     B --> F[unresolved]
 ```
 
-### Example
-
-**Input:** A metric named **Call Outcome** with the description _"Classify the outcome of this call."_, `response_type: enum`, and `enum_options: ["resolved", "escalated", "callback_scheduled", "unresolved"]`.
-
-**Output:** **`escalated`** — The agent was unable to resolve the customer's technical issue and transferred them to a Tier 2 specialist. The conversation ended with a handoff rather than a direct resolution.
-
-### Creating an Enum metric via API
-
-Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `enum` and include **`enum_options`** as an array of allowed labels.
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `enum` and include **`enum_options`** as an array of allowed labels.
 
 ---
 
@@ -141,26 +109,7 @@ flowchart TD
     B --> F["flags: string[ ]"]
 ```
 
-### Example
-
-**Input:** A metric named **Compliance Audit** with the description _"Evaluate compliance and return a JSON object with keys: 'identity_verified' (boolean), 'disclosure_read' (boolean), 'consent_obtained' (boolean), and 'flags' (array of strings describing any issues)."_ and `response_type: json`.
-
-**Output:** The agent verified the caller's identity and read the required disclosure, but never obtained explicit verbal consent before proceeding:
-
-```json
-{
-  "identity_verified": true,
-  "disclosure_read": true,
-  "consent_obtained": false,
-  "flags": ["Verbal consent not obtained before proceeding with account changes"]
-}
-```
-
-The `consent_obtained: false` flag and accompanying message surface the gap for compliance review.
-
-### Creating a JSON metric via API
-
-Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `json`. Describe the desired object shape clearly in `description` so evaluations stay consistent.
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `json`. Describe the desired object shape clearly in `description` so evaluations stay consistent.
 
 ---
 
@@ -169,7 +118,7 @@ Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) end
 **`response_type: yes_no`**
 
 <Warning>
-  Yes / No is deprecated. Use Pass / Fail instead — it is functionally identical and is the preferred type going forward.
+  Yes / No is deprecated. Use Pass / Fail instead. It is functionally identical and is the preferred type going forward.
 </Warning>
 
 Semantically identical to Pass / Fail, but the framing uses question-style prompts. Bluejay returns `yes` or `no`.
@@ -181,15 +130,7 @@ flowchart LR
     B -->|False| D[no]
 ```
 
-### Example
-
-**Input:** A metric named **Empathy Demonstrated** with the description _"Did the agent acknowledge the customer's frustration at any point in the call?"_ and `response_type: yes_no`.
-
-**Output:** **`yes`** — Mid-call the agent said _"I completely understand how frustrating this must be — let me get this sorted for you right away."_ The agent explicitly acknowledged the customer's frustration.
-
-### Creating a Yes / No metric via API
-
-Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `yes_no`. Optional fields such as `agent_id`, `category`, and `tags` match other metric types — see the full schema on that page.
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `yes_no`. Optional fields such as `agent_id`, `category`, and `tags` match other metric types. See the full schema on that page.
 
 ---
 
@@ -208,7 +149,7 @@ Use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) end
 
 ## Not Applicable
 
-Any metric type can be configured with `allow_not_applicable: true`. When enabled, Bluejay may return `Not Applicable` if the criteria simply doesn't apply to a given conversation — for example, a transfer metric on a call that never needed a transfer.
+Any metric type can be configured with `allow_not_applicable: true`. When enabled, Bluejay may return `Not Applicable` if the criteria simply doesn't apply to a given conversation. For example, a transfer metric on a call that never needed a transfer.
 
 ```json
 {
@@ -223,16 +164,19 @@ Set `allow_not_applicable` when creating or updating the metric via the [Create 
 
 ---
 
-## Next Steps
+## Resources
 
 <CardGroup cols={2}>
+  <Card title="Prompting Guide" icon="pen-fancy" href="/key-concepts/custom-metrics/prompting-guide">
+    Write LLM-as-a-Judge prompts that score consistently for any response type.
+  </Card>
   <Card title="Dynamic Variables" icon="brackets-curly" href="/key-concepts/custom-metrics/dynamic-variables">
     Inject call-specific context into your metric definitions at evaluation time.
   </Card>
-  <Card title="Create Custom Metric API" icon="code" href="/api-reference/endpoint/create-custom-metric">
-    Define a new Custom Metric programmatically with any response type.
-  </Card>
   <Card title="Metrics Lab" icon="flask" href="/key-concepts/metrics-lab/overview">
     Prototype and refine metrics against sample transcripts before going live.
+  </Card>
+  <Card title="Create Custom Metric API" icon="code" href="/api-reference/endpoint/create-custom-metric">
+    Define a new Custom Metric programmatically with any response type.
   </Card>
 </CardGroup>
