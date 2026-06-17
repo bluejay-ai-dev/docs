@@ -161,6 +161,33 @@ def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
 
 ---
 
+## Customer Journeys
+
+A Customer Journey is a single digital human that makes a *sequence* of calls (same caller returning across steps, with earlier-call context carried forward). In a BaC payload it is a normal digital human with two extra fields:
+
+- `tag`: `"Customer Journey"` — optional on push; Bluejay auto-applies it whenever `journey_steps` is present.
+- `journey_steps`: an ordered array of `{ "step", "intent", "success_criteria" }`.
+
+```json
+{
+  "bluejay_as_code_id": "d4f8a2c1-6b3e-4a09-8f27-1c5e9b0d3a76",
+  "human_name": "Returning Caller",
+  "tag": "Customer Journey",
+  "simulations": ["<simulation bluejay_as_code_id>"],
+  "journey_steps": [
+    { "step": 1, "intent": "Book an appointment", "success_criteria": "Booked + confirmation number" },
+    { "step": 2, "intent": "Call back to confirm", "success_criteria": "Agent confirms the booking" }
+  ]
+}
+```
+
+**Rules (enforced on push — violations return `valid: false` with no changes applied):**
+- `journey_steps` defines the journey. Any digital human with a non-empty `journey_steps` array is a journey; an empty/missing array on a `"Customer Journey"`-tagged digital human is rejected.
+- `step` values must be **unique and contiguous starting at 1** (`1, 2, 3, …`). Non-contiguous like `[1, 3, 5]` is rejected — calls run in this order.
+- Every step needs a non-empty `intent` (the caller's goal for that call). `success_criteria` is optional.
+
+---
+
 ## Full End-to-End Example
 
 ```python
