@@ -4,47 +4,82 @@ description: 'Edit your ElevenLabs multi-agent workflows in Bluejay and use them
 icon: '/logo/elevenlabs.svg'
 ---
 
-Bluejay has first-class support for ElevenLabs agent workflows. When you add an ElevenLabs agent, Bluejay pulls in its multi-agent workflow and shows it as an editable graph in the **Workflows** tab of Agent Settings. Edit nodes inline, push your changes back to ElevenLabs, and generate digital humans that test every path through the flow.
+When an ElevenLabs agent is synced into Bluejay, its multi-agent workflow renders as an editable graph in the **Workflows** tab of Agent Settings. You can edit any node from the canvas, push your edits back to ElevenLabs, and generate digital humans that exercise every distinct path through the flow.
+
+The walkthrough below covers the entire simulation flow end to end, from opening the Workflows tab through running the call and reviewing the result.
+
+<video controls className="w-full aspect-video rounded-xl" src="/videos/elevenlabs-simulations-walkthrough.mp4"></video>
 
 <Note>
-  For the Observability integration (webhooks for production calls), see [ElevenLabs Observability](/integrations/eleven-labs).
+  For the production-call observability integration (webhook setup for real calls), see [ElevenLabs Observability](/integrations/eleven-labs).
 </Note>
 
-## The Workflows Tab
+### Prerequisites
 
-Open **Agent Settings → Workflows** to see your synced workflow as a graph. The canvas matches the Scenario Builder look-and-feel so it reads the same regardless of which feature you're in.
+- An ElevenLabs agent that uses a multi-agent workflow
+- That agent synced into Bluejay (see [ElevenLabs Observability](/integrations/eleven-labs) for the connection steps)
+
+### 1. The Workflows Tab
+
+Open Agent Settings, then click the **Workflows** tab. Your synced ElevenLabs workflow renders as a graph on the canvas, using the same controls as Bluejay's Scenario Builder.
 
 Three actions live in the top-right of the canvas:
 
-- **Sync** to pull the latest workflow from ElevenLabs and replace your local copy.
-- **Push** to send your edits back to ElevenLabs.
-- **Branches** to switch between your workflow's branches and merge back to main.
+- **Sync** pulls the latest workflow from ElevenLabs and replaces your local copy.
+- **Push** sends your edits back to ElevenLabs.
+- **Branches** lets you switch between workflow branches and merge back to main.
 
-### Editing Nodes Inline
+![The Workflows tab in Bluejay](/images/elevenlabs-sim-workflows-tab.gif)
+
+#### Editing nodes inline
 
 Click any node to open the side panel and edit it without leaving Bluejay:
 
-- **General**: voice, model, eagerness, spelling patience, speculative turn, auto-advance.
-- **Tools**: toggle the built-in tools and add or remove custom tools.
-- **Edges**: set the condition that takes the agent from this step to the next.
+- **General** controls voice, model, eagerness, spelling patience, speculative turn, and auto-advance.
+- **Tools** toggles the built-in tools and lets you add or remove custom tools.
+- **Edges** sets the condition that takes the agent from this step to the next.
 
-Drawing a new edge between two nodes drops an empty **Add condition** pill on the connection. Click it to type the trigger. Duplicate and delete actions appear inline on the selected node. Cmd+Z / Cmd+Shift+Z undo and redo your canvas edits.
+With a node selected, the inline **Duplicate** and **Delete** actions appear directly on the node. Press **Cmd+Z** to undo a canvas edit and **Cmd+Shift+Z** to redo it.
 
-## Generate From Workflow
+#### Drawing an edge between two nodes
 
-Once your workflow is synced, the **Generate From Workflow** simulation type becomes available in the Create Simulation dialog for that agent.
+1. An empty **Add condition** pill appears when you drag a new edge between two nodes.
+2. Click the **Add condition** pill and type the trigger that takes the agent from the first node to the next.
 
-Bluejay finds every distinct path through the graph and shows them as numbered step pills. You choose how many digital humans to generate per path. Three paths × four digital humans = twelve scenarios.
+### 2. Generate From Workflow
 
-Each generated digital human gets an intent that naturally drives the agent down its assigned path, plus the path it's testing right under the success criteria on the Persona tab. The strand sticks around so you can always see which route a given digital human is covering.
+Once your workflow is synced, you can generate digital humans that cover every distinct path through it.
 
-## Next Steps
+1. On the agent, click **Create Simulation** to open the **Create Simulation** dialog.
+2. Choose **Generate From Workflow** as the simulation type.
+3. Bluejay enumerates every distinct path through the synced workflow graph and lists the paths as numbered step pills.
+4. Choose how many digital humans to generate per path. For example, three paths times four digital humans equals twelve scenarios.
+5. Click **Generate** to create the digital humans. Each one receives an intent that drives the agent down its assigned path.
+6. Open the **Persona** tab and confirm the path label stays attached to each digital human, directly under the success criteria, so you can verify the route the digital human is covering.
+
+![Generate digital humans from a synced workflow](/images/elevenlabs-sim-generate.gif)
+
+### 3. Run your Simulation
+
+1. In the persona list, select all the digital humans that were just generated.
+2. Click **Run** to dispatch the calls. Bluejay runs one simulation per selected digital human.
+3. When the runs finish, the simulation result opens with the transcript, tool calls, and metric scores for each call. Review the results the same way you would for any other simulation in Bluejay.
+
+![Run a simulation against the generated digital humans](/images/elevenlabs-sim-run.gif)
+
+### Resources
 
 <CardGroup cols={2}>
-  <Card title="Workflows (concept)" icon="diagram-project" href="/key-concepts/agents/workflow">
+  <Card title="Simulation Overview" icon="flask-vial" href="/test/simulations/overview">
+    How simulations work in Bluejay, from setup to scoring.
+  </Card>
+  <Card title="Workflows" icon="diagram-project" href="/key-concepts/agents/workflow">
     The provider-agnostic concept page for Bluejay's Workflows feature.
   </Card>
+  <Card title="Digital Humans" icon="user" href="/key-concepts/digital-humans/overview">
+    The personas that play the caller side in every Bluejay simulation.
+  </Card>
   <Card title="ElevenLabs Observability" icon="/logo/elevenlabs.svg" href="/integrations/eleven-labs">
-    Wire up webhooks so production ElevenLabs calls flow into Bluejay's Monitor.
+    Connect production ElevenLabs calls to Bluejay for live monitoring.
   </Card>
 </CardGroup>
