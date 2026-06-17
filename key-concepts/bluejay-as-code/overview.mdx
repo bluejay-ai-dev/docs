@@ -238,7 +238,7 @@ In Bluejay as Code a journey is just a digital human with two extra fields:
 
 Each step:
 
-- **`step`** (int) — the call's position in the sequence. Step numbers must be **unique and contiguous starting at `0`** (`0, 1, 2, …`). Calls run strictly in this order, each gated until the previous one completes.
+- **`step`** (int) — the call's position in the sequence. Step numbers must be **unique and contiguous starting at `1`** (`1, 2, 3, …`). Calls run strictly in this order, each gated until the previous one completes.
 - **`intent`** (string, **required**) — what the simulated caller is trying to do on *this* call. A step with no intent is rejected.
 - **`success_criteria`** (string, optional) — how that individual call is graded.
 
@@ -249,19 +249,19 @@ Each step:
   "tag": "Customer Journey",
   "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"],
   "journey_steps": [
-    { "step": 0, "intent": "Book a Tuesday morning physical with Dr. Patel", "success_criteria": "Appointment booked and confirmation number read back" },
-    { "step": 1, "intent": "Call back to confirm the appointment", "success_criteria": "Agent confirms the existing booking" },
-    { "step": 2, "intent": "Cancel the appointment", "success_criteria": "Appointment cancelled and cancellation acknowledged" }
+    { "step": 1, "intent": "Book a Tuesday morning physical with Dr. Patel", "success_criteria": "Appointment booked and confirmation number read back" },
+    { "step": 2, "intent": "Call back to confirm the appointment", "success_criteria": "Agent confirms the existing booking" },
+    { "step": 3, "intent": "Cancel the appointment", "success_criteria": "Appointment cancelled and cancellation acknowledged" }
   ]
 }
 ```
 
-On the next run this one digital human expands into three chained calls — step 0 → 1 → 2 — each carrying the prior call's context forward so the agent sees a returning customer.
+On the next run this one digital human expands into three chained calls — step 1 → 2 → 3 — each carrying the prior call's context forward so the agent sees a returning customer.
 
 <Note>
   **`journey_steps` defines the journey.** Any digital human with a non-empty `journey_steps` array is treated as a journey and round-trips its steps on pull/push; Bluejay auto-applies the `"Customer Journey"` tag so you never have to set it by hand. Conversely, a digital human tagged `"Customer Journey"` with no steps is rejected — a journey needs at least one call.
 </Note>
 
 <Tip>
-  Push validates journeys before writing anything. Non-contiguous `step` values (e.g. `[0, 2, 5]`), duplicates, or a step with an empty `intent` come back as `valid: false` with a per-entity error and **no** changes applied. Fix the payload and push again.
+  Push validates journeys before writing anything. Non-contiguous `step` values (e.g. `[1, 3, 5]`), duplicates, or a step with an empty `intent` come back as `valid: false` with a per-entity error and **no** changes applied. Fix the payload and push again.
 </Tip>
