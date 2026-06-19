@@ -28,44 +28,51 @@ both Google agent types are picked up by a single connection.
 
 ---
 
-## 1. Grant Bluejay access (Workload Identity Federation)
+## 1. Grant Bluejay access (service account)
 
-Bluejay authenticates to Google with **Workload Identity Federation (WIF)** — it mints
-**short-lived** access tokens on demand, so there is no long-lived key to store or rotate. (A
-service-account key JSON is also accepted if your org prefers it.)
+Bluejay authenticates to your Google Cloud project with a **service-account key** that you create
+and paste into Bluejay. The key is encrypted at rest and scoped to Dialogflow only — it lets
+Bluejay talk to your agents, nothing else.
 
-### Required IAM permissions
+### Step 1 — Create a service account with the right role
 
-Grant the federated service account a role on the project based on what you want Bluejay to do:
+In the [Google Cloud Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts):
+
+1. **Create Service Account** → give it a name (e.g. `bluejay-dfcx`).
+2. Grant it a role based on what you want Bluejay to do:
 
 | You want to… | Grant |
 | --- | --- |
-| **Test agents only** (read + run simulations) | `roles/dialogflow.client` (read access) |
+| **Test agents only** (read + run simulations) | `roles/dialogflow.client` |
 | **Edit, version, and promote** workflows | `roles/dialogflow.admin` |
 
-`roles/dialogflow.admin` covers the full feature set used by Bluejay: listing agents
-(sync), reading flows/pages/intents/playbooks/tools, pushing edits, creating versions, and
-deploying to environments. If you scope more tightly, the underlying permissions Bluejay calls are:
+`roles/dialogflow.admin` covers the full feature set Bluejay uses — listing agents (sync), reading
+flows/pages/intents/playbooks/tools, pushing edits, creating versions, and deploying to
+environments. If you scope more tightly, the underlying permissions are `dialogflow.agents.*`,
+`dialogflow.flows.*`, `dialogflow.pages.*`, `dialogflow.intents.*`, `dialogflow.tools.*`,
+`dialogflow.playbooks.*`, `dialogflow.versions.*`, and `dialogflow.environments.deploy`.
 
-- `dialogflow.agents.get` / `dialogflow.agents.list` — sync + read
-- `dialogflow.flows.*`, `dialogflow.pages.*`, `dialogflow.intents.*`, `dialogflow.tools.*`,
-  `dialogflow.playbooks.*` — workflow pull/push
-- `dialogflow.versions.*` — version snapshots
-- `dialogflow.environments.deploy` — promotion
+### Step 2 — Create a JSON key
 
-### Configure it in Bluejay
+On that service account, open the **Keys** tab → **Add Key → Create new key → JSON** → **Create**.
+A `.json` key file downloads to your machine.
+
+<Warning>
+Treat the key file like a password — it grants the role above on your project until you rotate or
+delete it. You can revoke it anytime from the same **Keys** tab.
+</Warning>
+
+### Step 3 — Add it to Bluejay
 
 1. Log into your **Bluejay Dashboard**.
 2. Click your **Organization** menu (bottom-left) → **Integrations**.
-3. Find the **Google Agents** section and paste your **Workload Identity Federation config JSON**
-   (or service-account key JSON) for the service account above.
+3. In the **Google Agents** section, paste the contents of the JSON key file.
 4. Click **Save**.
 
 <Note>
-The credential is **encrypted at rest** and is scoped to the Dialogflow APIs only — it lets Bluejay
-talk to your agents, not to any other system. The federation values for your pool are provided by
-Bluejay during onboarding; see Google's [Workload Identity Federation docs](https://cloud.google.com/iam/docs/workload-identity-federation)
-for the GCP-side setup.
+The key is **encrypted at rest** in Bluejay and only ever used to call the Dialogflow APIs for your
+agents. Want keyless auth (Workload Identity Federation) instead? It's an infra-side setup rather
+than self-serve — reach out to your Bluejay contact.
 </Note>
 
 ---
@@ -173,7 +180,7 @@ teammates.
 
 | Step | Where | What it does |
 | --- | --- | --- |
-| Grant access | Org → Integrations → Google Agents | Save WIF / key JSON for a Dialogflow-scoped service account |
+| Grant access | Org → Integrations → Google Agents | Paste a Dialogflow-scoped service-account key JSON |
 | Sync | Settings → Integrations → Google Agents | Discover all DFCX + CES agents in the project |
 | Connect | Agent → Connection | Paste the `projects/.../agents/...` path; pick Voice or Chat |
 | Test | Simulations | Generate digital humans from the workflow and run them |
