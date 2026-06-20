@@ -1,0 +1,231 @@
+---
+title: 'Bulk Upload via CSV'
+description: 'Create many Digital Humans at once by uploading a CSV. Set intent, success criteria, behavior, tool calls, custom traits, and scripted responses, one row per Digital Human.'
+icon: 'file-csv'
+---
+
+When you already have your test cases written down (in a spreadsheet, a test plan, or exported from another system), you can skip building Digital Humans one at a time and **upload them in bulk from a CSV**. Each row becomes one Digital Human, with full control over its intent, success criteria, voice, behavior, expected tool calls, custom traits, and scripted responses.
+
+This is the fastest way to stand up a large, deterministic benchmark population, and the only authoring path where every field is explicit. Nothing is AI-generated unless you leave it blank.
+
+{/* SCREENSHOT: Create Simulation type grid with the "Upload Custom Digital Humans" card (upload icon) highlighted. */}
+![Upload Custom Digital Humans card on the Create Simulation modal](/images/upload-dh-card.png)
+
+## When to Reach for a CSV Upload
+
+| You want to | Use a CSV upload |
+|---|---|
+| Recreate an existing test matrix or spreadsheet of scenarios | ✅ |
+| Pin exact intent and success criteria per test case (no AI drift) | ✅ |
+| Set behavior per Digital Human (voice, interruptions, scripted replies) at scale | ✅ |
+| Attach expected tool calls or custom traits to each case | ✅ |
+| Quickly explore a topic without writing every case yourself | Use **Generate Digital Humans** instead |
+
+## Uploading a CSV
+
+<Steps>
+  <Step title="Open the upload panel">
+    Go to **Simulations → Create Simulation**, pick your agent, and choose the **Upload Custom Digital Humans** card (upload icon) in the type grid.
+  </Step>
+  <Step title="Download the sample template">
+    Click **Sample CSV** to download `sample_digital_humans.csv`. It contains the full set of supported column headers plus two worked example rows. Start from this rather than building the header row by hand.
+  </Step>
+  <Step title="Fill in your rows">
+    One Digital Human per row. Only the columns you care about are required; every blank cell falls back to a sensible default (see [Partial rows](#partial-rows-and-defaults)).
+  </Step>
+  <Step title="Upload the file">
+    Drag and drop the `.csv` onto the dropzone, or click to browse. Only `.csv` files are accepted.
+  </Step>
+  <Step title="Review and run">
+    On success the panel reads **“N digital humans will be generated.”** Continue the Create Simulation flow to review the population and launch the run. Use **Upload different file** to swap in a corrected CSV.
+  </Step>
+</Steps>
+
+{/* SCREENSHOT: The upload panel: dashed dropzone ("Drag & drop your digital humans CSV here, or click to browse") with the "Sample CSV" download button above it. */}
+![CSV upload dropzone with Sample CSV download button](/images/upload-dh-dropzone.png)
+
+## CSV Format
+
+- The **first non-empty row is the header**. The file needs a header row plus at least one data row.
+- **Column headers are matched case-insensitively** and trimmed. Columns Bluejay doesn't recognize are ignored, so you can keep your own notes columns in the file.
+- Fully blank rows are skipped.
+
+There are four kinds of columns: **core fields**, **behavior fields**, **tool calls** (`TC_` prefix), and **custom traits** (`CT_` prefix).
+
+### Core columns
+
+| Column | Sets | Notes |
+|---|---|---|
+| `Name` | Display name | Optional. If blank, Bluejay generates a realistic demographic name and avatar. |
+| `Intent` | What the Digital Human is trying to do | Free text: the scenario the persona drives in the conversation. |
+| `Success Criteria` | How the run is judged | Free text: the conditions that must be met to pass. |
+| `Role Description` | Persona background | Free text: who the caller is. |
+| `Scripted Responses` | Deterministic replies | JSON. See [Scripted Responses](#scripted-responses). |
+
+### Behavior columns
+
+These mirror the levers on the [manual configuration screen](/key-concepts/digital-humans/configuration). Leave a cell blank to keep the default.
+
+| Column | Accepted values | Notes |
+|---|---|---|
+| `Creativity` | Number, `0` to `1` | Higher is more improvisational. |
+| `Patience` | Number `≥ 0` (seconds) | How long the persona waits before treating a pause as its turn. |
+| `No Response Timeout` | Number `≥ 0` (seconds) | How long it waits in silence before giving up or re-prompting. |
+| `Voice` | A composite voice key, e.g. `en_british_feminine` | Format is `<lang>_<accent>_<gender>` (`en_american_masculine`, `es_mexican_feminine`, `hi_hindi_masculine`, and so on). Must be an exact, recognized key; see the **Voice** dropdown in the manual editor or the Sample CSV for the full list. |
+| `Voice Speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` | |
+| `Background Noise` | `none`, `office`, `talking`, `traffic`, `cafe`, `park`, `tv`, `noisy_restaurant`, `hospital` | |
+| `Background Noise Volume` | Number, `0` to `1` | |
+| `Audio Quality` | `horrible`, `low`, `medium`, `high` | |
+| `Verbosity` | `low`, `medium`, `high` | |
+| `Fluency` | `beginner`, `intermediate`, `native` | |
+| `Interruptions` | JSON object | See [Interruptions](#interruptions). |
+| `Speaks First` | JSON object | See [Speaks First](#speaks-first). |
+
+### Tool call columns (`TC_`)
+
+Any column whose header starts with `TC_` defines an **expected tool call**. The tool name is whatever follows the prefix, so `TC_lookup_account` expects a call to `lookup_account`. The cell value can be either:
+
+- **A plain string**, treated as the expected tool **output** (e.g. `account_lookup_completed`).
+- **A JSON object** with `output` and/or `parameters` keys (e.g. `{"output":"identity_verified"}` or `{"parameters":{"account_id":"12345"}}`). If the object has neither key, the whole object is treated as the expected `parameters`.
+
+### Custom trait columns (`CT_`)
+
+Any column whose header starts with `CT_` defines a **custom trait**. The trait name is whatever follows the prefix, so `CT_customer_tier` becomes a trait named `customer_tier`. The cell is the trait value (parsed as JSON when it looks like JSON, otherwise stored as a plain string).
+
+### Partial rows and defaults
+
+Rows can be sparse, so a row with just `Intent` and one `TC_` column is perfectly valid. Empty **behavior** cells (voice, creativity, interruptions, and the rest) fall through to the simulation's **Default Generation Settings**; name and avatar are auto-assigned when omitted. Every row produces a runnable Digital Human.
+
+<Tip>
+  Keep one CSV per benchmark and commit it alongside your repo. Re-uploading the same file reproduces the exact same population, which is handy for regression suites and for sharing test matrices across a team.
+</Tip>
+
+## JSON Column Formats
+
+Three columns take JSON. You can author these in a spreadsheet (Bluejay will [auto-repair](#validation-and-auto-correction) the most common quoting mistakes), but the Sample CSV is the easiest starting point.
+
+### Scripted Responses
+
+Make a Digital Human reply deterministically when your agent says (or means) something specific. The cell is **either a single JSON object or an array of objects**. Each object supports:
+
+| Field | Required | Accepted values | Meaning |
+|---|---|---|---|
+| `match_phrase` | ✅ | string | The agent utterance (or context) that triggers the response. |
+| `match_type` | Optional | `exact`, `context` | `exact` is a literal utterance match; `context` is a semantic match. Defaults to `exact`. |
+| `response_type` | Optional | `phrase`, `dtmf`, `silence` | What the Digital Human does when matched. Defaults to `phrase`. |
+| `response_value` | Optional | string | For `phrase`: the words to say. For `dtmf`: comma-separated digits, e.g. `1,2,3,4`. For `silence`: optional words to say *after* the pause. |
+| `occurrence_mode` | Optional | `always`, `first_n` | Whether the rule fires every time or only the first N matches. Defaults to `always`. |
+| `occurrence_n` | Optional | number | How many times, when `occurrence_mode` is `first_n`. |
+| `silence_duration` | Optional | number (1 to 600 seconds) | How long to stay silent, when `response_type` is `silence`. Omit for "silent until the next turn." |
+
+```json Example: array of two rules
+[
+  {
+    "match_type": "context",
+    "match_phrase": "If you ask me to stay quiet, I should remain silent.",
+    "response_type": "silence",
+    "response_value": "Thanks, I can speak now.",
+    "occurrence_mode": "always",
+    "silence_duration": 8
+  },
+  {
+    "match_type": "exact",
+    "match_phrase": "Please enter your PIN",
+    "response_type": "dtmf",
+    "response_value": "1,2,3,4",
+    "occurrence_mode": "first_n",
+    "occurrence_n": 1
+  }
+]
+```
+
+<Note>
+  Audio scripted responses (playing an uploaded clip) can't be attached through a CSV because there's no file to reference. Add those in the scripted-responses editor after import.
+</Note>
+
+### Interruptions
+
+A single JSON object keyed by `interruptions_type`:
+
+<Tabs>
+  <Tab title="none">
+    ```json
+    { "interruptions_type": "none" }
+    ```
+  </Tab>
+  <Tab title="probabilistic">
+    ```json
+    {
+      "interruptions_type": "probabilistic",
+      "probability_of_default_interrupt": 0.5
+    }
+    ```
+    `probability_of_default_interrupt` must be between `0` and `1`.
+  </Tab>
+  <Tab title="keyword">
+    ```json
+    {
+      "interruptions_type": "keyword",
+      "keyword_responses": {
+        "refund": { "response": "Yes, the refund!", "probability": 0.8 }
+      }
+    }
+    ```
+    At least one keyword is required; each needs a `response` (string) and `probability` (`0` to `1`).
+  </Tab>
+  <Tab title="llm (contextual)">
+    ```json
+    {
+      "interruptions_type": "llm",
+      "llm_prompt": { "user_prompt": "Interrupt whenever the agent rambles." }
+    }
+    ```
+    `llm_prompt.user_prompt` must be a non-empty string.
+  </Tab>
+</Tabs>
+
+### Speaks First
+
+Controls whether the Digital Human opens the conversation:
+
+```json speaks_first: AI-generated opener
+{ "speaks_first": true, "mode": "ai_generated" }
+```
+
+```json speaks_first: custom opener
+{ "speaks_first": true, "mode": "custom", "message": "Hi, I'm calling about my bill." }
+```
+
+```json Agent speaks first
+{ "speaks_first": false }
+```
+
+When `speaks_first` is `true`, `mode` must be `ai_generated` or `custom`; `custom` requires a non-empty `message`.
+
+## Validation and auto-correction
+
+Bluejay validates every row as it parses and reports issues without blocking the rows that are fine:
+
+- **Per-row errors** (an invalid enum value, an out-of-range number, malformed JSON, an unrecognized `Voice` key) surface in an error toast listing the first few problems and a count of the rest. The offending field is skipped or defaulted; the rest of the row still imports.
+- **JSON auto-repair.** JSON cells are parsed strictly first. If that fails, Bluejay makes a best-effort repair of the two most common spreadsheet mistakes (unescaped inner double-quotes, and raw newlines or tabs pasted into a cell), then re-parses. When a cell is repaired this way, a warning toast asks you to **verify those rows**, since the repair is a guess.
+
+<Warning>
+  Auto-correction is conservative and can't fix every malformed cell. After importing a CSV that triggered a "verify these rows" warning, spot-check the affected Digital Humans (especially Scripted Responses) before running the simulation.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/key-concepts/digital-humans/configuration">
+    The full set of behavior levers, explained. These are the same fields the CSV columns map to.
+  </Card>
+  <Card title="Use Cases" icon="lightbulb" href="/key-concepts/digital-humans/use-cases">
+    Real-world patterns for building effective Digital Human test suites.
+  </Card>
+  <Card title="Customer Journeys" icon="route" href="/test/simulations/customer-journeys">
+    Multi-step sequences run by a single persona. Another Create Simulation method.
+  </Card>
+  <Card title="Generate via API" icon="code" href="/api-reference/endpoint/generate-digital-humans">
+    Create Digital Humans programmatically with the generation endpoint.
+  </Card>
+</CardGroup>
