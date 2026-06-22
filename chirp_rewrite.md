@@ -304,7 +304,7 @@ A minimum-integration customer can choose to send only `binary` frames and recei
     "type": "mark",
     "id":   "uuid",
     "ts_ms": 1729123456789,
-    "data": { "name": "prompt-1" }
+    "data": { "name": "agent-greeting" }
   }
 ```
 
@@ -350,13 +350,13 @@ Illustrates every message kind in one session, covering the minimum integration,
                         "type": "mark",
                         "id": "cust-mark-0001",
                         "ts_ms": 1729123457000,
-                        "data": { "name": "prompt-1" }
+                        "data": { "name": "agent-greeting" }
                       }
 [Bluejay -> Customer] text {                # ~queued_duration later, when drained
                         "type": "mark",
                         "id": "b1-mark-0001",
                         "ts_ms": 1729123457260,
-                        "data": { "name": "prompt-1" }
+                        "data": { "name": "agent-greeting" }
                       }
 
 # 3. LiveKit voice agent responds. We emit speech events + binary.
@@ -551,10 +551,10 @@ sequenceDiagram
     C->>B: binary <pcm 20ms>
     C->>B: binary <pcm 20ms>
     Note over B: frames captured into AudioSource (queued_duration = T)
-    C->>B: text { type mark, data { name "prompt-1" } }
+    C->>B: text { type mark, data { name "agent-greeting" } }
     Note over B: read queued_duration = T; schedule echo in T seconds
     Note over B: ...audio plays out to the agent...
-    B->>C: text { type mark, data { name "prompt-1" } }
+    B->>C: text { type mark, data { name "agent-greeting" } }
     Note over C: matched by name -> start silence / interruption timing
 ```
 
