@@ -1,0 +1,192 @@
+---
+title: 'Dialogflow CX Simulations'
+description: 'Connect, test, version, and promote your Google Dialogflow CX agents from Bluejay'
+icon: 'google'
+---
+
+Bluejay connects directly to your **Google Dialogflow CX (DFCX)** agents so you can test them
+with digital humans, visualize and edit their workflow, and — using the same APIs as the DFCX
+console — **snapshot versions and promote them to your environments**.
+
+The integration is **org-level**: you grant Bluejay access to your Google Cloud project once,
+sync your agents, and every DFCX agent in the project becomes available to test.
+
+### Prerequisites
+
+- A **Google Cloud project** with the **Dialogflow API enabled**.
+- At least one **Dialogflow CX agent** in that project.
+- Permission to grant a service identity access to the project (to complete the steps below).
+
+Enable the Dialogflow API from **APIs & Services → Library → Dialogflow API** — it should read **API Enabled**:
+
+![Dialogflow API enabled in the Google Cloud console](/images/google-dfcx-enable-api.png)
+
+<Note>
+The same credential also discovers **Google Conversational Engine (CES)** agents in the project, so
+both Google agent types are picked up by a single connection.
+</Note>
+
+---
+
+## 1. Grant Bluejay access (service account)
+
+Bluejay authenticates to your Google Cloud project with a **service-account key** that you create
+and paste into Bluejay. The key is encrypted at rest and scoped to Dialogflow only — it lets
+Bluejay talk to your agents, nothing else.
+
+### Step 1 — Create a service account with the right role
+
+In the [Google Cloud Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts):
+
+1. **Create Service Account** → give it a name (e.g. `bluejay-dfcx`).
+
+![Create the service account](/images/google-dfcx-create-sa.png)
+
+2. Grant it a role based on what you want Bluejay to do:
+
+| You want to… | Grant |
+| --- | --- |
+| **Test agents only** (read + run simulations) | `roles/dialogflow.client` |
+| **Edit, version, and promote** workflows | `roles/dialogflow.admin` |
+
+![Grant the Dialogflow API Admin role](/images/google-dfcx-sa-role.png)
+
+`roles/dialogflow.admin` covers the full feature set Bluejay uses — listing agents (sync), reading
+flows/pages/intents/playbooks/tools, pushing edits, creating versions, and deploying to
+environments. If you scope more tightly, the underlying permissions are `dialogflow.agents.*`,
+`dialogflow.flows.*`, `dialogflow.pages.*`, `dialogflow.intents.*`, `dialogflow.tools.*`,
+`dialogflow.playbooks.*`, `dialogflow.versions.*`, and `dialogflow.environments.deploy`.
+
+### Step 2 — Create a JSON key
+
+On that service account, open the **Keys** tab → **Add Key → Create new key → JSON** → **Create**.
+A `.json` key file downloads to your machine.
+
+<Warning>
+Treat the key file like a password — it grants the role above on your project until you rotate or
+delete it. You can revoke it anytime from the same **Keys** tab.
+</Warning>
+
+### Step 3 — Add it to Bluejay
+
+1. Log into your **Bluejay Dashboard**.
+2. Click your **Organization** menu (bottom-left) → **Integrations** → **Google Agents**.
+3. Paste the contents of the JSON key file into **Service Account Key (JSON)**.
+4. Click **Save**.
+
+![Paste the service-account key in the Google Agents integration](/images/google-dfcx-integrations-tab.png)
+
+The key is **encrypted at rest** and only ever used to call the Dialogflow APIs for your agents.
+
+---
+
+## 2. Sync your Google agents
+
+Once the credential is saved, discover your agents:
+
+1. In **Settings → Integrations → Google Agents**, click **Sync**.
+2. Bluejay scans your project across all Dialogflow locations and creates an agent in Bluejay for
+   every DFCX (and CES) agent it finds.
+
+The sync result reports how many agents were **created**, **updated**, or **removed** (an agent
+deleted in Google is flagged in Bluejay rather than dropped). Re-run Sync any time you add agents
+in Google.
+
+---
+
+## 3. Connect an agent
+
+Most agents are wired up automatically by Sync. To connect or adjust one manually:
+
+1. Open the agent's **Connection** settings.
+2. Choose the **Google Dialogflow CX** connection type — **Voice** or **Chat**.
+3. Paste the agent's resource path. You can paste either the full DFCX console URL or the path
+   directly — Bluejay normalizes it to:
+
+   ```
+   projects/{PROJECT_ID}/locations/{LOCATION}/agents/{AGENT_ID}
+   ```
+
+That's all that's needed — the org-level credential from Step 1 handles authentication.
+
+---
+
+## 4. Test your agent
+
+With an agent connected you can run simulations against it like any other Bluejay agent. In
+**Simulations → Create Simulation**, pick a simulation type — **Generate From Workflow** is the one
+that reads your DFCX agent directly:
+
+![Create Simulation — pick a type](/images/google-dfcx-sim-types.png)
+
+- **Voice** simulations bridge audio between a Bluejay digital human (the caller) and your DFCX
+  agent in real time.
+- **Chat** simulations drive a turn-by-turn text conversation.
+
+**Generate From Workflow** reads your synced agent and proposes test cases drawn from *all* of its
+authored logic — flow intents and event handlers, and each playbook's goal, instruction steps,
+tool calls, and handoffs. Multi-step handoffs are composed into **end-to-end journeys** (for
+example, *Default Start Flow → Billing Disputes Flow → Billing Specialist Playbook*), so you can
+test realistic paths, not just isolated steps. Pick how many digital humans to generate per
+scenario and hit **Generate**.
+
+![Test cases generated from your workflow](/images/google-dfcx-generate.png)
+
+---
+
+## 5. Edit the workflow
+
+Open the agent's **Workflow** tab to see its flows, pages, routes, event handlers, and playbooks on
+an interactive canvas.
+
+- **Pull** refreshes Bluejay's copy from the live DFCX agent.
+- Edit nodes, routes, and handlers directly on the canvas.
+- **Push to DFCX** sends your local edits back to the agent's **draft**. A diff preview shows
+  exactly what will change, and conflicts are surfaced if the agent drifted on Google's side since
+  your last sync.
+
+![The DFCX workflow canvas in Bluejay](/images/google-dfcx-workflow-canvas.png)
+
+---
+
+## 6. Versioning & promotion
+
+Bluejay is a thin, governed front door to DFCX's own versioning and environments — a version or
+deployment you make here is a **real DFCX version/deployment** and shows up in the DFCX console.
+
+### Version on push
+
+When pushing, enable **Version on push** to snapshot the flows and playbooks your push changed into
+new immutable DFCX versions — automatically, and only for what actually changed. The result tells
+you which versions were created.
+
+<Note>
+Snapshotting is safe: versions are immutable copies in your draft project. DFCX caps the number of
+versions per flow, so versioning is opt-in per push rather than automatic on every save.
+</Note>
+
+### Promote to an environment
+
+Use **Promote** to deploy flow versions into one of your DFCX **environments** (e.g. Staging,
+Production):
+
+1. Click **Promote** on the workflow.
+2. Choose the **target environment**.
+3. For each flow, pick the **version** to deploy (or leave it unchanged).
+4. Confirm.
+
+This calls the same `deployFlow` operation as the DFCX console — the environment immediately serves
+the deployed versions, and the deployment appears in your DFCX deployment history.
+
+---
+
+## Summary
+
+| Step | Where | What it does |
+| --- | --- | --- |
+| Grant access | Org → Integrations → Google Agents | Paste a Dialogflow-scoped service-account key JSON |
+| Sync | Settings → Integrations → Google Agents | Discover all DFCX + CES agents in the project |
+| Connect | Agent → Connection | Paste the `projects/.../agents/...` path; pick Voice or Chat |
+| Test | Simulations | Generate digital humans from the workflow and run them |
+| Edit | Agent → Workflow | Pull, edit on canvas, Push to DFCX (with diff + conflict checks) |
+| Version & promote | Agent → Workflow | Version-on-push; Promote flow versions to an environment |
