@@ -41,11 +41,15 @@ Bluejay uses threshold alerts that count how many times a metric crosses a bound
 
 ```mermaid
 flowchart LR
-    Metric[Metric Watched] --> Threshold[Threshold Crossed]
-    Threshold --> Window[Window Reached]
-    Window --> Fire[Alert Fires]
-    Fire --> Notify[Slack / Email]
-    Fire --> Badge[Dashboard Badge]
+    Eval[Call or Simulation Evaluated] --> Score[Metric Scored]
+    Score --> Cross{Score Crosses Boundary?}
+    Cross -->|No| OK[No Violation]
+    Cross -->|Yes| Count[Violation Counted]
+    Count --> Window{"Enough Violations\nin Time Window?"}
+    Window -->|No| Wait[Continue Monitoring]
+    Window -->|Yes| Fire[Alert Triggered]
+    Fire --> Notify[Slack / Email Notification]
+    Fire --> Badge[Alert Badge on Dashboard]
 ```
 
 ## Anatomy of an Alert
