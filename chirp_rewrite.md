@@ -36,7 +36,7 @@ todos:
     content: Write the one-page customer-facing CHIRP spec doc emphasizing the zero-JSON minimum integration
     status: pending
   - id: mark-message
-    content: Add MessageType.MARK ("mark") + mark(name) builder + require_name() to chirp_message.py; on customer mark, echo the same name after audio_source.queued_duration drains; cancel pending echoes on barge-in/stop; mirror in tests/websocket_server.py. Playback-acknowledgment ack requested by RASA (replaces Twilio media-stream marks). Name-only; no streamSid/sequenceNumber/nesting.
+    content: Add MessageType.MARK ("mark") + mark(name) builder + require_name() to chirp_message.py; on customer mark, echo the same name after audio_source.queued_duration drains; cancel pending echoes on session stop only (barge-in does NOT cancel them — it interrupts the agent's outbound speech and never clears the customer-audio buffer marks are timed against); mirror in tests/websocket_server.py. Playback-acknowledgment ack requested by RASA (replaces Twilio media-stream marks). Name-only; no streamSid/sequenceNumber/nesting.
     status: pending
 isProject: false
 ---
