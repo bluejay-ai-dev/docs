@@ -35,6 +35,9 @@ todos:
   - id: spec-doc
     content: Write the one-page customer-facing CHIRP spec doc emphasizing the zero-JSON minimum integration
     status: pending
+  - id: mark-message
+    content: Add MessageType.MARK ("mark") + mark(name) builder + require_name() to chirp_message.py; on customer mark, echo the same name after audio_source.queued_duration drains; cancel pending echoes on session stop only (barge-in does NOT cancel them — it interrupts the agent's outbound speech and never clears the customer-audio buffer marks are timed against); mirror in tests/websocket_server.py. Playback-acknowledgment ack requested by RASA (replaces Twilio media-stream marks). Name-only; no streamSid/sequenceNumber/nesting.
+    status: pending
 isProject: false
 ---
 
@@ -141,6 +144,7 @@ Customers with their own VAD or push-to-talk source can send speech events for t
 | `speech.started` while we are mid-utterance | We immediately stop sending agent audio, call LiveKit's agent interrupt API, emit `speech.completed` for the canceled utterance, switch to listening |
 | `speech.started` when we are idle           | Informational; logged. LiveKit's VAD will trigger the agent off the audio anyway                                                                     |
 | `speech.completed`                          | Informational; can shave VAD-tail-padding latency by signaling end-of-turn explicitly                                                                |
+| `mark` after sending audio                  | We echo a `mark` with the same `name` once that audio has played out into the agent's listening pipeline — a playback-completion acknowledgment      |
 
 
 There is no separate `interrupt` message. Sending `speech.started` while we are speaking *is* the interrupt.
@@ -149,7 +153,7 @@ There is no separate `interrupt` message. Sending `speech.started` while we are 
 
 ## Protocol reference (the full wire vocabulary)
 
-The entire protocol consists of **four message kinds** exchanged over the WebSocket. Everything else is implied.
+The entire protocol consists of **five message kinds** exchanged over the WebSocket. Everything else is implied.
 
 ### Summary table
 
@@ -160,6 +164,7 @@ The entire protocol consists of **four message kinds** exchanged over the WebSoc
 | `speech.started`   | `text` JSON   | **Automatic**, sent by us when LiveKit agent starts TTS   | **Optional.** If sent, acts as interrupt if agent is mid-utterance        |
 | `speech.completed` | `text` JSON   | **Automatic**, sent by us when LiveKit agent finishes TTS | **Optional.** Informational end-of-turn hint                              |
 | `session.error`    | `text` JSON   | Sent by us on customer's protocol violation               | Sent by customer on our protocol violation, or server-side trouble        |
+| `mark`             | `text` JSON   | **Echo only** — returned with the same `name` once the customer's pre-mark audio has played out | **Optional.** Playback-acknowledgment checkpoint; we echo it back when that audio is heard |
 
 
 A minimum-integration customer can choose to send only `binary` frames and receive only `binary` frames. They never have to parse or emit any JSON.
@@ -287,6 +292,32 @@ A minimum-integration customer can choose to send only `binary` frames and recei
 
 ---
 
+### Message 5 — `mark`
+
+- **WS frame type**: `text`
+- **Both directions** — customer sends a checkpoint, we echo it.
+- **Required**: never. Opt-in playback acknowledgment. Minimum-integration customers never use it.
+- **Shape**:
+
+```json
+  {
+    "type": "mark",
+    "id":   "uuid",
+    "ts_ms": 1729123456789,
+    "data": { "name": "agent-greeting" }
+  }
+```
+
+- **Required fields inside `data`**: `name` (string) — a free-form label the customer picks, echoed back verbatim so they can match the ack to what they sent.
+- **Semantics** (a playback-completion acknowledgment — the CHIRP equivalent of a Twilio Media Streams `mark`):
+  - **Customer -> Bluejay**: "Acknowledge once the audio I sent *before* this mark has been played out." Because frames and text share one ordered receive loop, every binary frame before the mark is already captured into LiveKit's `AudioSource` by the time we see the mark. We read `audio_source.queued_duration` (seconds still buffered) at that instant and echo a `mark` with the same `name` after that much time has elapsed — i.e. when that audio has actually been heard by the agent. If nothing is buffered, we echo immediately.
+  - **Bluejay -> Customer**: the echo. Same `data.name`, fresh `id` / `ts_ms`. We do **not** originate marks on our own (agent TTS) audio in v1 — we only echo customer marks.
+- **What we intentionally do not carry** (Twilio-specific, unnecessary here): `streamSid` (one WebSocket *is* one session), `sequenceNumber` (the envelope's `id` + `ts_ms` already order and uniquely identify frames), and the nested `mark{}` wrapper (flattened to `data.name`).
+- **Interaction with barge-in**: barge-in does not affect mark echoes. A customer `speech.started` interrupts the *agent's outbound* speech (via the LiveKit interrupt path); it never clears the customer→agent audio buffer that marks are timed against, so pending echoes still complete normally. Only session teardown cancels them, and an echo that fires after the WebSocket has closed is a harmless no-op.
+- **Use case**: lets the customer's agent know exactly when its audio finished playing, which is what drives silence-detection timers and interruption handling on their side.
+
+---
+
 ### utterance_id
 
 A free-form string (UUID, timestamp, counter — anything unique within the session). Used to match `speech.started` to its `speech.completed`. Server-minted for events we send. Customer mints their own for events they send. Customers using the minimum integration never see or generate one.
@@ -312,6 +343,21 @@ Illustrates every message kind in one session, covering the minimum integration,
 [Customer -> Bluejay] binary <640 bytes>
 [Customer -> Bluejay] binary <640 bytes>
 [Customer -> Bluejay] binary <640 bytes>   # user pauses here; LiveKit VAD fires
+
+# 2b. (Advanced, opt-in) Customer marks the audio it just sent.
+#     We echo it once that audio has played out into the agent's pipeline.
+[Customer -> Bluejay] text {
+                        "type": "mark",
+                        "id": "cust-mark-0001",
+                        "ts_ms": 1729123457000,
+                        "data": { "name": "agent-greeting" }
+                      }
+[Bluejay -> Customer] text {                # ~queued_duration later, when drained
+                        "type": "mark",
+                        "id": "b1-mark-0001",
+                        "ts_ms": 1729123457260,
+                        "data": { "name": "agent-greeting" }
+                      }
 
 # 3. LiveKit voice agent responds. We emit speech events + binary.
 [Bluejay -> Customer] text {
@@ -398,6 +444,7 @@ Illustrates every message kind in one session, covering the minimum integration,
 | Unknown `type` value                                  | Recoverable | Send `session.error { code: INVALID_MESSAGE }`, drop the frame (forward-compat for new types) |
 | `speech.started` missing `data.utterance_id`          | Recoverable | Send `session.error { code: MISSING_FIELD }`, drop                                            |
 | `speech.completed` for an unknown utterance_id        | Recoverable | Log warning, ignore                                                                           |
+| `mark` missing `data.name`                            | Recoverable | Send `session.error { code: MISSING_FIELD }`, drop                                            |
 | Binary frame with odd byte length (not int16-aligned) | Recoverable | Send `session.error { code: INVALID_AUDIO_FRAME }`, drop                                      |
 | Customer closes the WS gracefully                     | Normal end  | Tear down LiveKit session; status based on call completion                                    |
 | Customer's WS dies (network drop, server crash)       | Fatal       | Catch `ConnectionClosed`, set `INCOMPLETED`, end LiveKit session                              |
@@ -490,6 +537,25 @@ sequenceDiagram
     C->>B: binary <pcm 20ms>
     C->>B: binary <pcm 20ms>
     C->>B: text { type speech.completed, data { utterance_id u_user } }
+```
+
+
+
+### Mark acknowledgment (opt-in playback ack)
+
+```mermaid
+sequenceDiagram
+    participant C as Customer (WS server)
+    participant B as Bluejay (WS client)
+
+    C->>B: binary <pcm 20ms>
+    C->>B: binary <pcm 20ms>
+    Note over B: frames captured into AudioSource (queued_duration = T)
+    C->>B: text { type mark, data { name "agent-greeting" } }
+    Note over B: read queued_duration = T; schedule echo in T seconds
+    Note over B: ...audio plays out to the agent...
+    B->>C: text { type mark, data { name "agent-greeting" } }
+    Note over C: matched by name -> start silence / interruption timing
 ```
 
 
