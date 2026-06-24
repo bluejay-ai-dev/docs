@@ -1,0 +1,147 @@
+---
+title: Overview
+description: How Bluejay scores the audio quality of every call and what each sub-score means
+icon: waveform-lines
+---
+
+**Audio fidelity** is the overall **quality and clarity of the call audio**. In plain terms, it answers a single question: how clean and intelligible did the call sound?
+
+Low audio fidelity drags down almost everything downstream of the audio itself, including transcription accuracy, intent detection, turn taking, and customer satisfaction. Even a well-built agent can look broken on a call whose audio was noisy, choppy, or distorted.
+
+## What You'll Learn
+
+- What audio fidelity is and which signals drive it
+- The **overall fidelity score** and the **six sub-scores** that explain it
+- How **agent audio** and **customer audio** are graded separately
+- When audio fidelity is the real root cause of a call going wrong
+
+## How Bluejay Scores Audio Fidelity
+
+Bluejay grades every call with **14 built-in audio quality metrics**: 7 for the agent's audio and 7 for the customer's audio. Each side produces:
+
+- One **overall audio fidelity score**, out of 100. **Higher is better, lower is worse.**
+- Six **sub-scores** that break down what is driving the overall number.
+
+In simulations, only the agent's audio is shown because the Digital Human's synthetic audio is not a meaningful grading target. In production calls, both sides are scored so you can attribute any quality drop to the right party.
+
+![Audio fidelity scoring in Bluejay](/images/audio-fidelity.gif)
+
+## The Six Sub-Scores
+
+Each sub-score is graded out of 100. **Low values are good, high values are bad, except for loudness where mid-range is best.** Click each sub-score to see what it measures.
+
+<AccordionGroup>
+  <Accordion title="Noise" icon="volume-high">
+    Background noise on the audio channel. **Low is good, high is bad.** Common causes: hum, hiss, road traffic, HVAC, fans.
+  </Accordion>
+  <Accordion title="Reverb" icon="wave-square">
+    Reverberation and echo from the room or the codec. **Low is good, high is bad.** High reverb makes speech harder for both human listeners and the speech recognizer to follow.
+  </Accordion>
+  <Accordion title="Interfering speech" icon="users">
+    Other voices bleeding into the channel. **Low is good, high is bad.** Common causes: a TV in the background, two people talking near the mic, crosstalk on a shared line.
+  </Accordion>
+  <Accordion title="Background media" icon="music">
+    Music, on-hold tones, or other media playing while someone is speaking. **Low is good, high is bad.**
+  </Accordion>
+  <Accordion title="Packet loss" icon="wifi">
+    Network gaps in the audio stream. **Low is good, high is bad.** High packet loss shows up as choppy or robotic-sounding speech.
+  </Accordion>
+  <Accordion title="Loudness" icon="volume-low">
+    Speech volume. **Mid-range is best.** Too quiet and the recognizer cannot make out the words. Too loud and the audio clips and distorts.
+  </Accordion>
+</AccordionGroup>
+
+## Agent vs Customer Scoring
+
+Bluejay grades the two sides of a call separately so you can attribute the quality issue to the right party.
+
+<AccordionGroup>
+  <Accordion title="Agent audio" icon="robot">
+    Always graded, both in production and in simulations. Use it to catch problems on the agent side: a bad microphone, codec issues, model audio glitches, or TTS distortion.
+  </Accordion>
+  <Accordion title="Customer audio" icon="user">
+    Graded in production. Hidden in simulations because the Digital Human's synthetic audio is not a meaningful target. Use it on production calls to catch issues on the caller side: cellular dropout, a noisy environment, a low-quality microphone.
+  </Accordion>
+</AccordionGroup>
+
+## What "Good" vs "Poor" Audio Sounds Like
+
+<AccordionGroup>
+  <Accordion title="Good audio fidelity" icon="circle-check">
+    - The agent sounds clear.
+    - The caller sounds clear.
+    - Background noise is low.
+    - Words are easy to understand.
+    - No clipping, crackling, or robotic artifacts.
+  </Accordion>
+  <Accordion title="Poor audio fidelity" icon="circle-xmark">
+    - Muffled speech.
+    - Choppy audio.
+    - Robotic or over-compressed voice.
+    - Loud background noise.
+    - Echo or reverb.
+    - Overlapping or interfering voices.
+    - Audio cutting in and out.
+  </Accordion>
+</AccordionGroup>
+
+## Why It Matters
+
+Audio fidelity sits upstream of almost every other call metric. Poor audio can cause:
+
+- **Worse transcription accuracy** that breaks downstream evaluation.
+- **Missed intents** because the recognizer never heard the right words.
+- **Awkward turn-taking** when the agent cannot tell whether the caller is done speaking.
+- **Slower or incorrect responses** based on garbled input.
+- **Caller frustration** when the agent keeps asking for repeats.
+
+If a call "felt bad" but the prompt, workflow, and metric scores all look fine, audio fidelity is often the missing root cause.
+
+## A Simple Example
+
+If the caller says:
+
+> "I need a ride next Tuesday at 4:15."
+
+and the audio is noisy or distorted, the recognizer may hear the wrong day, the wrong time, or fail to understand the request at all. That is why audio fidelity is operationally important even when nothing about the agent's logic changed.
+
+## When to Look at Audio Fidelity
+
+- A high-quality agent suddenly has worse pass rates and you cannot find a logic regression.
+- Transcription confidence drops on a specific cohort of calls.
+- Customer escalations mention "the line was bad" or "I had to repeat myself."
+- A specific provider, region, or device class shows more failures than baseline.
+
+## How It Connects to Other Bluejay Concepts
+
+<AccordionGroup>
+  <Accordion title="Custom Metrics" icon="gauge-high">
+    The overall audio fidelity score and its six sub-scores are built-in. Pair them with your **Custom Metrics** so a metric that fails because of audio gets a clean explanation rather than a vague "the agent did not understand."
+  </Accordion>
+  <Accordion title="Dashboards" icon="table-columns">
+    Track audio fidelity over time on a **Dashboard** to spot regressions when a new codec, region, or provider gets rolled out.
+  </Accordion>
+  <Accordion title="Alerts" icon="bell">
+    Set an **Alert** on the overall fidelity score (or a specific sub-score like packet loss) so the on-call team is notified when audio quality drops.
+  </Accordion>
+  <Accordion title="Traces" icon="route">
+    Open a **Trace** for any low-fidelity call to inspect the moment-by-moment audio metrics alongside the conversation.
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
+    Pair audio fidelity with your domain-specific metrics for richer scoring.
+  </Card>
+  <Card title="Dashboards" icon="table-columns" href="/key-concepts/dashboards/overview">
+    Visualize fidelity trends over time and across agents.
+  </Card>
+  <Card title="Alerts" icon="bell" href="/key-concepts/alerts/overview">
+    Get notified when fidelity drops below a threshold.
+  </Card>
+  <Card title="Traces" icon="route" href="/core-concepts/traces/overview">
+    Inspect the moment-by-moment audio signals on a specific call.
+  </Card>
+</CardGroup>
