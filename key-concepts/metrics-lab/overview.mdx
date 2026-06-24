@@ -1,115 +1,174 @@
 ---
 title: Overview
-description: Align your AI evaluations with human-annotated outcomes using agent alignment in the Metrics Lab
+description: Clone your QA engineer's judgment into Bluejay's evaluator with the Metrics Lab, a human in the loop workflow that keeps your AI scoring conversations the way your reviewers would
 icon: flask
 ---
 
-The Metrics Lab is where you teach Bluejay's evaluator to grade calls the way your team would. You annotate a representative set of calls with the outcome you believe is correct, and Bluejay tunes your Custom Metric so that its verdicts on future calls match the verdicts you would have given. This process is called **agent alignment**, and it is a practical application of reinforcement learning from human feedback (RLHF).
+The Metrics Lab is where you teach Bluejay's evaluator to grade conversations the way your QA team would. You bring in a set of real conversations, your reviewer annotates each one with the verdict they believe is correct, and Bluejay tunes your Custom Metric until its AI verdicts line up with your reviewer's. The result is an evaluator that keeps your QA engineer's decision making in the loop, applied automatically across every conversation.
 
-## What You'll Learn
+The walkthrough below covers the entire flow end to end, from creating a lab through annotating conversations, improving the metric, and publishing it to production.
 
-- What agent alignment is and why it matters
-- How human annotations shape the metric's future evaluations
-- When to use the Metrics Lab
-- How to run an alignment cycle end to end
+<iframe
+  src="https://www.youtube.com/embed/9OaFvPKCvaI"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
 
 ## The Idea in One Paragraph
 
-Take a representative subset of your calls. Annotate each one with the outcome a human reviewer believes is correct. Bluejay then adjusts your Custom Metric so that its AI evaluations on that subset match your human annotations. If the subset is representative of the calls your agent handles, the tuned metric will generalize, returning verdicts on new calls that line up with how your team would grade them.
+Your best QA engineer already knows what a passing conversation looks like. The problem is that their judgment lives in one person's head and cannot scale to thousands of conversations. The Metrics Lab is how you clone that judgment into the evaluator. Your reviewer annotates a representative set of conversations with the correct outcome, Bluejay measures where the AI disagrees with them, and you improve the metric until the two agree. Once they agree on your sample, the metric carries your reviewer's standard onto every new conversation automatically.
 
-## How Agent Alignment Works
+## Human in the Loop
+
+Most automated evaluation hands the entire decision to a generic model and hopes it matches your standard. The Metrics Lab does the opposite. Your reviewer stays in the loop the whole time, and their annotations are the ground truth that the metric is tuned against.
+
+<CardGroup cols={2}>
+  <Card title="Your standard, not a generic one" icon="user-check">
+    The metric is graded against your reviewer's verdicts, so it encodes how your team defines a good conversation rather than how a generic LLM guesses.
+  </Card>
+  <Card title="Decision making that scales" icon="arrows-rotate">
+    One reviewer annotates a sample, and the aligned metric applies that same judgment to thousands of conversations.
+  </Card>
+  <Card title="A defensible record" icon="scale-balanced">
+    Your annotations are a concrete record of how your team grades conversations. New hires can review it, and auditors can review it.
+  </Card>
+  <Card title="Evaluations you trust" icon="circle-check">
+    Because the metric is measured against human verdicts, the dashboard reflects reality and not a model's intuition.
+  </Card>
+</CardGroup>
+
+## How Alignment Works
 
 ```mermaid
 flowchart TD
-    Calls[Pick a representative sample of calls] --> Annotate[Human annotates each call with the correct outcome]
-    Annotate --> Compare[Compare AI evaluations to human annotations]
-    Compare --> Gap{Verdicts match?}
-    Gap -->|No| Tune[Tune the metric prompt and scoring logic]
-    Tune --> Compare
-    Gap -->|Yes| Promote[Promote the aligned metric to production]
-    Promote --> Generalize[Aligned metric grades new calls the way your team would]
+    Create[Create a lab with a metric and a sample of conversations] --> Annotate[Reviewer annotates each conversation with the correct verdict]
+    Annotate --> Compare[Bluejay compares AI verdicts to human verdicts]
+    Compare --> Score{Alignment high enough?}
+    Score -->|No| Improve[Improve the metric, then re-run evaluation]
+    Improve --> Compare
+    Score -->|Yes| Publish[Publish the aligned metric to production]
+    Publish --> Generalize[The metric grades new conversations the way your reviewer would]
 ```
 
-The loop is the part that does the work. Each pass, Bluejay closes the distance between the AI's verdict and the human's verdict. When the two agree across the sample, the metric is ready to leave the Lab.
+The loop is the part that does the work. Each pass closes the distance between the AI's verdict and your reviewer's verdict. When the two agree across the sample, measured by the alignment score, the metric is ready to leave the lab.
 
-### Why a Subset Generalizes
+### Why a Sample Generalizes
 
-Every alignment system rests on one assumption: the calls you annotate are a fair cross-section of the calls you actually receive. If your sample covers the scenarios that occur in production, including the borderline cases, then a metric tuned to match human verdicts on that sample will continue to match them on new calls. If your sample is skewed, the tuning will be skewed too.
+Alignment rests on one assumption: the conversations you annotate are a fair cross section of the conversations you actually receive. If your sample covers the scenarios that occur in production, including the borderline ones, then a metric tuned to match human verdicts on that sample keeps matching them on new conversations. If your sample is skewed, the tuning will be skewed too.
 
 A short rule of thumb when you build the sample:
 
 - Include obvious passes and obvious fails so the metric has clear anchors.
-- Include the ambiguous middle, because that is where the AI and humans disagree most often.
-- Cover each Digital Human intent or production scenario that you care about.
+- Include the ambiguous middle, because that is where the AI and your reviewer disagree most often.
+- Cover each Digital Human intent or production scenario you care about.
 
-### Where RLHF Fits In
+Twenty to fifty conversations is a good starting range for a single metric.
 
-Reinforcement learning from human feedback is the family of techniques that powers most modern AI assistants. The recipe is always the same: a model produces an output, a person rates it, and the system updates so that future outputs look more like what the person preferred. Agent alignment is the same idea applied to a single Custom Metric. The "model" is the metric. The "rating" is your annotation. The "update" is the metric tuning that the Lab runs for you.
+## Walkthrough
 
-## What You Get Out of It
+### 1. Create a Lab
 
-<CardGroup cols={2}>
-  <Card title="Evaluations you trust" icon="circle-check">
-    The metric grades calls the way your team would, so the dashboard reflects reality and not a generic LLM's intuition.
-  </Card>
-  <Card title="Faster iteration" icon="bolt">
-    Instead of rewriting the prompt by hand and guessing at the right phrasing, you annotate calls and let the Lab close the gap.
-  </Card>
-  <Card title="Defensible standards" icon="scale-balanced">
-    Your alignment set is a record of how your team grades calls. New hires can review it. Auditors can review it. The standard lives somewhere concrete.
-  </Card>
-  <Card title="Continuous improvement" icon="arrows-rotate">
-    Add new annotations as edge cases come up. Re-run alignment. The metric stays in lockstep with how your team thinks about quality.
-  </Card>
-</CardGroup>
+From the **Metrics Lab** page, click **Create Lab**. The dialog walks you through three steps:
 
-## When to Use the Metrics Lab
+1. **Lab Name.** Name the lab after what you are validating, for example "Identity Verification Standard."
+2. **Metrics.** Select one or more Custom Metrics to optimize. These are the metrics the lab will tune against your annotations.
+3. **Conversations.** Select the conversations to bring in. You can pull from your agent's **Conversations** or from a **Simulation** run.
 
-- A metric is close, but its pass rate disagrees with your team's gut on borderline calls.
-- You want a metric that encodes your team's specific standards rather than a generic definition.
-- A new edge case has appeared in production and the existing metric mishandles it.
-- You are launching a new metric and want to validate it against real annotated data before depending on it.
+Click **Create Lab** to finish. If the selected conversations already have evaluations, Bluejay reuses them so you can start annotating right away.
 
-## A Walkthrough
+![The Metrics Lab landing page with the Create Lab button in the top right](/images/metrics-lab-landing.png)
 
-<Steps>
-  <Step title="Pick a representative sample">
-    Pull twenty to fifty calls that cover the full range of behaviors you care about. Include obvious passes, obvious fails, and the ambiguous middle.
-  </Step>
-  <Step title="Annotate each call">
-    For every call, mark the outcome you believe is correct. For a Pass / Fail metric, that is pass or fail. For an enum, the right label. For a quantitative metric, the score.
-  </Step>
-  <Step title="Run alignment">
-    Bluejay compares the metric's AI evaluations on the sample to your annotations and tunes the metric to close the gap.
-  </Step>
-  <Step title="Validate on a holdout">
-    Run the tuned metric against a handful of calls you did not annotate. If the verdicts match what you would have said, the metric is ready.
-  </Step>
-  <Step title="Promote to production">
-    Push the aligned metric out to your simulations and live monitoring. New calls will be graded the way your team would grade them.
-  </Step>
-</Steps>
+![The Create Lab dialog with its three steps: Lab Name, Metrics, and Conversations](/images/metrics-lab-create-dialog.png)
 
-## A Worked Analysis
+<Tip>
+  If you have not built the metric yet, define it first in [Custom Metrics](/key-concepts/custom-metrics/overview), then bring it into the lab here.
+</Tip>
 
-Imagine a Pass / Fail metric for "Identity Verified Before Sharing Account Details." Out of the box, the AI is generous: it passes calls where the agent confirmed only a name, even when policy requires two factors.
+### 2. Annotate the Conversations
 
-You annotate fifty calls. Twenty are clear passes (two factors confirmed). Twenty are clear fails (no verification at all). Ten are borderline: the agent confirmed one factor and the customer volunteered another. Your team's policy says the agent must explicitly request both, so you mark all ten as fail.
+Open the **Annotate** tab. You see a table with one row per conversation and one column per metric. Each metric column is split into an **AI** verdict and a **Human** verdict, side by side.
 
-You run alignment. The Lab observes the gap on the borderline cases and tightens the metric so that "agent explicitly requested two factors" is the threshold. On the validation set, the AI now fails the borderline calls just like you did. Promoted to production, the metric flags the same gap consistently across thousands of calls, with verdicts that match what your team would have said.
+![The Annotate tab with the AI verdict and Human verdict columns side by side for a metric](/images/metrics-lab-annotate-table.png)
 
-This is the value of agent alignment in one example: a metric that is close becomes a metric that is right.
+Click any row to open the detail panel. From here your reviewer records the ground truth verdict:
+
+- **Transcript** tab shows the full conversation so the reviewer can read it.
+- **Details** tab shows each metric with the AI verdict on the left and the **Human** input on the right.
+
+The human input matches the metric's response type:
+
+- **Pass / Fail** and **Yes / No** metrics use simple buttons.
+- **Quantitative** metrics take a numeric score within the metric's range.
+- **Enum** metrics use a dropdown of your defined options.
+- **Qualitative** and **JSON** metrics take free text.
+
+Add an optional note in the **Human reasoning** field to capture why the reviewer graded the conversation that way, then click **Save**. Use the **Previous** and **Next** buttons, or the arrow keys, to move through the sample quickly. The header tracks your progress with an **Annotated X/Y** counter.
+
+<Note>
+  Annotate every conversation in the sample before moving on. The alignment score is only meaningful once the AI has a human verdict to compare against on each conversation.
+</Note>
+
+### 3. Improve and Optimize
+
+Open the **Optimize** tab and select the metric you want to tune. At the top you see the **Alignment** score, the percentage of conversations where the AI verdict matches your reviewer's annotation.
+
+![The Optimize tab showing the metric definition with a prompt diff for a revision, the Improve action, and the Published status](/images/metrics-lab-optimize-table.png)
+
+You have two ways to close the gap:
+
+- **Improve** asks Bluejay to rewrite the metric prompt based on where the AI and human verdicts disagree. You can add optional instructions, and you review the suggested change as a diff before accepting it.
+- Edit the metric definition by hand. Adjust the description, model, evaluation route, or temperature directly.
+
+When you are ready to test a change, click **Run**. Bluejay creates a new revision of the metric and re-evaluates every conversation in the lab against it. The alignment score updates so you can see whether the change moved the AI closer to your reviewer.
+
+Step through revisions with the **Previous** and **Next** controls to compare versions. The goal is an alignment score high enough that you trust the metric to grade unseen conversations the way your reviewer would. For most metrics, aim for the green band at the top of the range.
+
+### 4. Publish to Production
+
+Once alignment is where you want it, click **Publish**. The revision becomes the live definition of the metric, and every future simulation and production evaluation grades conversations with your reviewer's standard baked in.
+
+## Fuzzy Alignment for Scored Metrics
+
+For quantitative metrics, an exact match is often too strict. A human score of 3 out of 5 and an AI score of 4 out of 5 are close enough to count as agreement in most cases.
+
+Open the **Settings** tab and turn on **Fuzzy Alignment**, then set a **Numerical Score Threshold**. Scores within that many points of each other count as aligned. For example, with a threshold of 1, an AI score of 2 and a human score of 3 count as a match.
+
+## Keep the Lab Alive
+
+Alignment is not a one time event. As new edge cases appear in production, add them to the lab and keep your reviewer's judgment current.
+
+- **Add Conversations** brings new conversations into the lab. Toggle on evaluation so they are scored against the current metrics as they land.
+- **Add Metrics** brings another metric into the same lab.
+- **Re-evaluate** re-scores every conversation with the latest metric definitions.
+
+Annotate the new conversations, check the alignment score, improve if it dropped, and publish again. The metric stays in lockstep with how your team thinks about quality.
+
+## A Worked Example
+
+Imagine a Pass / Fail metric for "Identity Verified Before Sharing Account Details." Out of the box the AI is generous: it passes conversations where the agent confirmed only a name, even when policy requires two factors.
+
+Your reviewer annotates fifty conversations. Twenty are clear passes with two factors confirmed. Twenty are clear fails with no verification at all. Ten are borderline, where the agent confirmed one factor and the customer volunteered another. Your policy says the agent must explicitly request both, so your reviewer marks all ten as fail.
+
+The alignment score comes back low because the AI passed those ten borderline conversations. You click **Improve**, accept a revision that tightens the threshold to "agent explicitly requested two factors," and click **Run**. The AI now fails the borderline conversations just like your reviewer did, and the alignment score jumps into the green. You **Publish**, and the metric flags the same gap consistently across thousands of conversations, with verdicts that match what your team would have said.
+
+That is the whole point of the Metrics Lab: a metric that is close becomes a metric that is right, and your reviewer's judgment scales to every conversation.
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
-    Understand the metrics that the Lab tunes.
+    Understand the metrics that the lab tunes.
   </Card>
   <Card title="Custom Metrics Prompting Guide" icon="pen-fancy" href="/key-concepts/custom-metrics/prompting-guide">
     Learn the prompt patterns that make alignment converge faster.
   </Card>
+  <Card title="Metric Types" icon="shapes" href="/key-concepts/custom-metrics/metric-types">
+    Pick the right response type for each measurement goal.
+  </Card>
   <Card title="Create Custom Metric API" icon="code" href="/api-reference/endpoint/create-custom-metric">
-    Define a metric programmatically before bringing it into the Lab.
+    Define a metric programmatically before bringing it into the lab.
   </Card>
 </CardGroup>
