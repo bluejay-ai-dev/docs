@@ -10,15 +10,13 @@ against it.
 
 ### Prerequisites
 
-- A **Google Cloud project** with both Google APIs enabled:
-  - **Discovery Engine API** (`discoveryengine.googleapis.com`)
-  - **Conversational Engine / CES API** (`ces.googleapis.com`)
-- At least one **CES engine (app)** in that project.
+- A **Google Cloud project** with the **Conversational Engine API** (`ces.googleapis.com`) enabled.
+- At least one **CES app** in that project.
 - Permission to grant a service identity access to the project (to complete the steps below).
 
-Enable both APIs from **APIs & Services → Library** — each should read **API Enabled**:
+Enable the API from **APIs & Services → Library** — it should read **API Enabled**:
 
-![Discovery Engine and CES APIs enabled in the Google Cloud console](/images/google-ces-enable-api.png)
+![Conversational Engine API enabled in the Google Cloud console](/images/google-ces-enable-api.png)
 
 <Note>
 CES shares the **same "Google Agents" integration and the same service-account key** as
@@ -45,23 +43,24 @@ In the [Google Cloud Console → IAM & Admin → Service Accounts](https://conso
 ![Create the service account](/images/google-ces-create-sa.png)
 
 2. Grant it the minimal CES permissions. CES is **read + run only** — there is no edit/push tier.
-   GCP grants *roles*, so either create a **custom role** containing exactly these permissions, or
-   use the predefined `roles/discoveryengine.viewer` as the quicker (broader) option:
+   CES apps live under the **Conversational Engine API** (`ces.googleapis.com`). GCP grants *roles*,
+   so either create a **custom role** with exactly these permissions, or use a predefined role:
 
 | Purpose | Permissions |
 | --- | --- |
-| **Discovery / sync** | `discoveryengine.engines.get`, `discoveryengine.engines.list`, `discoveryengine.servingConfigs.get`, `discoveryengine.servingConfigs.list` |
+| **Discovery / sync** | `ces.apps.get`, `ces.apps.list`, `ces.deployments.get`, `ces.deployments.list` |
 | **Runtime quota** (required) | `serviceusage.services.use` |
 
-`roles/discoveryengine.viewer` is the **verified minimal role that clears CES discovery** — it is
-what fixes a `discoveryengine.engines.list` 403. Add `serviceusage.services.use` regardless of which
-option you pick: without it, runtime calls fail with `USER_PROJECT_DENIED`.
+The discovery permissions let Bluejay list your CES apps and their deployments — `roles/ces.viewer`
+is the predefined read role that contains them. For the runtime turn-by-turn calls use
+`roles/ces.client`, or `roles/ces.admin` to cover read + run in a single grant. Add
+`serviceusage.services.use` regardless of which you pick — without it, runtime calls fail with
+`USER_PROJECT_DENIED`.
 
 <Note>
-The exact IAM permission for the CES **runSession** runtime call (Conversational Engine) is best
-confirmed against your own project during testing. Start from `roles/discoveryengine.viewer` +
-`serviceusage.services.use`, and add the Conversational Engine converse permission if a live
-simulation reports a permission error.
+`roles/ces.viewer` (discovery) + `roles/ces.client` (runtime) is the intended least-privilege split;
+`roles/ces.admin` is the simplest single grant if you'd rather not split. The exact permission for
+the `runSession` runtime call is best confirmed against your own project during testing.
 </Note>
 
 ### Step 2 — Create a JSON key
