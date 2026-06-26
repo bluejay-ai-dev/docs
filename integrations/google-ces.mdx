@@ -4,13 +4,9 @@ description: 'Connect and test your Google Conversational Engine (CES) agents fr
 icon: 'google'
 ---
 
-Bluejay connects directly to your **Google Conversational Engine (CES)** agents so you can test
-them with digital humans over **Voice or Chat**. Unlike Dialogflow CX, CES agents are
-**runtime-only** in Bluejay — there is no workflow canvas to edit, no versioning, and no promotion.
-You connect an agent and run simulations against it.
-
-The integration is **org-level**: you grant Bluejay access to your Google Cloud project once, sync
-your agents, and every CES engine in the project becomes available to test.
+Bluejay connects directly to your **Google Conversational Engine (CES)** agents so you can test them
+with digital humans over **Voice or Chat** — sync your agents, connect one, and run simulations
+against it.
 
 ### Prerequisites
 
@@ -56,8 +52,6 @@ In the [Google Cloud Console → IAM & Admin → Service Accounts](https://conso
 | --- | --- |
 | **Discovery / sync** | `discoveryengine.engines.get`, `discoveryengine.engines.list`, `discoveryengine.servingConfigs.get`, `discoveryengine.servingConfigs.list` |
 | **Runtime quota** (required) | `serviceusage.services.use` |
-
-![Grant the Discovery Engine Viewer role](/images/google-ces-sa-role.png)
 
 `roles/discoveryengine.viewer` is the **verified minimal role that clears CES discovery** — it is
 what fixes a `discoveryengine.engines.list` 403. Add `serviceusage.services.use` regardless of which
@@ -121,7 +115,7 @@ Most agents are wired up automatically by Sync. To connect or adjust one manuall
 | **App / Engine ID** (`ces_app_id`) | The CES engine (app) identifier |
 | **Deployment ID** (`ces_deployment_id`) | The CES deployment to run against |
 
-That's all that's needed — the org-level credential from Step 1 handles authentication.
+That's all that's needed — the service-account key from Step 1 handles authentication.
 
 ---
 
@@ -131,7 +125,7 @@ With an agent connected you can run simulations against it like any other Blueja
 **Simulations → Create Simulation**, pick a simulation type and run digital humans against your CES
 agent:
 
-![Create Simulation — pick a type](/images/google-ces-sim-types.png)
+![Create Simulation — pick a type](/images/google-dfcx-sim-types.png)
 
 CES supports **both Voice and Chat**, chosen by the agent's connection type:
 
@@ -139,8 +133,16 @@ CES supports **both Voice and Chat**, chosen by the agent's connection type:
   in real time.
 - **Chat** simulations drive a turn-by-turn text conversation.
 
-Because CES agents are runtime-only, there is no workflow to generate test cases from — author your
-digital humans directly and run them against the connected agent.
+<Note>
+**Tool calls are handled automatically.** When your CES agent invokes a tool or function call
+mid-conversation, Bluejay captures the invocation (tool name + arguments), returns a response so the
+turn keeps flowing, and sends that tool response back to CES — no setup required. Today the returned
+value is a default acknowledgment (`{"status": "ok"}`); configurable/scripted tool responses are on
+the way. Server-side tools that CES runs itself (data stores, OpenAPI/connectors) still execute
+normally on Google's side; this only covers the client-side calls handed back to the caller.
+</Note>
+
+Author your digital humans directly and run them against the connected agent.
 
 ---
 
