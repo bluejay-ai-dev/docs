@@ -42,26 +42,27 @@ In the [Google Cloud Console → IAM & Admin → Service Accounts](https://conso
 
 ![Create the service account](/images/google-ces-create-sa.png)
 
-2. Grant it the minimal CES permissions. CES is **read + run only** — there is no edit/push tier.
-   CES apps live under the **Conversational Engine API** (`ces.googleapis.com`). GCP grants *roles*,
-   so either create a **custom role** with exactly these permissions, or use a predefined role:
+2. Grant the minimal CES permissions. CES is **read + run only** — there is no edit/push tier. CES
+   apps live under the **Conversational Engine API** (`ces.googleapis.com`). Create a **custom IAM
+   role** (IAM & Admin → Roles → **Create Role**) with exactly the permissions below, or use the
+   pre-built role listed for each group.
 
-| Purpose | Permissions |
-| --- | --- |
-| **Discovery / sync** | `ces.apps.get`, `ces.apps.list`, `ces.deployments.get`, `ces.deployments.list` |
-| **Runtime quota** (required) | `serviceusage.services.use` |
+| Purpose | Permissions | Pre-built role |
+| --- | --- | --- |
+| **Discovery / sync** | `ces.apps.get`, `ces.apps.list`, `ces.deployments.get`, `ces.deployments.list` | `roles/ces.viewer` |
+| **Runtime (`runSession`)** | `ces.sessions.runSession`, `ces.sessions.bidiRunSession` | `roles/ces.client` |
+| **Runtime quota** (required) | `serviceusage.services.use` | `roles/serviceusage.serviceUsageConsumer` |
 
-The discovery permissions let Bluejay list your CES apps and their deployments — `roles/ces.viewer`
-is the predefined read role that contains them. For the runtime turn-by-turn calls use
-`roles/ces.client`, or `roles/ces.admin` to cover read + run in a single grant. Add
-`serviceusage.services.use` regardless of which you pick — without it, runtime calls fail with
-`USER_PROJECT_DENIED`.
+`roles/ces.viewer` and `roles/ces.client` are **complementary, not overlapping** — viewer has the
+app/deployment reads but no session permission; client has the session permissions but no reads. So
+the pre-built path is **`roles/ces.viewer` + `roles/ces.client` + `roles/serviceusage.serviceUsageConsumer`**,
+or **`roles/ces.admin`** (covers read + run) **+ `roles/serviceusage.serviceUsageConsumer`**.
 
-<Note>
-`roles/ces.viewer` (discovery) + `roles/ces.client` (runtime) is the intended least-privilege split;
-`roles/ces.admin` is the simplest single grant if you'd rather not split. The exact permission for
-the `runSession` runtime call is best confirmed against your own project during testing.
-</Note>
+<Warning>
+`serviceusage.services.use` is required regardless of which path you pick — without it, runtime
+calls fail immediately with `USER_PROJECT_DENIED` (Bluejay sends an `x-goog-user-project` quota
+header on every request).
+</Warning>
 
 ### Step 2 — Create a JSON key
 
