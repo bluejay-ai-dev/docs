@@ -34,7 +34,7 @@ Bluejay authenticates to your Google Cloud project with a **service-account key*
 and paste into Bluejay. The key is encrypted at rest and scoped to Dialogflow only — it lets
 Bluejay talk to your agents, nothing else.
 
-### Step 1 — Create a service account with the right role
+### Step 1 — Create a service account with the right permissions
 
 In the [Google Cloud Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts):
 
@@ -42,20 +42,65 @@ In the [Google Cloud Console → IAM & Admin → Service Accounts](https://conso
 
 ![Create the service account](/images/google-dfcx-create-sa.png)
 
-2. Grant it a role based on what you want Bluejay to do:
+2. Decide which capability tier you need, then create a **custom IAM role** (IAM & Admin → Roles →
+   **Create Role**) containing exactly those permissions and grant it to the service account. GCP
+   grants *roles*, not bare permissions — the custom role is how you apply a minimal set. Each tier
+   also lists a predefined-role equivalent if you prefer a quicker (but broader) grant.
 
-| You want to… | Grant |
+#### Tier 1 — Test only (read + run simulations)
+
+Use this tier if Bluejay only needs to sync agent definitions and run live simulations.
+
+**Read / sync permissions**
+
+| Permission | Purpose |
 | --- | --- |
-| **Test agents only** (read + run simulations) | `roles/dialogflow.client` |
-| **Edit, version, and promote** workflows | `roles/dialogflow.admin` |
+| `dialogflow.agents.get`, `dialogflow.agents.list` | Discover agents in your project |
+| `dialogflow.flows.get`, `dialogflow.flows.list` | Read flow definitions |
+| `dialogflow.pages.get`, `dialogflow.pages.list` | Read pages within flows |
+| `dialogflow.intents.get`, `dialogflow.intents.list` | Read intent definitions |
+| `dialogflow.transitionRouteGroups.get`, `dialogflow.transitionRouteGroups.list` | Read route groups |
+| `dialogflow.playbooks.get`, `dialogflow.playbooks.list` | Read playbook definitions |
+| `dialogflow.tools.get`, `dialogflow.tools.list` | Read tool definitions |
+| `dialogflow.generators.get`, `dialogflow.generators.list` | Read generator definitions |
 
-![Grant the Dialogflow API Admin role](/images/google-dfcx-sa-role.png)
+**Runtime permissions**
 
-`roles/dialogflow.admin` covers the full feature set Bluejay uses — listing agents (sync), reading
-flows/pages/intents/playbooks/tools, pushing edits, creating versions, and deploying to
-environments. If you scope more tightly, the underlying permissions are `dialogflow.agents.*`,
-`dialogflow.flows.*`, `dialogflow.pages.*`, `dialogflow.intents.*`, `dialogflow.tools.*`,
-`dialogflow.playbooks.*`, `dialogflow.versions.*`, and `dialogflow.environments.deploy`.
+| Permission | Purpose |
+| --- | --- |
+| `dialogflow.sessions.detectIntent` | Send turns to the agent during a simulation |
+| `serviceusage.services.use` | Authorize the quota project header Bluejay sends with every API call |
+
+<Warning>
+`serviceusage.services.use` is the single most-missed permission. Without it, live simulations
+fail immediately with `USER_PROJECT_DENIED`. This happens because the Dialogflow runtime checks a
+Service Usage quota when Bluejay sends an `x-goog-user-project` header on each request — the
+permission must be present even if billing is not your concern.
+</Warning>
+
+**Predefined-role equivalent (quicker, broader):** `roles/dialogflow.reader` +
+`roles/dialogflow.client` — grants everything in Tier 1 and a bit more.
+
+#### Tier 2 — Edit + push (also version & promote workflows)
+
+Use this tier if Bluejay also needs to push workflow edits, snapshot versions, and deploy to
+environments. Tier 2 includes all Tier 1 permissions plus the following writes:
+
+| Permission | Purpose |
+| --- | --- |
+| `dialogflow.flows.update` | Push flow edits |
+| `dialogflow.pages.create`, `dialogflow.pages.update`, `dialogflow.pages.delete` | Create, edit, and remove pages |
+| `dialogflow.intents.create`, `dialogflow.intents.update`, `dialogflow.intents.delete` | Create, edit, and remove intents |
+| `dialogflow.transitionRouteGroups.create`, `dialogflow.transitionRouteGroups.update`, `dialogflow.transitionRouteGroups.delete` | Create, edit, and remove route groups |
+| `dialogflow.playbooks.update` | Push playbook edits |
+| `dialogflow.tools.create`, `dialogflow.tools.update`, `dialogflow.tools.delete` | Create, edit, and remove tools |
+| `dialogflow.versions.create` | Snapshot a version on push |
+| `dialogflow.environments.update` | Promote flow versions to an environment (the `deployFlow` API authorizes on `dialogflow.environments.update`) |
+
+**Predefined-role equivalent (quicker, broader):** `roles/dialogflow.admin` — grants the full
+Dialogflow feature set.
+
+![Grant the custom role to the service account](/images/google-dfcx-sa-role.png)
 
 ### Step 2 — Create a JSON key
 

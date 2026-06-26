@@ -1,0 +1,156 @@
+---
+title: 'Conversational Engine (CES) Simulations'
+description: 'Connect and test your Google Conversational Engine (CES) agents from Bluejay over Voice or Chat'
+icon: 'google'
+---
+
+Bluejay connects directly to your **Google Conversational Engine (CES)** agents so you can test them
+with digital humans over **Voice or Chat** — sync your agents, connect one, and run simulations
+against it.
+
+### Prerequisites
+
+- A **Google Cloud project** with the **Conversational Engine API** (`ces.googleapis.com`) enabled.
+- At least one **CES app** in that project.
+- Permission to grant a service identity access to the project (to complete the steps below).
+
+Enable the API from **APIs & Services → Library** — it should read **API Enabled**:
+
+![Conversational Engine API enabled in the Google Cloud console](/images/google-ces-enable-api.png)
+
+<Note>
+CES shares the **same "Google Agents" integration and the same service-account key** as
+[Dialogflow CX](/integrations/google-dfcx) — one credential covers both Google agent types. If you
+have already set up the shared credential for DFCX, you only need the **CES-specific permissions**
+and the steps below. See the [Dialogflow CX page](/integrations/google-dfcx) for the shared
+credential setup.
+</Note>
+
+---
+
+## 1. Grant Bluejay access (service account)
+
+Bluejay authenticates to your Google Cloud project with a **service-account key** that you create
+and paste into Bluejay. The key is encrypted at rest and only ever used to call the Google APIs for
+your agents.
+
+### Step 1 — Create a service account with the right permissions
+
+In the [Google Cloud Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts):
+
+1. **Create Service Account** → give it a name (e.g. `bluejay-ces`).
+
+![Create the service account](/images/google-ces-create-sa.png)
+
+2. Grant the minimal CES permissions. CES is **read + run only** — there is no edit/push tier. CES
+   apps live under the **Conversational Engine API** (`ces.googleapis.com`). Create a **custom IAM
+   role** (IAM & Admin → Roles → **Create Role**) with exactly the permissions below, or use the
+   pre-built role listed for each group.
+
+| Purpose | Permissions | Pre-built role |
+| --- | --- | --- |
+| **Discovery / sync** | `ces.apps.get`, `ces.apps.list`, `ces.deployments.get`, `ces.deployments.list` | `roles/ces.viewer` |
+| **Runtime (`runSession`)** | `ces.sessions.runSession`, `ces.sessions.bidiRunSession` | `roles/ces.client` |
+| **Runtime quota** (required) | `serviceusage.services.use` | `roles/serviceusage.serviceUsageConsumer` |
+
+`roles/ces.viewer` and `roles/ces.client` are **complementary, not overlapping** — viewer has the
+app/deployment reads but no session permission; client has the session permissions but no reads. So
+the pre-built path is **`roles/ces.viewer` + `roles/ces.client` + `roles/serviceusage.serviceUsageConsumer`**,
+or **`roles/ces.admin`** (covers read + run) **+ `roles/serviceusage.serviceUsageConsumer`**.
+
+<Warning>
+`serviceusage.services.use` is required regardless of which path you pick — without it, runtime
+calls fail immediately with `USER_PROJECT_DENIED` (Bluejay sends an `x-goog-user-project` quota
+header on every request).
+</Warning>
+
+### Step 2 — Create a JSON key
+
+On that service account, open the **Keys** tab → **Add Key → Create new key → JSON** → **Create**.
+A `.json` key file downloads to your machine.
+
+<Warning>
+Treat the key file like a password — it grants the permissions above on your project until you
+rotate or delete it. You can revoke it anytime from the same **Keys** tab.
+</Warning>
+
+### Step 3 — Add it to Bluejay
+
+1. Log into your **Bluejay Dashboard**.
+2. Click your **Organization** menu (bottom-left) → **Integrations** → **Google Agents**.
+3. Paste the contents of the JSON key file into **Service Account Key (JSON)**.
+4. Click **Save**.
+
+![Paste the service-account key in the Google Agents integration](/images/google-ces-integrations-tab.png)
+
+This is the **same credential** used for Dialogflow CX — a single key covers both Google agent
+types. The key is **encrypted at rest** and only ever used to call the Google APIs for your agents.
+
+---
+
+## 2. Sync your Google agents
+
+Once the credential is saved, discover your agents:
+
+1. In **Settings → Integrations → Google Agents**, click **Sync**.
+2. Bluejay scans your project across all locations and creates an agent in Bluejay for every CES
+   engine it finds (alongside any Dialogflow CX agents).
+
+The sync result reports how many agents were **created**, **updated**, or **removed** (an agent
+deleted in Google is flagged in Bluejay rather than dropped). Re-run Sync any time you add agents
+in Google.
+
+---
+
+## 3. Connect an agent
+
+Most agents are wired up automatically by Sync. To connect or adjust one manually:
+
+1. Open the agent's **Connection** settings.
+2. Choose the **Google Conversational Engine (CES)** connection type — **Voice** or **Chat**.
+3. Set the CES connection fields:
+
+| Field | What it is |
+| --- | --- |
+| **App / Engine ID** (`ces_app_id`) | The CES engine (app) identifier |
+| **Deployment ID** (`ces_deployment_id`) | The CES deployment to run against |
+
+That's all that's needed — the service-account key from Step 1 handles authentication.
+
+---
+
+## 4. Test your agent
+
+With an agent connected you can run simulations against it like any other Bluejay agent. In
+**Simulations → Create Simulation**, pick a simulation type and run digital humans against your CES
+agent:
+
+![Create Simulation — pick a type](/images/google-dfcx-sim-types.png)
+
+CES supports **both Voice and Chat**, chosen by the agent's connection type:
+
+- **Voice** simulations bridge audio between a Bluejay digital human (the caller) and your CES agent
+  in real time.
+- **Chat** simulations drive a turn-by-turn text conversation.
+
+<Note>
+**Tool calls are handled automatically.** When your CES agent invokes a tool or function call
+mid-conversation, Bluejay captures the invocation (tool name + arguments), returns a response so the
+turn keeps flowing, and sends that tool response back to CES — no setup required. Today the returned
+value is a default acknowledgment (`{"status": "ok"}`); configurable/scripted tool responses are on
+the way. Server-side tools that CES runs itself (data stores, OpenAPI/connectors) still execute
+normally on Google's side; this only covers the client-side calls handed back to the caller.
+</Note>
+
+Author your digital humans directly and run them against the connected agent.
+
+---
+
+## Summary
+
+| Step | Where | What it does |
+| --- | --- | --- |
+| Grant access | Org → Integrations → Google Agents | Paste a Google-scoped service-account key JSON (shared with DFCX) |
+| Sync | Settings → Integrations → Google Agents | Discover all CES engines (and DFCX agents) in the project |
+| Connect | Agent → Connection | Set App/Engine ID + Deployment ID; pick Voice or Chat |
+| Test | Simulations | Run digital humans against the agent over Voice or Chat |
