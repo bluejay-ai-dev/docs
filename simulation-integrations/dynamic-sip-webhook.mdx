@@ -41,6 +41,33 @@ If the fetch fails after retries, the call is marked `NO_CONNECTION` with error 
 
 Expose an HTTPS endpoint that Bluejay can reach from the public internet. It must accept a `POST` with a JSON body and return the destination for the call. See [Webhook Contract](#webhook-contract) below.
 
+<Tip>
+**Let an AI build it for you.** Paste the prompt below into any coding assistant (Claude, Cursor, Copilot, etc.) — it fully specifies the contract, so you just add your own logic for choosing the SIP URI.
+</Tip>
+
+```text Prompt: generate a Bluejay dynamic SIP webhook
+Build an HTTP webhook endpoint for Bluejay's "dynamic SIP endpoint" feature in <your language/framework, e.g. Python + FastAPI>.
+
+Requirements:
+- Expose a single POST route (e.g. POST /bluejay/sip-endpoint) that accepts a JSON body:
+  { "test_result_id": string, "experiment_run_id": number, "agent_id": number,
+    "organization_id": string, "nonce": string, "timestamp": string (ISO 8601) }
+- Respond 200 with JSON containing the SIP destination to dial for THIS call:
+  { "sip_uri": "sip:<room>@<host>" }
+  (Optionally instead return { "phone_number": "+1..." }, and optionally include
+   "sip_username", "sip_password", "custom_headers": {..}, "metadata": {..}.)
+- Idempotency: the endpoint may be retried for the same "test_result_id" (up to 3x with
+  backoff). It MUST return the SAME sip_uri for a given test_result_id — key any room
+  allocation on test_result_id and return the existing value on a retry, never mint a new one.
+- Leave a clearly marked TODO where I plug in my logic that maps a call to a SIP URI
+  (e.g. allocate/look up a room). For now, default to returning a placeholder sip_uri.
+- Must be deployable behind public HTTPS. Return 5xx only on genuine errors (Bluejay
+  fails the call loudly after 3 failed attempts).
+- Optional security: if I set an env var BLUEJAY_WEBHOOK_SECRET, verify the request's
+  "X-Bluejay-Signature" header as HMAC-SHA256(secret, raw_request_body) and reject on mismatch.
+- Include a one-line run command and a curl example that exercises the endpoint.
+```
+
 </Step>
 <Step title="Configure your agent">
 
