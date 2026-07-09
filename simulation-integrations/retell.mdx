@@ -1,19 +1,30 @@
 ---
 title: 'Retell Simulations'
-description: 'Run Bluejay simulations against your Retell agents to auto-dial outbound and auto-capture tool calls'
+description: 'Run Bluejay simulations against your Retell agents, inbound or outbound'
 icon: '/logo/retell.svg'
 ---
 
 
-This guide walks you through running Bluejay simulations directly against your Retell voice agents. Once configured, every simulation Bluejay runs against a Retell-bound agent will dial outbound through Retell automatically, and every tool call the agent makes during the conversation will land in Bluejay's Tool Adherence tab.
+Sync your Retell agents into Bluejay and run simulations against them, in either direction. Every tool call the agent makes during a conversation lands in Bluejay's Tool Adherence tab.
+
+### Which direction?
+
+The Bluejay agent's **type** picks the path automatically:
+
+| Agent type | Who starts the call | Mechanism | Phone number? |
+|---|---|---|---|
+| **Inbound** | Bluejay's digital human calls your Retell agent | Web-call bridge into Retell's cloud | Not needed |
+| **Outbound** | Your Retell agent dials the digital human | Bluejay tells Retell to place the call | **Required**: a Retell number bound to the agent |
+
+Steps 1 to 3 below are the same for both. Then jump to [Inbound](#inbound-run-it) or [Outbound](#outbound-bind-a-number-then-run).
 
 ### Quick Prerequisites
 
 - **Retell API Key with the Webhook badge**
-- **At least one Retell agent with a phone number bound to it**
+- **At least one Retell agent**
 - **A Bluejay Account**
 
-### Setting Up the Integration
+## Setup (both directions)
 
 ### 1. Generate Your Retell API Key
 
@@ -22,15 +33,7 @@ This guide walks you through running Bluejay simulations directly against your R
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-1.mp4"></video>
 
-### 2. Bind a Phone Number to Your Agent in Retell
-
-1. In Retell, go to **Phone Numbers** and click into your phone number.
-2. Set both **Inbound Call Agent** AND **Outbound Call Agent** to your agent.
-3. Save.
-
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-2.mp4"></video>
-
-### 3. Set the Webhook URL on Your Retell Agent
+### 2. Set the Webhook URL on Your Retell Agent
 
 1. In Retell, open your agent and click **Webhook Settings**.
 2. Paste this URL into **Agent Level Webhook URL**:
@@ -44,7 +47,7 @@ https://api.getbluejay.ai/v1/integrations/retell
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-3.mp4"></video>
 
-### 4. Save Your Key in Bluejay and Sync
+### 3. Save Your Key in Bluejay and Sync
 
 1. In Bluejay, go to **Settings**, then **Integrations**, then the **Retell** tab.
 2. Paste your Retell API key and click **Save Changes**.
@@ -53,33 +56,53 @@ https://api.getbluejay.ai/v1/integrations/retell
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-4.mp4"></video>
 
-#### Quick Sync from the Plus Menu
+<Tip>
+  Faster path: click the **+** button in the top left of Bluejay, select **Retell**, paste your API key, and click **Save and Sync**.
 
-For a faster path, you can sync your Retell agents directly from the quick add menu inside Bluejay.
+  <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-5.mp4"></video>
+</Tip>
 
-1. Click the **+** button in the top left corner.
-2. Select **Retell**.
-3. Paste your Retell API key.
-4. Click **Save and Sync** to import your Retell agents into Bluejay.
+## Inbound: run it
 
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-5.mp4"></video>
+Your agent answers; the digital human calls in. Nothing else to configure.
 
-### 5. Create and Run Your Simulation
-
-With your Retell agent synced into Bluejay, you can run a simulation against it.
-
-1. From your agent in Bluejay, click **Create Simulation**. The create flow opens with several configuration tabs across the top.
-2. Open the **Goal Adherence Rate** tab. Goal Adherence Rate reads the prompt from your agent so it can auto-generate a digital human persona aligned with the conversation goals.
-3. Click **Auto-generate**.
-4. The persona count defaults to **5**. Choose **1** or any number you prefer.
-5. Click **Save**.
-6. Click **Generate Digital Human**. After a moment, the new digital human appears in the panel.
-7. Confirm the digital human is selected, then click **Run** to dispatch the call.
-8. Wait for the simulation to complete. When it finishes, the result opens with the transcript, tool calls, and metric scores. Review it the same way you would any other simulation in Bluejay.
+1. Open your synced agent in Bluejay and confirm its type is **Inbound**.
+2. Click **Create Simulation**, then open the **Goal Adherence Rate** tab and click **Auto-generate** to create digital human personas from your agent's prompt. Pick how many you want and click **Save**.
+3. Click **Generate Digital Human**, confirm it's selected, and click **Run**.
+4. When the call finishes, review the transcript, tool calls, and metric scores.
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-6.mp4"></video>
 
-{/* CLIP: Walkthrough of clicking Create Simulation, picking Goal Adherence Rate, auto-generating, generating the digital human, running the call, and viewing the result. */}
+## Outbound: bind a number, then run
+
+Your agent dials; the digital human answers. Bluejay uses your Retell API key to tell Retell to place the call, so the agent needs a number to dial from.
+
+### 1. Bind a phone number to your agent in Retell
+
+1. In Retell, go to **Phone Numbers** and click into your phone number.
+2. Set both **Inbound Call Agent** AND **Outbound Call Agent** to your agent.
+3. Save.
+
+<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-sim-2.mp4"></video>
+
+### 2. Set the Bluejay agent to Outbound
+
+Open the synced agent in Bluejay and set its type to **Outbound**. The Connection tab shows the number bound in Retell.
+
+### 3. Run it
+
+Create a simulation the same way as inbound (each digital human needs a phone number for your agent to dial), then click **Run**. Bluejay tells Retell to dial each digital human from your bound number, and the calls place automatically.
+
+### Caveats
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Outbound call never places | No Retell phone number bound to the agent (there's no fallback) | Bind a number to the agent in Retell, then re-sync |
+| Sync/webhook rejected (401) | API key missing, or missing the **Webhook** badge | Save a webhook-enabled key in Settings → Integrations → Retell |
+| Setup fails, missing agent id | No `Retell Agent ID` on the agent | Set the Retell Agent ID (type it or pick from the synced list) |
+| `NO_CONNECTION`, concurrency limit | Retell 429 (inbound) or SIP 503 (outbound) — too many concurrent calls | Lower Bluejay's max-concurrent (not a key issue) |
+| Tool calls missing | Agent webhook URL not set in Retell | Set the agent webhook to `https://api.getbluejay.ai/v1/integrations/retell` (a backfill poller is best-effort otherwise) |
+| Older call fails as `SIP_TRUNK_RECYCLED` | Same digital-human phone number reused across concurrent outbound runs | Give concurrent runs distinct DH numbers |
 
 ### Resources
 

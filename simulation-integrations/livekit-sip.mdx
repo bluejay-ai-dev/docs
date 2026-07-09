@@ -1,0 +1,100 @@
+---
+title: "LiveKit — SIP Connection"
+description: "Bluejay dials your LiveKit project's SIP host"
+icon: "phone-volume"
+---
+
+Use this when you need SIP-level control or already run LiveKit behind SIP infrastructure. Bluejay sends a SIP INVITE to your project's SIP host; you provision an inbound trunk and dispatch rule that route the call to your agent.
+
+<Note>
+  This method is for **inbound** agents: Bluejay dials in and your agent answers. If your agent places calls, use [Outbound agents](/simulation-integrations/livekit-outbound). And if you don't specifically need SIP, use [Direct connection](/simulation-integrations/livekit-direct) instead — it skips all of the trunk setup below.
+</Note>
+
+### How it connects
+
+Bluejay dials `sip:<number>@<your-project>.sip.livekit.cloud`. Your LiveKit project matches the number to an **inbound trunk**, applies a **dispatch rule** that creates a room and dispatches your agent, and your agent answers. Audio bridges back to the digital human.
+
+## Setup
+
+All of this is on **your** LiveKit project — the same project whose SIP host you give Bluejay.
+
+### 1. Create an inbound trunk
+
+The number is a routing key, not a real phone number — pick any E.164 value and use the same one everywhere.
+
+```json
+{
+  "trunk": {
+    "name": "bluejay-inbound",
+    "numbers": ["+15551230000"]
+  }
+}
+```
+
+```bash
+lk sip inbound create trunk.json
+```
+
+### 2. Create a dispatch rule on that trunk
+
+Routes the call into a fresh room and dispatches your agent. `agentName` must match the name your worker registers with.
+
+```json
+{
+  "name": "bluejay-dispatch",
+  "rule": { "dispatchRuleIndividual": { "roomPrefix": "sip-" } },
+  "trunkIds": ["ST_your_trunk_id"],
+  "roomConfig": { "agents": [{ "agentName": "your-agent" }] }
+}
+```
+
+```bash
+lk sip dispatch create dispatch.json
+```
+
+### 3. (Optional) Forward the simulation ID header
+
+LiveKit drops custom SIP headers by default. To receive `X-Simulation-Result-Id` (for linking tool calls and traces back to the result), add header forwarding to the trunk:
+
+```json
+{
+  "headers_to_attributes": { "X-Simulation-Result-Id": "X-Simulation-Result-Id" },
+  "allowed_addresses": ["0.0.0.0/0"]
+}
+```
+
+```bash
+lk sip inbound update --id ST_your_trunk_id -
+```
+
+It then appears in `participant.attributes` alongside the `sip.*` keys. Use it to call [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+
+### 4. Point Bluejay at your SIP host
+
+In **Agent Settings → Connection**, set the connection type to **SIP** and the URI to:
+
+```
+sip:+15551230000@your-project.sip.livekit.cloud
+```
+
+Form is `sip:<number>@<host>`. The number must exactly match the trunk's `numbers`.
+
+## Things to note
+
+- **The number is a made-up routing key.** It doesn't need to be a purchased DID. Whatever you put in the trunk's `numbers`, use the exact same string (E.164, leading `+`) in the URI.
+- **The trunk must live on the same project as the SIP host.** A project's SIP host id (e.g. `65197ejfbqv`) is *not* the same string as its project name — if you have more than one project it's easy to create the trunk on the wrong one.
+- **A trunk alone isn't enough.** Without a dispatch rule the call is accepted but never routed to a room.
+- **Your agent must be running and producing audio.** A worker registered under the dispatch rule's `agentName`, with working LLM/TTS keys. A silent agent (e.g. bad provider key) connects but the call is scored as no answer.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `404 No trunk found` | The INVITE reached LiveKit but no inbound trunk matched the dialed number | Confirm the trunk is on the **same project** as the SIP host, and its `numbers` exactly matches the URI |
+| `408 request timed out` | Trunk matched but nothing answered | Missing dispatch rule, or no agent registered under `agentName` |
+| Call connects, agent silent / scored no-answer | Agent joined but produced no audio | Bad/missing LLM/TTS keys, or the agent isn't publishing audio |
+| Result stuck "running", no transcript | Malformed SIP URI | URI must be `sip:<number>@<host>` — a bare host with no number fails |
+
+<Tip>
+  A `404` proves the INVITE **did** reach your LiveKit project (it answered and rejected at trunk-matching). If it truly weren't reaching LiveKit you'd see a timeout instead. So a 404 is always a trunk/number/project-match issue, never a network one.
+</Tip>
