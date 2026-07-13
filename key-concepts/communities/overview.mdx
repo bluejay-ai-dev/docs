@@ -4,23 +4,73 @@ description: Understand how Communities are organized and used in Bluejay
 icon: people-group
 ---
 
-A Community is a **test suite for your agent**. Just like a software test suite bundles individual test cases to verify that your code works correctly, a Community bundles Digital Humans — each representing a distinct user scenario — to verify that your agent handles real-world conversations correctly.
+A Community in Bluejay is a **named group of Digital Humans**. Think of it as a folder for the personas that share a purpose, a customer type, or a scenario. You build a Community once and reuse it across agents, versions, and evaluation cycles.
+
+Communities are also your **test suite for an agent**. Each Digital Human in the group is one test case. The Community as a whole is the suite that exercises your agent across the full range of situations it needs to handle.
 
 ## What You'll Learn
 
-- Why Communities are the primary way to build comprehensive agent test coverage
-- How to accumulate Digital Humans into a Community over time
-- How to run a Community against any agent for consistent, reproducible benchmarks
+- What a Community is and the few fields it has
+- How Communities relate to Digital Humans and the rest of Bluejay
+- Why grouping personas this way makes testing easier
+- What a Community is not, so you can place it correctly in your mental model
 
-## Think of Communities as Test Suites
+## A Community at a Glance
 
-In traditional software testing, you don't write one test and call it done. You accumulate test cases over time — covering happy paths, edge cases, regressions, and failure modes — until your test suite gives you confidence that your code is production-ready.
+<AccordionGroup>
+  <Accordion title="The fields a Community has" icon="rectangle-list">
+    Every Community is a small object with three fields:
 
-Communities work the same way for AI agents. Each Digital Human in a Community is like an individual test case: it carries a specific scenario, persona traits, and success criteria. The Community as a whole is the test suite that exercises your agent across the full range of situations it needs to handle.
+    - **Title.** The name people read in the dashboard.
+    - **Description.** A short note about the personas in the group and what they test.
+    - **Members.** The Digital Humans that belong to the Community.
+
+    A Community does not run on its own. It exists so you can group personas, hand the group to a simulation, and reason about the results together.
+  </Accordion>
+  <Accordion title="How to think about it" icon="diagram-project">
+    The mental model is simple:
+
+    - A **Digital Human** is one specific simulated caller. For example, a frustrated rider who missed an appointment.
+    - A **Community** is a group of related Digital Humans. For example, "Upset rider personas," which collects every persona that captures a frustrated-rider scenario.
+
+    One persona answers "who is this caller?" One Community answers "which kind of callers are you testing as a group?"
+  </Accordion>
+  <Accordion title="What it is not" icon="circle-minus">
+    A Community is strictly an organizational grouping. It is not:
+
+    - an Agent
+    - a Simulation
+    - a Simulation Run
+    - a Custom Metric
+
+    If you find yourself reaching for a Community to do anything beyond grouping personas, the right tool is probably one of the four above.
+  </Accordion>
+</AccordionGroup>
+
+## Why Communities Are Useful
+
+Communities give you reuse and organization. Once you have one, you can hand it to any simulation against any agent without rebuilding the persona list every time.
+
+<AccordionGroup>
+  <Accordion title="Stay organized at scale" icon="folder-tree">
+    Once your persona library grows past a handful of Digital Humans, you need a way to slice it. Communities let you keep personas grouped by use case so you can find what you need quickly.
+  </Accordion>
+  <Accordion title="Reuse across agents and versions" icon="arrows-rotate">
+    Define the group once and run it against any agent, any version, and any environment. Communities are the unit that makes "rerun last week's test suite" a single click.
+  </Accordion>
+  <Accordion title="Benchmark agents against each other" icon="scale-balanced">
+    Run the same Community against two competing agents to see how each one handles the same set of customers under identical conditions.
+  </Accordion>
+  <Accordion title="Lock in regressions" icon="shield-check">
+    When a production failure surfaces, capture it as a Digital Human and drop it into the relevant Community. The next simulation run picks it up automatically and catches the issue if it ever reappears.
+  </Accordion>
+</AccordionGroup>
+
+## How a Community Fits in Bluejay
 
 ```mermaid
 flowchart TD
-    subgraph community ["Community (Test Suite)"]
+    subgraph community ["Community"]
         DH1["Happy-path customer"]
         DH2["Edge case: billing dispute"]
         DH3["Frustrated, non-English speaker"]
@@ -33,37 +83,56 @@ flowchart TD
     SimB --> Compare
 ```
 
+Each Digital Human inside a Community is one test case. The Community wraps them so you can hand the whole group to a simulation and get back one result set you can read end to end.
+
 ## Building a Community Over Time
 
-The most effective Communities are not built all at once — they grow as your agent matures:
+The most effective Communities grow with your agent. You add personas as you find them, the same way you add unit tests as you find bugs.
 
-1. **Start with the basics.** Create Digital Humans for the core scenarios your agent must handle — the happy paths and most common requests.
-2. **Add edge cases.** As you discover gaps in your agent's performance (through production monitoring, observability, or manual testing), create new Digital Humans that target those specific weaknesses.
-3. **Lock in regressions.** When your agent fails on a real conversation, turn that failure into a Digital Human so it never slips through again — just like adding a regression test in code.
-4. **Expand coverage.** Over time, layer in Digital Humans for different languages, customer segments, emotional states, and scenario types until your Community comprehensively tests every capability your agent claims to support.
+<Steps>
+  <Step title="Start with the basics">
+    Create Digital Humans for the core scenarios your agent must handle. These are the happy paths and most common requests.
+  </Step>
+  <Step title="Add edge cases">
+    As production monitoring, observability, or manual testing surfaces gaps, build Digital Humans that target those specific weaknesses and drop them into the right Community.
+  </Step>
+  <Step title="Lock in regressions">
+    When your agent fails on a real conversation, turn that failure into a Digital Human. The Community now contains a permanent test for that issue.
+  </Step>
+  <Step title="Expand coverage">
+    Layer in Digital Humans for different languages, customer segments, and emotional states until your Community covers every capability the agent claims to support.
+  </Step>
+</Steps>
 
-The goal is to reach the point where running your Community gives you genuine confidence that a new agent version is ready for production.
+The goal is to reach the point where running the Community against a new agent version gives you genuine confidence that the agent is ready for production.
 
 ## Key Capabilities
 
-- **Reusable test suites** -- define a Community once, run it against any agent or agent version
-- **Cross-agent comparison** -- use the same Community to benchmark different agents side-by-side under identical conditions
-- **Incremental growth** -- add new Digital Humans to a Community at any time as your testing needs evolve
-- **Flexible organization** -- group by audience segment, language, scenario type, or any criteria you define
-- **Batch simulation runs** -- run every Digital Human in a Community in a single batch operation
+- **Reusable test suites.** Define a Community once and run it against any agent or agent version.
+- **Cross-agent comparison.** Use the same Community to benchmark different agents under identical conditions.
+- **Incremental growth.** Add new Digital Humans to a Community at any time as your testing needs evolve.
+- **Flexible organization.** Group by audience segment, language, scenario type, or any criteria you define.
+- **Batch simulation runs.** Run every Digital Human in a Community in a single batch.
 
 ## Common Use Cases
 
-- Build a comprehensive "billing support" Community and run it against every new agent version before release
-- Create language-specific Communities to validate multilingual support across your agent fleet
-- Compare two competing agent architectures by running the same Community against both
-- After a production incident, add a Digital Human that reproduces the failure so it becomes a permanent part of your test suite
+- Build a "billing support" Community and run it against every new agent version before release.
+- Create language-specific Communities to validate multilingual support across your agent fleet.
+- Compare two competing agent architectures by running the same Community against both.
+- After a production incident, add a Digital Human that reproduces the failure so it becomes a permanent part of your test suite.
+- Group personas like "First-time callers" or "Missed-pickup riders" so you can hand each cluster to a different simulation cycle.
 
-## Next Steps
+## Resources
 
 <CardGroup cols={2}>
-  <Card title="Communities Deep Dive" icon="book" href="/core-concepts/communities">
-    Full reference for Community configuration and management.
+  <Card title="Community Deep Dive" icon="book" href="/core-concepts/communities">
+    Field-level reference, best practices, and a full example.
+  </Card>
+  <Card title="Digital Humans" icon="users" href="/key-concepts/digital-humans/overview">
+    The personas that live inside a Community.
+  </Card>
+  <Card title="Customer Traits" icon="id-card" href="/key-concepts/customer-traits/overview">
+    The persona attributes that shape Digital Human behavior.
   </Card>
   <Card title="Create Community API" icon="code" href="/api-reference/endpoint/create-community">
     Create and manage Communities programmatically.
