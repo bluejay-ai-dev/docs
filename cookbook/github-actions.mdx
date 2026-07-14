@@ -125,6 +125,8 @@ If your CI spins up an ephemeral deployment per PR (a preview environment with i
 
 In the `add-agent` payload, include the connection field that matches how Bluejay reaches your preview deployment — see the [add-agent API reference](/api-reference/endpoint/add-agent) for the available fields. The agent's connection type is inferred from whichever field you provide.
 
+Set the `BLUEJAY_DIGITAL_HUMAN_IDS` repository variable (e.g. `101,102`) before using this pattern — unlike Option 1, it is required here: a freshly created simulation has no digital humans attached, and the run fails without them.
+
 ```yaml
 name: Agent Tests (ephemeral)
 
@@ -134,6 +136,7 @@ on:
 
 env:
   BLUEJAY_API: https://api.getbluejay.ai/v1
+  BLUEJAY_API_KEY: ${{ secrets.BLUEJAY_API_KEY }}
 
 jobs:
   run-bluejay-tests:
@@ -142,23 +145,27 @@ jobs:
       - name: Create ephemeral agent
         id: agent
         run: |
-          resp=$(curl -sf -X POST "$BLUEJAY_API/add-agent" \
-            -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "name": "ci-pr-${{ github.event.number }}-run-${{ github.run_id }}",
-              "system_prompt": "Customer support assistant under test",
-              "knowledge_base": "",
-              "goals": ["Resolve the customer issue"],
-              "<your connection field>": "<how Bluejay reaches this PR's preview deployment>"
+          payload=$(jq -n \
+            --arg name "ci-pr-${{ github.event.number }}-run-${{ github.run_id }}" \
+            --arg connection "<how Bluejay reaches this PR's preview deployment>" \
+            '{
+              name: $name,
+              system_prompt: "Customer support assistant under test",
+              knowledge_base: "",
+              goals: ["Resolve the customer issue"],
+              "<your connection field>": $connection
             }')
+          resp=$(curl -s --fail-with-body -X POST "$BLUEJAY_API/add-agent" \
+            -H "X-API-Key: $BLUEJAY_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$payload")
           echo "id=$(echo "$resp" | jq -r '.agent_id')" >> "$GITHUB_OUTPUT"
 
       - name: Create simulation
         id: sim
         run: |
-          resp=$(curl -sf -X POST "$BLUEJAY_API/create-simulation" \
-            -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}" \
+          resp=$(curl -s --fail-with-body -X POST "$BLUEJAY_API/create-simulation" \
+            -H "X-API-Key: $BLUEJAY_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{
               "agent_id": "${{ steps.agent.outputs.id }}",
@@ -168,8 +175,8 @@ jobs:
 
       - name: Attach digital humans
         run: |
-          curl -sf -X POST "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}/add-digital-humans" \
-            -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}" \
+          curl -s --fail-with-body -X POST "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}/add-digital-humans" \
+            -H "X-API-Key: $BLUEJAY_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{"digital_human_ids": [${{ vars.BLUEJAY_DIGITAL_HUMAN_IDS }}]}'
 
@@ -184,14 +191,16 @@ jobs:
       - name: Clean up
         if: always()
         run: |
+          status=0
           if [ -n "${{ steps.sim.outputs.id }}" ]; then
-            curl -s -X DELETE "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}" \
-              -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}"
+            curl -s --fail-with-body -X DELETE "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}" \
+              -H "X-API-Key: $BLUEJAY_API_KEY" || status=1
           fi
           if [ -n "${{ steps.agent.outputs.id }}" ]; then
-            curl -s -X DELETE "$BLUEJAY_API/agent/${{ steps.agent.outputs.id }}" \
-              -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}"
+            curl -s --fail-with-body -X DELETE "$BLUEJAY_API/agent/${{ steps.agent.outputs.id }}" \
+              -H "X-API-Key: $BLUEJAY_API_KEY" || status=1
           fi
+          exit $status
 ```
 
 <Info>
