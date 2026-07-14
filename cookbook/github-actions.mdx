@@ -21,22 +21,15 @@ The action is a thin client over the Bluejay REST API:
 3. It computes the score as the **pass rate**: `tests_passed / total_tests × 100`.
 4. The step fails if the run doesn't complete successfully, or the score is below `min_score`.
 
-## How Your Agent Connects
-
-The action never connects to your assistant itself — **the agent you configure in Bluejay owns the connection**. Whether your agent is reached by phone, SIP, WebSocket, LiveKit, ElevenLabs, Retell, or Vapi, the CI workflow is identical: pass an `api_key` and a `simulation_id`. There is nothing connection-specific to put in your workflow file.
-
-Two inputs sometimes cause confusion:
-
-- `phone_number` and `sip_uri` are optional **per-run overrides** for agents already connected via phone or SIP — for example, dialing a staging number instead of the production one for a single run. They are not how you select a connection type, and the action has no username/password inputs.
-- **WebSocket agents:** the WebSocket URL, username, and password are part of the agent's configuration in Bluejay (dashboard or [update-agent API](/api-reference/endpoint/update-agent)). At run time, Bluejay opens the WebSocket to your endpoint and sends the credentials as HTTP Basic auth on the connection handshake. Your WebSocket credentials never need to enter GitHub secrets.
-
 ## Before Starting
 
 You'll need:
 
 1. **Bluejay API Key** – Get yours from the [Bluejay dashboard](https://app.getbluejay.ai/developers)
-2. **An agent** – Connected to your assistant (any connection type)
+2. **An agent** – Connected to your assistant
 3. **A simulation** – Attached to that agent, with the digital humans (test scenarios) you want to run
+
+The agent you configure in Bluejay owns the connection to your assistant, so the CI workflow is the same regardless of how your agent is connected: pass an `api_key` and a `simulation_id`.
 
 There are two integration patterns. Most teams should start with Option 1.
 
@@ -65,8 +58,6 @@ Configure the agent and simulation once — in the dashboard or via the API — 
 | `BLUEJAY_PROMPT_ID` | Prompt override ID | No |
 | `BLUEJAY_KB_ID` | Knowledge base override ID | No |
 | `BLUEJAY_DIGITAL_HUMAN_IDS` | Comma-separated Digital Human IDs | No |
-| `BLUEJAY_PHONE_NUMBER` | Phone number override (phone-connected agents only) | No |
-| `BLUEJAY_SIP_URI` | SIP URI override (SIP-connected agents only) | No |
   </Step>
 
   <Step title="Create your workflow">
@@ -107,8 +98,6 @@ jobs:
           prompt_id: ${{ vars.BLUEJAY_PROMPT_ID }}
           knowledge_base_id: ${{ vars.BLUEJAY_KB_ID }}
           digital_human_ids: ${{ vars.BLUEJAY_DIGITAL_HUMAN_IDS }}
-          phone_number: ${{ vars.BLUEJAY_PHONE_NUMBER }}
-          sip_uri: ${{ vars.BLUEJAY_SIP_URI }}
           # Behavior controls
           wait_for_results: 'true'
           min_score: ${{ inputs.min_score || vars.BLUEJAY_MIN_SCORE || '80' }}
@@ -134,7 +123,7 @@ jobs:
 
 If your CI spins up an ephemeral deployment per PR (a preview environment with its own URL), you can create the Bluejay agent and simulation inside the workflow, run the tests, and delete everything afterwards. Your digital humans stay persistent — they are your test suite — while the agent and simulation are created fresh each run.
 
-The example below points the ephemeral agent at a per-PR WebSocket preview endpoint; for a different connection type, set the corresponding field on `add-agent` instead (e.g. `phone_number` or `sip_uri`) — the connection type is inferred from whichever field you provide.
+In the `add-agent` payload, include the connection field that matches how Bluejay reaches your preview deployment — see the [add-agent API reference](/api-reference/endpoint/add-agent) for the available fields. The agent's connection type is inferred from whichever field you provide.
 
 ```yaml
 name: Agent Tests (ephemeral)
@@ -161,9 +150,7 @@ jobs:
               "system_prompt": "Customer support assistant under test",
               "knowledge_base": "",
               "goals": ["Resolve the customer issue"],
-              "websocket_url": "wss://pr-${{ github.event.number }}.preview.example.com/ws",
-              "websocket_username": "${{ secrets.PREVIEW_WS_USERNAME }}",
-              "websocket_password": "${{ secrets.PREVIEW_WS_PASSWORD }}"
+              "<your connection field>": "<how Bluejay reaches this PR's preview deployment>"
             }')
           echo "id=$(echo "$resp" | jq -r '.agent_id')" >> "$GITHUB_OUTPUT"
 
@@ -244,8 +231,6 @@ The SHA above is what `v1` resolves to as of July 2026.
 | `prompt_id` | No | — | Override prompt for this run. |
 | `knowledge_base_id` | No | — | Override knowledge base for this run. |
 | `digital_human_ids` | No | — | Comma-separated list of Digital Human IDs. |
-| `phone_number` | No | — | Phone number override (phone-connected agents only). |
-| `sip_uri` | No | — | SIP URI override (SIP-connected agents only). |
 | `wait_for_results` | No | `true` | Wait for simulation to finish. |
 | `min_score` | No | `80` | Required pass rate (0–100). |
 | `poll_interval_seconds` | No | `10` | Polling frequency in seconds. |
