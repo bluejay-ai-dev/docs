@@ -7,19 +7,42 @@ icon: code-branch
 Run Bluejay simulations in GitHub Actions and fail CI if your agent doesn't meet quality standards. Just like unit tests, but for AI agents.
 
 **Key capabilities:**
-- 🚨 Fail CI if score drops below your threshold
+- 🚨 Fail CI if your pass rate drops below your threshold
 - 🔍 Automatically test every PR and commit
 - ⚡ Zero-install; runs on GitHub-hosted runners
 - 🎯 Override prompts, knowledge bases, and digital humans per run
+
+## How It Works
+
+The action is a thin client over the Bluejay REST API:
+
+1. It queues a run for the simulation you specify (`POST /v1/queue-simulation-run`).
+2. It polls until the run finishes (`GET /v1/retrieve-simulation-results/{run_id}`).
+3. It computes the score as the **pass rate**: `tests_passed / total_tests × 100`.
+4. The step fails if the run doesn't complete successfully, or the score is below `min_score`.
+
+## How Your Agent Connects
+
+The action never connects to your assistant itself — **the agent you configure in Bluejay owns the connection**. Whether your agent is reached by phone, SIP, WebSocket, LiveKit, ElevenLabs, Retell, or Vapi, the CI workflow is identical: pass an `api_key` and a `simulation_id`. There is nothing connection-specific to put in your workflow file.
+
+Two inputs sometimes cause confusion:
+
+- `phone_number` and `sip_uri` are optional **per-run overrides** for agents already connected via phone or SIP — for example, dialing a staging number instead of the production one for a single run. They are not how you select a connection type, and the action has no username/password inputs.
+- **WebSocket agents:** the WebSocket URL, username, and password are part of the agent's configuration in Bluejay (dashboard or [update-agent API](/api-reference/endpoint/update-agent)). At run time, Bluejay opens the WebSocket to your endpoint and sends the credentials as HTTP Basic auth on the connection handshake. Your WebSocket credentials never need to enter GitHub secrets.
 
 ## Before Starting
 
 You'll need:
 
 1. **Bluejay API Key** – Get yours from the [Bluejay dashboard](https://app.getbluejay.ai/developers)
-2. **Simulation ID** – Create a simulation in Bluejay first with your test scenarios and digital humans. The simulation defines what conversations your agent will be tested on.
+2. **An agent** – Connected to your assistant (any connection type)
+3. **A simulation** – Attached to that agent, with the digital humans (test scenarios) you want to run
 
-## Quick Start
+There are two integration patterns. Most teams should start with Option 1.
+
+## Option 1: Test an Existing Agent (Recommended)
+
+Configure the agent and simulation once — in the dashboard or via the API — and CI only references the simulation. All run history accumulates on one simulation, so you can compare runs over time in the dashboard.
 
 <Steps>
   <Step title="Add your API key and variables">
@@ -37,13 +60,13 @@ You'll need:
 
 | Variable Name | Value | Required |
 |--------------|-------|----------|
-| `BLUEJAY_SIMULATION_ID` | Your simulation ID (e.g., `sim_12345`) | ✅ Yes |
+| `BLUEJAY_SIMULATION_ID` | Your simulation ID (e.g., `12345`) | ✅ Yes |
 | `BLUEJAY_MIN_SCORE` | Minimum passing score (e.g., `80`) | No |
 | `BLUEJAY_PROMPT_ID` | Prompt override ID | No |
 | `BLUEJAY_KB_ID` | Knowledge base override ID | No |
 | `BLUEJAY_DIGITAL_HUMAN_IDS` | Comma-separated Digital Human IDs | No |
-| `BLUEJAY_PHONE_NUMBER` | Phone number override | No |
-| `BLUEJAY_SIP_URI` | SIP URI override | No |
+| `BLUEJAY_PHONE_NUMBER` | Phone number override (phone-connected agents only) | No |
+| `BLUEJAY_SIP_URI` | SIP URI override (SIP-connected agents only) | No |
   </Step>
 
   <Step title="Create your workflow">
@@ -57,26 +80,6 @@ on:
     inputs:
       simulation_id:
         description: 'Bluejay Simulation ID to run'
-        required: false
-        type: string
-      prompt_id:
-        description: 'Optional Prompt ID override'
-        required: false
-        type: string
-      knowledge_base_id:
-        description: 'Optional Knowledge Base ID override'
-        required: false
-        type: string
-      digital_human_ids:
-        description: 'Comma-separated Digital Human IDs (e.g. "dh_1,dh_2")'
-        required: false
-        type: string
-      phone_number:
-        description: 'Optional phone number to use for this run'
-        required: false
-        type: string
-      sip_uri:
-        description: 'Optional SIP URI to use for this run'
         required: false
         type: string
       min_score:
@@ -100,12 +103,12 @@ jobs:
           api_key: ${{ secrets.BLUEJAY_API_KEY }}
           # Required: simulation id (manual input OR repo variable)
           simulation_id: ${{ inputs.simulation_id || vars.BLUEJAY_SIMULATION_ID }}
-          # Optional overrides (manual input OR repo variable)
-          prompt_id: ${{ inputs.prompt_id || vars.BLUEJAY_PROMPT_ID }}
-          knowledge_base_id: ${{ inputs.knowledge_base_id || vars.BLUEJAY_KB_ID }}
-          digital_human_ids: ${{ inputs.digital_human_ids || vars.BLUEJAY_DIGITAL_HUMAN_IDS }}
-          phone_number: ${{ inputs.phone_number || vars.BLUEJAY_PHONE_NUMBER }}
-          sip_uri: ${{ inputs.sip_uri || vars.BLUEJAY_SIP_URI }}
+          # Optional overrides (omit any you don't use)
+          prompt_id: ${{ vars.BLUEJAY_PROMPT_ID }}
+          knowledge_base_id: ${{ vars.BLUEJAY_KB_ID }}
+          digital_human_ids: ${{ vars.BLUEJAY_DIGITAL_HUMAN_IDS }}
+          phone_number: ${{ vars.BLUEJAY_PHONE_NUMBER }}
+          sip_uri: ${{ vars.BLUEJAY_SIP_URI }}
           # Behavior controls
           wait_for_results: 'true'
           min_score: ${{ inputs.min_score || vars.BLUEJAY_MIN_SCORE || '80' }}
@@ -127,6 +130,111 @@ jobs:
   </Step>
 </Steps>
 
+## Option 2: Fully Stateless (Create → Test → Delete)
+
+If your CI spins up an ephemeral deployment per PR (a preview environment with its own URL), you can create the Bluejay agent and simulation inside the workflow, run the tests, and delete everything afterwards. Your digital humans stay persistent — they are your test suite — while the agent and simulation are created fresh each run.
+
+The example below points the ephemeral agent at a per-PR WebSocket preview endpoint; for a different connection type, set the corresponding field on `add-agent` instead (e.g. `phone_number` or `sip_uri`) — the connection type is inferred from whichever field you provide.
+
+```yaml
+name: Agent Tests (ephemeral)
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+env:
+  BLUEJAY_API: https://api.getbluejay.ai/v1
+
+jobs:
+  run-bluejay-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create ephemeral agent
+        id: agent
+        run: |
+          resp=$(curl -sf -X POST "$BLUEJAY_API/add-agent" \
+            -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "ci-pr-${{ github.event.number }}-run-${{ github.run_id }}",
+              "system_prompt": "Customer support assistant under test",
+              "knowledge_base": "",
+              "goals": ["Resolve the customer issue"],
+              "websocket_url": "wss://pr-${{ github.event.number }}.preview.example.com/ws",
+              "websocket_username": "${{ secrets.PREVIEW_WS_USERNAME }}",
+              "websocket_password": "${{ secrets.PREVIEW_WS_PASSWORD }}"
+            }')
+          echo "id=$(echo "$resp" | jq -r '.agent_id')" >> "$GITHUB_OUTPUT"
+
+      - name: Create simulation
+        id: sim
+        run: |
+          resp=$(curl -sf -X POST "$BLUEJAY_API/create-simulation" \
+            -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "agent_id": "${{ steps.agent.outputs.id }}",
+              "name": "CI PR #${{ github.event.number }}"
+            }')
+          echo "id=$(echo "$resp" | jq -r '.simulation_id')" >> "$GITHUB_OUTPUT"
+
+      - name: Attach digital humans
+        run: |
+          curl -sf -X POST "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}/add-digital-humans" \
+            -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"digital_human_ids": [${{ vars.BLUEJAY_DIGITAL_HUMAN_IDS }}]}'
+
+      - name: Run Bluejay Tests
+        uses: bluejay-ai-dev/bluejay-github-actions@v1
+        with:
+          api_key: ${{ secrets.BLUEJAY_API_KEY }}
+          simulation_id: ${{ steps.sim.outputs.id }}
+          wait_for_results: 'true'
+          min_score: '80'
+
+      - name: Clean up
+        if: always()
+        run: |
+          if [ -n "${{ steps.sim.outputs.id }}" ]; then
+            curl -s -X DELETE "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}" \
+              -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}"
+          fi
+          if [ -n "${{ steps.agent.outputs.id }}" ]; then
+            curl -s -X DELETE "$BLUEJAY_API/agent/${{ steps.agent.outputs.id }}" \
+              -H "X-API-Key: ${{ secrets.BLUEJAY_API_KEY }}"
+          fi
+```
+
+<Info>
+  Deleting the agent and simulation removes the run's history from your dashboard. If you want results you can browse and compare later, skip the cleanup step — or use Option 1 with a persistent agent, which is what most teams want.
+</Info>
+
+## Pinning to a Commit SHA
+
+Some organizations require third-party actions to be pinned to a full-length commit SHA instead of a tag (you'll see an error like *"all actions must be pinned to a full-length commit SHA"*). Tags such as `v1` are movable pointers; a commit SHA is immutable, so pinning it guarantees the exact code your pipeline runs.
+
+The action's repository is public, so you can resolve the commit `v1` points to yourself:
+
+```bash
+git ls-remote https://github.com/bluejay-ai-dev/bluejay-github-actions 'refs/tags/v1^{}'
+```
+
+(Or on GitHub: open the [repository](https://github.com/bluejay-ai-dev/bluejay-github-actions), click **Tags**, and copy the commit for `v1`.)
+
+Then use the SHA in your workflow:
+
+```yaml
+uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7bdd7 # v1
+```
+
+The SHA above is what `v1` resolves to as of July 2026.
+
+<Info>
+  SHA pins don't follow tag updates: when we ship fixes to `v1`, re-run the command above and bump your pin. [Dependabot](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot) with `package-ecosystem: github-actions` can do this for you automatically.
+</Info>
+
 ## Inputs
 
 | Input | Required | Default | Description |
@@ -136,10 +244,10 @@ jobs:
 | `prompt_id` | No | — | Override prompt for this run. |
 | `knowledge_base_id` | No | — | Override knowledge base for this run. |
 | `digital_human_ids` | No | — | Comma-separated list of Digital Human IDs. |
-| `phone_number` | No | — | Phone number override for the run. |
-| `sip_uri` | No | — | SIP URI override for the run. |
+| `phone_number` | No | — | Phone number override (phone-connected agents only). |
+| `sip_uri` | No | — | SIP URI override (SIP-connected agents only). |
 | `wait_for_results` | No | `true` | Wait for simulation to finish. |
-| `min_score` | No | `80` | Required overall score (0–100). |
+| `min_score` | No | `80` | Required pass rate (0–100). |
 | `poll_interval_seconds` | No | `10` | Polling frequency in seconds. |
 | `timeout_seconds` | No | `1500` | Timeout (25 minutes). |
 
@@ -149,96 +257,40 @@ jobs:
 |--------|-------------|
 | `simulation-run-id` | The ID of the queued simulation run. |
 | `final-status` | Final simulation status: `completed`, `failed`, `cancelled`, etc. |
-| `score` | Overall numeric score from the simulation. |
+| `score` | Pass rate of the run: `tests_passed / total_tests × 100`. |
 
-## Advanced Usage
+## Customize When Tests Run
 
-### Customize When Tests Run
-
-You can customize when your Bluejay tests run by modifying the `on:` section of your workflow. Here are some common patterns:
+Any [GitHub Actions trigger](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows) works — only the `on:` section changes; the job itself stays the same.
 
 <Tabs>
   <Tab title="Push Only">
-Run tests only when pushing to specific branches:
-
 ```yaml
-name: Agent Tests
-
 on:
   push:
-    branches:
-      - main
-      - production
-      - staging
-
-jobs:
-  run-bluejay-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Bluejay Tests
-        uses: bluejay-ai-dev/bluejay-github-actions@v1
-        with:
-          api_key: ${{ secrets.BLUEJAY_API_KEY }}
-          simulation_id: ${{ vars.BLUEJAY_SIMULATION_ID }}
-          wait_for_results: 'true'
-          min_score: '80'
+    branches: [main, production, staging]
 ```
   </Tab>
 
   <Tab title="Pull Requests Only">
-Run tests only when pull requests are opened or updated:
-
 ```yaml
-name: Agent Tests
-
 on:
   pull_request:
     types: [opened, synchronize]
-
-jobs:
-  run-bluejay-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Bluejay Tests
-        uses: bluejay-ai-dev/bluejay-github-actions@v1
-        with:
-          api_key: ${{ secrets.BLUEJAY_API_KEY }}
-          simulation_id: ${{ vars.BLUEJAY_SIMULATION_ID }}
-          wait_for_results: 'true'
-          min_score: '80'
 ```
   </Tab>
 
   <Tab title="Scheduled Runs">
-Run tests on a schedule (e.g., daily at 9 AM UTC):
-
+Daily at 9 AM UTC:
 ```yaml
-name: Agent Tests
-
 on:
   schedule:
     - cron: '0 9 * * *'
-
-jobs:
-  run-bluejay-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Bluejay Tests
-        uses: bluejay-ai-dev/bluejay-github-actions@v1
-        with:
-          api_key: ${{ secrets.BLUEJAY_API_KEY }}
-          simulation_id: ${{ vars.BLUEJAY_SIMULATION_ID }}
-          wait_for_results: 'true'
-          min_score: '80'
 ```
   </Tab>
 
   <Tab title="Manual">
-Run tests only when manually triggered:
-
 ```yaml
-name: Agent Tests
-
 on:
   workflow_dispatch:
     inputs:
@@ -246,24 +298,6 @@ on:
         description: 'Bluejay Simulation ID to run'
         required: false
         type: string
-
-jobs:
-  run-bluejay-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Bluejay Tests
-        uses: bluejay-ai-dev/bluejay-github-actions@v1
-        with:
-          api_key: ${{ secrets.BLUEJAY_API_KEY }}
-          simulation_id: ${{ inputs.simulation_id || vars.BLUEJAY_SIMULATION_ID }}
-          wait_for_results: 'true'
-          min_score: '80'
 ```
   </Tab>
 </Tabs>
-
-<Info>
-  **Want more control?** For a complete list of events and advanced trigger configurations, see the [GitHub Actions documentation on workflow triggers](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
-</Info>
-
-
