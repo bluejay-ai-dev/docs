@@ -15,12 +15,13 @@ Sync your Vapi assistants into Bluejay and run simulations against them. Every t
   style={{ borderRadius: '0.5rem' }}
 ></iframe>
 
-### Which direction?
+### Ways to connect
 
-| You want to test... | How |
-|---|---|
-| An assistant that answers calls (**inbound**) | The setup below. Bluejay connects through Vapi's web-call bridge, no phone number needed |
-| An assistant that places calls (**outbound**) | See [Testing outbound Vapi assistants](#testing-outbound-vapi-assistants) at the bottom |
+| You want to test... | How | Tool calls captured? |
+|---|---|---|
+| An assistant that answers calls (**inbound**) | The setup below, **recommended**. Bluejay connects through Vapi's web-call bridge, no phone number needed | Yes |
+| The same assistant over its **real phone number** | [Phone connection](#phone-connection): Bluejay dials it like a real caller | No |
+| An assistant that **places** calls (outbound) | [Testing outbound Vapi assistants](#testing-outbound-vapi-assistants) | No |
 
 ### How it connects
 
@@ -76,6 +77,16 @@ https://api.getbluejay.ai/v1/integrations/vapi
 4. When the call finishes, review the transcript, tool calls, and metric scores. Tool calls appear inline in the **Transcript** tab and consolidated in the **Tool Adherence** tab.
 
 Re-sync any time from Settings. Assistants are matched by ID and never duplicated; name and prompt changes carry over.
+
+## Phone connection
+
+If your assistant is attached to a Vapi phone number, you can also test it the way a real caller reaches it: Bluejay dials the number over the phone network.
+
+1. Create an agent in Bluejay with type **Inbound**, mode **Voice**, and the **Phone** connection type.
+2. Paste your assistant's Vapi phone number in full international format (e.g. `+15551234567`).
+3. Create a simulation and run it. Bluejay dials the number and the digital human holds the conversation.
+
+Use this when you specifically want to exercise the real telephony path: carrier audio, DTMF, the exact number your customers dial. The tradeoff: tool calls aren't linked to the result over a plain phone call, so results cover the conversation itself (transcript, recording, metrics). For tool call capture, use the web-call setup above.
 
 ## Testing outbound Vapi assistants
 

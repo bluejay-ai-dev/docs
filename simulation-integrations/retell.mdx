@@ -7,16 +7,17 @@ icon: '/logo/retell.svg'
 
 Sync your Retell agents into Bluejay and run simulations against them, in either direction. Every tool call the agent makes during a conversation lands in Bluejay's Tool Adherence tab.
 
-### Which direction?
+### Ways to connect
 
-The Bluejay agent's **type** picks the path automatically:
+The synced (direct) integration handles both directions; the Bluejay agent's **type** picks the path automatically:
 
-| Agent type | Who starts the call | Mechanism | Phone number? |
+| You want to test... | Mechanism | Phone number? | Tool calls captured? |
 |---|---|---|---|
-| **Inbound** | Bluejay's digital human calls your Retell agent | Web-call bridge into Retell's cloud | Not needed |
-| **Outbound** | Your Retell agent dials the digital human | Bluejay tells Retell to place the call | **Required**: a Retell number bound to the agent |
+| An agent that answers calls (**inbound**) | Web-call bridge into Retell's cloud | Not needed | Yes |
+| An agent that **places** calls (outbound) | Bluejay tells Retell to place the call | **Required**: a Retell number bound to the agent | Yes |
+| The agent over its **real phone number** | [Phone connection](#phone-connection): Bluejay dials it like a real caller | The agent's Retell number | No |
 
-Steps 1 to 3 below are the same for both. Then jump to [Inbound](#inbound-run-it) or [Outbound](#outbound-bind-a-number-then-run).
+For the direct integration, steps 1 to 3 below are the same for both directions. Then jump to [Inbound](#inbound-run-it) or [Outbound](#outbound-bind-a-number-then-run).
 
 ### Quick Prerequisites
 
@@ -92,6 +93,16 @@ Open the synced agent in Bluejay and set its type to **Outbound**. The Connectio
 ### 3. Run it
 
 Create a simulation the same way as inbound (each digital human needs a phone number for your agent to dial), then click **Run**. Bluejay tells Retell to dial each digital human from your bound number, and the calls place automatically.
+
+## Phone connection
+
+If your Retell agent is bound to a phone number, you can also skip the integration entirely and test it the way a real caller reaches it.
+
+1. Create an agent in Bluejay with type **Inbound**, mode **Voice**, and the **Phone** connection type.
+2. Paste the agent's Retell phone number in full international format (e.g. `+15551234567`).
+3. Create a simulation and run it. Bluejay dials the number and the digital human holds the conversation.
+
+Use this when you specifically want to exercise the real telephony path: carrier audio, DTMF, the exact number your customers dial. The tradeoff: tool calls aren't linked to the result over a plain phone call, so results cover the conversation itself (transcript, recording, metrics). For tool call capture, use the synced integration above.
 
 ### Caveats
 

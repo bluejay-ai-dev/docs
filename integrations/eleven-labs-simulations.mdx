@@ -8,6 +8,13 @@ Sync your ElevenLabs agents into Bluejay and run simulations against them. Multi
 
 <video controls className="w-full aspect-video rounded-xl" src="/videos/elevenlabs-simulations-walkthrough.mp4"></video>
 
+### Ways to connect
+
+| You want to test... | How | Tool calls captured? |
+|---|---|---|
+| The agent's conversation behavior | The setup below, **recommended**. A WebSocket web call, direction-agnostic | Yes |
+| The agent over its **real phone number** | [Phone connection](#phone-connection): Bluejay dials it like a real caller | No |
+
 ### How it connects
 
 Bluejay places a live web call to your ElevenLabs agent over a WebSocket, so no phone number is needed and there's no inbound/outbound setup to choose: the same connection tests agents that answer calls and agents that place them. Whether the agent or the digital human speaks first is controlled by the agent's `first_message` and the persona's speaks-first setting. Tool calls are pulled from ElevenLabs' conversation history after the call ends.
@@ -32,11 +39,11 @@ In Bluejay, go to **Settings**, then **Integrations**, then the **Eleven Labs** 
 
 ### 2. Attach your ElevenLabs agent
 
-Any of these works:
+Any of these works, and all of them import the agent's name, prompt, and workflow:
 
-- **Sync everything**: in the same Integrations tab, click **Sync Agents from ElevenLabs**. Every agent imports with its name, prompt, and workflow.
-- **Pick one**: in Agent Settings, set the connection type to **ElevenLabs** and select from your live agents.
-- **Paste an ID**: same place, enter the **ElevenLabs Agent ID** directly.
+- **Sync everything**: in the same Integrations tab, click **Sync Agents from ElevenLabs** to import every agent in your account.
+- **Attach one at create time**: in **Create Agent**, choose the **ElevenLabs** connection type, then pick from your live agents or paste the **ElevenLabs Agent ID**. Bluejay syncs the full definition as soon as the agent is created.
+- **Attach to an existing agent**: set the Agent ID in **Agent Settings → Connection**, then click **Sync** on the **Workflows** tab to pull the definition.
 
 ### 3. Create a simulation
 
@@ -62,6 +69,16 @@ Synced multi-agent workflows appear in the **Workflows** tab of Agent Settings a
 - Drag between two nodes to draw a new edge, then click the **Add condition** pill to set its trigger.
 
 ![The Workflows tab in Bluejay](/images/elevenlabs-sim-workflows-tab.gif)
+
+## Phone connection
+
+If your ElevenLabs agent is attached to a phone number (through ElevenLabs' Twilio or SIP trunk telephony), you can also test it the way a real caller reaches it.
+
+1. Create an agent in Bluejay with type **Inbound**, mode **Voice**, and the **Phone** connection type.
+2. Paste the agent's phone number in full international format (e.g. `+15551234567`).
+3. Create a simulation and run it. Bluejay dials the number and the digital human holds the conversation.
+
+Use this when you specifically want to exercise the real telephony path: carrier audio, DTMF, the exact number your customers dial. The tradeoff: tool calls aren't linked to the result over a plain phone call, so results cover the conversation itself (transcript, recording, metrics). For tool call capture, use the WebSocket setup above.
 
 ### Troubleshooting
 
