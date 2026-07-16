@@ -68,13 +68,15 @@ Go to the "Agents & Simulations" section in the sidebar. Click the "+" button to
 Use the [Add Agent endpoint](/api-reference/endpoint/add-agent) to create an agent programmatically and save the `agent_id`.
 
 ```bash
-curl -X POST https://api.getbluejay.ai/v1/agents \
+curl -X POST https://api.getbluejay.ai/v1/add-agent \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Customer Support Bot",
-    "webhook_url": "https://your-server.com/webhook",
-    ...
+    "type": "INBOUND",
+    "mode": "TEXT",
+    "connection_type": "HTTP_WEBHOOK",
+    "http_webhook": "https://your-server.com/webhook"
   }'
 ```
 </Tab>
@@ -272,6 +274,17 @@ Your webhook endpoint should:
 
 ## Verifying Webhook Signatures
 
-To ensure webhook requests are genuinely from Bluejay, you should verify the signature included in each request. Bluejay signs the request body using HMAC-SHA256 and includes the signature in the `X-Bluejay-Signature` header.
+To ensure webhook requests are genuinely from Bluejay, verify the signature included in each request. Bluejay signs the raw request body with HMAC-SHA256 using your signing key (generated in the agent's Connection settings) and sends the hex digest in the `X-Bluejay-Signature` header.
+
+```python
+import hashlib
+import hmac
+
+def verify_signature(raw_body: bytes, signature_header: str, signing_key: str) -> bool:
+    expected = hmac.new(signing_key.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature_header)
+```
+
+Compute the digest over the raw bytes of the body (before any JSON parsing) and compare it to the header with a constant-time comparison. Reject the request if they don't match.
 
 

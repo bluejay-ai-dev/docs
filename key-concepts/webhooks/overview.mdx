@@ -10,7 +10,7 @@ Webhooks allow you to receive real-time HTTP notifications when specific events 
 
 ## Webhook Events
 
-You can subscribe to three types of events:
+You can subscribe to four types of events:
 
 ### 1. Simulation Result Evaluated
 
@@ -22,8 +22,23 @@ Triggered when a simulation result is evaluated.
 
 ```json
 {
-  "type": "simulation_result_evaluated"
-  //...
+  "type": "simulation_result_evaluated",
+  "id": 123,
+  "digital_human_id": 456,
+  "status": "COMPLETED",
+  "simulation_run_id": 789,
+  "simulation_id": 12,
+  "agent_id": 34,
+  "folder_id": "d3b1e0f0-1234-5678-9abc-def012345678",
+  "evaluations": [ ... ],
+  "events": [ ... ],
+  "tool_calls": [ ... ],
+  "tags": [],
+  "metadata": {},
+  "created_at": "2026-07-16T18:00:00Z",
+  "start_time": "2026-07-16T18:00:05Z",
+  "end_time": "2026-07-16T18:02:10Z",
+  "duration": 125
 }
 ```
 
@@ -33,12 +48,16 @@ Triggered when an observability call is evaluated.
 
 **Event Type:** `observability_call_evaluated`
 
-**Payload Structure:**
+**Payload Structure:** the full call log, plus the event type:
 
 ```json
 {
-  "type": "observability_call_evaluated"
-  //...
+  "type": "observability_call_evaluated",
+  "id": "call_123",
+  "agent_id": 34,
+  "evaluations": [ ... ],
+  "transcript": [ ... ],
+  "metadata": {}
 }
 ```
 
@@ -52,8 +71,15 @@ Triggered when a simulation instance completes execution.
 
 ```json
 {
-  "type": "simulation_ended"
-  //...
+  "type": "simulation_ended",
+  "id": 123,
+  "digital_human_id": 456,
+  "status": "CONVERSATION_ENDED",
+  "simulation_run_id": 789,
+  "created_at": "2026-07-16T18:00:00Z",
+  "start_time": "2026-07-16T18:00:05Z",
+  "end_time": "2026-07-16T18:02:10Z",
+  "duration": 125
 }
 ```
 
@@ -67,8 +93,18 @@ Triggered when an outbound simulation is started.
 
 ```json
 {
-  "type": "outbound_simulation_started"
-  //...
+  "type": "outbound_simulation_started",
+  "agent_id": 34,
+  "simulation_id": 12,
+  "simulation_run_id": 789,
+  "digital_humans": [
+    {
+      "id": 456,
+      "name": "Maria Gonzalez",
+      "phone_number": "+15551234567",
+      "associated_simulation_result_ids": [123]
+    }
+  ]
 }
 ```
 
@@ -127,7 +163,7 @@ Agent and folder-based triggers provide:
 To ensure webhook requests are genuinely from Bluejay:
 
 1. **Check the signature header** - All webhook requests include an HMAC-SHA256 `X-Bluejay-Signature` header
-3. **Use HTTPS endpoints** - Always configure webhook URLs with HTTPS
+2. **Use HTTPS endpoints** - Always configure webhook URLs with HTTPS
 
 ### Best Practices
 
