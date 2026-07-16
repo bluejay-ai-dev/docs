@@ -1,0 +1,60 @@
+---
+title: Follow-up SMS
+description: Test the confirmation text your agent sends after a voice call, graded and attached to the originating call
+icon: message-sms
+---
+
+Many voice agents send a follow-up text after a call, for example a booking confirmation or a reminder. Bluejay can capture that SMS, attach it to the call it followed up on, and grade it, so the text becomes part of your simulation results instead of disappearing.
+
+## How it works
+
+1. A voice simulation runs and the call completes.
+2. Your agent sends its confirmation SMS to the Digital Human's phone number.
+3. Bluejay matches that inbound SMS to the source call, grades it against your criteria, and shows it nested under the call in the run results.
+
+Matching uses three signals:
+
+- **To** — the SMS must be sent to the Digital Human's own phone number (the number the call happened on).
+- **From** — the sender must be on the agent's **follow-up SMS sender numbers** allowlist (see below).
+- **Time** — the SMS must arrive within **30 minutes** of the call completing.
+
+If more than one recent call shares that number (for example a pooled number reused across scenarios), Bluejay picks the call the SMS content best matches. Multiple texts for the same call are grouped into a single follow-up entry.
+
+## Enabling it
+
+Follow-up SMS is controlled by one setting: the agent's **sender-number allowlist**. If it has at least one number, follow-up SMS is on for that agent's calls; if it is empty, the feature is off.
+
+<Steps>
+  <Step title="Add your sender numbers to the agent">
+    Go to **Agent Settings → Simulation Settings → Follow-up SMS sender numbers** and add the number(s) your agent sends confirmation texts from (in E.164 format, for example `+14155550100`). This is often a single Twilio A2P campaign number shared across your agents.
+
+    To have the Digital Human receive a text your agent sends from its **own** number, just add the agent's number to this list.
+  </Step>
+  <Step title="(Optional) Set grading criteria on the Digital Human">
+    In the Digital Human editor, fill in **Follow-up SMS success criteria** with what the text must contain, for example "restates the agreed appointment date and time." If left blank, the SMS is graded against the Digital Human's regular success criteria.
+  </Step>
+  <Step title="Run the simulation and check the results">
+    After the run, expand the call row in the run results to see the nested **Follow-up SMS** entry with its pass/fail grade.
+  </Step>
+</Steps>
+
+<Note>
+  The sender allowlist lives on the **agent**, so a number trusted for one agent is not automatically trusted for another. Numbers not on the allowlist are ignored.
+</Note>
+
+## Configuring via MCP / API
+
+The allowlist is exposed as `follow_up_sms_sender_numbers` (a list of E.164 strings) on the agent create, update, and read tools. The per-Digital-Human `follow_up_sms_success_criteria` is available on the Digital Human tools.
+
+```json
+{
+  "name": "Appointment booking agent",
+  "follow_up_sms_sender_numbers": ["+14155550100"]
+}
+```
+
+## Limitations
+
+- Only **completed voice calls** are eligible. Calls that never connected (no-answer, dropped, cancelled) are never matched.
+- The window is **30 minutes** after the call ends.
+- Retried webhook deliveries of the same SMS are de-duplicated, so a message is never linked twice.

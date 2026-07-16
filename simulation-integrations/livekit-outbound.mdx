@@ -1,0 +1,85 @@
+---
+title: "LiveKit — Outbound Agents"
+description: "Test a LiveKit agent that places calls: your agent dials, the digital human answers"
+icon: "phone-arrow-up-right"
+---
+
+Use this when your LiveKit agent **places** calls (sales outreach, reminders, follow-ups) and you want the digital human on the receiving end.
+
+<Note>
+  If your agent **answers** calls instead, use [Direct connection](/simulation-integrations/livekit-direct) or [SIP connection](/simulation-integrations/livekit-sip).
+</Note>
+
+### How it connects
+
+For each digital human in the run, Bluejay stands up a receiving line on that digital human's phone number, then notifies your system which numbers to dial via a webhook. Your agent places the calls the same way it does in production, the digital humans answer, and each conversation is scored like any other simulation.
+
+## Setup
+
+### 1. Create an outbound agent in Bluejay
+
+1. Click **Create Agent**.
+2. Set the agent type to **Outbound** and the mode to **Voice**, with the **Phone** connection type.
+3. Click **Create**.
+
+### 2. Give your digital humans phone numbers
+
+Each digital human in the simulation needs a phone number. This is the number your agent will dial for that test.
+
+### 3. Add a webhook so your system knows when to dial
+
+In Bluejay, create a webhook subscribed to the `outbound_simulation_started` event and scope it to your agent (see [Webhooks](/core-concepts/webhook)). When you run the simulation, Bluejay POSTs the numbers to dial:
+
+```json
+{
+  "type": "outbound_simulation_started",
+  "agent_id": 123,
+  "simulation_id": 123,
+  "simulation_run_id": 123,
+  "digital_humans": [
+    {
+      "id": 123,
+      "name": "example_name",
+      "phone_number": "+15551234567",
+      "associated_simulation_result_ids": [123]
+    }
+  ]
+}
+```
+
+### 4. Dial from your agent
+
+When the webhook fires, have your system dispatch your LiveKit agent to call each `phone_number`, exactly as it dials real customers (for example `create_sip_participant` on your own outbound trunk). The digital human answers, and the conversation runs.
+
+<Tip>
+  No webhook endpoint handy? You can also dial the numbers manually. The digital humans wait on their lines until the run's timeout.
+</Tip>
+
+### 5. Review results
+
+When each call ends, the result opens with the transcript, recording, and metric scores.
+
+### Troubleshooting
+
+| Problem | Cause | Fix |
+|---|---|---|
+| Tests stay pending forever | Your agent never dialed | Check the webhook fired and your system placed calls to the exact numbers in the payload |
+| Webhook never arrives | Not subscribed or not scoped to this agent | Subscribe to `outbound_simulation_started` and include the agent (or its folder) in the webhook's triggers |
+| Calls fail to connect | Number mismatch | Dial the `phone_number` values exactly as sent, in E.164 format |
+
+### Resources
+
+<CardGroup cols={2}>
+  <Card title="Webhooks" icon="bolt" href="/core-concepts/webhook">
+    Configure and verify Bluejay webhooks.
+  </Card>
+  <Card title="Events Webhook Reference" icon="code" href="/api-reference/webhook/events-webhook">
+    Full payload structure for every event type.
+  </Card>
+  <Card title="LiveKit — Direct" icon="bolt" href="/simulation-integrations/livekit-direct">
+    Testing inbound LiveKit agents without SIP.
+  </Card>
+  <Card title="Digital Humans" icon="user" href="/key-concepts/digital-humans/overview">
+    The personas that answer your agent's calls.
+  </Card>
+</CardGroup>
