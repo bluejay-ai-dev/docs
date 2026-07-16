@@ -1,0 +1,76 @@
+---
+title: 'Bland Simulations'
+description: 'Test your Bland agents over the phone'
+icon: '/logo/bland.svg'
+---
+
+Bland agents live on phone numbers, so Bluejay tests them the same way a real customer reaches them: by calling the number. No API keys, webhooks, or code needed to run a simulation.
+
+### How it connects
+
+Bluejay dials your Bland phone number and the digital human holds the conversation with your agent. Transcripts, recordings, and metric scores come from Bluejay's side of the call.
+
+### Prerequisites
+
+- A Bland phone number with your agent set as the inbound agent
+- A Bluejay account
+
+## Quick start
+
+### 1. Get your Bland number
+
+In Bland, go to **Phone Numbers** and confirm your agent is attached to the number for inbound calls.
+
+### 2. Create an agent in Bluejay
+
+1. Click **Create Agent**.
+2. Set the agent type to **Inbound** and the mode to **Voice**.
+3. Choose the **Phone** connection type and paste your Bland number in full international format (e.g. `+15551234567`).
+4. Click **Create**.
+
+### 3. Create a simulation
+
+Go to the **Simulations** page, click **Create Simulation** in the top left, select the Bland agent you just created, and add or auto-generate digital human personas.
+
+<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/create-simulation.mp4"></video>
+
+### 4. Run it
+
+In the **Simulations** tab, click **Run** on the simulation, then click **Run Calls**. Bluejay dials your Bland number, and when the call finishes the result opens with the transcript, recording, and metric scores.
+
+<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/run-calls.mp4"></video>
+
+<Note>
+  To evaluate your **production** Bland calls too, set up the [Bland Observability](/integrations/bland) webhook.
+</Note>
+
+## Testing outbound Bland agents
+
+If your Bland agent **places** calls instead of answering them, flip the direction: Bluejay's digital humans answer on phone numbers, and your Bland agent dials them.
+
+1. Create the Bluejay agent with type **Outbound** (still **Voice** and **Phone**).
+2. Give each digital human in your simulation a phone number. These are the numbers your agent will dial.
+3. In Bluejay, add a webhook subscribed to the `outbound_simulation_started` event (see [Webhooks](/core-concepts/webhook)). When you run the simulation, it delivers the list of numbers to dial.
+4. When the webhook fires, have your system place the calls through Bland's send-call API, one per digital human, to each `phone_number` in the payload. You can also dial them manually for a quick test.
+5. The digital humans answer, the conversations run, and results land like any other simulation.
+
+### Things to note
+
+- **Tool calls aren't captured automatically.** Bland doesn't have a native sync into Bluejay, so simulation results cover the conversation itself: transcript, audio, and metrics.
+
+### Resources
+
+<CardGroup cols={2}>
+  <Card title="Bland Observability" icon="eye" href="/integrations/bland">
+    Evaluate production Bland calls with the webhook integration.
+  </Card>
+  <Card title="Simulation Overview" icon="flask-vial" href="/test/simulations/overview">
+    How simulations work in Bluejay end-to-end.
+  </Card>
+  <Card title="Digital Humans" icon="user" href="/key-concepts/digital-humans/overview">
+    The personas that play the caller in every simulation.
+  </Card>
+  <Card title="Telephony Simulations" icon="phone" href="/simulation-integrations/telephony">
+    The general phone-number connection, inbound and outbound.
+  </Card>
+</CardGroup>
