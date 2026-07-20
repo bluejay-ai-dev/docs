@@ -1,51 +1,59 @@
 ---
 title: Workflows
-description: Sync your agent's multi-agent workflow into Bluejay and use it to drive simulations
+description: Sync your agent's workflow into Bluejay, edit it, push it back, and use it to drive simulations
 icon: diagram-project
 ---
 
-Many teams build voice agents as **multi-agent workflows**: a root agent that hands off to specialised sub-agents as the conversation progresses (e.g. *Greeting* → *Gather Details* → *Resolve*). Bluejay pulls that workflow in from your provider, renders it as an editable graph, and uses it to generate digital humans that test every path through the flow.
+Many teams build voice agents as **multi-agent workflows**: a root agent that hands off to specialised sub-agents as the conversation progresses (e.g. *Greeting* → *Gather Details* → *Resolve*). Bluejay pulls that workflow in from your provider, renders it as an editable graph in the **Workflow** tab of Agent Settings, and uses it to generate digital humans that test every path through the flow.
 
-## What You'll Learn
+<Note>
+  Not to be confused with the [Scenario Builder](/key-concepts/scenario-builder/overview), which is Bluejay's native tool for authoring conversation-path graphs from scratch. Workflows sync from your **provider** and stay two-way editable.
+</Note>
 
-- What an agent workflow is
-- What the Workflows tab in Agent Settings lets you do
-- How workflows power the **Generate From Workflow** simulation type
+## What you can do
 
-## Actions
-
-The **Workflows** tab in Agent Settings appears for any agent whose provider supports workflows. From there you can:
+The **Workflow** tab appears on any agent whose provider supports workflows. From there you can:
 
 - **Visualise** the workflow as a node-and-edge graph.
-- **Edit** any node (name, system prompt, voice, model, tools) or click an edge to set its transition condition.
-- **Sync** to pull the latest workflow from your provider.
+- **Edit** any node (name, system prompt, and provider-specific fields like voice, model, and tools), add or delete nodes and edges, and click an edge to set its transition condition. The Start node is protected.
+- **Sync** (or **Pull**) to fetch the latest workflow from your provider.
 - **Push** to send your edits back to the provider.
-- **Branches** to switch between branches and merge back to main, if your provider supports them.
 
 Sync and Push each replace the destination wholesale, so pick one source of truth at a time.
 
-## Driving Simulations
+## Supported providers
 
-The **Generate From Workflow** simulation type enumerates every distinct path through the synced workflow (Start → step → step → …) and generates digital humans whose intents naturally drive the agent down each path. Each path becomes its own digital human card with the path strand visible underneath the success criteria in the Persona tab.
+| Provider | Sync | Edit + Push | Extras |
+|---|---|---|---|
+| **ElevenLabs** | ✅ | ✅ | **Branches**: switch between workflow branches and merge back to Main. Simulations always run against Main |
+| **Vapi** | ✅ | ✅ | Works for single assistants and **Squads** (multi-assistant workflows) |
+| **Retell** | ✅ | ✅ | Conversation-flow agents |
+| **Google Dialogflow CX** | ✅ | ✅ | **Versions and environments**: create a version on push, promote versions to an environment, and preview diffs before syncing or pushing. Conflict-aware push warns before overwriting provider-side changes |
+
+## Driving simulations
+
+The **Generate From Workflow** simulation type enumerates every distinct path through the synced workflow (Start → step → step → …) and generates digital humans whose intents naturally drive the agent down each path. Each path becomes its own digital human card with the path visible underneath the success criteria in the Persona tab.
 
 You pick how many digital humans to generate per path. Three discovered paths × four digital humans = twelve scenarios, each tailored to drive its assigned path.
 
-## Supported Providers
+## Typical loop
+
+1. **Sync** the workflow from your provider.
+2. **Create a simulation** with **Generate From Workflow** and run it to see which paths pass and fail.
+3. **Edit** the failing node's prompt or edge conditions in Bluejay.
+4. **Push** the fix back to your provider and re-run.
+
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="ElevenLabs" icon="/logo/elevenlabs.svg" href="/integrations/eleven-labs-simulations">
-    Full ElevenLabs agent definitions including sub-agent transfers, inline workflow nodes, and branches. See the ElevenLabs Simulations page for sync, push, the inline editor, and Generate From Workflow.
+  <Card title="ElevenLabs Simulations" icon="/logo/elevenlabs.svg" href="/integrations/eleven-labs-simulations">
+    The full ElevenLabs walkthrough: sync, the inline editor, branches, and Generate From Workflow.
   </Card>
-  <Card title="More coming soon" icon="rocket">
-    Workflow integration is built provider-by-provider. If your provider isn't listed yet, ping the Bluejay team and we'll add it.
-  </Card>
-</CardGroup>
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Scenario Builder" icon="diagram-project" href="/key-concepts/scenario-builder/overview">
+  <Card title="Scenario Builder" icon="map" href="/key-concepts/scenario-builder/overview">
     Author your own conversation flows path-by-path when you don't have a provider workflow to sync.
+  </Card>
+  <Card title="Simulation Overview" icon="flask-vial" href="/test/simulations/overview">
+    How simulations work in Bluejay end-to-end.
   </Card>
   <Card title="Agents Overview" icon="robot" href="/key-concepts/agents/overview">
     How Agents are modeled and how they connect to the rest of Bluejay.

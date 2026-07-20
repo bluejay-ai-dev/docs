@@ -1,6 +1,6 @@
 ---
 title: Metric Types
-description: Understand the six response types available for Custom Metrics in Bluejay
+description: Understand the response types available for Custom Metrics in Bluejay
 icon: shapes
 ---
 
@@ -113,6 +113,20 @@ To create this metric via API, use the [Create Custom Metric](/api-reference/end
 
 ---
 
+## Tool Call
+
+**`response_type: tool_call`**
+
+A deterministic check that passes when the agent called the tool(s) you name. No LLM is involved: Bluejay compares the `tool_names` you configure against the tool calls captured for the conversation.
+
+<Tip>
+  Use Tool Call to verify required actions actually happened, like "the agent must call `create_ticket` on every support call." Pair it with a native provider integration (Vapi, Retell, ElevenLabs, LiveKit) so tool calls are captured automatically.
+</Tip>
+
+To create this metric via API, use the [Create Custom Metric](/api-reference/endpoint/create-custom-metric) endpoint with `response_type` set to `tool_call` and the expected names in `tool_names`.
+
+---
+
 ## Yes / No (Deprecated)
 
 **`response_type: yes_no`**
@@ -143,6 +157,7 @@ To create this metric via API, use the [Create Custom Metric](/api-reference/end
 | `qualitative` | Free-form text | Narrative feedback, coaching notes | Active |
 | `enum` | One of your defined labels | Classification, call outcomes | Active |
 | `json` | Structured JSON object | Multi-signal extraction in one pass | Active |
+| `tool_call` | `pass` or `fail` (deterministic) | Verifying required tools were called | Active |
 | `yes_no` | `yes` or `no` | Question-style criteria | Deprecated |
 
 ---

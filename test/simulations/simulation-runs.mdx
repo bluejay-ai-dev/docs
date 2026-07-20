@@ -1,0 +1,54 @@
+---
+title: 'Simulation Runs'
+description: 'Learn about the format and lifecycle of Bluejay simulation runs'
+icon: play
+---
+
+A simulation run is a single execution of a configured [simulation](/test/simulations/overview). Each run captures the full set of interactions between your voice agent and the digital humans defined in the simulation, producing a structured record you can review, compare, and act on.
+
+## What Is a Simulation Run?
+
+A **Simulation Run** represents one execution instance of a specific simulation scenario. When you initiate a simulation run, Bluejay's digital humans engage your agent through realistic conversations (voice calls, SMS, or text, depending on the simulation). The run tracks every conversation from start to finish and records the data needed to evaluate performance.
+
+## Run Lifecycle
+
+A simulation run has two states: it's either still progressing or it has finished.
+
+1. **Running**: at least one call in the run is still in flight (queued, dispatched, running, or being evaluated).
+2. **Completed**: every call in the run has reached an end state, whether it passed, failed, or was cancelled. The pass/fail/cancel mix shows up in counters next to the status.
+
+See [Simulation Statuses](/test/simulations/statuses) for every status a run or an individual call can take, what each failure bucket means, and what to do about it.
+
+## Run Structure
+
+A simulation run is composed of the individual calls placed by each digital human in the simulation. The run record includes:
+
+- **Run ID** — A unique identifier for referencing this execution.
+- **Simulation Reference** — The parent simulation the run belongs to.
+- **Timestamp** — When the run was initiated.
+- **Call Count** — The total number of calls placed during the run.
+- **Status**: the current lifecycle stage of the run (running or completed). See [Simulation Statuses](/test/simulations/statuses) for the full taxonomy.
+
+## Initiating a Run
+
+You can start a simulation run from the Bluejay dashboard or programmatically through the API:
+
+- **Dashboard** — Navigate to your simulation and click **Run Simulation**.
+- **API** — Use the [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run) endpoint to trigger a run for voice simulations, or [Queue SMS Simulation Run](/api-reference/endpoint/queue-sms-simulation-run) for SMS-based scenarios.
+
+## Best Practices
+
+- **Run frequently** — Execute simulation runs on a regular cadence so you can detect regressions early.
+- **Compare across runs** — Use run timestamps and IDs to track how your agent's behavior evolves over successive executions.
+- **Automate via API** — Integrate simulation runs into your CI/CD pipeline or scheduled workflows to keep testing continuous.
+
+## Example Run Record
+
+```md
+Run ID: run_abc123
+Simulation: "Billing Support Stress Test"
+Status: Completed
+Queued At: 2025-06-14T10:30:00Z
+Completed At: 2025-06-14T10:42:15Z
+Total Calls: 15
+```
