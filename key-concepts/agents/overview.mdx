@@ -33,13 +33,13 @@ An **Agent** is made up of a small set of structured fields:
 | **Goals** | Clear objectives the agent should achieve during a conversation. Bluejay scores simulations against these goals. |
 | **Knowledge Base** | Structured data, scripts, FAQs, and guidelines the agent is expected to know. Used by both simulations and metrics. |
 | **Phone Number** | The phone number associated with the agent for inbound or outbound calls. Production calls placed to or from this number are tied back to the right Agent. |
-| **Voice AI Provider** | The provider (Retell, ElevenLabs, Vapi, Bland, and others) that runs the agent in production, plus the provider-side Agent ID. Required for simulations to dial out and for observability webhooks to be matched correctly. |
+| **Connection** | How Bluejay reaches the agent: a connection type (Phone, SIP, LiveKit, Websocket, ElevenLabs, Retell, VAPI, Google CES, Dialogflow CX, and more) plus its details, like a phone number or provider agent ID. Required for simulations to connect and for observability webhooks to be matched correctly. |
 
 ## Creating an Agent
 
 You can create an **Agent** from the Bluejay dashboard or from the API.
 
-- **Dashboard.** Open **Settings**, then **Agents**, click **Add Agent**, and fill in the fields above.
+- **Dashboard.** Click **Create Agent**, pick the agent type (Inbound or Outbound), mode (Voice or Text), and connection type, then fill in the connection details.
 - **API.** Send a `POST` to the [Add Agent](/api-reference/endpoint/add-agent) endpoint with the same fields in a JSON body.
 
 ## Connecting an Agent to a Provider
@@ -58,13 +58,13 @@ Each guide walks through configuring the provider webhook, saving credentials in
 - **Simulations** dial out (or send chat messages) to the Agent through its provider connection, then score the resulting conversation against your custom metrics and goals.
 - **Observability** receives webhook events from production calls and matches them to the Agent. Each call is stored as a run you can review, score, and aggregate.
 - **Custom metrics** are defined per Agent and execute against every simulation result and every observability event.
-- **Workflows** (for providers that support multi-agent flows, such as ElevenLabs) sync into Bluejay and render as an editable graph on the Agent's Workflows tab.
+- **Workflows** (for ElevenLabs, Vapi, Retell, and Google Dialogflow CX agents) sync into Bluejay and render as an editable graph on the Agent's Workflow tab.
 
 ## Typical Agent Lifecycle
 
 1. **Create** the Agent in Bluejay (in the dashboard or through the [Add Agent API](/api-reference/endpoint/add-agent)).
-2. **Configure** the Agent by setting goals, attaching a knowledge base, and selecting the voice AI provider.
-3. **Connect** the Agent to its production system by entering the provider Agent ID and webhook details.
+2. **Configure** the Agent by setting goals and attaching a knowledge base.
+3. **Connect** the Agent to its production system by choosing the connection type and entering the phone number or provider agent ID.
 4. **Test** by running simulations against the Agent to verify behavior before changes ship.
 5. **Monitor** by turning on observability so production calls flow into Bluejay for ongoing scoring and alerting.
 6. **Iterate** by updating goals, knowledge base content, or provider configuration as the agent evolves.
@@ -95,14 +95,14 @@ Knowledge Base:
 
 Phone Number: "+1 (123) 456-7890"
 
-Voice AI Provider: "Retell"
+Connection: Retell (synced agent)
 ```
 
 ## Resources
 
 <CardGroup cols={2}>
   <Card title="Workflows" icon="diagram-project" href="/key-concepts/agents/workflow">
-    Sync multi-agent flows from ElevenLabs and use them to drive simulations.
+    Sync multi-agent flows from your provider and use them to drive simulations.
   </Card>
   <Card title="Add Agent API" icon="code" href="/api-reference/endpoint/add-agent">
     Create an Agent programmatically.
