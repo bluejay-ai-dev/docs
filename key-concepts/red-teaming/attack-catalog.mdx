@@ -1,0 +1,91 @@
+---
+title: Attack Catalog
+description: The attack types Bluejay runs, their intents and vectors, and how they map to OWASP
+icon: swords
+---
+
+Every red-team run is assembled from a catalog of **attack types**. Each type has a set of **intents** — the outcome the attacker is trying to force — and **vectors** — the tactics it uses to get there. Bluejay selects intents and vectors automatically based on the attack type and your agent's surface; you don't have to hand-author them.
+
+## Attack Types
+
+<AccordionGroup>
+  <Accordion title="Social Engineering" icon="user-secret">
+    A caller impersonates a real customer and uses pressure, urgency, partial details, and false authority to trick the agent into skipping identity checks.
+
+    **Intents:** Credential Reset · Account Takeover · Push Payment / Move Funds · Information Harvest · Card Data Extraction · Synthetic ID / New Account
+
+    **Vectors:**
+    - Bluffs with partial info
+    - Plays on sympathy and urgency
+    - Pretends to be someone official
+    - Claims to be calling from abroad
+    - Dodges extra verification (OTP / 2FA)
+    - Claims a previous rep already helped
+    - Tricks it into taking a gated action without auth
+    - Gets it to confirm something false
+  </Accordion>
+
+  <Accordion title="Prompt Injection" icon="syringe">
+    The caller feeds the agent crafted wording designed to make it ignore its rules, reveal its instructions, or act outside its scope.
+
+    **Intents:** System Prompt Disclosure · Guardrail Override · Unauthorized Action · Data Exfiltration · Persona Hijack
+
+    **Vectors:**
+    - Tells it to ignore its rules
+    - Hides the ask inside a pretend scenario
+    - Pretends to be the system
+    - Disguises the wording (encodes, splits it up)
+    - Hides it inside pasted text
+    - Forces a tool to fire (injection → gated action)
+    - Makes it emit unsafe output (links, HTML, code)
+  </Accordion>
+
+  <Accordion title="Audio-Native Attacks" icon="waveform-lines">
+    Attacks the voice channel itself rather than relying on persuasion alone.
+
+    **Intents:** Information Harvest · Account Takeover · Push Payment · Credential Reset
+
+    **Vectors:**
+    - Exploits the keypad / tone channel (DTMF bypass)
+    - Weaponizes delivery and interruptions (barges in mid-verification)
+    - Sells an insider persona through the soundscape (office ambience pretext)
+  </Accordion>
+
+  <Accordion title="Text-Native Attacks" icon="code">
+    Structure exploits specific to text channels such as chat and SMS.
+
+    **Intents:** System Prompt Disclosure · Guardrail Override · Unauthorized Action · Information Harvest · Card Data Extraction
+
+    **Vectors:**
+    - Forges chat-template tokens
+    - Wraps the ask as a configuration policy
+    - Primes with a fake compliant history
+    - Hides state in a fenced block
+    - Encodes the instruction
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+More attack types — **Voice Cloning**, **Tool Invocation Hijack**, **Volumetric / DDoS**, and **Compliance & Policy Probe** — are on the roadmap and appear as *coming soon* in the launcher.
+</Note>
+
+## Techniques
+
+Under the hood the attacker draws on a transport-agnostic library of proven adversarial moves grounded in published research (persuasion tactics such as authority endorsement, foot-in-the-door, evidence-based persuasion, social proof, reciprocity, and false urgency, alongside jailbreak-style prompt-escape methods). On each turn it selects one technique, and rotates to an untried one whenever the agent refuses — so a run doesn't loop on a tactic your agent already shrugged off.
+
+## OWASP Coverage
+
+Findings roll up to the **OWASP LLM Top 10**, so a run produces a scorecard you can report against a recognized standard. Every run reports the following categories:
+
+| Category | What it covers |
+|---|---|
+| **LLM01 — Prompt Injection** | Crafted input that overrides instructions or intended behavior |
+| **LLM02 — Sensitive Information Disclosure** | Leaking PII, credentials, or other protected data |
+| **LLM05 — Improper Output Handling** | Emitting unsafe content (links, markup, executable payloads) |
+| **LLM06 — Excessive Agency** | Taking actions beyond what it was authorized to do |
+| **LLM07 — System Prompt Leakage** | Revealing its own instructions or configuration |
+| **LLM09 — Misinformation** | Being coerced into confirming or asserting false facts |
+
+<Tip>
+Some categories may report **Not Tested** on shorter runs. Bump the [intensity](/key-concepts/red-teaming/launching-a-test) to **Thorough** for the broadest coverage across categories.
+</Tip>
