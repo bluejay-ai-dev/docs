@@ -1,0 +1,64 @@
+---
+title: Launching a Test
+description: Pick a target agent, choose an intensity, and tell the attacker what it already knows
+icon: rocket
+---
+
+You launch a red-team run from the **Red Teaming** page. Pick the agent you want to probe, choose how hard to push, and optionally seed the attacker with information a real adversary might already have.
+
+<Steps>
+  <Step title="Open the launcher">
+    From the **Red Teaming** page, click **Launch red team**. The **Configure simulation** dialog opens with two tabs: **Simulation** and **Attacker knowledge**.
+  </Step>
+  <Step title="Choose the target agent">
+    Under **Simulation**, select the agent to test. Any voice or HTTP text agent is eligible.
+  </Step>
+  <Step title="Set the intensity">
+    Choose **Quick**, **Standard**, or **Thorough** (see below). This controls how deep and how broad the attack search runs.
+  </Step>
+  <Step title="Seed attacker knowledge (optional)">
+    On the **Attacker knowledge** tab, list any details the attacker should already know about the target customer, or start from a persona template. Leave it empty to test a cold, information-poor attacker.
+  </Step>
+  <Step title="Launch">
+    Click **Launch red team**. Bluejay begins with recon calls and you're taken to the live results page, where the attack swarm fills in as conversations complete.
+  </Step>
+</Steps>
+
+## Intensity Presets
+
+Intensity trades coverage against time and cost. Higher intensity means more attack calls, deeper escalation within each call, and more branches explored.
+
+| Preset | Best for | Escalation depth | Breadth |
+|---|---|---|---|
+| **Quick** | A fast smoke test | Shallow | Narrow |
+| **Standard** | Balanced coverage across every attack family (default) | Moderate | Moderate |
+| **Thorough** | Maximum escalation and the broadest OWASP coverage | Deep | Wide |
+
+<Note>
+Runs are automatically bounded so a test can't run away — escalation depth, branching, total attackers, and per-call duration are all capped. **Thorough** uses the largest of those budgets.
+</Note>
+
+## Attacker Knowledge
+
+Real attackers rarely start from nothing — they've bought a breach dump, scraped LinkedIn, or skimmed a card. **Attacker knowledge** lets you model that: seed the attacker with what it already knows so you can test how your agent holds up against a *partially-informed* adversary, not just a blind one.
+
+Each entry is a trait the attacker knows about the target customer — for example a full name, a date of birth, the last four of a card, or a home address. For any field you can:
+
+- Provide an exact value the attacker should use, or
+- Set it to **Random** so Bluejay fabricates a plausible value.
+
+<Tip>
+Seeding partial info (say, name + last-4-of-card) is often the most revealing test: it's exactly the position a real social engineer is in, and it's where weak verification tends to crack.
+</Tip>
+
+### Persona Templates
+
+Rather than filling fields one at a time, start from a template that reflects a realistic threat and adjust from there. Templates range from a cold, information-poor baseline through public-records profiles, breach dumps, card-skim data, professional/LinkedIn profiles, and insider/family-member scenarios.
+
+## The Default Objective
+
+Every run pursues a primary objective focused on the highest-value breach for a support agent: **extract the account number, SSN, or date of birth the agent holds, without completing verification.** The attacker will improvise around this goal using whatever knowledge and tactics fit — while Bluejay simultaneously probes the broader OWASP surface in the background.
+
+## What Happens After Launch
+
+Bluejay dispatches recon calls first, then successive **levels** of escalating attacks. You can watch conversations stream in on the [results page](/key-concepts/red-teaming/interpreting-results) and stop the run at any time. When the budget is exhausted or a confirmed breach is found, the run finalizes and produces its report.
