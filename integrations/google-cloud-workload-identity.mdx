@@ -173,6 +173,17 @@ resource "google_project_iam_member" "service_roles" {
   role    = each.value.role
   member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
 }
+
+# Always granted. Voice simulations run through Bluejay's LiveKit bridge, which
+# sets a quota project on its Dialogflow credentials. That makes Google enforce
+# serviceusage.services.use, and without this role every voice call fails at
+# connect time with USER_PROJECT_DENIED. It permits consuming quota in this
+# project and grants no access to any data.
+resource "google_project_iam_member" "service_usage_consumer" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
+}
 ```
 
 ```hcl variables.tf
@@ -290,7 +301,7 @@ terraform init
 terraform apply
 ```
 
-Review the plan before approving. It should create one workload identity pool, one OIDC provider, one service account, one `workloadIdentityUser` binding, and one project IAM binding per role in your enabled services. Nothing else, and no keys.
+Review the plan before approving. It should create one workload identity pool, one OIDC provider, one service account, one `workloadIdentityUser` binding, the Service Usage Consumer binding, and one project IAM binding per role in your enabled services. Nothing else, and no keys.
 
 <Accordion title="No local Terraform? Use Cloud Shell">
   Open Cloud Shell in your project, create a directory, paste the three files from above into `main.tf`, `variables.tf`, and `outputs.tf`, then:
@@ -344,6 +355,7 @@ A green result means Bluejay minted a token, Google accepted the exchange, the i
 | `storage`                | `roles/storage.objectViewer`                                 |
 | `bigquery`               | `roles/bigquery.jobUser`, `roles/bigquery.dataViewer`        |
 | `vertex`                 | `roles/aiplatform.user`                                      |
+| _(always granted)_       | `roles/serviceusage.serviceUsageConsumer`                    |
 
 The Dialogflow pair is the core of the integration and is deliberately the smallest set that works:
 
@@ -352,7 +364,7 @@ The Dialogflow pair is the core of the integration and is deliberately the small
 
 Bluejay does **not** ask for `roles/dialogflow.admin`. Admin would let it create, modify, and delete agents and flows, and none of that is needed to test or observe them.
 
-Those are the only roles the module grants. In particular it does **not** grant `roles/serviceusage.serviceUsageConsumer`. The keyless path sets no quota project, so Google never runs a Service Usage check against it, and the impersonated service account lives in the same project as the resources it reads. We verified this end to end against a real Dialogflow CX agent: with only `roles/dialogflow.reader` and `roles/dialogflow.client`, the token exchange, the impersonation, `agents.list`, and a full multi turn `detectIntent` conversation all succeed.
+**Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`) is granted unconditionally. It is not an access grant to any of your data, it only lets the service account consume API quota in your project. Voice simulations run through Bluejay's LiveKit bridge, which sets a quota project on the credentials it uses for Dialogflow's streaming API. Setting a quota project makes Google enforce `serviceusage.services.use`, so without this role a voice simulation fails the moment it tries to open the stream. Text and chat simulations take a different path that sends no quota project, so they would work without the role, but the module grants it up front so voice works too. This is the most commonly missed permission in a Google integration, and it fails at call time rather than at setup time, which makes it an expensive one to discover late.
 
 <Note>
   If you also want Bluejay to push workflow edits, snapshot versions, and promote to environments, the read and run pair above is not enough. Add the Tier 2 write permissions from the [Dialogflow CX page](/integrations/google-dfcx) to the same service account. Keep them in a custom role rather than reaching for `roles/dialogflow.admin`.
@@ -423,7 +435,7 @@ The **Test connection** result distinguishes two very different failures.
 <Accordion title="Result says no permission">
   Good news, mostly. The token exchange succeeded and Bluejay is authenticated as the service account in your project, so the trust setup is correct. The service account simply cannot perform the read Bluejay attempted. Check:
 
-  - **`USER_PROJECT_DENIED`.** This should not happen on the keyless path, which sends no quota project. Seeing it means the call went out over the legacy service-account key path, which does send an `x-goog-user-project` header and therefore triggers a Service Usage check. Confirm the integration is actually using federation, and if you must stay on a key for now, grant `roles/serviceusage.serviceUsageConsumer` for that path only. Do not add it to the keyless module.
+  - **`USER_PROJECT_DENIED`.** The service account is missing `roles/serviceusage.serviceUsageConsumer`. Re-apply the module, or grant it manually with `gcloud projects add-iam-policy-binding <project-id> --member="serviceAccount:<service-account-email>" --role="roles/serviceusage.serviceUsageConsumer"`. Expect this specifically on voice simulations, which set a quota project and therefore trigger the Service Usage check. Text and chat simulations can keep working while voice fails this way, so a green **Test connection** does not rule it out.
   - **`enabled_services` did not include the surface being tested.** If you applied with the default `["dialogflow"]` but Bluejay is reaching for Cloud Logging, add `logging` and re-apply.
   - **The target API is not enabled in the project.** For example `gcloud services enable dialogflow.googleapis.com`, or `ces.googleapis.com` for Conversational Engine.
   - **CES roles were never added.** The module grants Dialogflow roles only. CES agents need `roles/ces.viewer` and `roles/ces.client` on the same service account.
