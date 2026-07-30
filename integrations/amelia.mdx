@@ -108,25 +108,42 @@ to generate digital humans that cover them.
 Sync needs two things: the **domain code** already on the agent, and the **flow name**. The flow name
 is required because a domain holds many flows, and Bluejay will not guess which one you meant.
 
-List the flow names in a domain:
+<Steps>
+  <Step title="Pick the flow">
+    Open your agent, go to **Connection Settings**, and choose the flow from the **Flow** dropdown.
+    Bluejay lists the flows in the domain code you entered above. If it cannot reach Amelia, the
+    field accepts the flow name typed by hand, exactly as it appears in Amelia.
+  </Step>
+  <Step title="Save the agent">
+    Save the connection settings so the flow name is stored on the agent.
+  </Step>
+  <Step title="Sync">
+    Go to the **Workflow** tab and select **Sync**. Bluejay reads the flow's latest revision and
+    draws it as a graph. Sync again whenever the flow changes in Amelia.
+  </Step>
+</Steps>
+
+<Note>
+  The Sync button is disabled until the agent has both a domain code and a flow. The button says
+  which one is missing.
+</Note>
+
+You can do the same over the API. List the flow names in a domain:
 
 ```bash
 curl "https://api.getbluejay.ai/v1/integrations/amelia/flows?domain_code=acme" \
   -H "X-API-Key: your-api-key"
 ```
 
-Set the one this agent tracks with [Update Agent](/api-reference/endpoint/update-agent):
+Set the one this agent tracks with [Update Agent](/api-reference/endpoint/update-agent), then pull it
+in:
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/update-agent \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{ "agent_id": "<agent_id>", "amelia_flow_name": "Order Status" }'
-```
 
-Then pull it in:
-
-```bash
 curl -X POST https://api.getbluejay.ai/v1/agents/<agent_id>/workflow/sync \
   -H "X-API-Key: your-api-key"
 ```
