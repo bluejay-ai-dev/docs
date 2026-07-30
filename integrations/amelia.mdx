@@ -1,0 +1,184 @@
+---
+title: 'Amelia Simulations'
+description: 'Connect your Amelia (SoundHound) bots and test them with digital humans over chat or voice'
+icon: 'robot'
+---
+
+Bluejay tests the bots you build in **Amelia** (SoundHound) by holding real conversations with them.
+Point Bluejay at your Amelia deployment, name the bot you want to test, and run digital humans
+against it over chat or voice. Bluejay can also copy a bot's conversation flow into Bluejay so you
+can see every path through it.
+
+### Prerequisites
+
+- An Amelia deployment Bluejay can reach over `https`. A deployment on a private network or on
+  `localhost` is rejected.
+- The **domain code** of the bot you want to test. In Amelia, a *domain* is one bot, and its code is
+  the short identifier shown in the domain picker at the top of the Amelia window.
+- An Amelia user account that can view your flows. This is needed only for workflow sync, so you can
+  skip it if you only want to run simulations.
+
+<Note>
+Bluejay opens a conversation the same way Amelia's own web chat does. A domain that requires each
+user to sign in before chatting is not supported yet.
+</Note>
+
+---
+
+## 1. Add your Amelia sign-in details
+
+Amelia has no API key and no service account. It exposes no endpoint that hands out a token, so the
+only credential it accepts is the username and password of a real Amelia account. Bluejay stores both
+encrypted and uses them for one purpose: reading and writing your conversation flows.
+
+1. Log into your **Bluejay Dashboard**.
+2. Click your **Organization** menu (bottom-left), then **Integrations**, then **Amelia**.
+3. Fill in:
+
+| Field | What to enter |
+| --- | --- |
+| **Amelia URL** | Where you sign in to Amelia, for example `https://yourcompany.amelia.com` |
+| **Username** | An Amelia account that can view your flows |
+| **Password** | That account's password |
+
+4. Click **Save**.
+
+<Warning>
+This is a full Amelia login, so use an account with only the access it needs. To rotate it, type the
+new password into the same field and save again.
+</Warning>
+
+<Note>
+Simulations do not use these credentials. Skip this step for now if you only want to run chat or
+voice tests, and come back to it when you want to pull a flow into Bluejay.
+</Note>
+
+---
+
+## 2. Connect an agent
+
+An **agent** in Bluejay represents the bot you are testing. Each agent points at one Amelia domain.
+
+1. Create an agent, or open an existing agent's **Connection** settings.
+2. Pick **Voice** for a spoken call or **Text** for a chat conversation, then choose **Amelia**.
+3. Fill in:
+
+| Field | What to enter |
+| --- | --- |
+| **Amelia URL** | The address you use to open Amelia in a browser, including the trailing `/Amelia`, for example `https://yourcompany.amelia.com/Amelia` |
+| **Domain code** | The short code of the domain to test, for example `acme` |
+
+4. Save.
+
+<Warning>
+Keep the `/Amelia` on the end of the URL. That last segment is the context root of the deployment,
+and Bluejay uses the URL exactly as you enter it to reach the bot. Without it, every simulation fails
+the moment it starts.
+</Warning>
+
+Amelia nests things in this order: a deployment holds organizations, an organization holds domains, a
+domain holds flows, and each save of a flow becomes a new revision. Bluejay works one domain at a
+time, which is why the domain code is all it needs to start talking.
+
+---
+
+## 3. Run a simulation
+
+Whether a run is chat or voice is decided by the agent's connection, so there is nothing extra to
+choose at run time.
+
+Open the agent, create a simulation, add digital humans with their scenarios and success criteria,
+then start the run.
+
+- **Chat** simulations exchange one message at a time, exactly as Amelia's web chat does.
+- **Voice** simulations stream audio in both directions in real time. Amelia does its own listening
+  and turn-taking, and no phone number is involved.
+
+Each result records the Amelia conversation ID and links to that conversation in Amelia, so you can
+read Bluejay's transcript and evaluation next to Amelia's own record of the same call.
+
+---
+
+## 4. Pull a flow into Bluejay
+
+Bluejay can copy one conversation flow out of Amelia and show it as a graph: what the bot says at
+each step, and the condition on each branch between steps. Use it to see the paths through a bot and
+to generate digital humans that cover them.
+
+Sync needs two things: the **domain code** already on the agent, and the **flow name**. The flow name
+is required because a domain holds many flows, and Bluejay will not guess which one you meant.
+
+<Steps>
+  <Step title="Pick the flow">
+    Open your agent, go to **Connection Settings**, and choose the flow from the **Flow** dropdown.
+    Bluejay lists the flows in the domain code you entered above. If it cannot reach Amelia, the
+    field accepts the flow name typed by hand, exactly as it appears in Amelia.
+  </Step>
+  <Step title="Save the agent">
+    Save the connection settings so the flow name is stored on the agent.
+  </Step>
+  <Step title="Sync">
+    Go to the **Workflow** tab and select **Sync**. Bluejay reads the flow's latest revision and
+    draws it as a graph. Sync again whenever the flow changes in Amelia.
+  </Step>
+</Steps>
+
+<Note>
+  The Sync button is disabled until the agent has both a domain code and a flow. The button says
+  which one is missing.
+</Note>
+
+You can do the same over the API. List the flow names in a domain:
+
+```bash
+curl "https://api.getbluejay.ai/v1/integrations/amelia/flows?domain_code=acme" \
+  -H "X-API-Key: your-api-key"
+```
+
+Set the one this agent tracks with [Update Agent](/api-reference/endpoint/update-agent), then pull it
+in:
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/update-agent \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{ "agent_id": "<agent_id>", "amelia_flow_name": "Order Status" }'
+
+curl -X POST https://api.getbluejay.ai/v1/agents/<agent_id>/workflow/sync \
+  -H "X-API-Key: your-api-key"
+```
+
+### What sync does and does not do
+
+- **Edit the flow in Amelia, not in Bluejay.** Changing nodes and branches from Bluejay is not
+  supported for Amelia. Bluejay refuses those edits rather than risk writing a broken flow into your
+  bot. Make the change in Amelia, then sync again.
+- **A push replaces the whole flow.** Pushing sends the stored flow back as one unit: Amelia
+  validates it, saves it, and deploys it. If Amelia reports a problem with the flow, nothing is
+  saved.
+- **Every save in Amelia creates a new revision**, including the save a push performs. Sync always
+  reads the flow's latest revision, so a flow that has never been deployed has nothing to read yet.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| Simulations fail as soon as they start, with an Amelia session error such as HTTP 503 | The agent's Amelia URL is missing the `/Amelia` context root | Add it back, so the URL ends in `/Amelia` |
+| `Agent has no Amelia flow name` | Sync was started before a flow was chosen | Set `amelia_flow_name` on the agent, then sync again |
+| `Amelia has no domain with code '...' visible to these credentials` | The code is wrong, or the stored account cannot see that domain | Re-check the code in Amelia's domain picker, and confirm the account in Settings can open that domain |
+| `Amelia flow '...' has no revision to sync. Deploy it in Amelia first.` | The flow exists but has never been deployed | Deploy it once in Amelia, then sync |
+| `Amelia rejected the stored admin credentials` | The username or password is wrong or expired | Re-enter both under Settings, Integrations, Amelia |
+| `Amelia URL must be a public host` or `must start with https://` | The URL points at `localhost`, an internal-only hostname, or a private address | Use a publicly reachable `https` address |
+
+---
+
+## Summary
+
+| Step | Where | What it does |
+| --- | --- | --- |
+| Sign-in details | Org, Integrations, Amelia | Store the Amelia username and password used to read and write flows |
+| Connect | Agent, Connection | Set the Amelia URL (ending in `/Amelia`) and the domain code; pick Voice or Text |
+| Test | Simulations | Run digital humans against the bot over chat or voice |
+| Pull a flow | API | Set the flow name, then sync the flow into Bluejay to view its paths |

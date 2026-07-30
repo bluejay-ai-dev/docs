@@ -6,197 +6,144 @@ icon: bolt
 
 ## Overview
 
-Webhooks allow you to receive real-time HTTP notifications when specific events occur in your Bluejay simulations and observability logs. Instead of polling for updates, Bluejay will send POST requests to your configured endpoint whenever subscribed events are triggered. Check the [Events Webhook](/api-reference/webhook/events-webhook) to understand the payload structure for each event.
+Webhooks let you receive real-time HTTP notifications when events occur in your Bluejay simulations and observability logs. Instead of polling, Bluejay sends a POST request to your endpoint whenever a subscribed event fires. See the [Events Webhook reference](/api-reference/webhook/events-webhook) for the full payload schema.
 
-## Webhook Events
+## Security
 
-You can subscribe to four types of events:
+### Source
 
-### 1. Simulation Result Evaluated
+All webhook requests originate from `api.getbluejay.ai`. If your endpoint sits behind a firewall or IP allowlist, whitelist that hostname (or its resolved IPs) so our requests can reach you.
 
-Triggered when a simulation result is evaluated.
+### Request headers
 
-**Event Type:** `simulation_result_evaluated`
+Every webhook request includes the following headers:
 
-**Payload Structure:**
+| Header | Description |
+| --- | --- |
+| `Content-Type` | Always `application/json`. |
+| `User-Agent` | Identifies the request as coming from Bluejay. |
+| `X-Bluejay-Signature` | HMAC-SHA256 signature of the raw request body, signed with your webhook's signing secret. Use this to verify the request came from Bluejay. |
+| `X-Bluejay-Event` | The event type (for example, `simulation_result_evaluated`). Matches the `type` field in the body. |
+| `X-Bluejay-Delivery` | Unique ID for this delivery attempt. Useful for idempotency and log correlation. |
 
-```json
-{
-  "type": "simulation_result_evaluated",
-  "id": 123,
-  "digital_human_id": 456,
-  "status": "COMPLETED",
-  "simulation_run_id": 789,
-  "simulation_id": 12,
-  "agent_id": 34,
-  "folder_id": "d3b1e0f0-1234-5678-9abc-def012345678",
-  "evaluations": [ ... ],
-  "events": [ ... ],
-  "tool_calls": [ ... ],
-  "tags": [],
-  "metadata": {},
-  "created_at": "2026-07-16T18:00:00Z",
-  "start_time": "2026-07-16T18:00:05Z",
-  "end_time": "2026-07-16T18:02:10Z",
-  "duration": 125
-}
-```
+### Verifying requests
 
-### 2. Observability Call Evaluated
+1. Read the raw request body (do not re-serialize the JSON — signature verification is byte-sensitive).
+2. Compute `HMAC-SHA256(body, signing_secret)` using the signing secret shown in your webhook settings.
+3. Compare the hex digest against the `X-Bluejay-Signature` header using a constant-time comparison.
 
-Triggered when an observability call is evaluated.
+Reject any request whose signature does not match.
 
-**Event Type:** `observability_call_evaluated`
+### Recommendations
 
-**Payload Structure:** the full call log, plus the event type:
+- Always use an HTTPS endpoint.
+- Respond within 5 seconds; do heavier work asynchronously.
+- Treat deliveries as at-least-once and dedupe on `X-Bluejay-Delivery`.
 
-```json
-{
-  "type": "observability_call_evaluated",
-  "id": "call_123",
-  "agent_id": 34,
-  "evaluations": [ ... ],
-  "transcript": [ ... ],
-  "metadata": {}
-}
-```
+## Events
 
-### 3. Simulation Ended
+You can subscribe to four event types. Select a tab to see its payload.
 
-Triggered when a simulation instance completes execution.
+<Tabs>
+  <Tab title="Simulation result evaluated">
+    Fires when a simulation result finishes evaluating.
 
-**Event Type:** `simulation_ended`
+    **Event type:** `simulation_result_evaluated`
 
-**Payload Structure:**
-
-```json
-{
-  "type": "simulation_ended",
-  "id": 123,
-  "digital_human_id": 456,
-  "status": "CONVERSATION_ENDED",
-  "simulation_run_id": 789,
-  "created_at": "2026-07-16T18:00:00Z",
-  "start_time": "2026-07-16T18:00:05Z",
-  "end_time": "2026-07-16T18:02:10Z",
-  "duration": 125
-}
-```
-
-### 4. Outbound Simulation Started
-
-Triggered when an outbound simulation is started.
-
-**Event Type:** `outbound_simulation_started`
-
-**Payload Structure:**
-
-```json
-{
-  "type": "outbound_simulation_started",
-  "agent_id": 34,
-  "simulation_id": 12,
-  "simulation_run_id": 789,
-  "digital_humans": [
+    ```json
     {
-      "id": 456,
-      "name": "Maria Gonzalez",
-      "phone_number": "+15551234567",
-      "associated_simulation_result_ids": [123]
+      "type": "simulation_result_evaluated",
+      "id": 123,
+      "digital_human_id": 456,
+      "status": "COMPLETED",
+      "simulation_run_id": 789,
+      "simulation_id": 12,
+      "agent_id": 34,
+      "folder_id": "d3b1e0f0-1234-5678-9abc-def012345678",
+      "evaluations": [ ... ],
+      "events": [ ... ],
+      "tool_calls": [ ... ],
+      "tags": [],
+      "metadata": {},
+      "created_at": "2026-07-16T18:00:00Z",
+      "start_time": "2026-07-16T18:00:05Z",
+      "end_time": "2026-07-16T18:02:10Z",
+      "duration": 125
     }
-  ]
-}
-```
+    ```
+  </Tab>
+  <Tab title="Observability call evaluated">
+    Fires when an observability call finishes evaluating. The payload is the full call log with the event type attached.
 
-## Configuring Webhook Triggers
+    **Event type:** `observability_call_evaluated`
 
-### Agent and Folder Scoping
+    ```json
+    {
+      "type": "observability_call_evaluated",
+      "id": "call_123",
+      "agent_id": 34,
+      "evaluations": [ ... ],
+      "transcript": [ ... ],
+      "metadata": {}
+    }
+    ```
+  </Tab>
+  <Tab title="Simulation ended">
+    Fires when a simulation instance completes execution, before evaluation runs.
 
-When setting up a webhook, you can specify which agents or folders should trigger webhook notifications. This gives you fine-grained control over when your webhook endpoint receives events.
+    **Event type:** `simulation_ended`
 
-**How it works:**
+    ```json
+    {
+      "type": "simulation_ended",
+      "id": 123,
+      "digital_human_id": 456,
+      "status": "CONVERSATION_ENDED",
+      "simulation_run_id": 789,
+      "created_at": "2026-07-16T18:00:00Z",
+      "start_time": "2026-07-16T18:00:05Z",
+      "end_time": "2026-07-16T18:02:10Z",
+      "duration": 125
+    }
+    ```
+  </Tab>
+  <Tab title="Outbound simulation started">
+    Fires when an outbound simulation kicks off.
 
-- Select specific **agents** or **folders** when creating your webhook
-- Any simulations or observability calls executed under those agents will trigger the webhook
-- Events from agents or folders not in your webhook configuration will not trigger notifications
+    **Event type:** `outbound_simulation_started`
 
-**Example use cases:**
+    ```json
+    {
+      "type": "outbound_simulation_started",
+      "agent_id": 34,
+      "simulation_id": 12,
+      "simulation_run_id": 789,
+      "digital_humans": [
+        {
+          "id": 456,
+          "name": "Maria Gonzalez",
+          "phone_number": "+15551234567",
+          "associated_simulation_result_ids": [123]
+        }
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
 
-- Monitor only production agents by selecting your production folder
-- Receive notifications for a specific agent you're testing
-- Track all simulations across multiple agents in a team folder
+## Scoping webhooks to agents and folders
 
-### Setting Up Agent/Folder Triggers
+When you create a webhook, pick the agents or folders it should listen to. Only events from those agents — or from any agent in the selected folders — will trigger delivery.
 
-When configuring your webhook, you can:
-
-1. **Select specific agents** - Only events from these agents will trigger the webhook
-2. **Select folders** - Events from any agent within these folders will trigger the webhook
-3. **Combine both** - Create granular rules by selecting both specific agents and folders
-
-## Tagged Webhooks (Deprecated)
-
-<Warning>
-  Tagged webhooks are deprecated and will be removed in a future version. Please
-  migrate to agent/folder-based webhook triggers.
-</Warning>
-
-### Migration Notice
-
-- **Existing tagged webhooks** will continue to work for backward compatibility
-- **New behavior:** If a webhook tag is not specified when running a simulation or observability log, tagged webhooks will be ignored
-- **Recommended action:** Update your webhook configurations to use agent or folder scoping and remove any tags from your webhooks
-
-### Why the change?
-
-Agent and folder-based triggers provide:
-
-- Better organization and management
-- Clearer scoping of webhook events
-- Easier maintenance as your workspace grows
-- No need to remember to add tags to each simulation or observability log
-
-## Webhook Security
-
-### Verifying Webhook Requests
-
-To ensure webhook requests are genuinely from Bluejay:
-
-1. **Check the signature header** - All webhook requests include an HMAC-SHA256 `X-Bluejay-Signature` header
-2. **Use HTTPS endpoints** - Always configure webhook URLs with HTTPS
-
-### Best Practices
-
-- Respond quickly (within 5 seconds) to avoid timeouts
-- Process webhook data asynchronously if needed
-- Log all webhook events for debugging
-- Use a dedicated endpoint for Bluejay webhooks
-
+- **Select agents** to narrow down to specific agents.
+- **Select folders** to include every agent in that folder.
+- **Combine both** for granular rules.
 
 ## Troubleshooting
 
-### Webhook Not Triggering
+**Webhook not triggering**
 
-Check that:
-
-- The webhook is enabled in your settings
-- The agent or folder is correctly configured in the webhook settings
-- You have specified the correct event type in your webhook subscription
-- Your endpoint URL is correct and accessible
-- Your endpoint responds within the timeout period
-
-### Missing Events
-
-Verify that:
-
-- The event type is included in your webhook subscription
-- The simulation or observability log is running under an agent/folder configured in your webhook
-
-### Delivery Failures
-
-Common causes:
-
-- Endpoint returning non-2xx status codes
-- Endpoint timeout (not responding within 5 seconds)
-- Network connectivity issues
-- Invalid SSL certificate (for HTTPS endpoints)
+- Confirm the webhook is enabled.
+- Confirm the source agent or folder is in the webhook's scope.
+- Confirm the event type is included in the subscription.
+- Confirm the endpoint URL is reachable and responds within 5 seconds.
