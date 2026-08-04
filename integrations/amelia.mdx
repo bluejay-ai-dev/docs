@@ -6,8 +6,10 @@ icon: 'robot'
 
 Bluejay tests the bots you build in **Amelia** (SoundHound) by holding real conversations with them.
 Point Bluejay at your Amelia deployment, name the bot you want to test, and run digital humans
-against it over chat or voice. Bluejay can also copy a bot's conversation flow into Bluejay so you
-can see every path through it.
+against it over chat or voice.
+
+Bluejay also pulls your Amelia build into Bluejay: your **AI agents**, with their instructions and
+tools, and your **conversation flows**, drawn as a graph so you can see every path through them.
 
 ### Prerequisites
 
@@ -15,8 +17,8 @@ can see every path through it.
   `localhost` is rejected.
 - The **domain code** of the bot you want to test. In Amelia, a *domain* is one bot, and its code is
   the short identifier shown in the domain picker at the top of the Amelia window.
-- An Amelia user account that can view your flows. This is needed only for workflow sync, so you can
-  skip it if you only want to run simulations.
+- An Amelia user account that can view your domain. This is needed only to pull your agents and
+  flows into Bluejay, so you can skip it if you only want to run simulations.
 
 <Note>
 Bluejay opens a conversation the same way Amelia's own web chat does. A domain that requires each
@@ -29,7 +31,8 @@ user to sign in before chatting is not supported yet.
 
 Amelia has no API key and no service account. It exposes no endpoint that hands out a token, so the
 only credential it accepts is the username and password of a real Amelia account. Bluejay stores both
-encrypted and uses them for one purpose: reading and writing your conversation flows.
+encrypted and uses them for one purpose: reading your AI agents and conversation flows, and writing
+flows back when you push one.
 
 1. Log into your **Bluejay Dashboard**.
 2. Click your **Organization** menu (bottom-left), then **Integrations**, then **Amelia**.
@@ -38,7 +41,7 @@ encrypted and uses them for one purpose: reading and writing your conversation f
 | Field | What to enter |
 | --- | --- |
 | **Amelia URL** | Where you sign in to Amelia, for example `https://yourcompany.amelia.com` |
-| **Username** | An Amelia account that can view your flows |
+| **Username** | An Amelia account that can view your domain |
 | **Password** | That account's password |
 
 4. Click **Save**.
@@ -50,7 +53,7 @@ new password into the same field and save again.
 
 <Note>
 Simulations do not use these credentials. Skip this step for now if you only want to run chat or
-voice tests, and come back to it when you want to pull a flow into Bluejay.
+voice tests, and come back to it when you want to pull your agents and flows into Bluejay.
 </Note>
 
 ---
@@ -67,8 +70,20 @@ An **agent** in Bluejay represents the bot you are testing. Each agent points at
 | --- | --- |
 | **Amelia URL** | The address you use to open Amelia in a browser, including the trailing `/Amelia`, for example `https://yourcompany.amelia.com/Amelia` |
 | **Domain code** | The short code of the domain to test, for example `acme` |
+| **Agent** | Optional. The AI agent whose instructions you want to test |
+| **Flow** | Optional. The conversation flow a simulation should start |
 
 4. Save.
+
+Both **Agent** and **Flow** are optional, and they do different jobs:
+
+- **Agent** decides what Bluejay pulls in and shows you: the agent's instructions and the tools it
+  can call. It does not change which agent answers a call.
+- **Flow** decides where a conversation starts. Bluejay starts that flow instead of letting Amelia
+  pick one from whatever the digital human says first. Leave it empty to let Amelia route.
+
+Set both when you want to pin the entry point *and* track a particular agent's instructions. Both
+dropdowns list what is in the domain code above, and both have a **None** option to clear them.
 
 <Warning>
 Keep the `/Amelia` on the end of the URL. That last segment is the context root of the deployment,
@@ -76,9 +91,17 @@ and Bluejay uses the URL exactly as you enter it to reach the bot. Without it, e
 the moment it starts.
 </Warning>
 
-Amelia nests things in this order: a deployment holds organizations, an organization holds domains, a
-domain holds flows, and each save of a flow becomes a new revision. Bluejay works one domain at a
-time, which is why the domain code is all it needs to start talking.
+Amelia nests things in this order: a deployment holds organizations, an organization holds domains,
+and a domain holds both conversation flows and AI agents. Each save of a flow or an agent becomes a
+new revision. Bluejay works one domain at a time, which is why the domain code is all it needs to
+start talking.
+
+<Note>
+Amelia decides which AI agent answers a conversation, and it can hand over to another agent partway
+through. There is no way to dial one agent directly. If you need a run to reach a specific agent every
+time, build a flow in Amelia whose **Execute Cognitive Agent** block names that agent, then point
+Bluejay's **Flow** field at it.
+</Note>
 
 ---
 
@@ -99,7 +122,50 @@ read Bluejay's transcript and evaluation next to Amelia's own record of the same
 
 ---
 
-## 4. Pull a flow into Bluejay
+## 4. Import your Amelia agents
+
+Bluejay can pull your whole Amelia domain in at once, creating one Bluejay agent per AI agent so you
+have something to run simulations against straight away.
+
+1. Go to **Organization**, **Integrations**, **Amelia**.
+2. Click **Sync from Amelia**.
+
+Each AI agent in Amelia becomes a Bluejay agent in a **Synced from Amelia** folder, set up for chat.
+The agent's instructions become its first prompt version in Bluejay, so you can read and diff them
+like any other prompt. Agents already connected to Bluejay are refreshed rather than duplicated, and
+any agent that names neither an AI agent nor a flow is skipped.
+
+The toast tells you what happened, for example *Added 12 to Synced from Amelia, refreshed 3, skipped 1
+that name no agent or flow*.
+
+<Note>
+The button stays disabled until the Amelia URL, username and password are all saved. Sync runs against
+the saved credentials, so save before syncing.
+</Note>
+
+<Warning>
+Amelia agents are read-only in Bluejay. Sync brings the instructions and tools in so you can test and
+diff them, but editing an agent from Bluejay is not supported: change it in Amelia and sync again.
+Conversation flows can be pushed back, agents cannot.
+</Warning>
+
+Over the API:
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/integrations/amelia/sync \
+  -H "X-API-Key: your-api-key"
+```
+
+To list the AI agents in a domain without importing anything:
+
+```bash
+curl "https://api.getbluejay.ai/v1/integrations/amelia/agents?domain_code=acme" \
+  -H "X-API-Key: your-api-key"
+```
+
+---
+
+## 5. Pull a flow into Bluejay
 
 Bluejay can copy one conversation flow out of Amelia and show it as a graph: what the bot says at
 each step, and the condition on each branch between steps. Use it to see the paths through a bot and
@@ -124,8 +190,15 @@ is required because a domain holds many flows, and Bluejay will not guess which 
 </Steps>
 
 <Note>
-  The Sync button is disabled until the agent has both a domain code and a flow. The button says
-  which one is missing.
+  The Sync button is disabled until the agent has a domain code and either an AI agent or a flow. The
+  button says which one is missing.
+</Note>
+
+<Note>
+  An AI agent is instructions and tools, not a graph, so there is nothing to draw and the **Workflow**
+  tab is hidden while the **Agent** field is set. Clear that field to get the flow graph back. To read
+  an agent's instructions in Bluejay, import it from **Integrations** as described above, which puts
+  them on the **Prompt** tab.
 </Note>
 
 You can do the same over the API. List the flow names in a domain:
@@ -148,9 +221,14 @@ curl -X POST https://api.getbluejay.ai/v1/agents/<agent_id>/workflow/sync \
   -H "X-API-Key: your-api-key"
 ```
 
+<Note>
+Setting an **Agent** takes precedence over a **Flow** when Bluejay decides what to sync. To sync the
+flow graph, leave the agent field empty.
+</Note>
+
 ### What sync does and does not do
 
-- **Edit the flow in Amelia, not in Bluejay.** Changing nodes and branches from Bluejay is not
+- **Edit flows in Amelia, not in Bluejay.** Changing nodes and branches from Bluejay is not
   supported for Amelia. Bluejay refuses those edits rather than risk writing a broken flow into your
   bot. Make the change in Amelia, then sync again.
 - **A push replaces the whole flow.** Pushing sends the stored flow back as one unit: Amelia
@@ -166,7 +244,10 @@ curl -X POST https://api.getbluejay.ai/v1/agents/<agent_id>/workflow/sync \
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Simulations fail as soon as they start, with an Amelia session error such as HTTP 503 | The agent's Amelia URL is missing the `/Amelia` context root | Add it back, so the URL ends in `/Amelia` |
-| `Agent has no Amelia flow name` | Sync was started before a flow was chosen | Set `amelia_flow_name` on the agent, then sync again |
+| `Agent has no Amelia cognitive agent name or flow name` | Sync was started before an AI agent or a flow was chosen | Set **Agent** or **Flow** on the agent, then sync again |
+| `Amelia domain '...' has no cognitive agent named '...'` | The agent name does not match one in that domain | Pick it from the **Agent** dropdown, or copy the name exactly as it appears in Amelia |
+| A run reaches a different AI agent than the one you set | Amelia chooses which agent answers, and can hand over mid-conversation | Point **Flow** at a flow whose Execute Cognitive Agent block names the agent you want |
+| Imported agents do not appear | The agents list was open before the sync finished | Refresh, and look in the **Synced from Amelia** folder |
 | `Amelia has no domain with code '...' visible to these credentials` | The code is wrong, or the stored account cannot see that domain | Re-check the code in Amelia's domain picker, and confirm the account in Settings can open that domain |
 | `Amelia flow '...' has no revision to sync. Deploy it in Amelia first.` | The flow exists but has never been deployed | Deploy it once in Amelia, then sync |
 | `Amelia rejected the stored admin credentials` | The username or password is wrong or expired | Re-enter both under Settings, Integrations, Amelia |
@@ -178,7 +259,8 @@ curl -X POST https://api.getbluejay.ai/v1/agents/<agent_id>/workflow/sync \
 
 | Step | Where | What it does |
 | --- | --- | --- |
-| Sign-in details | Org, Integrations, Amelia | Store the Amelia username and password used to read and write flows |
-| Connect | Agent, Connection | Set the Amelia URL (ending in `/Amelia`) and the domain code; pick Voice or Text |
+| Sign-in details | Org, Integrations, Amelia | Store the Amelia username and password used to read your agents and flows |
+| Import agents | Org, Integrations, Amelia | Sync from Amelia creates a Bluejay agent per AI agent, with its instructions as a prompt |
+| Connect | Agent, Connection | Set the Amelia URL (ending in `/Amelia`) and the domain code; pick Voice or Text, and optionally an Agent and a Flow |
 | Test | Simulations | Run digital humans against the bot over chat or voice |
-| Pull a flow | API | Set the flow name, then sync the flow into Bluejay to view its paths |
+| Pull a flow | Agent, Workflow | Set the flow name, then sync the flow into Bluejay to view its paths |
