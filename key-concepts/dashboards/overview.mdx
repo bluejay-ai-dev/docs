@@ -4,49 +4,191 @@ description: Understand how Dashboards are used in Bluejay
 icon: table-columns
 ---
 
-Bluejay provides two separate dashboard surfaces — one for **observability** and one for **simulations**. Each tracks a distinct stage of your agent's lifecycle, and the data between them is kept separate so you always have a clear picture of what is happening in production versus what happened during testing.
+Dashboards are Bluejay's **visual monitoring layer**. They combine **widgets** and **metrics** so you can track how an agent is performing over time without opening individual call logs one by one. They are the right tool when you want to see patterns and trends, not when you want to inspect a specific call or react to a single incident.
 
 ## What You'll Learn
 
-- The difference between observability and simulation dashboards
-- Common use cases and standard practices for each
-- How to structure dashboards as your agent grows
+- What a Dashboard is and the few parts it has
+- The difference between **Monitor dashboards** and **Test dashboards**
+- The widget types Bluejay supports and what each one is good for
+- How Dashboards relate to **Alerts** and **Logs** so you reach for the right tool
 
-## Two Dashboard Surfaces
+## What a Dashboard Is
 
-### Observability Dashboards
+A Dashboard is a **container for widgets**. Each Dashboard has three top-level fields and a list of widgets you arrange inside it.
 
-Observability dashboards let you monitor your agent's production performance and track how your customers behave over time as they interact with your agent.
+<AccordionGroup>
+  <Accordion title="The Dashboard itself" icon="table-columns">
+    The top-level container has:
 
-**Common use cases:**
+    - **Name.** A short title shown in the dashboard list.
+    - **Description.** Optional context about what this Dashboard tracks.
+    - **Data type.** Whether the Dashboard reads from observability data or simulation data.
+  </Accordion>
+  <Accordion title="The widgets inside" icon="grip">
+    Each **widget** is one chart, table, or KPI card on the Dashboard. Common widgets include:
 
-- **Customer sentiment analysis** — understand how customers feel about interactions and detect shifts in sentiment over time.
-- **A/B testing for agent releases** — compare metrics across feature variants to decide which changes to keep.
-- **Production pass-rate monitoring** — make sure key KPIs are maintained as your product grows and conversation volume scales.
+    - **Line chart** of daily calls
+    - **Bar chart** of failed calls by agent
+    - **KPI card** for average latency
+    - **Table** of calls grouped by label
+    - **Pie chart** by call direction
 
-**Standard practice:** build custom observability dashboards that cover the key performance areas for your agent in production, alongside a set of customer-behavior metrics that matter to the business and leadership.
+    A Dashboard usually combines several widgets so the page tells a coherent story end to end.
+  </Accordion>
+</AccordionGroup>
 
-### Simulation Dashboards
+## The Two Dashboard Surfaces
 
-Simulation dashboards help you validate that agents meet a quality bar before they ship, and verify that new features work as intended.
+Bluejay keeps **production data** and **simulation data** on separate Dashboards so you always have a clear picture of what is happening in production versus what happened during testing.
 
-**Common use cases:**
+<AccordionGroup>
+  <Accordion title="Monitor Dashboards (production / observability)" icon="eye">
+    Monitor Dashboards visualize **real call traffic** from your live agents. Use them to track:
 
-- **Pre-release quality gates** — confirm that an agent reaches the required quality threshold before a production release.
-- **New-feature verification** — validate that newly built functionality performs correctly across a range of test scenarios.
+    - **Real call failures**
+    - **Production latency**
+    - **Live operational trends**
+    - **Customer sentiment over time**
+    - **A/B comparisons** across agent versions running in production
 
-**Standard practice:** create a dedicated dashboard for each new feature or category you add to your agent. This gives you a focused view of that feature's functionality during testing and a clear record of its readiness over time.
+    **Standard practice:** build a custom Monitor Dashboard covering the key performance areas for your agent in production, alongside a set of customer-behavior metrics that matter to the business and to leadership.
+  </Accordion>
+  <Accordion title="Test Dashboards (simulations)" icon="flask-vial">
+    Test Dashboards visualize **simulation runs** before agents ship. Use them to track:
 
-## Next Steps
+    - **Simulation pass/fail trends**
+    - **Test scenario outcomes**
+    - **Digital Human performance**
+    - **Pre-release quality gates**
+    - **New-feature verification**
+
+    **Standard practice:** create a dedicated Test Dashboard for each new feature or category you add to your agent. This gives you a focused view of that feature during testing and a clear record of its readiness over time.
+  </Accordion>
+</AccordionGroup>
+
+## Widget Types
+
+Widgets render the same metric in different shapes. Pick the one that matches the question you're trying to answer.
+
+<AccordionGroup>
+  <Accordion title="Line" icon="chart-line">
+    Good for **trends over time**. Use a line widget when you want to see a metric move across days, weeks, or hours.
+  </Accordion>
+  <Accordion title="Bar" icon="chart-bar">
+    Good for **comparisons** between categories. Use a bar widget to compare failed calls by agent, by region, or by label.
+  </Accordion>
+  <Accordion title="Pie" icon="chart-pie">
+    Good for **proportions**. Use a pie widget for things like inbound vs outbound mix, or call outcome distribution.
+  </Accordion>
+  <Accordion title="KPI" icon="gauge-high">
+    Good for a **single headline number**. Use a KPI widget for top-of-page summaries like total calls today, average latency, or pass rate.
+  </Accordion>
+  <Accordion title="Table" icon="table">
+    Good for **detailed lists**. Use a table widget when you need to see individual records grouped by a label or category.
+  </Accordion>
+  <Accordion title="Pivot table" icon="table-cells">
+    Good for **grouped breakdowns**. Use a pivot table when you want to cross-tabulate two dimensions, for example, agent by call outcome.
+  </Accordion>
+</AccordionGroup>
+
+## Common Dashboard Metrics
+
+For a production agent, the metrics worth watching on a Dashboard typically include:
+
+- **Call count.** Total calls handled in the time window.
+- **Average latency.** Time from caller speech to agent response.
+- **Call duration.** Length of each call end to end.
+- **Turn count.** Number of back-and-forth exchanges per call.
+- **Interruption count.** How often the agent and caller talked over each other.
+- **Agent speaking percentage.** Share of the call the agent was talking.
+- **Call direction.** Inbound versus outbound mix.
+- **Custom metric scores.** Any quality or compliance metric you've defined.
+
+## Dashboards vs Alerts vs Logs
+
+These three tools each answer a different question. Reach for the one that matches what you're trying to do.
+
+<AccordionGroup>
+  <Accordion title="Dashboards show patterns and trends" icon="chart-line">
+    Dashboards give you the **overview**. Use them to understand how metrics move over hours, days, and weeks, and to spot drift before it becomes an incident.
+  </Accordion>
+  <Accordion title="Alerts tell you something crossed a threshold" icon="bell">
+    Alerts give you the **notification**. Use them when you need to be told immediately that a metric crossed a boundary enough times to demand attention.
+  </Accordion>
+  <Accordion title="Logs show the individual calls" icon="list">
+    Logs give you the **details**. Use them when a Dashboard or Alert points you at a problem and you need to inspect the actual calls behind it.
+  </Accordion>
+</AccordionGroup>
+
+Plain mapping: **Dashboards = overview. Alerts = notifications. Logs = details.**
+
+## Why Dashboards Matter
+
+Dashboards help you answer the questions that matter for ongoing agent health:
+
+- Is this agent getting more or fewer calls?
+- Are failures increasing?
+- Is **latency** getting worse?
+- Are call patterns changing over time?
+- Are specific **labels**, **tools**, or **custom metrics** trending badly?
+
+## Example Dashboard Layouts
+
+A few ready-made patterns to copy as starting points.
+
+<AccordionGroup>
+  <Accordion title="Operations Dashboard" icon="chart-line">
+    Widgets:
+
+    - **Total calls**
+    - **Failed calls**
+    - **Average latency**
+    - **Average duration**
+
+    Useful as the at-a-glance health view for an agent in production.
+  </Accordion>
+  <Accordion title="Quality Dashboard" icon="ranking-star">
+    Widgets:
+
+    - **Interruption count**
+    - **Turn count**
+    - **Speaking balance**
+    - **Custom quality metrics**
+
+    Useful for tracking conversational quality over time.
+  </Accordion>
+  <Accordion title="Outcome Health Dashboard" icon="bullseye">
+    Widgets:
+
+    - **Call count over time**
+    - **Inbound vs outbound mix**
+    - **Custom metrics tied to outcome success**
+    - **Failure trend by day**
+
+    Useful when you want to keep a close eye on whether the agent is actually completing the tasks it was deployed for.
+  </Accordion>
+</AccordionGroup>
+
+## Resources
 
 <CardGroup cols={2}>
   <Card title="Simulation Dashboards" icon="flask-vial" href="/test/simulations/dashboards">
     Track simulation performance and compare results across runs.
   </Card>
   <Card title="Observability Dashboards" icon="eye" href="/monitor/observability/dashboards">
-    Monitor production agent performance with live dashboards.
+    Monitor production agent performance with live Dashboards.
   </Card>
-  <Card title="Alerts" icon="bell" href="/monitor/observability/alerts">
-    Configure threshold-based notifications for production metrics.
+  <Card title="Alerts" icon="bell" href="/key-concepts/alerts/overview">
+    Get notified when a Dashboard metric crosses a threshold.
+  </Card>
+  <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
+    Define the metrics that populate your Dashboard widgets.
+  </Card>
+  <Card title="Monitor Dashboards in Bluejay" icon="up-right-from-square" href="https://app.getbluejay.ai/monitor/dashboards">
+    Open production Dashboards in your Bluejay workspace.
+  </Card>
+  <Card title="Test Dashboards in Bluejay" icon="up-right-from-square" href="https://app.getbluejay.ai/test/dashboards">
+    Open simulation Dashboards in your Bluejay workspace.
   </Card>
 </CardGroup>
