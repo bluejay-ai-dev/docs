@@ -1,0 +1,65 @@
+---
+title: 'Uptime Monitoring'
+description: 'Run a health check against a live agent on a schedule and get paged when it stops answering'
+icon: heart-pulse
+---
+
+An uptime monitor calls or texts one of your live agents on a fixed interval, grades what happened, and records UP or DOWN. When the verdict flips, it notifies Slack, email, or PagerDuty.
+
+It works on voice and SMS agents, inbound and outbound.
+
+## Checks
+
+A monitor grades one or more checks. Every monitor needs at least one check that names what to grade, otherwise there is nothing to measure and the monitor is rejected.
+
+| Check | What it measures |
+|-------|------------------|
+| **Agent Responds** | The call connected and the agent spoke |
+| **Agent Malfunction** | The agent stated an error during the conversation |
+| **Latency** | Average response time stayed under a threshold |
+| **Custom metric** | Any of your custom metrics, scored against a condition |
+
+You can also point a check at one of your own digital humans so the probe uses that persona instead of the default. A digital human on its own is not gradable, so pair it with one of the checks above.
+
+## How latency is measured
+
+Latency is the gap between your caller finishing and your agent starting to speak, averaged across the conversation.
+
+The agent's opening greeting is not included. The first measured gap is the agent's first real answer. Time to greeting is covered by Agent Responds instead.
+
+SMS and webchat monitors measure the same gap, between your message and the agent's reply. Text replies take far longer than voice, so the default threshold there is 60000 ms instead of 3000 ms. Set `latency_threshold_ms` to whatever your agent should beat.
+
+## Alerting after repeated failures
+
+Latency is an average over a single conversation and Agent Malfunction is a judgment call, so one bad result is not always a real problem. Set `alert_after_failures` on a check and it only counts toward DOWN once it has failed that many checks in a row. A single pass resets the count.
+
+```json
+{
+  "id": "latency",
+  "checkType": "latency",
+  "enabled": true,
+  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
+}
+```
+
+Leave Agent Responds at the default of 1. An agent that cannot be reached is not ambiguous and should page immediately.
+
+## Verdicts
+
+| Verdict | Meaning |
+|---------|---------|
+| **UP** | Every measurable check passed |
+| **DOWN** | At least one check failed |
+| **UNKNOWN** | Nothing could be measured |
+
+Uptime percentage is UP divided by UP plus DOWN. UNKNOWN is excluded, so it never counts for or against you.
+
+Alerts fire only on a measurable flip between UP and DOWN. UNKNOWN never pages.
+
+## Frequency
+
+Pick an interval that comfortably exceeds how long a conversation takes. SMS conversations run for minutes, so use 10 minutes or more; a check that has not finished in five minutes is recorded as UNKNOWN.
+
+## Outbound agents
+
+Bluejay never dials your outbound agent. Something on your side has to start the conversation, which is either Vapi or Retell placing the call automatically, or your own outbound trigger webhook. An outbound agent with neither is rejected, because every check would time out.
