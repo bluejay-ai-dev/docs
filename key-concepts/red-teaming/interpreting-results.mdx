@@ -1,6 +1,6 @@
 ---
 title: Interpreting Results
-description: Read the verdict, the OWASP scorecard, the risk radar, and the live attack swarm
+description: Read the verdict, the OWASP and content-safety scorecards, the risk radar, and the live attack swarm
 icon: chart-radar
 ---
 
@@ -23,7 +23,7 @@ A single **Breached** attack is enough to flip the headline verdict. Treat any b
 
 ## How an Attack Is Scored
 
-Each attack is judged two ways, and either can produce a breach:
+Each attack is judged on one of three rubrics, depending on what it was probing for. Any of them can produce a breach:
 
 <AccordionGroup>
   <Accordion title="Disclosure / non-refusal" icon="comment-dots">
@@ -32,11 +32,24 @@ Each attack is judged two ways, and either can produce a breach:
   <Accordion title="Action-binding" icon="bolt">
     If the agent took a **gated action** — a tool call, an account change, a transfer, a verification bypass — that is a **hard breach** regardless of what it said out loud. Bluejay inspects the conversation's tool calls and events directly, so a quiet "I've gone ahead and reset that for you" is caught even when the wording sounds safe.
   </Accordion>
+  <Accordion title="Content harm" icon="heart-pulse">
+    For content-harm attacks the judge scores **non-refusal × specificity × actionability** — so a chatty but useless answer scores near zero while a short, precise one scores high. The outcome is **Harmful**, **Partial**, or **Safe**. Non-refusal on its own is not a breach. See [Content Safety](/key-concepts/red-teaming/content-safety#how-a-content-finding-is-scored).
+  </Accordion>
 </AccordionGroup>
 
 ## The OWASP Scorecard
 
 The report grades the run against the [OWASP LLM Top 10 categories](/key-concepts/red-teaming/attack-catalog#owasp-coverage) it covers. Each row shows the category, a plain-language definition, and a per-category verdict (**Held**, **Breached**, or **Not Tested**). This is the artifact to hand to a security reviewer.
+
+## The Content Safety Scorecard
+
+Below the OWASP scorecard is a parallel card for **content harms** — whether the agent could be walked into producing violent, illicit, harassing, sexual, or self-harm content. Each category tested shows a verdict (**Pass**, **Partial**, **Fail**, **Not Tested**), an attempt count, evidence, and links to the conversations behind it. Self-harm is tagged **Duty of care**.
+
+A content failure is enough to fail the run on its own — it doesn't need a security breach alongside it.
+
+<Note>
+Evidence for the violence and illicit-goods categories is **redacted by policy**: the judge characterizes what the agent produced and how specific it was, rather than reproducing the payload. A finding is provable from the report without the report itself being usable. See [Content Safety](/key-concepts/red-teaming/content-safety#evidence-redaction).
+</Note>
 
 ## The Risk Radar
 

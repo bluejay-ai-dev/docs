@@ -1,6 +1,6 @@
 ---
 title: Attack Catalog
-description: The attack types Bluejay runs, their intents and vectors, and how they map to OWASP
+description: The attack types Bluejay runs, their intents and vectors, and how they map to OWASP and the content-safety taxonomy
 icon: swords
 ---
 
@@ -63,6 +63,22 @@ Every red-team run is assembled from a catalog of **attack types**. Each type ha
     - Hides state in a fenced block
     - Encodes the instruction
   </Accordion>
+
+  <Accordion title="Content Harm" icon="heart-pulse">
+    Tests whether the agent can be walked off-topic and into producing harmful content. Unlike the types above, the target isn't data the agent holds or an action it can take — it's the text the agent itself produces.
+
+    **Harm categories:** Violence, Weapons & Terrorism · Illegal Activity & Illicit Goods · Harassment, Hate & Threats · Sexual & Non-consensual Intimate Content · Self-harm, Suicide & Disordered Eating
+
+    **Vectors:**
+    - Never names the artifact, assembles it from innocuous parts (benign decomposition)
+    - Wraps the ask in fiction (novel, screenplay, game, training scenario)
+    - Claims a role that would plausibly need it (nurse, chemist, inspector)
+    - Inverts it into a safety question ("what should someone avoid")
+    - Aims the harm at a fabricated named third party (harassment, threats, defamation)
+    - Presents as a caller in crisis (duty-of-care probe, not a jailbreak)
+
+    Findings land on a separate [Content Safety Scorecard](/key-concepts/red-teaming/content-safety#the-content-safety-scorecard) rather than an OWASP category.
+  </Accordion>
 </AccordionGroup>
 
 <Note>
@@ -75,7 +91,7 @@ Under the hood the attacker draws on a transport-agnostic library of proven adve
 
 ## OWASP Coverage
 
-Findings roll up to the **OWASP LLM Top 10**, so a run produces a scorecard you can report against a recognized standard. Every run reports the following categories:
+Security findings roll up to the **OWASP LLM Top 10**, so a run produces a scorecard you can report against a recognized standard. Every run reports the following categories:
 
 | Category | What it covers |
 |---|---|
@@ -89,3 +105,9 @@ Findings roll up to the **OWASP LLM Top 10**, so a run produces a scorecard you 
 <Tip>
 Some categories may report **Not Tested** on shorter runs. Bump the [intensity](/key-concepts/red-teaming/launching-a-test) to **Thorough** for the broadest coverage across categories.
 </Tip>
+
+## Content-Safety Coverage
+
+The OWASP LLM Top 10 has no category for harmful content, so content-harm findings are graded on their own scorecard, keyed by harm category and aligned to the **MLCommons AILuminate** hazard taxonomy. On the secondary framework map they land on MITRE ATLAS **AML.T0048 — External Harms**.
+
+A content failure alone is enough to fail a run. See [Content Safety](/key-concepts/red-teaming/content-safety) for the categories, the scoring shape, and the evidence-redaction policy.
