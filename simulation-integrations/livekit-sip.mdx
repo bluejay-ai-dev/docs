@@ -52,9 +52,33 @@ Routes the call into a fresh room and dispatches your agent. `agentName` must ma
 lk sip dispatch create dispatch.json
 ```
 
-### 3. (Optional) Forward the simulation ID header
+### 3. (Optional) Read SIP headers
 
-LiveKit drops custom SIP headers by default. To receive `X-Simulation-Result-Id` (for linking tool calls and traces back to the result), add header forwarding to the trunk:
+Add custom headers in **Agent Settings → Connection**. Bluejay sends each header on the SIP INVITE under the exact name you enter. It does not add an `X-` prefix. For example, `X-CallType` is sent as `X-CallType: incoming_scheduling`. The same headers are also available as a JSON object in the `X-Custom-Headers` header.
+
+The simplest way to read headers is the `lk.sip.GetRemoteHeaders` RPC. It needs no trunk configuration, returns all SIP headers in one call, and avoids waiting for participant attributes to update:
+
+```python
+import json
+from livekit import rtc
+
+participant = await ctx.wait_for_participant()
+if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+    response = await ctx.room.local_participant.perform_rpc(
+        destination_identity=participant.identity,
+        method="lk.sip.GetRemoteHeaders",
+        payload=json.dumps({}),
+    )
+    headers = json.loads(response)["headers"]
+    call_type = headers.get("X-CallType")
+```
+
+You can also expose headers as participant attributes:
+
+- Set `headers_to_attributes` on the trunk to map specific `X-*` headers. Configure each header in advance. LiveKit updates these attributes asynchronously, so they may not exist when the SIP participant first joins.
+- Set `include_headers` to `SIP_X_HEADERS` on the trunk to map every `X-*` header to a `sip.h.*` participant attribute without configuring each header.
+
+To receive `X-Simulation-Result-Id` (for linking tool calls and traces back to the result), add explicit forwarding to the trunk:
 
 ```json
 {
