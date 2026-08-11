@@ -36,21 +36,12 @@ Optionally include metadata on the agent dispatch: add JSON to the **metadata** 
 
 Add custom headers in **Agent Settings → Connection**. Header names are sent exactly as typed.
 
-Bluejay delivers them two ways, so read whichever suits your agent:
-
-- In your agent's job metadata, under `custom_headers`.
-- As attributes on the digital human participant, one per header name.
-
 ```python
 import json
 
 headers = json.loads(ctx.job.metadata or "{}").get("custom_headers", {})
-call_type = headers.get("X-CallType")
-```
-
-```python
-for participant in ctx.room.remote_participants.values():
-    call_type = participant.attributes.get("X-CallType")
+participant = next((p for p in ctx.room.remote_participants.values() if p.attributes.get("X-CallType")), None)
+call_type = headers.get("X-CallType") or (participant.attributes["X-CallType"] if participant else None)
 ```
 
 If you mint your own token with a token webhook, the webhook payload also carries a `custom_headers` object alongside `room_name`, `participant_identity`, `agent_name`, `agent_metadata`, and `sim_conversation_id`. Add the headers to the token or the dispatch you create from it.
