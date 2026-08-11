@@ -41,11 +41,17 @@ For direct LiveKit connections, Bluejay sends these headers in the customer agen
 ```python
 import json
 
-headers = json.loads(ctx.job.metadata).get("custom_headers", {})
-call_type = headers.get("X-CallType")
+metadata = json.loads(ctx.job.metadata or "{}")
+job_headers = metadata.get("custom_headers", {})
+call_type = None
 
 for participant in ctx.room.remote_participants.values():
-    call_type = call_type or participant.attributes.get("X-CallType")
+    participant_headers = participant.attributes
+    call_type = participant_headers.get("X-CallType")
+    if call_type:
+        break
+
+call_type = job_headers.get("X-CallType") or call_type
 ```
 
 The token webhook receives a `custom_headers` object alongside `room_name`, `participant_identity`, `agent_name`, `agent_metadata`, and `sim_conversation_id`.
