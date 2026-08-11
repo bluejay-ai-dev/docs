@@ -28,9 +28,27 @@ Bluejay creates a room inside your LiveKit Cloud project, dispatches your agent 
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/run-calls.mp4"></video>
 
-## Room metadata
+## Agent metadata
 
-Optionally include metadata on the room at creation: add JSON to the **metadata** field in Agent Connection settings.
+Optionally include metadata on the agent dispatch: add JSON to the **metadata** field in Agent Connection settings.
+
+## Custom headers
+
+Add custom headers in **Agent Settings → Connection**. Header names are sent exactly as typed.
+
+For direct LiveKit connections, Bluejay sends these headers in the customer agent dispatch metadata under `custom_headers` and as attributes on the digital-human participant. If you use a token webhook, Bluejay also includes them in the webhook payload so your server can add them to its room token or dispatch.
+
+```python
+import json
+
+headers = json.loads(ctx.job.metadata).get("custom_headers", {})
+call_type = headers.get("X-CallType")
+
+for participant in ctx.room.remote_participants.values():
+    call_type = call_type or participant.attributes.get("X-CallType")
+```
+
+The token webhook receives a `custom_headers` object alongside `room_name`, `participant_identity`, `agent_name`, `agent_metadata`, and `sim_conversation_id`.
 
 ## Tool call tracking
 
