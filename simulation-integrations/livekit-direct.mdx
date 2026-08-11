@@ -36,25 +36,24 @@ Optionally include metadata on the agent dispatch: add JSON to the **metadata** 
 
 Add custom headers in **Agent Settings → Connection**. Header names are sent exactly as typed.
 
-For direct LiveKit connections, Bluejay sends these headers in the customer agent dispatch metadata under `custom_headers` and as attributes on the digital-human participant. If you use a token webhook, Bluejay also includes them in the webhook payload so your server can add them to its room token or dispatch.
+Bluejay delivers them two ways, so read whichever suits your agent:
+
+- In your agent's job metadata, under `custom_headers`.
+- As attributes on the digital human participant, one per header name.
 
 ```python
 import json
 
-metadata = json.loads(ctx.job.metadata or "{}")
-job_headers = metadata.get("custom_headers", {})
-call_type = None
-
-for participant in ctx.room.remote_participants.values():
-    participant_headers = participant.attributes
-    call_type = participant_headers.get("X-CallType")
-    if call_type:
-        break
-
-call_type = job_headers.get("X-CallType") or call_type
+headers = json.loads(ctx.job.metadata or "{}").get("custom_headers", {})
+call_type = headers.get("X-CallType")
 ```
 
-The token webhook receives a `custom_headers` object alongside `room_name`, `participant_identity`, `agent_name`, `agent_metadata`, and `sim_conversation_id`.
+```python
+for participant in ctx.room.remote_participants.values():
+    call_type = participant.attributes.get("X-CallType")
+```
+
+If you mint your own token with a token webhook, the webhook payload also carries a `custom_headers` object alongside `room_name`, `participant_identity`, `agent_name`, `agent_metadata`, and `sim_conversation_id`. Add the headers to the token or the dispatch you create from it.
 
 ## Tool call tracking
 
