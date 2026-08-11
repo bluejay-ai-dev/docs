@@ -39,9 +39,9 @@ Add custom headers in **Agent Settings → Connection**. Header names are sent e
 ```python
 import json
 
+# in your agent's job metadata, or on the digital human's participant attributes
 headers = json.loads(ctx.job.metadata or "{}").get("custom_headers", {})
-participant = next((p for p in ctx.room.remote_participants.values() if p.attributes.get("X-CallType")), None)
-call_type = headers.get("X-CallType") or (participant.attributes["X-CallType"] if participant else None)
+call_type = headers.get("X-CallType")
 ```
 
 If you mint your own token with a token webhook, the webhook payload also carries a `custom_headers` object alongside `room_name`, `participant_identity`, `agent_name`, `agent_metadata`, and `sim_conversation_id`. Add the headers to the token or the dispatch you create from it.
