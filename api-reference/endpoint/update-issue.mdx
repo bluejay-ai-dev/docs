@@ -1,7 +1,7 @@
 ---
 title: 'Update Issue'
 description: ''
-openapi: 'PATCH /v1/issues/{issue_id}'
+openapi: 'PUT /v1/issues/{issue_id}'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,11 +10,11 @@ openapi: 'PATCH /v1/issues/{issue_id}'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Update Issue — PATCH /v1/issues/{issue_id}
+## Update Issue — PUT /v1/issues/{issue_id}
 
 > **What this endpoint does:** set an issue's status, priority, assignee or due date.
 
-**Endpoint:** PATCH `https://api.getbluejay.ai/v1/issues/{issue_id}`
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/issues/{issue_id}`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
@@ -34,14 +34,14 @@ def resolve_issue(issue_id: str, assignee_id: str, api_key: str) -> dict:
     url = f"https://api.getbluejay.ai/v1/issues/{issue_id}"
     headers = {"X-API-Key": api_key}
     body = {"status": "resolved", "assignee_id": assignee_id}
-    response = requests.patch(url, headers=headers, json=body)
+    response = requests.put(url, headers=headers, json=body)
     response.raise_for_status()
     return response.json()
 ```
 
 **Unset a field:**
 ```python
-requests.patch(url, headers=headers, json={"clear": ["priority", "due_date"]})
+requests.put(url, headers=headers, json={"priority": None, "due_date": None})
 ```
 
 ### Constraints
@@ -62,10 +62,10 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 
 Set an issue's `status`, `priority`, `assignee_id` or `due_date`. Every field is optional, so send only what you want to change.
 
-To unset a field, list it in `clear` rather than sending null:
+Send a field as `null` to unset it. A field you leave out is untouched:
 
 ```json
-{ "status": "open", "clear": ["assignee_id"] }
+{ "status": "open", "assignee_id": null }
 ```
 
 `status` is one of `open`, `in_progress`, `resolved` or `ignored`. `priority` is one of `low`, `medium`, `high` or `urgent`, and stays empty until someone sets it. `assignee_id` must be a user in your organization. `due_date` is `YYYY-MM-DD`.
