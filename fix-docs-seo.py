@@ -67,9 +67,46 @@ MANUAL = {
 }
 
 
+# One page whose own source line is wrong, so lifting it faithfully would ship a
+# factual error. retrieve-call-log is GET /v1/retrieve-call-log/{call_id} and
+# retrieve-call-logs is GET /v1/retrieve-call-logs/{agent_id}, but both carry the
+# line "Retrieve call logs for a specific agent given the agent ID" -- true only
+# of the plural one. This states what the singular endpoint's own signature says,
+# and removes the only duplicate description in the set. Kept here rather than
+# hand-edited into the file so a re-run does not silently undo it.
+MANUAL_DESC = {
+    "/api-reference/endpoint/retrieve-call-log": "Retrieve a single call log by its call ID.",
+}
+
+
 def page_paths(repo):
     return {"/" + str(p.relative_to(repo)).replace(".mdx", ""): p
             for p in repo.rglob("*.mdx") if ".git" not in str(p)}
+
+
+def sentences(text):
+    """Split on sentence ends, without treating a list marker as one.
+
+    A source line reading "This endpoint: 1. does x 2. does y" would otherwise
+    break after "1." and yield the description "This endpoint: 1." -- a period
+    following a bare digit is an enumerator, not a full stop. Decimals ("99.9%
+    uptime") are excluded for the same reason.
+    """
+    parts, buf = [], ""
+    for tok in re.split(r"([.!?]+(?:\s|$))", text):
+        if not tok:
+            continue
+        if re.fullmatch(r"[.!?]+(?:\s|$)", tok):
+            if re.search(r"(?:^|\s)\d+$", buf):   # "... 1" + "." -> enumerator
+                buf += tok
+                continue
+            parts.append(buf + tok)
+            buf = ""
+        else:
+            buf += tok
+    if buf.strip():
+        parts.append(buf)
+    return parts
 
 
 def snippet(text, limit=DESC_MAX):
@@ -84,21 +121,23 @@ def snippet(text, limit=DESC_MAX):
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
     text = text.strip().strip("*").strip()
     if len(text) > limit:
-        parts = re.findall(r"[^.!?]+[.!?]+(?:\s|$)", text)
         out = ""
-        for s in parts:
+        for s in sentences(text):
             if out and len(out) + len(s) > limit:
                 break
             out += s
         text = (out or text[:limit].rsplit(" ", 1)[0]).strip()
     if not text:
         return ""
-    # Many source lines start lower-case ("delete a specific prompt version");
-    # a snippet that opens mid-sentence reads as broken.
-    text = text[0].upper() + text[1:]
+    # These lines are docstrings, so most are lower-case throughout -- not just
+    # at the start. Capitalising only the first letter left descriptions reading
+    # "Update a specific simulation by id. only fields provided will be updated."
+    text = "".join(s[0].upper() + s[1:] if s[:1].isalpha() else s for s in sentences(text)) or text
+    # "by id" is the minority spelling here; the sibling pages say "by ID".
+    text = re.sub(r"\bid\b", "ID", text)
     if not text.endswith((".", "!", "?")):
         text += "."
-    return text
+    return text.strip()
 
 
 def build_redirects(repo, dead_file, pages, existing):
@@ -136,11 +175,14 @@ def fill_descriptions(pages, apply):
         cur = re.search(r"^description:\s*(.*)$", fm, re.M)
         if cur and cur.group(1).strip().strip("'\""):
             continue
-        w = WHAT.search(s)
-        if not w:
-            no_source.append(path)
-            continue
-        desc = snippet(w.group(1))
+        if path in MANUAL_DESC:
+            desc = MANUAL_DESC[path]
+        else:
+            w = WHAT.search(s)
+            if not w:
+                no_source.append(path)
+                continue
+            desc = snippet(w.group(1))
         if not desc:
             no_source.append(path)
             continue
