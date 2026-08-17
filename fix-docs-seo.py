@@ -84,20 +84,24 @@ def page_paths(repo):
             for p in repo.rglob("*.mdx") if ".git" not in str(p)}
 
 
-def sentences(text):
-    """Split on sentence ends, without treating a list marker as one.
+# Two or more "N. " markers means the string really is an enumerated list, and a
+# period after a digit is a marker rather than a full stop. One on its own is a
+# sentence that happens to end in a number ("Supports up to 10. Additional runs
+# are queued"), which must stay two sentences. Case cannot be used to tell them
+# apart here -- these source lines are docstrings written in lower case, so the
+# text after a genuine full stop is lower case too.
+LISTY = re.compile(r"(?:^|\s)\d+\.\s.*(?:^|\s)\d+\.\s")
 
-    A source line reading "This endpoint: 1. does x 2. does y" would otherwise
-    break after "1." and yield the description "This endpoint: 1." -- a period
-    following a bare digit is an enumerator, not a full stop. Decimals ("99.9%
-    uptime") are excluded for the same reason.
-    """
+
+def sentences(text):
+    """Split on sentence ends, without treating a list marker as one."""
+    listy = bool(LISTY.search(text))
     parts, buf = [], ""
     for tok in re.split(r"([.!?]+(?:\s|$))", text):
         if not tok:
             continue
         if re.fullmatch(r"[.!?]+(?:\s|$)", tok):
-            if re.search(r"(?:^|\s)\d+$", buf):   # "... 1" + "." -> enumerator
+            if listy and re.search(r"(?:^|\s)\d+$", buf):
                 buf += tok
                 continue
             parts.append(buf + tok)
