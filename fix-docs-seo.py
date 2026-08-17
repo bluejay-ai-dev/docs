@@ -43,9 +43,17 @@ import pathlib
 import re
 import sys
 
-DESC_MAX = 200
+# Google truncates a snippet around 155-160 characters, so anything past this is
+# invisible in results and only dilutes the useful part.
+DESC_MAX = 155
 WHAT = re.compile(r"\*\*What this (?:endpoint|webhook) does:\*\*\s*(.+)")
 FM = re.compile(r"\A---\n(.*?)\n---\n", re.S)
+
+# Several source lines are raw docstrings that continue into implementation
+# detail -- "Args: test_result_id: the ID of...", "Returns: the test result...",
+# status-code branches like "- if label is missing -> 400". None of that belongs
+# in a search snippet, so the description stops where the prose does.
+TAIL = re.compile(r"\s+(?:Args:|Returns:|Raises:|Params:|Note:|-\s|->)", re.I)
 
 # Guide pages, each checked against the repo's folder listing rather than
 # matched by string similarity -- "overview" appears under several folders.
@@ -64,17 +72,33 @@ def page_paths(repo):
             for p in repo.rglob("*.mdx") if ".git" not in str(p)}
 
 
-def whole_sentences(text, limit=DESC_MAX):
+def snippet(text, limit=DESC_MAX):
+    """A source line turned into something that reads well in a search result."""
     text = re.sub(r"\s+", " ", text).strip()
-    if len(text) <= limit:
-        return text
-    parts = re.findall(r"[^.!?]+[.!?]+(?:\s|$)", text)
-    out = ""
-    for s in parts:
-        if out and len(out) + len(s) > limit:
-            break
-        out += s
-    return (out or text[:limit]).strip()
+    cut = TAIL.search(text)
+    if cut:
+        text = text[:cut.start()].strip()
+    # Markdown survives into the snippet as literal asterisks and backticks.
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+    text = text.strip().strip("*").strip()
+    if len(text) > limit:
+        parts = re.findall(r"[^.!?]+[.!?]+(?:\s|$)", text)
+        out = ""
+        for s in parts:
+            if out and len(out) + len(s) > limit:
+                break
+            out += s
+        text = (out or text[:limit].rsplit(" ", 1)[0]).strip()
+    if not text:
+        return ""
+    # Many source lines start lower-case ("delete a specific prompt version");
+    # a snippet that opens mid-sentence reads as broken.
+    text = text[0].upper() + text[1:]
+    if not text.endswith((".", "!", "?")):
+        text += "."
+    return text
 
 
 def build_redirects(repo, dead_file, pages, existing):
@@ -116,7 +140,10 @@ def fill_descriptions(pages, apply):
         if not w:
             no_source.append(path)
             continue
-        desc = whole_sentences(w.group(1))
+        desc = snippet(w.group(1))
+        if not desc:
+            no_source.append(path)
+            continue
         # json.dumps gives a double-quoted, correctly escaped scalar. Several of
         # these lines contain an apostrophe, which would end a single-quoted YAML
         # value early and leave the frontmatter unparseable.
