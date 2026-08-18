@@ -61,6 +61,7 @@ There are four kinds of columns: **core fields**, **behavior fields**, **tool ca
 | `Success Criteria` | How the run is judged | Free text: the conditions that must be met to pass. |
 | `Role Description` | Persona background | Free text: who the caller is. |
 | `Scripted Responses` | Deterministic replies | JSON. See [Scripted Responses](#scripted-responses). |
+| `Scripted Responses In Order` | Run the scripted responses as a script | `true` or `false` (default). See [In order](#in-order). |
 
 ### Behavior columns
 
@@ -110,7 +111,7 @@ Make a Digital Human reply deterministically when your agent says (or means) som
 
 | Field | Required | Accepted values | Meaning |
 |---|---|---|---|
-| `match_phrase` | ✅ | string | The agent utterance (or context) that triggers the response. |
+| `match_phrase` | ✅ | string | The agent utterance (or context) that triggers the response. May be blank (`""`) only when `Scripted Responses In Order` is `true`: that step fires on the Digital Human's next turn. |
 | `match_type` | Optional | `exact`, `context` | `exact` is a literal utterance match; `context` is a semantic match. Defaults to `exact`. |
 | `response_type` | Optional | `phrase`, `dtmf`, `silence` | What the Digital Human does when matched. Defaults to `phrase`. |
 | `response_value` | Optional | string | For `phrase`: the words to say. For `dtmf`: comma-separated digits, e.g. `1,2,3,4`. For `silence`: optional words to say *after* the pause. |
@@ -142,6 +143,29 @@ Make a Digital Human reply deterministically when your agent says (or means) som
 <Note>
   Audio scripted responses (playing an uploaded clip) can't be attached through a CSV because there's no file to reference. Add those in the scripted-responses editor after import.
 </Note>
+
+#### In order
+
+Set `Scripted Responses In Order` to `true` to run the array as a script instead of a set of independent rules: the Digital Human works through it top to bottom, one step at a time. Only the next unfired step is armed. It fires when its `match_phrase` comes up, or on the Digital Human's very next turn when `match_phrase` is blank, then the following step arms. Each step fires once; `occurrence_mode` is ignored. After the last step the Digital Human carries on as its persona.
+
+```json Example: a two-step script (Scripted Responses In Order = true)
+[
+  {
+    "match_type": "context",
+    "match_phrase": "",
+    "response_type": "phrase",
+    "response_value": "Hi, I'm calling about my policy.",
+    "occurrence_mode": "always"
+  },
+  {
+    "match_type": "exact",
+    "match_phrase": "Please enter your PIN",
+    "response_type": "dtmf",
+    "response_value": "1,2,3,4",
+    "occurrence_mode": "always"
+  }
+]
+```
 
 ### Interruptions
 
