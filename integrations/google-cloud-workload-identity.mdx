@@ -69,10 +69,13 @@ locals {
   pool_id     = "bluejay"
   provider_id = "bluejay"
 
-  # Full resource name of the OIDC provider. Google STS requires the token
-  # audience to equal this exact string. It is also the value you paste back
-  # into Bluejay as the workload identity provider.
-  provider_resource_name = "//iam.googleapis.com/projects/${var.project_number}/locations/global/workloadIdentityPools/${local.pool_id}/providers/${local.provider_id}"
+  # Resource path of the OIDC provider. This is the value you paste back into
+  # Bluejay as the workload identity provider (no scheme, no host).
+  provider_path = "projects/${var.project_number}/locations/global/workloadIdentityPools/${local.pool_id}/providers/${local.provider_id}"
+
+  # Full resource name. Google STS requires the token audience to equal this
+  # exact string; Bluejay derives it from provider_path when minting tokens.
+  provider_resource_name = "//iam.googleapis.com/${local.provider_path}"
 
   # Role bundles per capability. Read and run only, never admin.
   # Only the roles for services listed in var.enabled_services are granted.
@@ -253,8 +256,8 @@ variable "enabled_services" {
 # metadata: resource names and an email, never a key.
 
 output "workload_identity_provider" {
-  description = "Full resource name of the OIDC provider. Bluejay uses this as the STS audience."
-  value       = local.provider_resource_name
+  description = "Resource path of the OIDC provider (projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay). Paste it into Bluejay as is."
+  value       = local.provider_path
 }
 
 output "service_account_email" {
@@ -325,12 +328,12 @@ Review the plan before approving. It should create one workload identity pool, o
 <Step title="Copy the three outputs">
 
 ```bash
-terraform output workload_identity_provider
-terraform output service_account_email
-terraform output project_number
+terraform output -raw workload_identity_provider
+terraform output -raw service_account_email
+terraform output -raw project_number
 ```
 
-All three are non secret metadata. They are safe to send over normal channels.
+All three are non secret metadata. They are safe to send over normal channels. `-raw` prints the bare value without quotes, so it can be pasted as is.
 
 </Step>
 
@@ -338,7 +341,7 @@ All three are non secret metadata. They are safe to send over normal channels.
 
 1. In Bluejay, click **Settings** in the bottom left corner.
 2. Select **Integrations** and open the **Google Agents** tab.
-3. Paste **Workload Identity Provider**, **Service Account Email**, and **Project Number** into the matching fields.
+3. Paste **Workload Identity Provider**, **Service Account Email**, and **Project Number** into the matching fields, and enter your **Project ID** (the same `project_id` you set in `terraform.tfvars`).
 4. Click **Save**, then click **Test connection**.
 
 A green result means Bluejay minted a token, Google accepted the exchange, the impersonation succeeded, and a cheap read call (listing your Dialogflow CX agents) came back. That single check validates the attribute condition, the audience, and the role grants at once.
@@ -426,8 +429,8 @@ The **Test connection** result distinguishes two very different failures.
   Bluejay could not complete the token exchange at all. Google refused before any API call happened, so this is an identity or trust problem, not a permissions problem. Check, in order:
 
   - **`bluejay_tenant_id` does not match.** The most common cause. The provider's attribute condition pins your tenant id, and a mismatched or mistyped value means every exchange is rejected. Compare the value in your `terraform.tfvars` against the one in Bluejay.
-  - **Wrong project number.** The provider resource name embeds the numeric project number. If you pasted the project id or an old number, the audience will not resolve. Re-run `terraform output workload_identity_provider` and paste it verbatim.
-  - **Provider resource name edited by hand.** Paste the full output string exactly. Do not reformat it or trim the leading `//`.
+  - **Wrong project number.** The provider path embeds the numeric project number. If you pasted the project id or an old number, the audience will not resolve. Re-run `terraform output -raw workload_identity_provider` and paste it verbatim.
+  - **Provider path edited by hand.** It must be exactly `projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay`. If you copied it from the Google Cloud console instead of the Terraform output, drop the leading `//iam.googleapis.com/` (or `https://iam.googleapis.com/`) prefix; Bluejay rejects the prefixed form.
   - **`workloadIdentityUser` binding missing.** If `terraform apply` partially failed, the impersonation grant may not exist. Re-run `terraform apply`.
   - **APIs not enabled.** Confirm with `gcloud services enable iamcredentials.googleapis.com sts.googleapis.com`.
 </Accordion>
