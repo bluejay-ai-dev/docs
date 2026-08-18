@@ -51,6 +51,9 @@ cat > bluejay-wif.sh <<'BLUEJAY'
 # Safe to re-run. Nothing secret is created or printed.
 set -euo pipefail
 
+# Quiet on success, shows the real gcloud error on failure.
+run() { local out; if ! out=$("$@" 2>&1); then echo "$out" >&2; return 1; fi; }
+
 TENANT_ID="${1:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
 PROJECT_ID="${2:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
 WITH_CES=0; [[ "${3:-}" == "--ces" ]] && WITH_CES=1
@@ -79,29 +82,29 @@ echo "==> Workload identity pool: $POOL"
 STATE=$(gcloud iam workload-identity-pools describe "$POOL" --location=global --project="$PROJECT_ID" --format='value(state)' 2>/dev/null || true)
 case "$STATE" in
   ACTIVE)  ;;
-  DELETED) gcloud iam workload-identity-pools undelete "$POOL" --location=global --project="$PROJECT_ID" >/dev/null ;;
-  *)       gcloud iam workload-identity-pools create "$POOL" --location=global --project="$PROJECT_ID" --display-name="Bluejay" >/dev/null ;;
+  DELETED) run gcloud iam workload-identity-pools undelete "$POOL" --location=global --project="$PROJECT_ID" ;;
+  *)       run gcloud iam workload-identity-pools create "$POOL" --location=global --project="$PROJECT_ID" --display-name="Bluejay" ;;
 esac
 
 echo "==> OIDC provider: $PROVIDER (trusts $ISSUER, pinned to tenant $TENANT_ID)"
 STATE=$(gcloud iam workload-identity-pools providers describe "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" --format='value(state)' 2>/dev/null || true)
 if [[ "$STATE" == "DELETED" ]]; then
-  gcloud iam workload-identity-pools providers undelete "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" >/dev/null
+  run gcloud iam workload-identity-pools providers undelete "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID"
   STATE=ACTIVE
 fi
 if [[ "$STATE" == "ACTIVE" ]]; then
-  gcloud iam workload-identity-pools providers update-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
-    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION" >/dev/null
+  run gcloud iam workload-identity-pools providers update-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
+    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION"
 else
-  gcloud iam workload-identity-pools providers create-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
+  run gcloud iam workload-identity-pools providers create-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
     --display-name="Bluejay OIDC" \
-    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION" >/dev/null
+    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION"
 fi
 
 echo "==> Service account: $SA (no keys)"
 gcloud iam service-accounts describe "$SA" --project="$PROJECT_ID" >/dev/null 2>&1 \
-  || gcloud iam service-accounts create "$SA_ID" --project="$PROJECT_ID" --display-name="Bluejay Integration" \
-       --description="Impersonated by Bluejay via Workload Identity Federation. No keys are issued for this account." >/dev/null
+  || run gcloud iam service-accounts create "$SA_ID" --project="$PROJECT_ID" --display-name="Bluejay Integration" \
+       --description="Impersonated by Bluejay via Workload Identity Federation. No keys are issued for this account."
 
 echo "==> Allowing your Bluejay tenant (and only it) to impersonate the service account"
 for i in 1 2 3 4 5 6; do   # a brand-new service account takes a few seconds to become bindable
@@ -115,9 +118,45 @@ echo "==> Roles (read + run only, never admin)"
 ROLES="roles/dialogflow.reader roles/dialogflow.client roles/serviceusage.serviceUsageConsumer"
 [[ $WITH_CES == 1 ]] && ROLES="$ROLES roles/ces.viewer roles/ces.client"
 for ROLE in $ROLES; do
-  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${SA}" --role="$ROLE" --condition=None --quiet >/dev/null
+  run gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${SA}" --role="$ROLE" --condition=None --quiet
   echo "    $ROLE"
 done
+
+echo "==> Verifying, as the service account, that Google is enforcing the new roles (usually 1 to 3 minutes)"
+# Google applies IAM changes over a few minutes. Rather than leave you to find out
+# in Bluejay, this waits until the service account can really list your agents.
+# To test as the service account, your own account is temporarily allowed to
+# impersonate it; that grant is removed again below.
+ME=$(gcloud config get-value account 2>/dev/null)
+case "$ME" in *.gserviceaccount.com) ME_MEMBER="serviceAccount:${ME}" ;; *) ME_MEMBER="user:${ME}" ;; esac
+if run gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+     --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --quiet; then
+  CHECK_URLS="https://dialogflow.googleapis.com/v3/projects/${PROJECT_ID}/locations/global/agents"
+  [[ $WITH_CES == 1 ]] && CHECK_URLS="$CHECK_URLS https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/us/apps https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/eu/apps"
+  VERIFIED=0
+  for attempt in $(seq 1 30); do   # up to ~5 minutes
+    TOKEN=$(gcloud auth print-access-token --impersonate-service-account="$SA" 2>/dev/null || true)
+    if [[ -n "$TOKEN" ]]; then
+      ALL_OK=1
+      for URL in $CHECK_URLS; do
+        CODE=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer ${TOKEN}" "$URL")
+        [[ "$CODE" == 200 ]] || ALL_OK=0
+      done
+      [[ $ALL_OK == 1 ]] && { VERIFIED=1; break; }
+    fi
+    printf '.'; sleep 10
+  done
+  echo
+  run gcloud iam service-accounts remove-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+    --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --quiet || true
+  if [[ $VERIFIED == 1 ]]; then
+    echo "    verified: the service account can list your agents"
+  else
+    echo "    still not enforced after 5 minutes. Paste the values anyway; if Test connection or Sync complains, wait a minute and try again."
+  fi
+else
+  echo "    (your account cannot impersonate the service account here, skipping verification; give Google a minute or two before Test connection)"
+fi
 
 cat <<EOF
 
@@ -137,7 +176,7 @@ Then run it with the tenant id from step 1 and your project id. Add `--ces` if y
 bash bluejay-wif.sh PASTE_YOUR_BLUEJAY_TENANT_ID your-project-id
 ```
 
-It takes about a minute and ends by printing four values.
+It creates everything in a few seconds, then waits until Google is actually enforcing the new roles (usually 1 to 3 minutes; it prints dots while it waits) so that the next steps work on the first click, and ends by printing four values.
 
 <Warning>
   The tenant id must match Bluejay character for character. It is baked into the provider's condition, so a typo produces a provider that silently rejects every exchange, and **Test connection** in the next step reports unreachable.
@@ -149,7 +188,7 @@ It takes about a minute and ends by printing four values.
 
 Back in the **Google Agents** tab, paste the four printed values into **Service account email**, **Workload identity provider**, **Project ID**, and **Project number**. Click **Save**, then **Test connection**.
 
-**Connected** means Bluejay minted a token, Google accepted the exchange, the impersonation worked, and a read call (listing your Dialogflow CX agents) came back. That one check covers the tenant pin, the audience, and the roles at once. If the very first click says unreachable, wait a minute for IAM to propagate and click again.
+**Connected** means Bluejay minted a token, Google accepted the exchange, the impersonation worked, and a read call (listing your Dialogflow CX agents) came back. That one check covers the tenant pin, the audience, and the roles at once. The script already waited for Google to enforce the roles, so this should be green on the first click.
 
 </Step>
 
@@ -474,7 +513,7 @@ New credentials stop immediately. A credential Bluejay already holds keeps worki
   - **Wrong project number.** The path embeds the numeric project number, not the project id. Paste the script output verbatim.
   - **Impersonation binding missing.** Re-run the script (or `terraform apply`); it is safe to repeat.
   - **APIs not enabled.** `gcloud services enable iamcredentials.googleapis.com sts.googleapis.com --project=PROJECT_ID`.
-  - **Just created it.** IAM changes usually apply in seconds but can take a minute or two. Click **Test connection** again.
+  - **Set up by hand or with Terraform a moment ago.** Google applies IAM changes over a few minutes (the Cloud Shell script waits for this, Terraform does not). Click **Test connection** again in a minute.
 </Accordion>
 
 <Accordion title="Result says no permission">
