@@ -1,460 +1,498 @@
 ---
 title: 'Keyless Access (Workload Identity)'
-description: 'Connect your Google Cloud project to Bluejay with Workload Identity Federation, no service-account key required'
+description: 'Connect your Google Cloud project to Bluejay in a few minutes with Workload Identity Federation. No service-account key to download, store, or rotate.'
 icon: 'google'
 ---
 
-Bluejay connects to your Google Cloud project using **Workload Identity Federation (WIF)**. There is no key to download, store, or rotate.
+Bluejay connects to your Google Cloud project with **Workload Identity Federation (WIF)**. Bluejay presents a short-lived token, Google exchanges it for a credential that impersonates one dedicated service account in **your** project, and that service account only has the read and run roles you grant it.
 
-Bluejay presents a short-lived OIDC token, Google's Security Token Service exchanges it for a federated credential, and that credential impersonates a dedicated service account in **your** project. Everything Bluejay can do is defined by the roles you grant that one service account.
+- **No downloadable secret.** Nothing exists that can leak, so nothing needs rotating.
+- **Least privilege.** Read and run roles only, never admin.
+- **Revoke with one IAM change.** Remove one binding and Bluejay cannot get new credentials.
 
-This is the recommended way to set up the **Google Agents** integration. It replaces the service-account key described on the [Dialogflow CX](/integrations/google-dfcx) and [Conversational Engine (CES)](/integrations/google-ces) pages. Everything else on those pages, syncing agents, connecting an agent, running simulations, editing the workflow, works exactly the same once this credential is in place.
+This is the recommended setup for the **Google Agents** integration. Syncing agents, running simulations, and everything else on the [Dialogflow CX](/integrations/google-dfcx) and [Conversational Engine (CES)](/integrations/google-ces) pages works the same once it is in place.
 
-Why this instead of a service-account JSON key:
+## What you need
 
-- **No downloadable secret.** A service account key is a long lived bearer credential. If it leaks, it works until someone notices and rotates it. Federation issues nothing that can be exfiltrated, and Bluejay's tokens live for minutes.
-- **Revoke with one IAM change.** Delete the `roles/iam.workloadIdentityUser` binding on the service account and Bluejay is locked out immediately. No key hunt, no rotation scramble.
-- **Least privilege by default.** The service account gets read and run roles only for the Google surfaces you turn on. Never admin.
-- **Auditable.** Every exchange and impersonation appears in your own IAM and STS Data Access logs, attributed to the federated principal.
+- Access to the Google Cloud project that holds your agents, as **Owner** (or Workload Identity Pool Admin + Service Account Admin + Project IAM Admin).
+- The project's **project id** (for example `acme-voice-prod`). The script looks up the project number for you.
+- Your **Bluejay tenant id**. It is shown in Bluejay under **Settings > Integrations > Google Agents**, at the top of the keyless section, with a copy button.
 
-## Prerequisites
-
-- Terraform >= 1.5 and the `google` provider >= 5.0, or Cloud Shell (which ships with both).
-- An account with rights to create IAM resources in the project. `roles/owner`, or the combination of Workload Identity Pool Admin, Service Account Admin, and Project IAM Admin.
-- The IAM Credentials API and the Security Token Service API enabled:
-
-  ```bash
-  gcloud services enable iamcredentials.googleapis.com sts.googleapis.com
-  ```
-
-- Your **Bluejay tenant id**. Bluejay gives you this during onboarding. It is not something you choose.
-- Your GCP **project id** and numeric **project number**:
-
-  ```bash
-  gcloud projects describe <project_id> --format='value(projectNumber)'
-  ```
-
-## The Terraform module
-
-Copy these three files into a new directory in your own infrastructure repository. You apply them in your own project, against your own state, with your own review process. Bluejay never runs Terraform on your behalf.
-
-<CodeGroup>
-
-```hcl main.tf
-# Bluejay integration: keyless access via Workload Identity Federation.
-#
-# Apply this in YOUR OWN GCP project. It creates a Workload Identity Pool and
-# an OIDC provider that trust Bluejay's issuer, plus a dedicated service
-# account that Bluejay impersonates after a successful token exchange.
-#
-# No keys are created anywhere in this design. Revoke all access at any time by
-# removing the workloadIdentityUser binding, or by running terraform destroy.
-
-terraform {
-  required_version = ">= 1.5"
-
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = ">= 5.0"
-    }
-  }
-}
-
-provider "google" {
-  project = var.project_id
-}
-
-locals {
-  pool_id     = "bluejay"
-  provider_id = "bluejay"
-
-  # Resource path of the OIDC provider. This is the value you paste back into
-  # Bluejay as the workload identity provider (no scheme, no host).
-  provider_path = "projects/${var.project_number}/locations/global/workloadIdentityPools/${local.pool_id}/providers/${local.provider_id}"
-
-  # Full resource name. Google STS requires the token audience to equal this
-  # exact string; Bluejay derives it from provider_path when minting tokens.
-  provider_resource_name = "//iam.googleapis.com/${local.provider_path}"
-
-  # Role bundles per capability. Read and run only, never admin.
-  # Only the roles for services listed in var.enabled_services are granted.
-  service_roles = {
-    dialogflow = ["roles/dialogflow.reader", "roles/dialogflow.client"]
-    logging    = ["roles/logging.viewer"]
-    storage    = ["roles/storage.objectViewer"]
-    bigquery   = ["roles/bigquery.jobUser", "roles/bigquery.dataViewer"]
-    vertex     = ["roles/aiplatform.user"]
-  }
-
-  role_grants = flatten([
-    for svc in var.enabled_services : [
-      for role in lookup(local.service_roles, svc, []) : {
-        key  = "${svc}:${role}"
-        role = role
-      }
-    ]
-  ])
-}
-
-# --- Workload Identity Pool -------------------------------------------------
-
-resource "google_iam_workload_identity_pool" "bluejay" {
-  project                   = var.project_id
-  workload_identity_pool_id = local.pool_id
-  display_name              = "Bluejay"
-  description               = "Federated identity pool trusting the Bluejay OIDC issuer for keyless access."
-}
-
-# --- OIDC provider ----------------------------------------------------------
-
-resource "google_iam_workload_identity_pool_provider" "bluejay" {
-  project                            = var.project_id
-  workload_identity_pool_id          = google_iam_workload_identity_pool.bluejay.workload_identity_pool_id
-  workload_identity_pool_provider_id = local.provider_id
-  display_name                       = "Bluejay OIDC"
-  description                        = "OIDC provider for Bluejay federated tokens."
-
-  # Map Bluejay's JWT claims onto Google attributes. google.subject is required.
-  attribute_mapping = {
-    "google.subject"           = "assertion.sub"
-    "attribute.tenant_id"      = "assertion.tenant_id"
-    "attribute.integration_id" = "assertion.integration_id"
-    "attribute.environment"    = "assertion.environment"
-  }
-
-  # This is the security boundary. Google evaluates this expression before it
-  # will issue a federated credential, pinning the incoming token's tenant_id
-  # claim to YOUR Bluejay tenant id and requiring environment == "production".
-  #
-  # Without it, the provider would accept any token Bluejay's issuer signs, so
-  # a different Bluejay tenant could exchange a token here and impersonate your
-  # service account. The condition makes your project trust exactly one tenant,
-  # not the issuer at large.
-  attribute_condition = "assertion.tenant_id == \"${var.bluejay_tenant_id}\" && assertion.environment == \"production\""
-
-  oidc {
-    issuer_uri = "https://api.getbluejay.ai"
-
-    # The token audience must be the provider resource name itself. Google
-    # rejects tokens whose aud is anything else, which stops a token minted for
-    # one customer's provider from being replayed against another's.
-    allowed_audiences = [local.provider_resource_name]
-  }
-}
-
-# --- Dedicated service account ----------------------------------------------
-
-resource "google_service_account" "bluejay_integration" {
-  project      = var.project_id
-  account_id   = "bluejay-integration"
-  display_name = "Bluejay Integration"
-  description  = "Impersonated by Bluejay via Workload Identity Federation. No keys are issued for this account."
-}
-
-# --- Allow the federated identity to impersonate the service account --------
-
-# workloadIdentityUser is granted to a principalSet scoped to
-# attribute.tenant_id, not to the whole pool. The provider condition above
-# already pins tenant_id; scoping the binding as well is defense in depth, so
-# the impersonation grant itself is limited to this one tenant.
-resource "google_service_account_iam_member" "workload_identity_user" {
-  service_account_id = google_service_account.bluejay_integration.name
-  role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.bluejay.name}/attribute.tenant_id/${var.bluejay_tenant_id}"
-}
-
-# --- Least privilege role grants --------------------------------------------
-
-# One binding per (service, role) pair for the services you enabled. These are
-# project level. For storage and bigquery, prefer narrowing to the specific
-# bucket(s) and dataset(s) Bluejay reads.
-resource "google_project_iam_member" "service_roles" {
-  for_each = { for g in local.role_grants : g.key => g }
-
-  project = var.project_id
-  role    = each.value.role
-  member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
-}
-
-# Always granted. Voice simulations run through Bluejay's LiveKit bridge, which
-# sets a quota project on its Dialogflow credentials. That makes Google enforce
-# serviceusage.services.use, and without this role every voice call fails at
-# connect time with USER_PROJECT_DENIED. It permits consuming quota in this
-# project and grants no access to any data.
-resource "google_project_iam_member" "service_usage_consumer" {
-  project = var.project_id
-  role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
-}
-```
-
-```hcl variables.tf
-variable "bluejay_tenant_id" {
-  type        = string
-  description = <<-EOT
-    Your immutable Bluejay organization id, as issued by Bluejay.
-
-    This value is pinned inside the provider attribute_condition and inside the
-    principalSet used for the workloadIdentityUser binding. It is the security
-    boundary: only Bluejay tokens whose tenant_id claim equals this value can
-    exchange through this provider and impersonate the service account. Do not
-    invent or change it. Use exactly what Bluejay gives you.
-  EOT
-
-  validation {
-    condition     = length(var.bluejay_tenant_id) > 0
-    error_message = "bluejay_tenant_id must be a non empty string provided by Bluejay."
-  }
-}
-
-variable "project_id" {
-  type        = string
-  description = "The GCP project id where these resources are created, for example acme-voice-prod."
-}
-
-variable "project_number" {
-  type        = string
-  description = <<-EOT
-    The numeric project number for project_id, for example 123456789012.
-
-    Google Workload Identity Federation resource names use the numeric project
-    number, not the project id. Find it with:
-      gcloud projects describe <project_id> --format='value(projectNumber)'
-  EOT
-}
-
-variable "enabled_services" {
-  type        = set(string)
-  description = <<-EOT
-    Which capability bundles to grant the Bluejay service account. Each entry
-    turns on the least privilege roles for that Google surface.
-
-    Supported values:
-      dialogflow  Dialogflow CX read + run  (roles/dialogflow.reader, roles/dialogflow.client)
-      logging     Cloud Logging read        (roles/logging.viewer)
-      storage     GCS object read           (roles/storage.objectViewer)
-      bigquery    BigQuery read + run jobs  (roles/bigquery.jobUser, roles/bigquery.dataViewer)
-      vertex      Vertex AI use             (roles/aiplatform.user)
-
-    Grant only what Bluejay actually needs.
-  EOT
-  default     = ["dialogflow"]
-
-  validation {
-    condition = alltrue([
-      for s in var.enabled_services :
-      contains(["dialogflow", "logging", "storage", "bigquery", "vertex"], s)
-    ])
-    error_message = "enabled_services entries must be one of: dialogflow, logging, storage, bigquery, vertex."
-  }
-}
-```
-
-```hcl outputs.tf
-# Values you paste back into Bluejay after apply. All three are non secret
-# metadata: resource names and an email, never a key.
-
-output "workload_identity_provider" {
-  description = "Resource path of the OIDC provider (projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay). Paste it into Bluejay as is."
-  value       = local.provider_path
-}
-
-output "service_account_email" {
-  description = "Email of the service account Bluejay impersonates."
-  value       = google_service_account.bluejay_integration.email
-}
-
-output "project_number" {
-  description = "Numeric project number, echoed back for Bluejay's records."
-  value       = var.project_number
-}
-```
-
-</CodeGroup>
-
-<Note>
-  Running **Conversational Engine (CES)** agents too? The same service account covers both Google agent types, but CES needs its own roles, which this module does not grant. Add `roles/ces.viewer` and `roles/ces.client` to the service account alongside the bundle above. See the [CES page](/integrations/google-ces) for the full permission breakdown.
-</Note>
-
-## Setting up the integration
+## Set it up
 
 <Steps>
-<Step title="Set your variables">
+<Step title="Copy your Bluejay tenant id">
 
-Create a `terraform.tfvars` next to the three files above, using the tenant id Bluejay gave you:
+In Bluejay, click **Settings** in the bottom left, then **Integrations**, then the **Google Agents** tab. Copy the value under **Your Bluejay tenant id**. Keep this tab open, you will come back to it.
 
-```hcl
-bluejay_tenant_id = "org_2Zx9Kq..."   # exactly as provided by Bluejay
-project_id        = "acme-voice-prod"
-project_number    = "123456789012"
-enabled_services  = ["dialogflow", "logging"]
+</Step>
+
+<Step title="Open Cloud Shell">
+
+Open [Cloud Shell](https://shell.cloud.google.com) with the Google account that has access to your project. Nothing to install: Cloud Shell already has `gcloud` and is signed in as you.
+
+</Step>
+
+<Step title="Paste and run the setup script">
+
+Paste this whole block into Cloud Shell. It only writes a file called `bluejay-wif.sh`, it does not run anything yet, so you can open the file and read it first.
+
+```bash
+cat > bluejay-wif.sh <<'BLUEJAY'
+#!/bin/bash
+# Bluejay keyless access (Workload Identity Federation) for your Google Cloud project.
+#
+#   bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]
+#
+# Creates, in YOUR project: a workload identity pool + OIDC provider that trust
+# Bluejay's token issuer and are pinned to YOUR Bluejay tenant id, a dedicated
+# service account with no keys, permission for that one tenant to impersonate it,
+# and read + run roles for Dialogflow CX (add --ces to also cover CES agents).
+# Safe to re-run. Nothing secret is created or printed.
+set -euo pipefail
+
+TENANT_ID="${1:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
+PROJECT_ID="${2:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
+WITH_CES=0; [[ "${3:-}" == "--ces" ]] && WITH_CES=1
+
+POOL=bluejay
+PROVIDER=bluejay
+SA_ID=bluejay-integration
+ISSUER="https://api.getbluejay.ai"
+
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+SA="${SA_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
+PROVIDER_PATH="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}/providers/${PROVIDER}"
+AUDIENCE="//iam.googleapis.com/${PROVIDER_PATH}"
+# The security boundary. Google checks this before issuing any credential: only
+# Bluejay tokens that carry YOUR tenant id (and come from production) are accepted.
+CONDITION="assertion.tenant_id == '${TENANT_ID}' && assertion.environment == 'production'"
+MAPPING="google.subject=assertion.sub,attribute.tenant_id=assertion.tenant_id,attribute.integration_id=assertion.integration_id,attribute.environment=assertion.environment"
+MEMBER="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}/attribute.tenant_id/${TENANT_ID}"
+
+echo "==> Enabling APIs"
+APIS="iamcredentials.googleapis.com sts.googleapis.com dialogflow.googleapis.com"
+[[ $WITH_CES == 1 ]] && APIS="$APIS ces.googleapis.com"
+gcloud services enable $APIS --project="$PROJECT_ID"
+
+echo "==> Workload identity pool: $POOL"
+STATE=$(gcloud iam workload-identity-pools describe "$POOL" --location=global --project="$PROJECT_ID" --format='value(state)' 2>/dev/null || true)
+case "$STATE" in
+  ACTIVE)  ;;
+  DELETED) gcloud iam workload-identity-pools undelete "$POOL" --location=global --project="$PROJECT_ID" >/dev/null ;;
+  *)       gcloud iam workload-identity-pools create "$POOL" --location=global --project="$PROJECT_ID" --display-name="Bluejay" >/dev/null ;;
+esac
+
+echo "==> OIDC provider: $PROVIDER (trusts $ISSUER, pinned to tenant $TENANT_ID)"
+STATE=$(gcloud iam workload-identity-pools providers describe "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" --format='value(state)' 2>/dev/null || true)
+if [[ "$STATE" == "DELETED" ]]; then
+  gcloud iam workload-identity-pools providers undelete "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" >/dev/null
+  STATE=ACTIVE
+fi
+if [[ "$STATE" == "ACTIVE" ]]; then
+  gcloud iam workload-identity-pools providers update-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
+    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION" >/dev/null
+else
+  gcloud iam workload-identity-pools providers create-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
+    --display-name="Bluejay OIDC" \
+    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION" >/dev/null
+fi
+
+echo "==> Service account: $SA (no keys)"
+gcloud iam service-accounts describe "$SA" --project="$PROJECT_ID" >/dev/null 2>&1 \
+  || gcloud iam service-accounts create "$SA_ID" --project="$PROJECT_ID" --display-name="Bluejay Integration" \
+       --description="Impersonated by Bluejay via Workload Identity Federation. No keys are issued for this account." >/dev/null
+
+echo "==> Allowing your Bluejay tenant (and only it) to impersonate the service account"
+for i in 1 2 3 4 5 6; do   # a brand-new service account takes a few seconds to become bindable
+  gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+    --role=roles/iam.workloadIdentityUser --member="$MEMBER" --quiet >/dev/null 2>&1 && break
+  [[ $i == 6 ]] && { echo "could not add the impersonation binding, re-run this script" >&2; exit 1; }
+  sleep 10
+done
+
+echo "==> Roles (read + run only, never admin)"
+ROLES="roles/dialogflow.reader roles/dialogflow.client roles/serviceusage.serviceUsageConsumer"
+[[ $WITH_CES == 1 ]] && ROLES="$ROLES roles/ces.viewer roles/ces.client"
+for ROLE in $ROLES; do
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${SA}" --role="$ROLE" --condition=None --quiet >/dev/null
+  echo "    $ROLE"
+done
+
+cat <<EOF
+
+Done. Paste these into Bluejay (Settings > Integrations > Google Agents), click Save, then Test connection:
+
+  Service account email      : $SA
+  Workload identity provider : $PROVIDER_PATH
+  Project ID                 : $PROJECT_ID
+  Project number             : $PROJECT_NUMBER
+EOF
+BLUEJAY
 ```
 
+Then run it with the tenant id from step 1 and your project id. Add `--ces` if you also run Conversational Engine (CES) agents.
+
+```bash
+bash bluejay-wif.sh PASTE_YOUR_BLUEJAY_TENANT_ID your-project-id
+```
+
+It takes about a minute and ends by printing four values.
+
 <Warning>
-  `bluejay_tenant_id` must match the value Bluejay issued, character for character. It is baked into the provider's attribute condition, so a typo produces a provider that silently rejects every token exchange. The Test connection step later will report the integration as unreachable.
+  The tenant id must match Bluejay character for character. It is baked into the provider's condition, so a typo produces a provider that silently rejects every exchange, and **Test connection** in the next step reports unreachable.
 </Warning>
 
 </Step>
 
-<Step title="Apply the module">
+<Step title="Paste the four values into Bluejay">
 
-```bash
-terraform init
-terraform apply
-```
+Back in the **Google Agents** tab, paste the four printed values into **Service account email**, **Workload identity provider**, **Project ID**, and **Project number**. Click **Save**, then **Test connection**.
 
-Review the plan before approving. It should create one workload identity pool, one OIDC provider, one service account, one `workloadIdentityUser` binding, the Service Usage Consumer binding, and one project IAM binding per role in your enabled services. Nothing else, and no keys.
-
-<Accordion title="No local Terraform? Use Cloud Shell">
-  Open Cloud Shell in your project, create a directory, paste the three files from above into `main.tf`, `variables.tf`, and `outputs.tf`, then:
-
-  ```bash
-  cat > terraform.tfvars <<'EOF'
-  bluejay_tenant_id = "org_2Zx9Kq..."
-  project_id        = "acme-voice-prod"
-  project_number    = "123456789012"
-  enabled_services  = ["dialogflow"]
-  EOF
-
-  terraform init && terraform apply
-  ```
-
-  Cloud Shell already has Terraform and an authenticated `gcloud`, so there is nothing to install.
-</Accordion>
+**Connected** means Bluejay minted a token, Google accepted the exchange, the impersonation worked, and a read call (listing your Dialogflow CX agents) came back. That one check covers the tenant pin, the audience, and the roles at once. If the very first click says unreachable, wait a minute for IAM to propagate and click again.
 
 </Step>
 
-<Step title="Copy the three outputs">
+<Step title="Sync your agents">
 
-```bash
-terraform output -raw workload_identity_provider
-terraform output -raw service_account_email
-terraform output -raw project_number
-```
-
-All three are non secret metadata. They are safe to send over normal channels. `-raw` prints the bare value without quotes, so it can be pasted as is.
-
-</Step>
-
-<Step title="Paste them into Bluejay">
-
-1. In Bluejay, click **Settings** in the bottom left corner.
-2. Select **Integrations** and open the **Google Agents** tab.
-3. Paste **Workload Identity Provider**, **Service Account Email**, and **Project Number** into the matching fields, and enter your **Project ID** (the same `project_id` you set in `terraform.tfvars`).
-4. Click **Save**, then click **Test connection**.
-
-A green result means Bluejay minted a token, Google accepted the exchange, the impersonation succeeded, and a cheap read call (listing your Dialogflow CX agents) came back. That single check validates the attribute condition, the audience, and the role grants at once.
+Click **Sync Agents from Google**. Your Dialogflow CX agents (and CES agents, if you passed `--ces`) appear in Bluejay. From here, follow the [Dialogflow CX](/integrations/google-dfcx) or [CES](/integrations/google-ces) page to run simulations.
 
 </Step>
 </Steps>
 
-## Roles granted, and why
+## What the script created
 
-| `enabled_services` entry | Roles                                                       |
-| ------------------------ | ----------------------------------------------------------- |
-| `dialogflow`             | `roles/dialogflow.reader`, `roles/dialogflow.client`         |
-| `logging`                | `roles/logging.viewer`                                       |
-| `storage`                | `roles/storage.objectViewer`                                 |
-| `bigquery`               | `roles/bigquery.jobUser`, `roles/bigquery.dataViewer`        |
-| `vertex`                 | `roles/aiplatform.user`                                      |
-| _(always granted)_       | `roles/serviceusage.serviceUsageConsumer`                    |
+Everything lives in your project. Bluejay owns nothing here.
 
-The Dialogflow pair is the core of the integration and is deliberately the smallest set that works:
+| Resource | Purpose |
+| --- | --- |
+| Workload identity pool `bluejay` and OIDC provider `bluejay` | Trusts Bluejay's token issuer (`https://api.getbluejay.ai`). The provider's condition pins it to your tenant id and to production, and its allowed audience is the provider's own resource name, so a token minted for another provider cannot be replayed here. |
+| Service account `bluejay-integration@<project>.iam.gserviceaccount.com` | The identity Bluejay acts as. It has no keys, and the design never creates one. |
+| `roles/iam.workloadIdentityUser` binding on that service account | Lets federated identities impersonate it. It is granted to `attribute.tenant_id/<your tenant id>` only, not to the whole pool, so the impersonation grant itself is scoped to you. |
+| Project roles on the service account | `roles/dialogflow.reader` (list and read agents, flows, pages, intents), `roles/dialogflow.client` (hold conversations with your agent, which is what a simulation is), `roles/serviceusage.serviceUsageConsumer` (consume API quota in your project, needed by voice simulations, grants no data access). With `--ces`: `roles/ces.viewer` and `roles/ces.client`. |
 
-- **Dialogflow API Reader** (`roles/dialogflow.reader`) lets Bluejay list and read your agents, flows, pages, and intents so it can build simulations and understand what it is testing. It is read only.
-- **Dialogflow API Client** (`roles/dialogflow.client`) lets Bluejay hold conversations with your agent at runtime, which is what a simulation actually does. It can start sessions and detect intents. It cannot change agent configuration.
-
-Bluejay does **not** ask for `roles/dialogflow.admin`. Admin would let it create, modify, and delete agents and flows, and none of that is needed to test or observe them.
-
-**Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`) is granted unconditionally. It is not an access grant to any of your data, it only lets the service account consume API quota in your project. Voice simulations run through Bluejay's LiveKit bridge, which sets a quota project on the credentials it uses for Dialogflow's streaming API. Setting a quota project makes Google enforce `serviceusage.services.use`, so without this role a voice simulation fails the moment it tries to open the stream. Text and chat simulations take a different path that sends no quota project, so they would work without the role, but the module grants it up front so voice works too. This is the most commonly missed permission in a Google integration, and it fails at call time rather than at setup time, which makes it an expensive one to discover late.
+Bluejay does **not** ask for `roles/dialogflow.admin`. Admin could create, modify, and delete agents and flows, and none of that is needed to test or observe them.
 
 <Note>
-  If you also want Bluejay to push workflow edits, snapshot versions, and promote to environments, the read and run pair above is not enough. Add the Tier 2 write permissions from the [Dialogflow CX page](/integrations/google-dfcx) to the same service account. Keep them in a custom role rather than reaching for `roles/dialogflow.admin`.
+  Bluejay stores four pieces of non-secret metadata for your integration: the provider path, the service account email, and the project id and number. It holds no private key, no key file, and no long-lived credential for your project. If a setup flow ever asks you for one, that flow is wrong.
 </Note>
 
-<Accordion title="Narrowing the storage and bigquery grants">
-  The module grants `storage` and `bigquery` roles at the project level for convenience, which means read access to every bucket or dataset in the project. If you enable either, prefer resource level bindings instead and remove the entry from `enabled_services`:
+<Accordion title="Prefer Terraform?">
+  Same result, as code. Copy these three files into your infrastructure repository and apply them against your own state and review process. Bluejay never runs Terraform for you.
 
-  ```hcl
-  resource "google_storage_bucket_iam_member" "bluejay_object_viewer" {
-    bucket = "acme-dialogflow-exports"
-    role   = "roles/storage.objectViewer"
-    member = "serviceAccount:${google_service_account.bluejay_integration.email}"
+  <CodeGroup>
+
+  ```hcl main.tf
+  # Bluejay integration: keyless access via Workload Identity Federation.
+  #
+  # Apply this in YOUR OWN GCP project. It creates a Workload Identity Pool and
+  # an OIDC provider that trust Bluejay's issuer, plus a dedicated service
+  # account that Bluejay impersonates after a successful token exchange.
+  #
+  # No keys are created anywhere in this design. Revoke all access at any time by
+  # removing the workloadIdentityUser binding, or by running terraform destroy.
+
+  terraform {
+    required_version = ">= 1.5"
+
+    required_providers {
+      google = {
+        source  = "hashicorp/google"
+        version = ">= 5.0"
+      }
+    }
   }
 
-  resource "google_bigquery_dataset_iam_member" "bluejay_data_viewer" {
-    dataset_id = "conversation_analytics"
-    role       = "roles/bigquery.dataViewer"
-    member     = "serviceAccount:${google_service_account.bluejay_integration.email}"
+  provider "google" {
+    project = var.project_id
+  }
+
+  locals {
+    pool_id     = "bluejay"
+    provider_id = "bluejay"
+
+    # Resource path of the OIDC provider. This is the value you paste back into
+    # Bluejay as the workload identity provider (no scheme, no host).
+    provider_path = "projects/${var.project_number}/locations/global/workloadIdentityPools/${local.pool_id}/providers/${local.provider_id}"
+
+    # Full resource name. Google STS requires the token audience to equal this
+    # exact string; Bluejay derives it from provider_path when minting tokens.
+    provider_resource_name = "//iam.googleapis.com/${local.provider_path}"
+
+    # Role bundles per capability. Read and run only, never admin.
+    # Only the roles for services listed in var.enabled_services are granted.
+    service_roles = {
+      dialogflow = ["roles/dialogflow.reader", "roles/dialogflow.client"]
+      ces        = ["roles/ces.viewer", "roles/ces.client"]
+      logging    = ["roles/logging.viewer"]
+      storage    = ["roles/storage.objectViewer"]
+      bigquery   = ["roles/bigquery.jobUser", "roles/bigquery.dataViewer"]
+      vertex     = ["roles/aiplatform.user"]
+    }
+
+    role_grants = flatten([
+      for svc in var.enabled_services : [
+        for role in lookup(local.service_roles, svc, []) : {
+          key  = "${svc}:${role}"
+          role = role
+        }
+      ]
+    ])
+  }
+
+  # --- Workload Identity Pool -------------------------------------------------
+
+  resource "google_iam_workload_identity_pool" "bluejay" {
+    project                   = var.project_id
+    workload_identity_pool_id = local.pool_id
+    display_name              = "Bluejay"
+    description               = "Federated identity pool trusting the Bluejay OIDC issuer for keyless access."
+  }
+
+  # --- OIDC provider ----------------------------------------------------------
+
+  resource "google_iam_workload_identity_pool_provider" "bluejay" {
+    project                            = var.project_id
+    workload_identity_pool_id          = google_iam_workload_identity_pool.bluejay.workload_identity_pool_id
+    workload_identity_pool_provider_id = local.provider_id
+    display_name                       = "Bluejay OIDC"
+    description                        = "OIDC provider for Bluejay federated tokens."
+
+    # Map Bluejay's JWT claims onto Google attributes. google.subject is required.
+    attribute_mapping = {
+      "google.subject"           = "assertion.sub"
+      "attribute.tenant_id"      = "assertion.tenant_id"
+      "attribute.integration_id" = "assertion.integration_id"
+      "attribute.environment"    = "assertion.environment"
+    }
+
+    # This is the security boundary. Google evaluates this expression before it
+    # will issue a federated credential, pinning the incoming token's tenant_id
+    # claim to YOUR Bluejay tenant id and requiring environment == "production".
+    #
+    # Without it, the provider would accept any token Bluejay's issuer signs, so
+    # a different Bluejay tenant could exchange a token here and impersonate your
+    # service account. The condition makes your project trust exactly one tenant,
+    # not the issuer at large.
+    attribute_condition = "assertion.tenant_id == \"${var.bluejay_tenant_id}\" && assertion.environment == \"production\""
+
+    oidc {
+      issuer_uri = "https://api.getbluejay.ai"
+
+      # The token audience must be the provider resource name itself. Google
+      # rejects tokens whose aud is anything else, which stops a token minted for
+      # one customer's provider from being replayed against another's.
+      allowed_audiences = [local.provider_resource_name]
+    }
+  }
+
+  # --- Dedicated service account ----------------------------------------------
+
+  resource "google_service_account" "bluejay_integration" {
+    project      = var.project_id
+    account_id   = "bluejay-integration"
+    display_name = "Bluejay Integration"
+    description  = "Impersonated by Bluejay via Workload Identity Federation. No keys are issued for this account."
+  }
+
+  # --- Allow the federated identity to impersonate the service account --------
+
+  # workloadIdentityUser is granted to a principalSet scoped to
+  # attribute.tenant_id, not to the whole pool. The provider condition above
+  # already pins tenant_id; scoping the binding as well is defense in depth, so
+  # the impersonation grant itself is limited to this one tenant.
+  resource "google_service_account_iam_member" "workload_identity_user" {
+    service_account_id = google_service_account.bluejay_integration.name
+    role               = "roles/iam.workloadIdentityUser"
+    member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.bluejay.name}/attribute.tenant_id/${var.bluejay_tenant_id}"
+  }
+
+  # --- Least privilege role grants --------------------------------------------
+
+  # One binding per (service, role) pair for the services you enabled. These are
+  # project level. For storage and bigquery, prefer narrowing to the specific
+  # bucket(s) and dataset(s) Bluejay reads.
+  resource "google_project_iam_member" "service_roles" {
+    for_each = { for g in local.role_grants : g.key => g }
+
+    project = var.project_id
+    role    = each.value.role
+    member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
+  }
+
+  # Always granted. Voice simulations run through Bluejay's LiveKit bridge, which
+  # sets a quota project on its Dialogflow credentials. That makes Google enforce
+  # serviceusage.services.use, and without this role every voice call fails at
+  # connect time with USER_PROJECT_DENIED. It permits consuming quota in this
+  # project and grants no access to any data.
+  resource "google_project_iam_member" "service_usage_consumer" {
+    project = var.project_id
+    role    = "roles/serviceusage.serviceUsageConsumer"
+    member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
   }
   ```
 
-  Keep `roles/bigquery.jobUser` at the project level, since running a query job requires it there.
+  ```hcl variables.tf
+  variable "bluejay_tenant_id" {
+    type        = string
+    description = <<-EOT
+      Your Bluejay tenant id, copied from Bluejay under
+      Settings > Integrations > Google Agents.
+
+      This value is pinned inside the provider attribute_condition and inside the
+      principalSet used for the workloadIdentityUser binding. It is the security
+      boundary: only Bluejay tokens whose tenant_id claim equals this value can
+      exchange through this provider and impersonate the service account. Do not
+      invent or change it. Use exactly what Bluejay shows.
+    EOT
+
+    validation {
+      condition     = length(var.bluejay_tenant_id) > 0
+      error_message = "bluejay_tenant_id must be the non empty value shown in Bluejay."
+    }
+  }
+
+  variable "project_id" {
+    type        = string
+    description = "The GCP project id where these resources are created, for example acme-voice-prod."
+  }
+
+  variable "project_number" {
+    type        = string
+    description = <<-EOT
+      The numeric project number for project_id, for example 123456789012.
+
+      Google Workload Identity Federation resource names use the numeric project
+      number, not the project id. Find it with:
+        gcloud projects describe <project_id> --format='value(projectNumber)'
+    EOT
+  }
+
+  variable "enabled_services" {
+    type        = set(string)
+    description = <<-EOT
+      Which capability bundles to grant the Bluejay service account. Each entry
+      turns on the least privilege roles for that Google surface.
+
+      Supported values:
+        dialogflow  Dialogflow CX read + run  (roles/dialogflow.reader, roles/dialogflow.client)
+        ces         CES read + run            (roles/ces.viewer, roles/ces.client)
+        logging     Cloud Logging read        (roles/logging.viewer)
+        storage     GCS object read           (roles/storage.objectViewer)
+        bigquery    BigQuery read + run jobs  (roles/bigquery.jobUser, roles/bigquery.dataViewer)
+        vertex      Vertex AI use             (roles/aiplatform.user)
+
+      Grant only what Bluejay actually needs.
+    EOT
+    default     = ["dialogflow"]
+
+    validation {
+      condition = alltrue([
+        for s in var.enabled_services :
+        contains(["dialogflow", "ces", "logging", "storage", "bigquery", "vertex"], s)
+      ])
+      error_message = "enabled_services entries must be one of: dialogflow, ces, logging, storage, bigquery, vertex."
+    }
+  }
+  ```
+
+  ```hcl outputs.tf
+  # Values you paste back into Bluejay after apply. All three are non secret
+  # metadata: a resource path, an email, and a number. Never a key.
+
+  output "workload_identity_provider" {
+    description = "Resource path of the OIDC provider (projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay). Paste it into Bluejay as is."
+    value       = local.provider_path
+  }
+
+  output "service_account_email" {
+    description = "Email of the service account Bluejay impersonates."
+    value       = google_service_account.bluejay_integration.email
+  }
+
+  output "project_number" {
+    description = "Numeric project number, echoed back for Bluejay's records."
+    value       = var.project_number
+  }
+  ```
+
+  </CodeGroup>
+
+  Then, with the tenant id from step 1:
+
+  ```bash
+  cat > terraform.tfvars <<'EOF'
+  bluejay_tenant_id = "PASTE_YOUR_BLUEJAY_TENANT_ID"
+  project_id        = "acme-voice-prod"
+  project_number    = "123456789012"
+  enabled_services  = ["dialogflow"]        # add "ces" for Conversational Engine agents
+  EOF
+
+  terraform init && terraform apply
+  terraform output -raw workload_identity_provider
+  terraform output -raw service_account_email
+  terraform output -raw project_number
+  ```
+
+  The plan should create one pool, one provider, one service account, one `workloadIdentityUser` binding, the Service Usage Consumer binding, and one project binding per role. Nothing else, and no keys. Paste the three outputs plus your project id into Bluejay exactly as in step 4 above. Enabling `storage` or `bigquery` grants project-wide read; prefer resource-level bindings on the specific bucket or dataset Bluejay needs.
 </Accordion>
 
 ## Security model
 
-**The attribute condition is the boundary.** Bluejay's issuer signs tokens for every one of its customers. That alone is not enough to keep tenants apart, so the provider you created carries an `attribute_condition` pinning `assertion.tenant_id` to your tenant id and requiring `environment == "production"`. Google evaluates it before issuing any federated credential. Another Bluejay tenant presenting a perfectly valid, correctly signed Bluejay token cannot exchange it against your provider, because the tenant claim will not match. This is what prevents a confused deputy.
+**The tenant condition is the boundary.** Bluejay's issuer signs tokens for every one of its customers. The provider in your project only accepts tokens whose `tenant_id` claim equals your tenant id and whose `environment` is `production`, and Google evaluates that before issuing any credential. Another Bluejay tenant presenting a perfectly valid Bluejay token cannot exchange it against your provider.
 
-**The pool and provider live in your project.** There is no shared Bluejay owned IAM surface that spans customers. Your pool, your provider, your service account, your bindings. A misconfiguration in another customer's project cannot reach yours.
+**Everything is in your project.** Your pool, your provider, your service account, your bindings. There is no shared Bluejay-owned IAM surface across customers, so a mistake in someone else's project cannot reach yours.
 
-**The audience is the exact provider resource name.** Tokens are minted with `aud` set to `//iam.googleapis.com/projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay`, and the provider's `allowed_audiences` is that same string. A token minted for one provider cannot be replayed against another.
+**The audience is the provider itself.** Tokens carry `aud = //iam.googleapis.com/projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay`, and the provider only allows that audience, so a token minted for one provider is useless against another.
 
-**Tokens are short lived.** They last minutes and are minted on demand, so an intercepted token has very little value and no persistence.
+**Tokens are short-lived** (minutes) and minted on demand.
 
-**What Bluejay stores.** Only three pieces of non secret metadata against your integration record: the provider resource name, the service account email, and the project number. Bluejay holds no service account private key, no downloaded JSON key file, and no long lived bearer credential for your project. The design produces none of those. If a flow ever asks you for one, that flow is wrong.
-
-**Turn on audit logging.** We recommend enabling IAM and STS Data Access audit logs in your project. Every token exchange and every impersonation is then recorded on your side, independently of anything Bluejay reports.
+**Audit it yourself.** Turn on IAM and STS Data Access audit logs in your project. Every exchange and impersonation is then recorded on your side, attributed to the federated principal, independently of anything Bluejay reports.
 
 ## Revoking access
 
-Cut Bluejay off without tearing down the rest:
+Remove the impersonation binding. Bluejay can still mint tokens, but nothing in your project will accept them:
 
 ```bash
-terraform destroy -target=google_service_account_iam_member.workload_identity_user
+gcloud iam service-accounts remove-iam-policy-binding \
+  bluejay-integration@PROJECT_ID.iam.gserviceaccount.com --project=PROJECT_ID \
+  --role=roles/iam.workloadIdentityUser \
+  --member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/bluejay/attribute.tenant_id/BLUEJAY_TENANT_ID"
 ```
 
-Bluejay can still mint tokens, but nothing in your project will let them impersonate anything. To remove every resource the module created:
-
-```bash
-terraform destroy
-```
+New credentials stop immediately. A credential Bluejay already holds keeps working until it expires, which is within an hour. To remove everything the setup created, delete the service account and the pool (`gcloud iam workload-identity-pools delete bluejay --location=global`), or `terraform destroy` if you used the module. To restore access later, re-run the setup script.
 
 ## Troubleshooting
 
-The **Test connection** result distinguishes two very different failures.
+**Test connection** distinguishes two different failures.
 
 <Accordion title="Result says unreachable">
-  Bluejay could not complete the token exchange at all. Google refused before any API call happened, so this is an identity or trust problem, not a permissions problem. Check, in order:
+  Google refused the token exchange before any API call, so this is a trust problem, not a permissions problem. In order:
 
-  - **`bluejay_tenant_id` does not match.** The most common cause. The provider's attribute condition pins your tenant id, and a mismatched or mistyped value means every exchange is rejected. Compare the value in your `terraform.tfvars` against the one in Bluejay.
-  - **Wrong project number.** The provider path embeds the numeric project number. If you pasted the project id or an old number, the audience will not resolve. Re-run `terraform output -raw workload_identity_provider` and paste it verbatim.
-  - **Provider path edited by hand.** It must be exactly `projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay`. If you copied it from the Google Cloud console instead of the Terraform output, drop the leading `//iam.googleapis.com/` (or `https://iam.googleapis.com/`) prefix; Bluejay rejects the prefixed form.
-  - **`workloadIdentityUser` binding missing.** If `terraform apply` partially failed, the impersonation grant may not exist. Re-run `terraform apply`.
-  - **APIs not enabled.** Confirm with `gcloud services enable iamcredentials.googleapis.com sts.googleapis.com`.
+  - **Tenant id mismatch.** The most common cause. Compare the value you passed to the script (or put in `terraform.tfvars`) with **Your Bluejay tenant id** in the Google Agents tab. Re-run the script with the right value; it updates the provider in place.
+  - **Provider path edited by hand.** It must be exactly `projects/<number>/locations/global/workloadIdentityPools/bluejay/providers/bluejay`. If you copied it from the Google Cloud console rather than the script output, drop the leading `//iam.googleapis.com/` (or `https://iam.googleapis.com/`).
+  - **Wrong project number.** The path embeds the numeric project number, not the project id. Paste the script output verbatim.
+  - **Impersonation binding missing.** Re-run the script (or `terraform apply`); it is safe to repeat.
+  - **APIs not enabled.** `gcloud services enable iamcredentials.googleapis.com sts.googleapis.com --project=PROJECT_ID`.
+  - **Just created it.** IAM changes usually apply in seconds but can take a minute or two. Click **Test connection** again.
 </Accordion>
 
 <Accordion title="Result says no permission">
-  Good news, mostly. The token exchange succeeded and Bluejay is authenticated as the service account in your project, so the trust setup is correct. The service account simply cannot perform the read Bluejay attempted. Check:
+  The exchange worked and Bluejay is authenticated as the service account, so trust is fine. The service account cannot perform the read Bluejay attempted. Check:
 
-  - **`USER_PROJECT_DENIED`.** The service account is missing `roles/serviceusage.serviceUsageConsumer`. Re-apply the module, or grant it manually with `gcloud projects add-iam-policy-binding <project-id> --member="serviceAccount:<service-account-email>" --role="roles/serviceusage.serviceUsageConsumer"`. Expect this specifically on voice simulations, which set a quota project and therefore trigger the Service Usage check. Text and chat simulations can keep working while voice fails this way, so a green **Test connection** does not rule it out.
-  - **`enabled_services` did not include the surface being tested.** If you applied with the default `["dialogflow"]` but Bluejay is reaching for Cloud Logging, add `logging` and re-apply.
-  - **The target API is not enabled in the project.** For example `gcloud services enable dialogflow.googleapis.com`, or `ces.googleapis.com` for Conversational Engine.
-  - **CES roles were never added.** The module grants Dialogflow roles only. CES agents need `roles/ces.viewer` and `roles/ces.client` on the same service account.
-  - **IAM propagation delay.** New bindings usually take effect in seconds but can take up to a couple of minutes. Wait, then click Test connection again.
-  - **A storage or bigquery grant was narrowed too far.** If you replaced the project level binding with a resource level one, confirm it covers the specific bucket or dataset Bluejay reads.
+  - **A role is missing.** Re-run the script; it re-applies every role. Add `--ces` if you run CES agents and skipped it before.
+  - **`USER_PROJECT_DENIED` on voice simulations.** The service account needs `roles/serviceusage.serviceUsageConsumer`. The script grants it; if you built the setup by hand, add it. Text and chat simulations can keep working while voice fails this way, so a green **Test connection** does not rule it out.
+  - **The agent API is not enabled.** `gcloud services enable dialogflow.googleapis.com` (or `ces.googleapis.com`) `--project=PROJECT_ID`.
+  - **A narrowed grant is too narrow.** If you replaced a project-level storage or bigquery role with a resource-level one, confirm it covers the bucket or dataset Bluejay reads.
 </Accordion>
 
 ## Alternative: service-account key
 
-Bluejay still accepts a service-account JSON key in the **Google Agents** integration panel, as a legacy fallback for teams whose policy or tooling cannot yet accommodate federation. The key-based setup is documented on the [Dialogflow CX](/integrations/google-dfcx) and [Conversational Engine (CES)](/integrations/google-ces) pages.
+Bluejay still accepts a service-account JSON key in the **Google Agents** panel, as a legacy fallback for teams whose policy or tooling cannot yet accommodate federation. That setup is documented on the [Dialogflow CX](/integrations/google-dfcx) and [CES](/integrations/google-ces) pages.
 
 <Warning>
-  A JSON key is a long-lived credential that anyone holding the file can use, from anywhere, until it is manually rotated. It has no tenant pinning, no expiry by default, and revoking it means finding and deleting every copy. Workload Identity Federation is the recommended path for every new integration, and existing key-based integrations should migrate.
+  A JSON key is a long-lived credential that anyone holding the file can use, from anywhere, until it is rotated. It has no tenant pinning and no expiry by default, and revoking it means finding and deleting every copy. Use keyless access for every new integration, and migrate existing key-based ones: run the setup above, confirm **Test connection** is green, then delete the JSON key from the service account's **Keys** tab in the Google Cloud console.
 </Warning>
-
-To migrate an existing integration, apply the module, paste the three outputs into the Google Agents panel, confirm **Test connection** is green, then delete the JSON key from the service account's **Keys** tab in the Google Cloud console.
 
 ## Up Next
 
