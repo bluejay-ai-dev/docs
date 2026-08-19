@@ -107,9 +107,9 @@ gcloud iam service-accounts describe "$SA" --project="$PROJECT_ID" >/dev/null 2>
 
 echo "==> Allowing your Bluejay tenant (and only it) to impersonate the service account"
 for i in 1 2 3 4 5 6; do   # a brand-new service account takes a few seconds to become bindable
-  gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
-    --role=roles/iam.workloadIdentityUser --member="$MEMBER" --quiet >/dev/null 2>&1 && break
-  [[ $i == 6 ]] && { echo "could not add the impersonation binding, re-run this script" >&2; exit 1; }
+  ADD_ERR=$(gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+    --role=roles/iam.workloadIdentityUser --member="$MEMBER" --condition=None --quiet 2>&1) && break
+  [[ $i == 6 ]] && { echo "$ADD_ERR" >&2; echo "could not add the impersonation binding, re-run this script" >&2; exit 1; }
   sleep 10
 done
 
@@ -132,14 +132,14 @@ echo "==> Verifying, as the service account, that Google is enforcing the new ro
 ME=$(gcloud config get-value account 2>/dev/null)
 case "$ME" in *.gserviceaccount.com) ME_MEMBER="serviceAccount:${ME}" ;; *) ME_MEMBER="user:${ME}" ;; esac
 if run gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
-     --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --quiet; then
+     --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet; then
   # Hand the grant back even if you Ctrl-C during the wait below.
   DROPPED=0
   drop_grant() {
     if [[ $DROPPED == 0 ]]; then
       DROPPED=1
       run gcloud iam service-accounts remove-iam-policy-binding "$SA" --project="$PROJECT_ID" \
-        --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --quiet || true
+        --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet || true
     fi
   }
   trap drop_grant EXIT
