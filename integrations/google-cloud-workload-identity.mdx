@@ -139,13 +139,18 @@ ME=$(gcloud config get-value account 2>/dev/null)
 case "$ME" in *.gserviceaccount.com) ME_MEMBER="serviceAccount:${ME}" ;; *) ME_MEMBER="user:${ME}" ;; esac
 if run gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
      --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet; then
-  # Hand the grant back even if you Ctrl-C during the wait below.
+  # Hand the grant back even if you Ctrl-C during the wait below. Only counted as
+  # dropped once Google says so, otherwise the EXIT trap gets another go and you
+  # get the command to run yourself rather than a grant quietly left behind.
   DROPPED=0
   drop_grant() {
-    if [[ $DROPPED == 0 ]]; then
+    if [[ $DROPPED == 1 ]]; then return 0; fi
+    if run gcloud iam service-accounts remove-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+         --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet; then
       DROPPED=1
-      run gcloud iam service-accounts remove-iam-policy-binding "$SA" --project="$PROJECT_ID" \
-        --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet || true
+    else
+      echo "could not remove the temporary impersonation grant. Remove it yourself with:" >&2
+      echo "  gcloud iam service-accounts remove-iam-policy-binding $SA --project=$PROJECT_ID --role=roles/iam.serviceAccountTokenCreator --member=$ME_MEMBER --condition=None" >&2
     fi
   }
   trap drop_grant EXIT
@@ -167,7 +172,7 @@ if run gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJ
   done
   echo
   drop_grant
-  trap - EXIT INT TERM
+  if [[ $DROPPED == 1 ]]; then trap - EXIT INT TERM; fi
   if [[ $VERIFIED == 1 ]]; then
     echo "    roles are live: the service account can list your agents"
   else
