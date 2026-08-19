@@ -1,0 +1,275 @@
+---
+title: "Cookbook"
+description: "Field reference and worked recipes for every entity type Bluejay as Code can create."
+icon: book
+---
+
+This page is the field-level reference for Bluejay as Code (BaC). If you haven't read the [pull → edit → push walkthrough](/key-concepts/bluejay-as-code/overview) yet, start there — this page assumes you already know the flow and just want field names, types, and a recipe to copy.
+
+<Note>
+  BaC's push payload accepts every field the underlying create/update API accepts, which includes a handful of fields Bluejay generates and manages itself. Setting those by hand doesn't error, but it can put a digital human into a state the UI never produces. See [Fields Bluejay generates](#fields-bluejay-generates) before you copy a field you don't recognize from the OpenAPI reference.
+</Note>
+
+## Digital humans
+
+### Fields every digital human accepts
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `bluejay_as_code_id` | UUID | — | Stable key. You generate this once for a new entity. |
+| `human_name` | string | random | |
+| `description` | string | `""` | Maps to `intent` in the underlying API. Required unless the DH is journey-, voicemail-, or transcript-driven (see recipes below). |
+| `success_criteria` | string | `""` | |
+| `role_description` | string | `null` | Persona/behavior description. |
+| `language` | string | `en` | e.g. `en`, `es`, `fr`, `ja`, `ad` (auto-detect). Full list on the [create-digital-human reference](/api-reference/endpoint/create-digital-human). |
+| `accent` | string | `null` | e.g. `american`, `british`, `indian`. Full list on the API reference. |
+| `gender` | string | `null` | `male` \| `female` |
+| `custom_voice_id` | string | `null` | ElevenLabs voice ID for a cloned voice. |
+| `voice_speed` | string | `normal` | `slowest` \| `slow` \| `normal` \| `fast` \| `fastest` |
+| `audio_quality` | string | `high` | `high` \| `medium` \| `low` \| `horrible` |
+| `fluency` | string | `native` | `beginner` \| `intermediate` \| `native` |
+| `verbosity` | string | `medium` | `low` \| `medium` \| `high` |
+| `background_noise` | string | `none` | e.g. `office`, `traffic`, `cafe`, `custom`. |
+| `background_noise_volume` | float | `0.8` | `0.0`-`1.0`. |
+| `custom_background_noise_url` | string | `null` | Required when `background_noise` is `custom`. |
+| `temperature` | float | `0.7` | Maps to `creativity`. `0.0`-`2.0`. |
+| `phone_number` | string | `null` | |
+| `extension` | string | `null` | DTMF digits dialed after connecting, inbound-agent DHs only. |
+| `outbound_text_number` | string | `null` | |
+| `follow_up_sms_success_criteria` | string | `null` | See [Follow-up SMS](/key-concepts/digital-humans/follow-up-sms). |
+| `endpointing_delay` | float | `1.5` | Seconds. |
+| `silence_timeout` | int | `null` | Seconds, minimum `15`. |
+| `hangup_phrases` | string[] | `[]` | |
+| `hangup_instructions` | string | `null` | |
+| `allow_end_call_tool` | bool | `true` | |
+| `allow_silence_tool` | bool | `true` | |
+| `allow_dtmf_tool` | bool | `true` | |
+| `default_dtmf_or_voiced` | string | `voiced` | `voiced` \| `dtmf` |
+| `silence_tool_instructions` | string | `"default"` | Literal `"default"` for built-in behavior, or custom text. |
+| `tag` | string | `null` | Comma-joined tag list. Drives which archetype below applies. |
+| `simulations` | UUID[] | `[]` | `bluejay_as_code_id`s of simulations this DH belongs to. |
+
+<Note>
+  You can also set voice with a single combined key, `"accent": "en_american_masculine"` (`language_accent_gender`, gender spelled `masculine`/`feminine`) — Bluejay splits it into `language`/`accent`/`gender` on push. Pull always emits the three separate fields, so this shorthand only matters if you're hand-writing a new digital human.
+</Note>
+
+Traits, scripted responses, interruption config, and speaks-first config each have their own nested schema — those are documented with full field-level JSON on [CSV Upload](/key-concepts/digital-humans/csv-upload), since that page already covers the exact shape BaC expects for `traits`, `scripted_responses`, `interruptions`, and `speaks_first_config`.
+
+### Recipes by archetype
+
+A digital human's `tag` (and, for journeys, `journey_steps`) determines which rules apply. Mixing archetypes on one digital human isn't supported — pick one.
+
+<AccordionGroup>
+  <Accordion title="Plain call">
+    No tag. `description` (intent) is required.
+
+    ```json
+    {
+      "bluejay_as_code_id": "a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44",
+      "human_name": "Maria Alvarez",
+      "description": "New patient booking her first physical with Dr. Patel.",
+      "success_criteria": "Agent books a Tuesday or Thursday morning slot with Dr. Patel.",
+      "language": "en",
+      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Customer journey (multi-call)">
+    Set `journey_steps` — no tag needed, Bluejay auto-applies `"Customer Journey"`. Full field rules (1-based step numbers, contiguous, per-step `intent` required) are covered in the ["Edit the payload" step](/key-concepts/bluejay-as-code/overview) of the walkthrough.
+
+    ```json
+    {
+      "bluejay_as_code_id": "d4f8a2c1-6b3e-4a09-8f27-1c5e9b0d3a76",
+      "human_name": "Returning Caller",
+      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"],
+      "journey_steps": [
+        { "step": 1, "intent": "Book a Tuesday morning physical with Dr. Patel", "success_criteria": "Appointment booked and confirmation number read back" },
+        { "step": 2, "intent": "Call back to confirm the appointment", "success_criteria": "Agent confirms the existing booking" }
+      ]
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Voicemail">
+    `tag` must be `voicemail-custom` or `voicemail-ai-generated` — no `description`/`success_criteria` needed, and `enriched_playback` is forbidden on this archetype. Full recipe in the ["Edit the payload" step](/key-concepts/bluejay-as-code/overview) of the walkthrough.
+
+    ```json
+    {
+      "bluejay_as_code_id": "9b3c7d5e-2a41-4a0f-8c6b-3e2d1f9a7c50",
+      "human_name": "Voicemail Line",
+      "tag": "voicemail-custom",
+      "speaks_first_config": {
+        "speaks_first": true,
+        "mode": "custom",
+        "message": "Hi, you've reached Maria. Leave a message after the tone."
+      },
+      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
+    }
+    ```
+
+    If `tag` carries more than one label (e.g. `"voicemail-custom,regression-suite"`), the voicemail sentinel must be first — Bluejay only checks the first label.
+  </Accordion>
+
+  <Accordion title="Transcript replay">
+    Give Bluejay a real call transcript instead of writing `description`/`success_criteria` yourself. Two shapes:
+
+    - `original_transcript` — raw text. Bluejay runs an LLM pass to extract turns and derive intent from it on save.
+    - `formatted_transcript` — pre-structured `[{role, utterance}]` list. Skips the LLM pass.
+
+    ```json
+    {
+      "bluejay_as_code_id": "6f1a9c3e-7b2d-4e11-9a5f-3c8d2b1e6a90",
+      "human_name": "Replayed Caller",
+      "formatted_transcript": [
+        { "role": "caller", "utterance": "Hi, I need to reschedule my appointment." },
+        { "role": "agent", "utterance": "Sure, what day works better for you?" },
+        { "role": "caller", "utterance": "Could we do next Thursday afternoon?" }
+      ],
+      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
+    }
+    ```
+
+    Not allowed together with a `scenario`-tagged (Scenario Builder) digital human — see below.
+  </Accordion>
+
+  <Accordion title="Scenario Builder / IVR flow (generated, not hand-authored)">
+    A digital human tagged `scenario` requires a non-empty `enriched_playback` and forbids `description`, `success_criteria` (unless it's an IVR-flow variant), `role_description`, and both transcript fields. This archetype is the compiled output of a Scenario Builder graph — Bluejay writes `enriched_playback` for you and keeps it in sync whenever you edit the graph.
+
+    Build these through [`POST /workflow`](/key-concepts/scenario-builder/overview) plus `generate-digital-humans`, not by hand-writing `enriched_playback`. See the [Scenario Builder cookbook](/cookbook/scenario-builder) for the full graph-authoring flow.
+  </Accordion>
+</AccordionGroup>
+
+### Fields Bluejay generates
+
+These fields exist on the digital-human model and BaC's push accepts them, but they're written by Bluejay itself as the output of another feature. Setting them from a hand-authored config risks a digital human whose state doesn't match anything the UI would ever create.
+
+| Field | Generated by |
+|---|---|
+| `enriched_playback` | Scenario Builder path enumeration (except the IVR-flow sub-schema, which is a real hand-authorable schema not yet documented here — ask support if you need it before it's written up). |
+| `workflow_v2_id`, `workflow_path_index`, `tested_path` | Scenario Builder — link a digital human back to the graph and path it came from. |
+| `attack_vector`, `attack_type`, `attack_plan` | The [red teaming](/key-concepts/red-teaming/overview) launch flow. |
+| `livekit_metadata` | LiveKit connection plumbing, set through the agent's connection settings. |
+
+### Known limitation: pull doesn't round-trip every field
+
+Pull emits: `description`, `success_criteria`, `phone_number`, `human_name`, `temperature`, `language`, `accent`, `gender`, `background_noise(_volume)`, `custom_background_noise_url`, `voice_speed`, `verbosity`, `audio_quality`, `fluency`, `endpointing_delay`, `hangup_phrases`, `hangup_instructions`, `silence_timeout`, `allow_end_call_tool`, `allow_silence_tool`, `allow_dtmf_tool`, `silence_tool_instructions`, `outbound_text_number`, `follow_up_sms_success_criteria`, `speaks_first_config`, `role_description`, `simulations`, plus `tag`/`journey_steps` when applicable.
+
+Push accepts all of the above **and** `traits`, `scripted_responses`, `expected_tool_calls`, `custom_voice_id`, `extension`, `original_transcript`, `formatted_transcript`, `num_runs`, and the generated fields above — but pull never emits them back. If a digital human has any of these set, a pull → edit → push round-trip silently drops them from your local file. Keep those fields in source control yourself rather than relying on pull to preserve them.
+
+## Simulations
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `bluejay_as_code_id` | UUID | — | |
+| `name` | string | — | |
+| `description` | string | `null` | |
+| `digital_humans` | UUID[] | `[]` | `bluejay_as_code_id`s of member digital humans. Desired-state array — see the ["Push your changes" step](/key-concepts/bluejay-as-code/overview) for reconciliation rules. |
+| `max_concurrent` | int | org default | Concurrent call cap for this simulation. |
+| `runs_per_digital_human` | int | `1` | |
+| `max_call_duration` | int | `null` | Paired with `max_call_duration_units`. |
+| `max_call_duration_units` | string | `null` | `minutes` \| `seconds` |
+| `max_turns` | int | `null` | |
+| `ringing_timeout` | int | `null` | Seconds. |
+| `hangup_on_transfer` | bool | `null` | |
+| `inactivity_timeout_seconds` | int | `300` | `300`-`1800`. |
+| `delay_between_tests_seconds` | float | `null` | |
+| `selected_custom_metrics` | UUID[] | `null` | |
+| `custom_metrics_passing_threshold` | int | `null` | `0`-`100`. |
+| `custom_metrics_failing_threshold` | int | `null` | `0`-`100`. |
+| `outcome_passing_threshold` | int | `null` | `1`-`100`. |
+| `outcome_failing_threshold` | int | `null` | `0`-`99`. |
+| `rerun_max_retries` | int | `null` | `1`-`5`. |
+| `enable_rerun_failed_test_results` | bool | `null` | Per-simulation override of the org default. |
+| `enable_rerun_on_custom_error` | bool | `null` | Per-simulation override of the org default. |
+| `custom_error_enabled` | bool | `null` | |
+| `custom_error_prompt` | string | `null` | Overrides the org default when `custom_error_enabled` is true. |
+| `tags` | string[] | `null` | |
+| `pinned` | bool | `null` | |
+| `digital_humans_settings` | object | `null` | `{default_name, default_caller_number, default_language, default_background_noise, first_message, num_runs}`. |
+
+```json
+{
+  "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
+  "name": "Scheduling Coverage",
+  "description": "Booking, rescheduling, and cancellation paths for the front desk agent.",
+  "max_concurrent": 5,
+  "runs_per_digital_human": 2,
+  "custom_metrics_passing_threshold": 90,
+  "outcome_passing_threshold": 80,
+  "digital_humans": ["a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44"]
+}
+```
+
+Simulation pull round-trips every one of these fields — there's no equivalent gap to the digital-human one above.
+
+## Custom metrics
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `bluejay_as_code_id` | UUID | — | |
+| `name` | string | — | |
+| `description` | string | `null` | Maps to `prompt`. Required for `metric_type: "llm_judge"`. |
+| `metric_type` | string | `llm_judge` | e.g. `llm_judge`, `tool_call`, `audio_*`. |
+| `response_type` | string | — | `pass_fail` \| `quantitative` \| `enum` \| `json`. |
+| `min_value`, `max_value` | float | `null` | Required together when `response_type` is `quantitative`. |
+| `enum_options` | string[] | `null` | Required when `response_type` is `enum`, forbidden otherwise. |
+| `scope` | string | `all` | `observability` \| `simulations` \| `all`. |
+| `eval_segment` | string | `all` | `agent` \| `user` \| `all`. |
+| `eval_modality` | string | `AUTO` | Text vs. audio judge routing. |
+| `model` | string | `null` | Judge model override. |
+| `audio_model` | string | `null` | |
+| `temperature` | float | `null` | |
+| `category` | string | `null` | |
+| `tags` | string[] | `[]` | |
+| `scoring_guidance` | string | `null` | |
+| `allow_not_applicable` | bool | `false` | |
+| `agents` | int[] | `[]` | Agent `bluejay_as_code_id`s (or IDs) this metric is attached to. |
+
+```json
+{
+  "bluejay_as_code_id": "2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44",
+  "name": "DOB Verified Before PHI",
+  "description": "The agent verifies the caller's date of birth before discussing any patient-specific information.",
+  "response_type": "pass_fail",
+  "scope": "simulations",
+  "agents": ["f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33"]
+}
+```
+
+## Agents
+
+The fields you'll actually hand-edit day to day:
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `bluejay_as_code_id` | UUID | — | |
+| `name` | string | — | |
+| `system_prompt` | string | — | Maps from `agent_description` in the BaC payload. |
+| `phone_number` | string | `null` | |
+| `goals` | string[] | `[]` | |
+| `type` | string | `INBOUND` | `INBOUND` \| `OUTBOUND`. |
+| `mode` | string | `VOICE` | |
+| `connection_type` | string | `null` | |
+| `keyterms` | string[] | `[]` | |
+| `folder` | string | `null` | |
+| `redact_pii` | bool | `false` | |
+| `simulations_disabled` | bool | `false` | |
+| `follow_up_sms_sender_numbers` | string[] | `null` | See [Follow-up SMS](/key-concepts/digital-humans/follow-up-sms). |
+| `simulations` | UUID[] | `[]` | |
+| `custom_metrics` | UUID[] | `[]` | |
+
+```json
+{
+  "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
+  "name": "Front Desk Scheduler",
+  "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine.",
+  "type": "INBOUND",
+  "voice": "en-US-Neural2-F",
+  "language": "en"
+}
+```
+
+<Note>
+  Agents also carry a long tail of provider-connection fields — `websocket_url`, `sip_uri`, `livekit_agent_name`, `eleven_labs_agent_id`, `retell_agent_id`, `vapi_assistant_id`, `dfcx_*`, `amelia_*`, `kore_*`, `bland_*`, `ces_*`, and more — one per integration type, mirroring the Agent Settings connection tab. At most one connection method can be set at a time. These round-trip through BaC identically to everything else in this table; they're just omitted here since most configs only ever touch one. Full list on the [add-agent reference](/api-reference/endpoint/add-agent).
+</Note>
