@@ -22,7 +22,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-issues and include any optional parameters (e.g., `status`, `priority`, `type`, `assignee_id`) that serve your integration's use case.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-issues and include any optional parameters (e.g., `status`, `priority`, `type`, `assignee_id`, `limit`, `offset`) that serve your integration's use case.
 
 ### Example
 **Simple GET:**
@@ -53,8 +53,8 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-An issue is a problem found across your calls, such as the agent ending a call without confirming the outcome.
+An issue is a problem found across your calls, such as the agent ending a call without confirming the outcome. This endpoint returns only issues that have a title. One-off failures that have not yet grouped are not included.
 
-Bluejay finds issues two ways. A `non_deterministic` issue is grouped from similar failures across many calls. A `deterministic` issue comes from an error the platform recognises outright, such as a tool call returning a 500.
+Bluejay finds issues two ways. A `non_deterministic` issue (Pattern in the dashboard) is grouped from similar failures. It appears after the same problem shows up on 4 distinct calls, and only once it has a title. A `deterministic` issue (Error in the dashboard) comes from an error the platform recognizes outright, such as a tool call returning a 500, and appears as soon as that error is found.
 
-Filter by `status`, `priority`, `type` or `assignee_id`. Results are ordered by when the issue was last seen, newest first.
+Filter by `status`, `priority`, `type` or `assignee_id`. Results are ordered by when the issue was last seen, newest first. Pass `limit` (1 to 200, default 50) and `offset` to walk the list. The dashboard Issues page is not paginated. This list is.
