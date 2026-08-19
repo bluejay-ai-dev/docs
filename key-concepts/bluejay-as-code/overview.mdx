@@ -158,6 +158,24 @@ sequenceDiagram
     ```
 
     Bluejay auto-tags this digital human `"Customer Journey"` and runs the steps in order, each call gated on the one before. `step` numbers must be unique and contiguous from `1`, and every step needs an `intent` (`success_criteria` is optional).
+
+    Some digital humans simulate a call reaching voicemail instead of a person. Set `tag` to `voicemail-custom` for a greeting you write yourself, or `voicemail-ai-generated` for one Bluejay generates:
+
+    ```json simulation.json
+    {
+      "bluejay_as_code_id": "9b3c7d5e-2a41-4a0f-8c6b-3e2d1f9a7c50",
+      "human_name": "Voicemail Line",
+      "tag": "voicemail-custom",
+      "speaks_first_config": {
+        "speaks_first": true,
+        "mode": "custom",
+        "message": "Hi, you've reached Maria. Leave a message after the tone."
+      },
+      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
+    }
+    ```
+
+    For `voicemail-ai-generated`, drop `message` and set `speaks_first_config.mode` to `"ai_generated"`. A voicemail digital human doesn't need `description` (intent) or `success_criteria` — the tag and `speaks_first_config` cover its purpose instead, same as `journey_steps` does for a journey.
   </Step>
 
   <Step title="Push your changes">
