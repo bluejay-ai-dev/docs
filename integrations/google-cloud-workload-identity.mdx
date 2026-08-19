@@ -57,6 +57,12 @@ TENANT_ID="${1:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> 
 PROJECT_ID="${2:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
 WITH_CES=0; [[ "${3:-}" == "--ces" ]] && WITH_CES=1
 
+# The tenant id is pasted by hand and ends up inside the provider's CEL
+# condition, so a stray space or quote would produce a provider that rejects
+# every exchange. Fail here instead, with the value in front of you.
+[[ $TENANT_ID =~ ^[A-Za-z0-9_-]+$ ]] || {
+  echo "tenant id looks wrong: '$TENANT_ID'. Copy it from the Google Agents tab in Bluejay." >&2; exit 1; }
+
 POOL=bluejay
 PROVIDER=bluejay
 SA_ID=bluejay-integration
