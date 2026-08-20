@@ -1,6 +1,6 @@
 ---
 title: "Cookbook"
-description: "Recipes for every digital human type Bluejay as Code can create, plus the field renames and gotchas the OpenAPI reference doesn't cover."
+description: "Recipes for every digital human type, agent, simulation, and custom metric Bluejay as Code can create, plus the field renames and gotchas the OpenAPI reference doesn't cover."
 icon: book
 ---
 
@@ -128,6 +128,64 @@ A digital human's `tag` decides its type. The one exception is customer journeys
 
 ## Agents, Simulations, and Custom Metrics
 
-These three don't have archetypes the way digital humans do. Every field beyond the renames above works exactly as documented on their API pages.
+These three don't have archetypes the way digital humans do, so there's one example each instead of an accordion per variant.
+
+### Agents
+
+```json
+{
+  "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
+  "name": "Front Desk Scheduler",
+  "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing.",
+  "type": "INBOUND",
+  "goals": [
+    "Verify caller identity before discussing PHI",
+    "Book, reschedule, or cancel the appointment",
+    "Confirm provider, date, time, and reason for visit"
+  ]
+}
+```
+
+<Note>
+  Every field here is exactly what [add-agent](/api-reference/endpoint/add-agent) takes.
+</Note>
+
+### Simulations
+
+```json
+{
+  "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
+  "name": "Scheduling Coverage",
+  "description": "Booking, rescheduling, and cancellation paths for the front desk agent.",
+  "max_concurrent": 5,
+  "max_call_duration": 10,
+  "max_call_duration_units": "minutes",
+  "hangup_on_transfer": true
+}
+```
+
+<Note>
+  Every field here is exactly what [update-simulation](/api-reference/endpoint/update-simulation) takes. A simulation has no `agent` field of its own: a *new* simulation's owner comes from whichever agent's `simulations` array lists its `bluejay_as_code_id`, or from the bundle's only agent when there's just one. An existing simulation's owner can't be reassigned on push.
+</Note>
+
+### Custom Metrics
+
+```json
+{
+  "bluejay_as_code_id": "2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44",
+  "name": "DOB Verified Before PHI",
+  "prompt": "The agent verifies the caller's date of birth before discussing any patient-specific information.",
+  "metric_type": "llm_judge",
+  "eval_segment": "agent",
+  "scope": "all",
+  "response_type": "pass_fail"
+}
+```
+
+<Note>
+  Every field here is exactly what [create-custom-metric](/api-reference/endpoint/create-custom-metric) takes. `metric_type` decides which other fields apply — `tool_call` and the `audio_*` types read from `settings` instead of `prompt`.
+</Note>
+
+### Wiring them together
 
 A simulation's `digital_humans`, an agent's `custom_metrics`, and a custom metric's `agents` are all desired-state arrays, not append-only lists. Push replaces each one with exactly what you listed. Drop an id that was there before, and Bluejay unlinks it without deleting the object itself. See [reconciliation](/key-concepts/bluejay-as-code/overview) in the walkthrough for the full behavior.
