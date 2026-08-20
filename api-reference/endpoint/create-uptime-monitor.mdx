@@ -1,0 +1,33 @@
+---
+title: 'Create Uptime Monitor'
+description: 'Create an uptime monitor for an agent. Provisions the backing health-check simulation and schedule.'
+openapi: 'POST /v1/uptime/monitors'
+---
+
+The `checks` array holds the health-check cards a run grades. Each check is an object:
+
+```json
+{
+  "id": "latency",
+  "label": "Latency",
+  "description": "Average response time stayed under a threshold.",
+  "enabled": true,
+  "isTemplate": true,
+  "checkType": "latency",
+  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
+}
+```
+
+The three template checks (`checkType` of `connection`, `agent_malfunction`, or `latency`) have `isTemplate: true`. A user-added check has `isTemplate: false` and points at a custom metric (`customMetricId`, with a `condition` of `data_type`, `operator`, and `comparison_value`) or a digital human (`digitalHumanId`).
+
+A `digitalHumanId` check swaps the default caller for that digital human — see [Custom caller](/monitor/uptime/overview#custom-caller). It only picks who places the probe, so at least one enabled check must still carry a `checkType` or `customMetricId`, or the request is rejected with a 400.
+
+The `notifications` object accepts any of:
+
+```json
+{
+  "slack": { "channel": "C0123456789", "notify_channel": true },
+  "pagerduty": true,
+  "email": { "scope": "specific", "addresses": ["oncall@example.com"] }
+}
+```
