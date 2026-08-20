@@ -1,10 +1,10 @@
 ---
 title: "Cookbook"
-description: "Recipes for every digital human type Bluejay as Code can create, and the field renames and gotchas that aren't in the OpenAPI reference."
+description: "Recipes for every digital human type Bluejay as Code can create, plus the field renames and gotchas the OpenAPI reference doesn't cover."
 icon: book
 ---
 
-Every entity in a BaC payload takes the same fields as its corresponding API resource (see the [pull → edit → push walkthrough](/key-concepts/bluejay-as-code/overview) and the [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), and [create-custom-metric](/api-reference/endpoint/create-custom-metric) references for the full field lists). This page covers what those references don't: which field combination gives you which digital human behavior, where BaC's field names differ from the API's, and where the pull/push round-trip has gaps.
+Every entity in a BaC payload takes the same fields as its corresponding API resource. See the [pull → edit → push walkthrough](/key-concepts/bluejay-as-code/overview) for the flow itself, and the [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), and [create-custom-metric](/api-reference/endpoint/create-custom-metric) references for the full field lists. This page covers what those references don't: which field combination gives you which digital human behavior, where BaC's field names differ from the API's, and where the pull/push round-trip has gaps.
 
 ## Field names that differ from the API
 
@@ -17,11 +17,11 @@ BaC uses a few friendlier names in the payload than the underlying resource does
 | `temperature` | `creativity` | Digital human |
 | `agent_description` | `system_prompt` | Agent |
 
-You can also set a digital human's voice with one combined key instead of three: `"accent": "en_american_masculine"` (`language_accent_gender`, gender spelled `masculine`/`feminine`) splits into `language`, `accent`, and `gender` on push. Pull always emits the three separate fields, so this shorthand only comes up when you're hand-writing a new digital human.
+You can also set a digital human's voice with one combined key instead of three. `"accent": "en_american_masculine"` follows the pattern `language_accent_gender`, with gender spelled `masculine` or `feminine`. Bluejay splits it into `language`, `accent`, and `gender` on push. Pull always emits the three separate fields, so this shorthand only matters when you're hand-writing a new digital human.
 
 ## Choosing a digital human type
 
-A digital human's `tag` (and, for journeys, `journey_steps`) decides which fields are required and which are forbidden. Pick one — mixing archetypes on the same digital human isn't supported.
+A digital human's `tag` decides which fields are required and which are forbidden. For journeys, `journey_steps` decides it instead. Pick one archetype per digital human; mixing them isn't supported.
 
 <AccordionGroup>
   <Accordion title="Plain call">
@@ -38,8 +38,8 @@ A digital human's `tag` (and, for journeys, `journey_steps`) decides which field
     ```
   </Accordion>
 
-  <Accordion title="Customer journey (multi-call)">
-    Set `journey_steps` instead of `description` — no tag needed, Bluejay auto-applies `"Customer Journey"`. Full step rules (1-based numbering, contiguous, per-step `intent` required) are in the [walkthrough](/key-concepts/bluejay-as-code/overview).
+  <Accordion title="Customer journey">
+    A journey runs multiple calls with the same caller, in order. Set `journey_steps` instead of `description`. No tag is needed; Bluejay applies `"Customer Journey"` automatically. Step numbers start at 1 and must be contiguous, and every step needs its own `intent`. Full rules are in the [walkthrough](/key-concepts/bluejay-as-code/overview).
 
     ```json
     {
@@ -55,7 +55,7 @@ A digital human's `tag` (and, for journeys, `journey_steps`) decides which field
   </Accordion>
 
   <Accordion title="Voicemail">
-    `tag` must be `voicemail-custom` or `voicemail-ai-generated` — no `description`/`success_criteria` needed. Full recipe in the [walkthrough](/key-concepts/bluejay-as-code/overview).
+    Set `tag` to `voicemail-custom` or `voicemail-ai-generated`. Neither `description` nor `success_criteria` is needed. Full recipe in the [walkthrough](/key-concepts/bluejay-as-code/overview).
 
     ```json
     {
@@ -71,11 +71,11 @@ A digital human's `tag` (and, for journeys, `journey_steps`) decides which field
     }
     ```
 
-    If `tag` carries more than one label, put the voicemail sentinel first — Bluejay only checks the first one.
+    If `tag` carries more than one label, put the voicemail sentinel first. Bluejay only checks the first label.
   </Accordion>
 
   <Accordion title="Transcript replay">
-    Hand Bluejay a real call transcript instead of writing `description`/`success_criteria` yourself. `formatted_transcript` (shown below) skips straight to a `[{role, utterance}]` list; `original_transcript` takes raw text instead and costs one LLM call to extract the turns and derive intent.
+    Give Bluejay a real call transcript instead of writing `description` and `success_criteria` yourself. `formatted_transcript` takes a pre-structured `[{role, utterance}]` list, shown below. `original_transcript` takes raw text instead; Bluejay runs one LLM call to extract the turns and derive intent from it.
 
     ```json
     {
@@ -91,19 +91,19 @@ A digital human's `tag` (and, for journeys, `journey_steps`) decides which field
     ```
   </Accordion>
 
-  <Accordion title="Scenario Builder graph (don't hand-author)">
-    A `scenario`-tagged digital human is the compiled output of a Scenario Builder graph — Bluejay writes its `enriched_playback` and keeps it synced whenever you edit the graph. Build these through [Scenario Builder](/key-concepts/scenario-builder/overview) and `generate-digital-humans`, not by writing `enriched_playback` yourself; a hand-written one won't stay in sync with anything.
+  <Accordion title="Scenario Builder graph">
+    Don't hand-author this one. A digital human tagged `scenario` is the compiled output of a Scenario Builder graph. Bluejay writes its `enriched_playback` and keeps it synced whenever you edit the graph. Build these through [Scenario Builder](/key-concepts/scenario-builder/overview) and `generate-digital-humans` instead. A hand-written `enriched_playback` won't stay in sync with anything.
   </Accordion>
 </AccordionGroup>
 
 <Warning>
-  A few more digital-human fields exist on the model and BaC's push won't reject them, but Bluejay writes them as output of another feature: `workflow_v2_id`, `workflow_path_index`, and `tested_path` (Scenario Builder's link back to its source graph), `attack_vector`/`attack_type`/`attack_plan` (the [red teaming](/key-concepts/red-teaming/overview) launch flow), and `livekit_metadata` (agent connection plumbing). Setting these by hand can produce a digital human in a state the UI never creates.
+  A few more digital-human fields exist on the model, and BaC's push won't reject them, but Bluejay writes them itself as the output of another feature. `workflow_v2_id`, `workflow_path_index`, and `tested_path` link a digital human back to the Scenario Builder graph it came from. `attack_vector`, `attack_type`, and `attack_plan` come from the [red teaming](/key-concepts/red-teaming/overview) launch flow. `livekit_metadata` is agent connection plumbing. Setting any of these by hand can produce a digital human in a state the UI never creates.
 </Warning>
 
 ## What doesn't round-trip on pull
 
-Pulling a digital human doesn't return everything push accepts. `traits`, `scripted_responses`, `expected_tool_calls`, `custom_voice_id`, `extension`, `original_transcript`, `formatted_transcript`, `num_runs`, and the generated fields listed above are written on push but never come back on pull. If a digital human has any of these set, a pull → edit → push cycle silently drops them — keep those fields in your own source file rather than trusting pull to preserve them. Agents and simulations don't have this gap; their pull round-trips everything.
+Pulling a digital human doesn't return everything push accepts. `traits`, `scripted_responses`, `expected_tool_calls`, `custom_voice_id`, `extension`, `original_transcript`, `formatted_transcript`, `num_runs`, and the generated fields listed above are written on push but never come back on pull. If a digital human has any of these set, a pull, edit, push cycle silently drops them. Keep those fields in your own source file instead of trusting pull to preserve them. Agents and simulations don't have this gap. Their pull round-trips everything.
 
 ## Agents, simulations, and custom metrics
 
-These three don't have archetypes the way digital humans do — every field beyond the renames above works exactly as documented on their API pages. The one thing worth knowing: `digital_humans` on a simulation and `custom_metrics`/`agents` on an agent or metric are desired-state arrays, not append-only — see [reconciliation](/key-concepts/bluejay-as-code/overview) in the walkthrough for what happens when you omit an id that was there before.
+These three don't have archetypes the way digital humans do. Every field beyond the renames above works exactly as documented on their API pages. One thing worth knowing: `digital_humans` on a simulation, and `custom_metrics` or `agents` on an agent or metric, are desired-state arrays, not append-only. See [reconciliation](/key-concepts/bluejay-as-code/overview) in the walkthrough for what happens when you omit an id that was there before.
