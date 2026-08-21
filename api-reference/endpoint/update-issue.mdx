@@ -1,0 +1,73 @@
+---
+title: 'Update Issue'
+description: ''
+openapi: 'PUT /v1/issues/{issue_id}'
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Update Issue — PUT /v1/issues/{issue_id}
+
+> **What this endpoint does:** set an issue's status, priority, assignee or due date.
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/issues/{issue_id}`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| issue_id | string (uuid) | The issue to update. |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Every body field is optional. Only the fields you send are changed.
+
+### Example
+**Resolve an issue and set its owner:**
+```python
+import requests
+
+def resolve_issue(issue_id: str, assignee_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/issues/{issue_id}"
+    headers = {"X-API-Key": api_key}
+    body = {"status": "resolved", "assignee_id": assignee_id}
+    response = requests.put(url, headers=headers, json=body)
+    response.raise_for_status()
+    return response.json()
+```
+
+**Unset a field:**
+```python
+requests.put(url, headers=headers, json={"priority": None, "due_date": None})
+```
+
+### Constraints
+- Minimal changes — only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 400: Validation Error and 404: Issue not found.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Set an issue's `status`, `priority`, `assignee_id` or `due_date`. Every field is optional, so send only what you want to change.
+
+Send a field as `null` to unset it. A field you leave out is untouched:
+
+```json
+{ "status": "open", "assignee_id": null }
+```
+
+`status` is one of `open`, `in_progress`, `resolved` or `ignored`. `priority` is one of `low`, `medium`, `high` or `urgent`, and stays empty until someone sets it. `assignee_id` must be a user in your organization. `due_date` is `YYYY-MM-DD`.
+
+An issue's title, and the calls attached to it, are produced by Bluejay and cannot be edited.
