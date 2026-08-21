@@ -49,9 +49,11 @@ sequenceDiagram
   </Step>
 
   <Step title="Inspect the file you pulled">
-    `simulation.json` is the full state of your simulation. The payload must contain **exactly one agent and one simulation**; digital humans and custom metrics are arrays of any size.
+    `simulation.json` is the full state of your simulation. Pulled this way, it contains **exactly one agent and one simulation**; digital humans and custom metrics are arrays of any size. A hand-built payload you push can include more than one agent or simulation.
 
     Every entity carries a `bluejay_as_code_id` — a **UUID** that Bluejay populates on pull. When you add a new entity locally, generate a fresh UUID once and commit it alongside the rest of the entity's fields.
+
+    A simulation has no field of its own for its owning agent. With one agent in the bundle, as below, Bluejay assigns it automatically. With more than one, list the simulation's `bluejay_as_code_id` in the owning agent's `simulations` array instead.
 
     <Tip>
       Each entity in the payload accepts the same fields as the corresponding API resource. For example, digital humans take the same arguments as [`POST /v1/create-digital-human`](/api-reference/endpoint/create-digital-human) — including `success_criteria`, `traits`, `voice`, and so on.
@@ -63,17 +65,14 @@ sequenceDiagram
         {
           "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
           "name": "Front Desk Scheduler",
-          "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing.",
-          "voice": "en-US-Neural2-F",
-          "language": "en"
+          "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing."
         }
       ],
       "simulations": [
         {
           "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
           "name": "Scheduling Coverage",
-          "description": "Booking, rescheduling, and cancellation paths for the front desk agent.",
-          "agent": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33"
+          "description": "Booking, rescheduling, and cancellation paths for the front desk agent."
         }
       ],
       "digital_humans": [
@@ -136,9 +135,7 @@ sequenceDiagram
     {
       "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
       "name": "Front Desk Scheduler",
-      "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing. If the caller reports chest pain, difficulty breathing, or suicidal ideation, instruct them to hang up and call 911 immediately.",
-      "voice": "en-US-Neural2-F",
-      "language": "en"
+      "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing. If the caller reports chest pain, difficulty breathing, or suicidal ideation, instruct them to hang up and call 911 immediately."
     }
     ```
 
@@ -158,6 +155,24 @@ sequenceDiagram
     ```
 
     Bluejay auto-tags this digital human `"Customer Journey"` and runs the steps in order, each call gated on the one before. `step` numbers must be unique and contiguous from `1`, and every step needs an `intent` (`success_criteria` is optional).
+
+    Some digital humans simulate a call reaching voicemail instead of a person. Set `tag` to `voicemail-custom` for a greeting you write yourself, or `voicemail-ai-generated` for one Bluejay generates:
+
+    ```json simulation.json
+    {
+      "bluejay_as_code_id": "9b3c7d5e-2a41-4a0f-8c6b-3e2d1f9a7c50",
+      "human_name": "Voicemail Line",
+      "tag": "voicemail-custom",
+      "speaks_first_config": {
+        "speaks_first": true,
+        "mode": "custom",
+        "message": "Hi, you've reached Maria. Leave a message after the tone."
+      },
+      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
+    }
+    ```
+
+    For `voicemail-ai-generated`, drop `message` and set `speaks_first_config.mode` to `"ai_generated"`. A voicemail digital human doesn't need `description` (intent) or `success_criteria` — the tag and `speaks_first_config` cover its purpose instead, same as `journey_steps` does for a journey.
   </Step>
 
   <Step title="Push your changes">

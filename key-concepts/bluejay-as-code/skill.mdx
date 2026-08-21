@@ -201,6 +201,21 @@ payload["digital_humans"].append({
     ],
 })
 
+# 3c. Add a voicemail digital human
+# tag "voicemail-custom" writes your own greeting; "voicemail-ai-generated" drops "message"
+# and uses mode "ai_generated" instead. No description/success_criteria needed.
+payload["digital_humans"].append({
+    "bluejay_as_code_id": str(uuid.uuid4()),
+    "human_name": "Voicemail Line",
+    "tag": "voicemail-custom",
+    "speaks_first_config": {
+        "speaks_first": True,
+        "mode": "custom",
+        "message": "Hi, you've reached the front desk. Leave a message after the tone.",
+    },
+    "simulations": [payload["simulations"][0]["bluejay_as_code_id"]],
+})
+
 # 4. Push — single unified endpoint regardless of which root_type you pulled from
 result = requests.post(f"{BASE_URL}/bluejay-as-code", headers=headers, json=payload).json()
 
