@@ -1,55 +1,18 @@
 ---
 title: Overview
-description: Understand how Issues group recurring production failures
+description: Own a production problem, see how often it happens, and triage it
 icon: triangle-exclamation
 ---
 
-Issues group what went wrong on production calls so you can own a pattern instead of hunting through logs. They are built from [observability](/monitor/observability/overview) evaluations. Open **Monitor → Issues**.
+Open **Monitor → Issues** to own a production problem, see how often it happens, and triage it.
 
-## Where Issues sit
+Failures on evaluated production calls become Issues. Each issue has a title and the calls it covers. Bluejay produces those. You cannot edit them.
 
-Each evaluated production call is scored and checked for failures. [Custom Metrics](/key-concepts/custom-metrics/overview) feed [alerts](/key-concepts/alerts/overview). Failures feed Issues.
-
-```mermaid
-flowchart LR
-    Call[Production call evaluated] --> Metrics[Custom Metrics]
-    Call --> Failures[Failures]
-    Metrics --> Alert[Alerts]
-    Failures --> Issue[Issues]
-```
-
-Alerts notify you when a metric crosses a threshold. Issues collect the failures themselves so you can assign, prioritize, and close them.
-
-## How Issues appear
-
-Bluejay finds issues two ways. The list labels them **Pattern** and **Error**.
-
-```mermaid
-flowchart LR
-    Call[Call evaluated] --> Fail{Failure found?}
-    Fail -->|No| Skip[Nothing listed]
-    Fail -->|Known error| Error[Error appears now]
-    Fail -->|Similar problem| Recur{Recurring?}
-    Recur -->|One-off| Hidden[Not listed]
-    Recur -->|Yes| Pattern[Pattern appears with a title]
-```
-
-| Kind | When it shows | Example |
-|------|----------------|---------|
-| **Pattern** | Once the same problem recurs across calls, and only once it has a title | The agent ends the call without confirming the outcome |
-| **Error** | As soon as Bluejay recognizes a known failure | A tool returns a 500, or a tool that should have run never does |
-
-A one-off Pattern does not appear. That is expected. Until it has a title, it is not listed anywhere, including the API.
-
-If a new failure matches an issue you already have, the calls join that issue. An issue that goes quiet stays on the list. Last Seen tells you how recently it happened.
-
-Errors often come from [tool calls](/monitor/observability/tool-calls) sent with the [evaluate](/api-reference/endpoint/evaluate) request.
+The list tags each issue as a **Pattern** (a recurring problem) or an **Error** (a known failure).
 
 ## What you can change
 
-Set status, priority, assignee, and due date. Status is Open, In Progress, Resolved, or Ignored. Priority stays empty until someone sets it.
-
-The title and the calls attached to an issue are produced by Bluejay. You cannot edit them.
+Set assignee, priority, due date, and status. Status is Open, In Progress, Resolved, or Ignored. Priority stays empty until someone sets it.
 
 ## Resources
 
@@ -59,21 +22,6 @@ The title and the calls attached to an issue are produced by Bluejay. You cannot
   </Card>
   <Card title="Observability" icon="eye" href="/monitor/observability/overview">
     How production calls get into Bluejay.
-  </Card>
-  <Card title="Alerts" icon="bell" href="/key-concepts/alerts/overview">
-    Threshold notifications when a metric crosses a boundary.
-  </Card>
-  <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
-    The scores that power alerts.
-  </Card>
-  <Card title="Tool Calls" icon="wrench" href="/monitor/observability/tool-calls">
-    Include tool data so Errors like a 500 can be recognized.
-  </Card>
-  <Card title="Traces" icon="route" href="/key-concepts/traces/overview">
-    Send OpenTelemetry traces with production calls.
-  </Card>
-  <Card title="Webhooks" icon="bolt" href="/key-concepts/webhooks/overview">
-    Ingest calls and receive evaluation events.
   </Card>
   <Card title="List Issues API" icon="code" href="/api-reference/endpoint/list-issues">
     List, filter, and page issues. Newest last-seen first.
