@@ -70,6 +70,23 @@ If you prefer a shorter path, you can connect ElevenLabs by providing only your 
 
 ![Find your ElevenLabs API key in the Developers tab](/images/elevenlabs-api-key.gif)
 
+### Sending calls through your own service
+
+If your ElevenLabs post-call webhook already points at a service of your own, you do not need a second webhook. Have that service forward the call to Bluejay after it has done its own work.
+
+Forward the request body exactly as ElevenLabs sent it, along with the `elevenlabs-signature` header, and Bluejay verifies the same signature ElevenLabs produced. Re-serializing the JSON or editing any field invalidates that signature.
+
+If your service needs to change the payload before forwarding it, send a Bluejay API key instead of the signature:
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @elevenlabs-post-call-body.json
+```
+
+The body keeps ElevenLabs' shape either way, so Bluejay does the parsing. The agent named by `data.agent_id` has to belong to the organization that issued the key.
+
 ### Up Next
 
 <Card title="ElevenLabs Simulations" icon="flask-vial" href="/integrations/eleven-labs-simulations">
