@@ -21,6 +21,27 @@ A monitor grades one or more checks. Every monitor needs at least one check that
 
 You can also point a check at one of your own digital humans so the probe uses that persona instead of the default. A digital human on its own is not gradable, so pair it with one of the checks above.
 
+## Managing monitors via the API
+
+Everything the UI does — create, update, pause and resume, delete — is available over the [REST API](/api-reference/endpoint/create-uptime-monitor) and as [MCP tools](/mcp/overview#uptime-monitors), so tooling that updates your agent can update its monitor in the same step. Updates are partial: pass only the fields you change.
+
+### Custom caller
+
+The custom caller is one entry in the monitor's `checks` array:
+
+```json
+{
+  "id": "dh-1234",
+  "label": "Impatient repeat customer",
+  "description": "Digital human check.",
+  "enabled": true,
+  "isTemplate": false,
+  "digitalHumanId": "1234"
+}
+```
+
+Send it alongside the template checks with [Update Uptime Monitor](/api-reference/endpoint/update-uptime-monitor). `checks` replaces the whole array, and the digital human only picks who places the probe, so keep at least one enabled check with a `checkType` or `customMetricId` in the payload. To go back to the default caller, resend the checks without the `digitalHumanId` entry.
+
 ## How latency is measured
 
 Latency is the gap between your caller finishing and your agent starting to speak, averaged across the conversation.
