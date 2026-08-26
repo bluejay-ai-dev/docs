@@ -74,7 +74,7 @@ If you prefer a shorter path, you can connect ElevenLabs by providing only your 
 
 If your ElevenLabs post-call webhook already points at a service of your own, you do not need a second webhook. Have that service forward the call to Bluejay after it has done its own work.
 
-Forward the request body exactly as ElevenLabs sent it, along with the `elevenlabs-signature` header, and Bluejay verifies the same signature ElevenLabs produced. Re-serializing the JSON or editing any field invalidates that signature.
+Forward the body exactly as ElevenLabs sent it, along with the `elevenlabs-signature` header. Re-serializing the JSON or editing any field breaks that signature.
 
 If your service needs to change the payload before forwarding it, send a Bluejay API key instead of the signature:
 
@@ -89,28 +89,25 @@ The body keeps ElevenLabs' shape either way, so Bluejay does the parsing. The ag
 
 ### Attaching your own identifiers
 
-Your service can add its own values to a forwarded call by sending a top-level `metadata` object alongside `type` and `data`. This is the same field Bluejay reads on the [evaluate endpoint](/api-reference/endpoint/evaluate) and on the Retell integration.
+Add a top-level `metadata` object next to `type` and `data`. Every key in it becomes a field on the call.
 
 ```json
 {
   "type": "post_call_transcription",
   "data": { "agent_id": "agent_01jx8k...", "transcript": [] },
-  "metadata": {
-    "member_id": 124356,
-    "clinic": "west"
-  }
+  "metadata": { "member_id": 124356, "clinic": "west" }
 }
 ```
 
-Every key becomes a field on the call, so you can group a dashboard widget by it, filter the Logs page to one value, point an alert at it, or reference it as `{{member_id}}` in a custom metric's prompt. Keep the object flat and use plain values, since a nested object is filterable but does not read well when substituted into a prompt.
+Use those fields to group a dashboard widget, filter the Logs page, point an alert at a value, or reference it as `{{member_id}}` in a [metric's prompt](/key-concepts/custom-metrics/dynamic-variables).
 
-This is a separate field from `data.metadata`, which ElevenLabs populates with the call's duration, cost, and termination reason. Bluejay reads that one for the call's own facts and leaves it alone otherwise.
+This is not ElevenLabs' `data.metadata`, which carries the call's own duration and cost. Yours goes at the top level.
 
 <Note>
-  Adding `metadata` changes the request body, which invalidates ElevenLabs' signature. Send a Bluejay API key with the request, as shown above.
+  Adding `metadata` changes the body, which invalidates ElevenLabs' signature. Send a Bluejay API key with the request.
 </Note>
 
-Bluejay writes its own fields onto the call after yours, so a key named `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, or `original_webhook_data` is replaced. Pick a different name for anything you need to keep.
+A few names are already taken. If you send `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, or `original_webhook_data`, Bluejay overwrites it.
 
 ### Up Next
 
