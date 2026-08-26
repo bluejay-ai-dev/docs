@@ -43,11 +43,22 @@ If a test email does not arrive, check your admin quarantine first, the message 
 
 Build a simulation on the email agent, add Digital Humans, and run it. Bluejay sends each Digital Human's opening email, drives the back-and-forth, and grades the result. Email turns take minutes rather than seconds, so runs stay open longer than voice or SMS.
 
+## Outbound: your agent emails first
+
+By default the Digital Human emails your agent (inbound). For an **outbound** agent, your own system sends the first email and Bluejay's Digital Human replies, the same trigger-webhook model as outbound voice and SMS.
+
+1. Create the agent with type **Outbound** and set its **outbound trigger webhook URL** (and, optionally, a payload template).
+2. When a simulation runs, Bluejay does not send an opening email. Instead it POSTs your trigger webhook so your flow knows to start the conversation.
+3. Your flow emails the Digital Human at the address Bluejay provides, and the Digital Human replies and is graded from there.
+
+The trigger payload is your template with `{{tokens}}` filled in. The key token for email is **`{{digital_human.email}}`**, the unique per-test address your flow must email so the reply reaches the right Digital Human (for example `monitor+12345@bluejaysims.com`). Other tokens include `{{digital_human.intent}}`, `{{digital_human.name}}`, and `{{sim_conversation_id}}`. With no template, Bluejay sends a minimal default. Sign-verify the POST with the agent's webhook signing key if one is set.
+
 ## Set it up with the API or MCP
 
 Email agents and runs are fully scriptable.
 
 - Create the agent with **add-agent**: `mode="TEXT"`, `connection_type="EMAIL"`, and `email_address` set to the agent's inbox. Over MCP this is the `add_agent` tool with the same fields.
+- For an outbound email agent, also set `type="OUTBOUND"`, `outbound_trigger_webhook_url`, and (optionally) `outbound_trigger_payload_template` with `{{digital_human.email}}` so your flow receives the address to email.
 - Queue a run with **queue-email-simulation-run** (MCP tool `queue_email_simulation_run`), passing the `simulation_id`.
 
 Everything else, creating the simulation, adding Digital Humans, reading results, uses the same tools as any other medium.
