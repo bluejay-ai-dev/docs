@@ -1,0 +1,57 @@
+---
+title: Email Agents
+description: Test and monitor an email support agent end to end, digital humans email your agent and grade the replies
+icon: envelope
+---
+
+Bluejay can test an email agent the same way it tests voice and SMS: a Digital Human sends a real email to your agent's inbox, your agent replies, and Bluejay grades the exchange. The whole conversation runs over real email, so you are testing the actual channel your customers use, not a stand-in.
+
+## How it works
+
+1. You create an agent with the **Email** connection type and give it the inbox your agent answers from (for example `support@yourcompany.com`).
+2. When a simulation runs, the Digital Human emails that inbox from a per-test address on Bluejay's sending domain.
+3. Your agent replies over email.
+4. Bluejay captures the reply, threads it into the conversation, and continues until the exchange ends, then grades it against your success criteria like any other run.
+
+Correlation is automatic: each test sends from a unique tagged address, so replies always attach to the right conversation.
+
+## Create an email agent
+
+In the app, create an agent, choose **Text**, then the **Email** connection type, and enter the agent's email address.
+
+<Warning>
+  The agent's inbox must **allowlist Bluejay's sending domain** (`bluejaysims.com`). Corporate mail systems (Google Workspace, Microsoft 365, on-prem gateways) quarantine mail from unfamiliar senders before it reaches the mailbox, so without an allowlist entry your agent never receives the test and every check fails. Consumer inboxes (Gmail, Outlook.com) usually deliver without this step.
+</Warning>
+
+### Allowlist Bluejay's sending domain
+
+Add `bluejaysims.com` to the receiving inbox's allowlist so the test email is delivered instead of quarantined.
+
+**Google Workspace**
+1. Admin console → **Apps → Google Workspace → Gmail → Spam, phishing, and malware**.
+2. Under **Email allowlist**, add Bluejay's sending IP range, or add an **Inbound gateway** / content-compliance rule that bypasses spam for `bluejaysims.com`.
+3. Save. Delivery takes effect within a few minutes.
+
+**Microsoft 365 (Exchange Online)**
+1. Microsoft 365 Defender → **Policies & rules → Threat policies → Anti-spam**.
+2. Add `bluejaysims.com` to the **Allowed senders / domains** list, or create a mail-flow rule that sets the spam confidence level to bypass for that domain.
+3. Save.
+
+If a test email does not arrive, check your admin quarantine first, the message is almost always held there, not lost.
+
+## Run an email simulation
+
+Build a simulation on the email agent, add Digital Humans, and run it. Bluejay sends each Digital Human's opening email, drives the back-and-forth, and grades the result. Email turns take minutes rather than seconds, so runs stay open longer than voice or SMS.
+
+## Set it up with the API or MCP
+
+Email agents and runs are fully scriptable.
+
+- Create the agent with **add-agent**: `mode="TEXT"`, `connection_type="EMAIL"`, and `email_address` set to the agent's inbox. Over MCP this is the `add_agent` tool with the same fields.
+- Queue a run with **queue-email-simulation-run** (MCP tool `queue_email_simulation_run`), passing the `simulation_id`.
+
+Everything else, creating the simulation, adding Digital Humans, reading results, uses the same tools as any other medium.
+
+## Deliverability signals
+
+Because Bluejay sends and receives real email, a run also tells you whether mail is actually reaching the inbox. A green connection check means the round trip completed; if delivery degrades (quarantine, SPF/DKIM/DMARC failures, spam placement), that shows up as failed or delayed checks rather than a silent gap.
