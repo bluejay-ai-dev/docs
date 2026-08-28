@@ -21,9 +21,8 @@ This guide walks you through how to connect your ElevenLabs voice agents to Blue
 
 #### 1. Set up the ElevenLabs webhook
 
-1. Navigate to your ElevenLabs dashboard and go to your **Settings**.
-2. Find the **Post-Call Webhook** section, click **Select Webhook**, then click **Create Webhook**.
-3. Name your webhook and paste this URL into the URL field:
+1. In ElevenLabs, go to **Settings** > **Post-Call Webhook** > **Select Webhook** > **Create Webhook**.
+2. Name your webhook and paste this URL into the URL field:
 
 ```
 https://api.getbluejay.ai/v1/integrations/ElevenLabs
@@ -50,33 +49,11 @@ https://api.getbluejay.ai/v1/integrations/ElevenLabs
 
 ![Sync your ElevenLabs agents to Bluejay](/images/elevenlabs-3-sync.gif)
 
-#### 4. Configure your agent in Bluejay
+### Using your own webhook
 
-1. Open your agent's settings and go to the **Connection Settings** tab.
-2. Choose the **ElevenLabs** tile under **Voice connection type**.
-3. Enter your ElevenLabs Agent ID in the **ElevenLabs Agent ID** field.
-4. Click **Save Changes**.
+If you already port your own webhook into ElevenLabs, you can also send ElevenLabs transcripts directly to Bluejay's webhook.
 
-![Configure your agent in Bluejay](/images/elevenlabs-4-configure-agent.gif)
-
-#### Quick Sync from the Plus Menu
-
-If you prefer a shorter path, you can connect ElevenLabs by providing only your API key. Bluejay uses the key to list your ElevenLabs agents and sync the full workflow automatically, so you do not need to enter an Agent ID by hand.
-
-1. In Bluejay, open **General Settings** and add an agent.
-2. Scroll down to the voice connection options and select **ElevenLabs**.
-3. Enter your **ElevenLabs API key** (available from your ElevenLabs account). The key resolves to the matching ElevenLabs Agent ID for you.
-4. Click **Save Changes**, then click **Sync Agents from ElevenLabs** to create the agent inside Bluejay.
-
-![Find your ElevenLabs API key in the Developers tab](/images/elevenlabs-api-key.gif)
-
-### Sending calls through your own service
-
-If your ElevenLabs post-call webhook already points at a service of your own, you do not need a second webhook. Have that service forward the call to Bluejay after it has done its own work.
-
-Forward the body exactly as ElevenLabs sent it, along with the `elevenlabs-signature` header. Re-serializing the JSON or editing any field breaks that signature.
-
-If your service needs to change the payload before forwarding it, send a Bluejay API key instead of the signature:
+Create an [API key in Bluejay](https://app.getbluejay.ai/settings/api-keys).
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
@@ -85,29 +62,22 @@ curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
   -d @elevenlabs-post-call-body.json
 ```
 
-The body keeps ElevenLabs' shape either way, so Bluejay does the parsing. The agent named by `data.agent_id` has to belong to the organization that issued the key.
-
-### Attaching your own identifiers
-
-Add a top-level `metadata` object next to `type` and `data`. Every key in it becomes a field on the call.
+To attach your own identifiers, add a top-level `metadata` object (different than `data.metadata` that comes from ElevenLabs). Here we add two fields, `member_id` and `clinic` that Bluejay will import:
 
 ```json
 {
   "type": "post_call_transcription",
-  "data": { "agent_id": "agent_01jx8k...", "transcript": [] },
-  "metadata": { "member_id": 124356, "clinic": "west" }
+  "data": { ... },
+  "metadata": {
+    "member_id": 124356,
+    "clinic": "Bluejay Clinic"
+  }
 }
 ```
 
-Use those fields to group a dashboard widget, filter the Logs page, point an alert at a value, or reference it as `{{member_id}}` in a [metric's prompt](/key-concepts/custom-metrics/dynamic-variables).
+These fields can be used to group a dashboard widget, filter the Logs page, point to an alert, or be referenced as `{{member_id}}` in a [metric's prompt](/key-concepts/custom-metrics/dynamic-variables).
 
-This is not ElevenLabs' `data.metadata`, which carries the call's own duration and cost. Yours goes at the top level.
-
-<Note>
-  Adding `metadata` changes the body, which invalidates ElevenLabs' signature. Send a Bluejay API key with the request.
-</Note>
-
-A few names are already taken. If you send `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, or `original_webhook_data`, Bluejay overwrites it.
+Note that Bluejay reserves and overwrites the following metadata fields: `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, or `original_webhook_data`.
 
 ### Up Next
 
