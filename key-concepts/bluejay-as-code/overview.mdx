@@ -35,7 +35,7 @@ sequenceDiagram
 
 <Steps>
   <Step title="Pull your configuration">
-    Send a `GET` request to the Bluejay as Code endpoint with your simulation ID. Bluejay returns a single JSON payload containing the agent, the simulation, every digital human, and every custom metric attached to it.
+    Send a `GET` request to the Bluejay as Code endpoint with your simulation ID. Bluejay returns a single JSON payload containing the agent, the simulation, every Digital Human, and every custom metric attached to it.
 
     ```bash
     curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID \
@@ -49,14 +49,14 @@ sequenceDiagram
   </Step>
 
   <Step title="Inspect the file you pulled">
-    `simulation.json` is the full state of your simulation. Pulled this way, it contains **exactly one agent and one simulation**; digital humans and custom metrics are arrays of any size. A hand-built payload you push can include more than one agent or simulation.
+    `simulation.json` is the full state of your simulation. Pulled this way, it contains **exactly one agent and one simulation**; Digital Humans and custom metrics are arrays of any size. A hand-built payload you push can include more than one agent or simulation.
 
     Every entity carries a `bluejay_as_code_id` — a **UUID** that Bluejay populates on pull. When you add a new entity locally, generate a fresh UUID once and commit it alongside the rest of the entity's fields.
 
     A simulation has no field of its own for its owning agent. With one agent in the bundle, as below, Bluejay assigns it automatically. With more than one, list the simulation's `bluejay_as_code_id` in the owning agent's `simulations` array instead.
 
     <Tip>
-      Each entity in the payload accepts the same fields as the corresponding API resource. For example, digital humans take the same arguments as [`POST /v1/create-digital-human`](/api-reference/endpoint/create-digital-human) — including `success_criteria`, `traits`, `voice`, and so on.
+      Each entity in the payload accepts the same fields as the corresponding API resource. For example, Digital Humans take the same arguments as [`POST /v1/create-digital-human`](/api-reference/endpoint/create-digital-human) — including `success_criteria`, `traits`, `voice`, and so on.
     </Tip>
 
     ```json simulation.json
@@ -116,7 +116,7 @@ sequenceDiagram
       **You generate the `bluejay_as_code_id` for new objects yourself.** Bluejay only populates UUIDs on pull — anything you add locally needs an ID you create (for example with `uuidgen` or `uuid.uuid4()`). Commit it to the file so future pushes recognize the same object.
     </Note>
 
-    For example, add a digital human that simulates an urgent-symptom call so you can verify the agent's escalation behavior. Append the new entity to the `digital_humans` array:
+    For example, add a Digital Human that simulates an urgent-symptom call so you can verify the agent's escalation behavior. Append the new entity to the `digital_humans` array:
 
     ```json simulation.json
     {
@@ -139,7 +139,7 @@ sequenceDiagram
     }
     ```
 
-    Coverage isn't limited to one-off calls. To exercise a multi-call flow with the same caller, add a digital human with a `journey_steps` array. Each step is one call, run in order:
+    Coverage isn't limited to one-off calls. To exercise a multi-call flow with the same caller, add a Digital Human with a `journey_steps` array. Each step is one call, run in order:
 
     ```json simulation.json
     {
@@ -154,9 +154,9 @@ sequenceDiagram
     }
     ```
 
-    Bluejay auto-tags this digital human `"Customer Journey"` and runs the steps in order, each call gated on the one before. `step` numbers must be unique and contiguous from `1`, and every step needs an `intent` (`success_criteria` is optional).
+    Bluejay auto-tags this Digital Human `"Customer Journey"` and runs the steps in order, each call gated on the one before. `step` numbers must be unique and contiguous from `1`, and every step needs an `intent` (`success_criteria` is optional).
 
-    Some digital humans simulate a call reaching voicemail instead of a person. Set `tag` to `voicemail-custom` for a greeting you write yourself, or `voicemail-ai-generated` for one Bluejay generates:
+    Some Digital Humans simulate a call reaching voicemail instead of a person. Set `tag` to `voicemail-custom` for a greeting you write yourself, or `voicemail-ai-generated` for one Bluejay generates:
 
     ```json simulation.json
     {
@@ -172,7 +172,7 @@ sequenceDiagram
     }
     ```
 
-    For `voicemail-ai-generated`, drop `message` and set `speaks_first_config.mode` to `"ai_generated"`. A voicemail digital human doesn't need `description` (intent) or `success_criteria` — the tag and `speaks_first_config` cover its purpose instead, same as `journey_steps` does for a journey.
+    For `voicemail-ai-generated`, drop `message` and set `speaks_first_config.mode` to `"ai_generated"`. A voicemail Digital Human doesn't need `description` (intent) or `success_criteria` — the tag and `speaks_first_config` cover its purpose instead, same as `journey_steps` does for a journey.
   </Step>
 
   <Step title="Push your changes">
@@ -180,7 +180,7 @@ sequenceDiagram
 
     - **Create:** a UUID Bluejay has not seen before becomes a new entity.
     - **Update:** a known UUID with edited fields updates the existing entity.
-    - **Release:** a digital human or custom metric whose UUID is missing from the payload is unlinked from the simulation. The object itself still exists in Bluejay and can be reused or attached to other simulations; deleting it from the file removes the association, not the entity.
+    - **Release:** a Digital Human or custom metric whose UUID is missing from the payload is unlinked from the simulation. The object itself still exists in Bluejay and can be reused or attached to other simulations; deleting it from the file removes the association, not the entity.
 
     The response lists every action taken so you can confirm the reconciliation matches your diff.
 
@@ -197,8 +197,8 @@ sequenceDiagram
       "errors": [],
       "actions": [
         "Updated agent 'Front Desk Scheduler'",
-        "Created digital human 'Eleanor Pham'",
-        "Linked 1 existing digital human(s) to simulation"
+        "Created Digital Human 'Eleanor Pham'",
+        "Linked 1 existing Digital Human(s) to simulation"
       ],
       "simulation_id": 1284
     }
@@ -240,7 +240,7 @@ payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", header
 # 2. Edit — update the agent system prompt
 payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
 
-# 3. Add a new digital human — generate a UUID once and commit it to your config file
+# 3. Add a new Digital Human — generate a UUID once and commit it to your config file
 payload["digital_humans"].append({
     "bluejay_as_code_id": str(uuid.uuid4()),  # generate once, then hardcode in your config
     "human_name": "Frustrated Caller",
