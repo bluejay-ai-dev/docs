@@ -21,16 +21,15 @@ This guide walks you through how to connect your ElevenLabs voice agents to Blue
 
 #### 1. Set up the ElevenLabs webhook
 
-1. Navigate to your ElevenLabs dashboard and go to your **Settings**.
-2. Find the **Post-Call Webhook** section, click **Select Webhook**, then click **Create Webhook**.
-3. Name your webhook and paste this URL into the URL field:
+1. In ElevenLabs, go to **Settings** > **Post-Call Webhook** > **Select Webhook** > **Create Webhook**.
+2. Name your webhook and paste this URL into the URL field:
 
 ```
 https://api.getbluejay.ai/v1/integrations/ElevenLabs
 ```
 
-4. Keep the **Webhook Auth Method** as **HMAC** and click **Create**.
-5. Save the webhook configuration in ElevenLabs.
+3. Keep the **Webhook Auth Method** as **HMAC** and click **Create**.
+4. Save the webhook configuration in ElevenLabs.
 
 ![Set up the ElevenLabs webhook](/images/elevenlabs-1-webhook.gif)
 
@@ -50,25 +49,35 @@ https://api.getbluejay.ai/v1/integrations/ElevenLabs
 
 ![Sync your ElevenLabs agents to Bluejay](/images/elevenlabs-3-sync.gif)
 
-#### 4. Configure your agent in Bluejay
+### Using your own webhook
 
-1. Open your agent's settings and go to the **Connection Settings** tab.
-2. Choose the **ElevenLabs** tile under **Voice connection type**.
-3. Enter your ElevenLabs Agent ID in the **ElevenLabs Agent ID** field.
-4. Click **Save Changes**.
+If you already port your own webhook into ElevenLabs, you can also send ElevenLabs transcripts directly to Bluejay's webhook.
 
-![Configure your agent in Bluejay](/images/elevenlabs-4-configure-agent.gif)
+Create an [API key in Bluejay](https://app.getbluejay.ai/settings/api-keys).
 
-#### Quick Sync from the Plus Menu
+```bash
+curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @elevenlabs-post-call-body.json
+```
 
-If you prefer a shorter path, you can connect ElevenLabs by providing only your API key. Bluejay uses the key to list your ElevenLabs agents and sync the full workflow automatically, so you do not need to enter an Agent ID by hand.
+To attach your own identifiers, add a top-level `metadata` object (different than `data.metadata` that comes from ElevenLabs). Here we add two fields, `member_id` and `clinic` that Bluejay will import:
 
-1. In Bluejay, open **General Settings** and add an agent.
-2. Scroll down to the voice connection options and select **ElevenLabs**.
-3. Enter your **ElevenLabs API key** (available from your ElevenLabs account). The key resolves to the matching ElevenLabs Agent ID for you.
-4. Click **Save Changes**, then click **Sync Agents from ElevenLabs** to create the agent inside Bluejay.
+```json
+{
+  "type": "post_call_transcription",
+  "data": { ... },
+  "metadata": {
+    "member_id": 124356,
+    "clinic": "Bluejay Clinic"
+  }
+}
+```
 
-![Find your ElevenLabs API key in the Developers tab](/images/elevenlabs-api-key.gif)
+These fields can be used to group a dashboard widget, filter the Logs page, point to an alert, or be referenced as `{{member_id}}` in a [metric's prompt](/key-concepts/custom-metrics/dynamic-variables).
+
+Note that Bluejay reserves and overwrites the following metadata fields: `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, or `original_webhook_data`.
 
 ### Up Next
 

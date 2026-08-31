@@ -10,7 +10,7 @@ Run Bluejay simulations in GitHub Actions and fail CI if your agent doesn't meet
 - Fail CI if your pass rate drops below your threshold
 - Automatically test every PR and commit
 - Zero-install; runs on GitHub-hosted runners
-- Override prompts, knowledge bases, and digital humans per run
+- Override prompts, knowledge bases, and Digital Humans per run
 
 ## How It Works
 
@@ -27,7 +27,7 @@ You'll need:
 
 1. **Bluejay API Key** – Get yours from the [Bluejay dashboard](https://app.getbluejay.ai/developers)
 2. **An agent** – Connected to your assistant
-3. **A simulation** – Attached to that agent, with the digital humans (test scenarios) you want to run
+3. **A simulation** – Attached to that agent, with the Digital Humans (test scenarios) you want to run
 
 The agent you configure in Bluejay owns the connection to your assistant, so the CI workflow is the same regardless of how your agent is connected: pass an `api_key` and a `simulation_id`.
 
@@ -121,11 +121,11 @@ jobs:
 
 ## Option 2: Fully Stateless (Create → Test → Delete)
 
-If your CI spins up an ephemeral deployment per PR (a preview environment with its own URL), you can create the Bluejay agent and simulation inside the workflow, run the tests, and delete everything afterwards. Your digital humans stay persistent — they are your test suite — while the agent and simulation are created fresh each run.
+If your CI spins up an ephemeral deployment per PR (a preview environment with its own URL), you can create the Bluejay agent and simulation inside the workflow, run the tests, and delete everything afterwards. Your Digital Humans stay persistent — they are your test suite — while the agent and simulation are created fresh each run.
 
 In the `add-agent` payload, include the connection field that matches how Bluejay reaches your preview deployment — see the [add-agent API reference](/api-reference/endpoint/add-agent) for the available fields. The agent's connection type is inferred from whichever field you provide.
 
-Set the `BLUEJAY_DIGITAL_HUMAN_IDS` repository variable (e.g. `101,102`) before using this pattern — unlike Option 1, it is required here: a freshly created simulation has no digital humans attached, and the run fails without them.
+Set the `BLUEJAY_DIGITAL_HUMAN_IDS` repository variable (e.g. `101,102`) before using this pattern — unlike Option 1, it is required here: a freshly created simulation has no Digital Humans attached, and the run fails without them.
 
 ```yaml
 name: Agent Tests (ephemeral)
@@ -173,7 +173,7 @@ jobs:
             }')
           echo "id=$(echo "$resp" | jq -r '.simulation_id')" >> "$GITHUB_OUTPUT"
 
-      - name: Attach digital humans
+      - name: Attach Digital Humans
         run: |
           curl -s --fail-with-body -X POST "$BLUEJAY_API/simulation/${{ steps.sim.outputs.id }}/add-digital-humans" \
             -H "X-API-Key: $BLUEJAY_API_KEY" \

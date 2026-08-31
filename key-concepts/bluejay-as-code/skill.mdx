@@ -41,7 +41,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 Bluejay as Code (BaC) is a pull/push workflow for managing Bluejay agent configuration as version-controlled files. Instead of configuring agents through the UI, you define everything in a JSON payload, commit it to source control, and push it to apply changes.
 
-The payload is simulation-centric: it describes a single simulation and all the objects that belong to it — its agent, the digital humans that participate in it, and the custom metrics used to evaluate it.
+The payload is simulation-centric: it describes a single simulation and all the objects that belong to it — its agent, the Digital Humans that participate in it, and the custom metrics used to evaluate it.
 
 ---
 
@@ -93,7 +93,7 @@ Exports a Bluejay configuration bundle as a BaC payload, with all `bluejay_as_co
 
 **Response:** Full BaC payload with `bluejay_as_code_id` populated on every entity.
 
-**Usage pattern:** For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked digital human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
+**Usage pattern:** For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked Digital Human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
 
 ```python
 import requests
@@ -122,8 +122,8 @@ Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id`
 | `bluejay_as_code_id` not found in Bluejay | Entity is created |
 | Found, fields unchanged | No-op |
 | Found, fields changed | Entity is updated |
-| Digital human absent from payload | Detached from simulation (not deleted) |
-| Digital human exists on another simulation | Re-linked, not duplicated |
+| Digital Human absent from payload | Detached from simulation (not deleted) |
+| Digital Human exists on another simulation | Re-linked, not duplicated |
 
 **Response:**
 | Field | Type | Description |
@@ -139,7 +139,7 @@ Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id`
   "errors": [],
   "actions": [
     "Updated agent 'Front Desk Scheduler'",
-    "Created digital human 'Eleanor Pham'"
+    "Created Digital Human 'Eleanor Pham'"
   ],
   "simulation_id": 1284
 }
@@ -179,7 +179,7 @@ payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", header
 # 2. Edit — update the agent system prompt
 payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
 
-# 3. Add a new digital human
+# 3. Add a new Digital Human
 #    Generate a UUID once, then hardcode it in your config — never regenerate at runtime
 payload["digital_humans"].append({
     "bluejay_as_code_id": str(uuid.uuid4()),
@@ -201,7 +201,7 @@ payload["digital_humans"].append({
     ],
 })
 
-# 3c. Add a voicemail digital human
+# 3c. Add a voicemail Digital Human
 # tag "voicemail-custom" writes your own greeting; "voicemail-ai-generated" drops "message"
 # and uses mode "ai_generated" instead. No description/success_criteria needed.
 payload["digital_humans"].append({
