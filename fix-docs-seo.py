@@ -75,7 +75,7 @@ MANUAL = {
 # and removes the only duplicate description in the set. Kept here rather than
 # hand-edited into the file so a re-run does not silently undo it.
 MANUAL_DESC = {
-    "/api-reference/endpoint/retrieve-call-log": "Retrieve a single call log by its call ID.",
+    "/api-reference/endpoint/retrieve-call-log": "DEPRECATED. Use GET /v1/observability/conversations/{conversation_id} instead.",
 }
 
 
