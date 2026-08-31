@@ -67,13 +67,9 @@ MANUAL = {
 }
 
 
-# One page whose own source line is wrong, so lifting it faithfully would ship a
-# factual error. retrieve-call-log is GET /v1/retrieve-call-log/{call_id} and
-# retrieve-call-logs is GET /v1/retrieve-call-logs/{agent_id}, but both carry the
-# line "Retrieve call logs for a specific agent given the agent ID" -- true only
-# of the plural one. This states what the singular endpoint's own signature says,
-# and removes the only duplicate description in the set. Kept here rather than
-# hand-edited into the file so a re-run does not silently undo it.
+# The AI prompt box on retrieve-call-log still describes the plural route, so a
+# re-run that finds an empty description would lift the wrong line. This value
+# marks the page deprecated and points at GET /v1/observability/conversations/{conversation_id}.
 MANUAL_DESC = {
     "/api-reference/endpoint/retrieve-call-log": "DEPRECATED. Use GET /v1/observability/conversations/{conversation_id} instead.",
 }
