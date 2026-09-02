@@ -4,60 +4,31 @@ description: 'Page your on-call team through Better Stack when an alert fires or
 icon: '/logo/betterstack.svg'
 ---
 
-Connect Better Stack to open an incident when a Bluejay alert triggers or an uptime monitor goes DOWN, and to resolve it when the monitor recovers. Bluejay posts to a Better Stack incoming webhook; you tell Better Stack how to read the payload once, then turn on Better Stack on any alert or monitor.
+Connect Better Stack to open an incident when a Bluejay alert triggers or an uptime monitor goes DOWN, and to resolve it when the monitor recovers. Bluejay uses your Better Stack Uptime API token to create and resolve incidents directly, so there is nothing to configure on the Better Stack side. Works on every Better Stack plan, including the free one.
 
 ### Prerequisites
 
 - **A Bluejay account** with access to Organization Settings
-- **A Better Stack team** where you can add integrations
+- **A Better Stack team** you can create API tokens for
 
-### 1. Create an incoming webhook in Better Stack
+### 1. Create an Uptime API token
 
-1. In Better Stack, open **Integrations** and choose **Incoming webhook**
-2. Name it (for example `Bluejay`) and save
-3. Copy the **Webhook URL**. It looks like `https://uptime.betterstack.com/api/v1/incoming-webhook/...`
+1. In Better Stack open **API tokens**, then **Team-based tokens**
+2. Pick the team whose on-call rotation should receive Bluejay incidents
+3. Under **Uptime API tokens**, create a token and copy it
 
-### 2. Map the payload
-
-Bluejay sends this JSON on every event:
-
-```json
-{
-  "event_action": "trigger",
-  "dedup_key": "uptime-monitor-8c5d...",
-  "severity": "error",
-  "title": "Uptime Monitor Down",
-  "description": "Booking Agent is down. Failed checks: Agent Responds",
-  "summary": "Uptime Monitor Down: Booking Agent is down. Failed checks: Agent Responds",
-  "links": [{ "href": "https://app.getbluejay.ai/monitor/alerts/...", "text": "View Alert: Booking Agent" }],
-  "source": "bluejay-notification-service"
-}
-```
-
-Set the webhook rules in Better Stack so incidents open and close on their own:
-
-| Rule | Field | Value |
-| --- | --- | --- |
-| Start incident when | `event_action` | equals `trigger` |
-| Resolve incident when | `event_action` | equals `resolve` |
-| Alert ID | `dedup_key` | |
-| Title | `title` | |
-| Cause | `description` | |
-
-Use the **Sample webhook data** box in Better Stack with the JSON above to check the rules before saving.
-
-### 3. Paste the URL into Bluejay
+### 2. Paste it into Bluejay
 
 1. Log into your **Bluejay Dashboard**
 2. Click your **Organization** in the bottom left corner
 3. Select **Integrations**, then open the **Better Stack** tab
-4. Paste the webhook URL and click **Save**
+4. Paste the token and click **Save**. Bluejay checks the token against Better Stack before storing it encrypted.
 
-### 4. Turn it on for alerts and monitors
+### 3. Turn it on for alerts and monitors
 
 - **Alerts**: create or edit an alert under **Monitor → Alerts** and switch on **Better Stack Notifications**. Use **Send test notification** to open a test incident.
 - **Uptime monitors**: create or edit a monitor under **Monitor → Uptime** and switch on **Better Stack Notifications**. DOWN opens an incident, recovery resolves it.
 
-### How incidents are keyed
+### How incidents behave
 
-Every uptime monitor uses one stable alert ID, so a DOWN and its recovery land on the same incident. Simulation alerts trigger only, one incident per run, and never resolve automatically.
+Incidents are created through the Better Stack Incidents API, so your escalation policy and notification settings in Better Stack decide who gets called, texted or emailed. Each incident carries a `dedup_key` in its metadata. Every uptime monitor uses one stable key, so a DOWN and its recovery land on the same incident and a repeat DOWN never opens a second one while the first is still open. Simulation alerts open one incident per run and never resolve automatically.
