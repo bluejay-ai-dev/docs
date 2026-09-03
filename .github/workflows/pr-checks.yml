@@ -1,0 +1,18 @@
+name: pr-checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  checks:
+    # Dormant on purpose. Nothing runs for anyone until a PR carries the
+    # `gating-trial` label. Turning it on for the whole repo is deleting this line.
+    # Most checks self-skip here: docs has no migrations, no prisma and no deps file.
+    if: contains(github.event.pull_request.labels.*.name, 'gating-trial')
+    uses: bluejay-ai-dev/bluejay-github-actions/.github/workflows/pr-checks.yml@eng-746-release-gating
+    secrets: inherit
