@@ -4,9 +4,9 @@ description: 'Run a health check against a live agent on a schedule and get page
 icon: heart-pulse
 ---
 
-An uptime monitor calls or texts one of your live agents on a fixed interval, grades what happened, and records UP or DOWN. When the verdict flips, it notifies Slack, email, or PagerDuty.
+An uptime monitor calls, texts, or emails one of your live agents on a fixed interval, grades what happened, and records UP or DOWN. When the verdict flips, it notifies Slack, email, or PagerDuty.
 
-It works on voice and SMS agents, inbound and outbound.
+It works on voice, SMS, and email agents, inbound and outbound.
 
 ## Checks
 
@@ -20,6 +20,8 @@ A monitor grades one or more checks. Every monitor needs at least one check that
 | **Custom metric** | Any of your custom metrics, scored against a condition |
 
 You can also point a check at one of your own Digital Humans so the probe uses that persona instead of the default. A Digital Human on its own is not gradable, so pair it with one of the checks above.
+
+Email monitors grade a different set: **Agent Responds** (the agent replied), **Authentication** (the reply passed SPF, DKIM, and DMARC), **Spam** (it cleared spam filtering), **Bounced** (it was delivered, not bounced), and **Round-trip latency** (send to reply, under a threshold).
 
 ## Managing monitors via the API
 
@@ -49,6 +51,8 @@ Latency is the gap between your caller finishing and your agent starting to spea
 The agent's opening greeting is not included. The first measured gap is the agent's first real answer. Time to greeting is covered by Agent Responds instead.
 
 SMS and webchat monitors measure the same gap, between your message and the agent's reply. Text replies take far longer than voice, so the default threshold there is 60000 ms instead of 3000 ms. Set `latency_threshold_ms` to whatever your agent should beat.
+
+Email monitors measure round-trip latency, from the probe email being sent to the agent's reply arriving. Mail is asynchronous, so the default threshold is far higher; set `latency_threshold_ms` to your agent's expected reply time.
 
 ## Alerting after repeated failures
 
