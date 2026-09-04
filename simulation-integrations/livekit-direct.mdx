@@ -28,6 +28,38 @@ Bluejay creates a room inside your LiveKit Cloud project, dispatches your agent 
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/run-calls.mp4"></video>
 
+## Token webhook
+
+If you'd rather not store your LiveKit API key and secret with Bluejay, set a **Token Webhook URL** in **Agent Settings → Connection** instead. Before each simulated call, Bluejay POSTs to your endpoint and your side mints the room token.
+
+### Request
+
+```json
+{
+  "room_name": "test-room-812192",
+  "participant_identity": "digital-human-812192",
+  "agent_name": "your-agent-name",
+  "agent_metadata": { "any": "metadata you configured" },
+  "sim_conversation_id": 812192
+}
+```
+
+If you set an **Authorization** value in the connection settings, Bluejay stores it encrypted and sends it verbatim as the `Authorization` header on this POST (e.g. `Bearer <token>`). No other authentication is added.
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `token` | string | **Required.** A LiveKit token granting `room_join`, `can_publish`, and `can_subscribe` for the requested identity (plus `can_publish_data` if you use tool call tracking), with a TTL covering the whole call |
+| `livekit_url` | string | Optional. Overrides the LiveKit server URL; falls back to your org integration's URL |
+| `room_name` | string | Optional. Overrides the room the digital human joins, for tokens bound to a different room |
+
+In webhook mode you own agent dispatch: either bake a `RoomAgentDispatch` into the token's room configuration using the `agent_name` and `agent_metadata` we send, or dispatch your agent server-side when you handle the request.
+
+### Failure behavior
+
+If your endpoint (or a proxy in front of it) responds `401` or `403`, Bluejay does not retry. The run fails immediately with status `NO_CONNECTION` and error code `LIVEKIT_SESSION_SETUP_FAILED`, and the error message states whether the configured `Authorization` header was sent. The header is sent exactly as configured, so a `401` means your side rejected that exact value. Timeouts and `5xx` responses are retried up to 3 times before the run fails.
+
 ## Room metadata
 
 Optionally include metadata on the room at creation: add JSON to the **metadata** field in Agent Connection settings.
