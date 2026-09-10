@@ -1,7 +1,7 @@
 ---
 title: 'Delete Prompt Version By Label'
 description: "Delete a prompt version by label."
-openapi: 'DELETE /v1/agents/{agent_id}/prompts/versions'
+openapi: 'DELETE /v1/agents/{agent_id}/versions'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,11 +10,11 @@ openapi: 'DELETE /v1/agents/{agent_id}/prompts/versions'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Delete Prompt Version By Label — DELETE /v1/agents/{agent_id}/prompts/versions
+## Delete Prompt Version By Label — DELETE /v1/agents/{agent_id}/versions
 
 > **What this endpoint does:** delete a prompt version by label. - if label is production -> 400 (must move production first) - if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique) - if deleting latest, reassign latest to highest remaining version - cannot delete if it is the only version
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/versions`
+**Endpoint:** DELETE `https://api.getbluejay.ai/v1/agents/{agent_id}/versions`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
@@ -31,7 +31,7 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
 import requests
 
 def delete_prompt_version_by_label(agent_id: int, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/versions"
+    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
     headers = {"X-API-Key": api_key}
     response = requests.delete(url, headers=headers)
     response.raise_for_status()
@@ -53,6 +53,9 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+<Note>
+  Canonical path is `/v1/agents/{agent_id}/versions`. `/v1/agents/{agent_id}/prompts` remains an HTTP alias.
+</Note>
 
 Deletes a prompt version by label.
 
