@@ -15,9 +15,6 @@ jobs:
     # Most checks self-skip here: docs has no migrations, no prisma and no deps file.
     if: contains(github.event.pull_request.labels.*.name, 'gating-trial')
     uses: bluejay-ai-dev/bluejay-github-actions/.github/workflows/pr-checks.yml@main
-    # Follows main rather than a pinned commit. A pin froze the gate at whatever the
-    # shared repo looked like the day this landed. The tradeoff is real: this inherits
-    # every secret here, so anyone who can push that repo's main can change what
-    # receives them. Acceptable only while the gating-trial label keeps this off
-    # ordinary PRs; pin a sha again before that label comes off.
+    # Follows main so the gate is not frozen at an old sha. This inherits every secret
+    # here, so pin a sha again before the gating-trial label comes off.
     secrets: inherit
