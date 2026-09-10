@@ -1,45 +1,52 @@
 ---
 title: Email Agents
-description: Test and monitor an email support agent end to end. A Digital Human emails your agent and Bluejay grades the replies
+description: Test and monitor an email support agent over real email. A Digital Human emails your agent and Bluejay grades the replies.
 icon: envelope
 ---
 
-Bluejay can test an email agent the same way it tests voice and SMS: a Digital Human sends a real email to your agent's inbox, your agent replies, and Bluejay grades the exchange. The whole conversation runs over real email, so you are testing the actual channel your customers use, not a stand-in.
+Bluejay tests an email agent the same way it tests voice and SMS. A Digital Human sends a real email to your agent's inbox, your agent replies, and Bluejay grades the exchange. Everything runs over real email, so you are testing the channel your customers actually use.
 
 ## How it works
 
-1. You create an agent with the **Email** connection type and give it the inbox your agent answers from (for example `support@yourcompany.com`).
-2. When a simulation runs, the Digital Human emails that inbox from a per-test address on Bluejay's managed sending domain, `mail.bluejaysims.com`.
+1. You create an email agent and give it the inbox your agent answers from, like `support@yourcompany.com`.
+2. When a simulation runs, the Digital Human emails that inbox from a unique per-test address on Bluejay's sending domain, `mail.bluejaysims.com`.
 3. Your agent replies over email.
-4. Bluejay receives the reply, threads it into the conversation, and continues until the exchange ends, then grades it against your success criteria like any other run.
+4. Bluejay receives the reply, threads it back into the conversation, and keeps going until the exchange ends. Then it grades the run against your success criteria.
 
-Correlation is automatic: each test sends from a unique per-test address, so replies always attach to the right conversation.
+Each test sends from its own address, so replies always attach to the right conversation.
 
 ## Create an email agent
 
-In the app, create an agent, choose **Text**, then the **Email** connection type, and enter the agent's email address.
+From the Agents view, click the **+** to add an agent. This opens the **Connect Your Agent** dialog. Fill it in:
+
+1. **Name** the agent.
+2. Write its **Agent Description / System Prompt**.
+3. Set **Agent type** to **Inbound**.
+4. Set **Mode** to **Email**. It sits next to Voice and Text as a top-level choice.
+5. In **Agent email address**, enter the inbox your agent replies from. Bluejay's Digital Humans email this inbox and grade the replies.
+6. Tick the allowlist checkbox to confirm you have allowlisted `mail.bluejaysims.com` in that inbox.
+7. Click **Create**.
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/email-create-agent.mp4"></video>
 
-<Warning>
-  The agent's inbox must **allowlist Bluejay's sending domain** (`mail.bluejaysims.com`). Corporate mail systems (Google Workspace, Microsoft 365, on-prem gateways) quarantine mail from unfamiliar senders before it reaches the mailbox, so without an allowlist entry your agent never receives the test and every check fails. Consumer inboxes (Gmail, Outlook.com) usually deliver without this step.
-</Warning>
+## Allowlist Bluejay's sending domain
 
-### Allowlist Bluejay's sending domain
+Every test email comes from `mail.bluejaysims.com`. Add it to the receiving inbox's allowlist so the email is delivered instead of quarantined. The create dialog asks you to confirm this, and it matters: corporate mail systems quarantine unfamiliar senders before they reach the mailbox, so without an allowlist entry your agent never sees the test and every check fails. Consumer inboxes like Gmail and Outlook.com usually deliver without this step.
 
-Every probe email comes from `mail.bluejaysims.com`. Add it to the receiving inbox's allowlist so the test email is delivered instead of quarantined.
+If a test email does not arrive, check your admin quarantine first. The message is almost always held there, not lost.
 
-**Google Workspace**
-1. Admin console → **Apps → Google Workspace → Gmail → Spam, phishing, and malware**.
-2. Under **Email allowlist**, add an **Inbound gateway** or content-compliance rule that bypasses spam for `mail.bluejaysims.com`.
-3. Save. Delivery takes effect within a few minutes.
-
-**Microsoft 365 (Exchange Online)**
-1. Microsoft 365 Defender → **Policies & rules → Threat policies → Anti-spam**.
-2. Add `mail.bluejaysims.com` to the **Allowed senders / domains** list, or create a mail-flow rule that sets the spam confidence level to bypass for that domain.
-3. Save.
-
-If a test email does not arrive, check your admin quarantine first; the message is almost always held there, not lost.
+<AccordionGroup>
+  <Accordion title="Google Workspace">
+    1. Admin console → **Apps → Google Workspace → Gmail → Spam, phishing, and malware**.
+    2. Under **Email allowlist**, add an **Inbound gateway** or content-compliance rule that bypasses spam for `mail.bluejaysims.com`.
+    3. Save. Delivery takes effect within a few minutes.
+  </Accordion>
+  <Accordion title="Microsoft 365">
+    1. Microsoft 365 Defender → **Policies & rules → Threat policies → Anti-spam**.
+    2. Add `mail.bluejaysims.com` to the **Allowed senders / domains** list, or create a mail-flow rule that sets the spam confidence level to bypass for that domain.
+    3. Save.
+  </Accordion>
+</AccordionGroup>
 
 ## Run an email simulation
 
@@ -49,7 +56,7 @@ Build a simulation on the email agent, add Digital Humans, and run it. Bluejay s
 
 ## Checks on every reply
 
-Alongside your success criteria, Bluejay runs six deterministic checks on each reply from your agent. Five are pass or fail; the sixth is measured and reported.
+Alongside your success criteria, Bluejay runs six checks on each reply from your agent. Five are pass or fail. The sixth, latency, is measured and reported.
 
 | Check | What it measures |
 |-------|------------------|
@@ -60,23 +67,23 @@ Alongside your success criteria, Bluejay runs six deterministic checks on each r
 | **Bounced** | The reply was delivered rather than bounced |
 | **Latency** | Time from the Digital Human's send to your agent's reply, reported not thresholded |
 
-SPF, DKIM, and DMARC together tell you whether your agent's mail authenticates cleanly. Latency is recorded for every reply so you can see how long your agent takes to respond, but it does not pass or fail on its own.
+SPF, DKIM, and DMARC together tell you whether your agent's mail authenticates cleanly. Latency is recorded so you can see how long your agent takes, but it does not pass or fail.
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/email-metrics.mp4"></video>
 
 ## Outbound: your agent emails first
 
-By default the Digital Human emails your agent (inbound). For an **outbound** agent, your own system sends the first email and Bluejay's Digital Human replies, the same trigger-webhook model as outbound voice and SMS.
+By default the Digital Human emails your agent first. For an **outbound** agent, your own system sends the first email and the Digital Human replies. This uses the same trigger-webhook model as outbound voice and SMS.
 
-1. Create the agent with type **Outbound** and set its **outbound trigger webhook URL** (and, optionally, a payload template).
-2. When a simulation runs, Bluejay does not send an opening email. Instead it POSTs your trigger webhook so your flow knows to start the conversation.
-3. Your flow emails the Digital Human at the address Bluejay provides, and the Digital Human replies and is graded from there.
+1. Create the agent with type **Outbound** and set its **outbound trigger webhook URL**, plus an optional payload template.
+2. When a simulation runs, Bluejay does not send an opening email. It POSTs your trigger webhook so your flow knows to start the conversation.
+3. Your flow emails the Digital Human at the address Bluejay provides. The Digital Human replies and is graded from there.
 
-The trigger payload is your template with `{{tokens}}` filled in. The key token for email is **`{{digital_human.email}}`**, the unique per-test address your flow must email so the reply reaches the right Digital Human (for example `monitor+12345@mail.bluejaysims.com`). Other tokens include `{{digital_human.intent}}`, `{{digital_human.name}}`, and `{{sim_conversation_id}}`. With no template, Bluejay sends a minimal default.
+The trigger payload is your template with `{{tokens}}` filled in. The key token for email is **`{{digital_human.email}}`**, the unique per-test address your flow must email so the reply reaches the right Digital Human, like `monitor+12345@mail.bluejaysims.com`. Other tokens include `{{digital_human.intent}}`, `{{digital_human.name}}`, and `{{sim_conversation_id}}`. With no template, Bluejay sends a minimal default.
 
 ## Email uptime monitors
 
-An uptime monitor runs the same send-and-reply loop on a schedule against a live email agent, so you find out the channel has broken before your customers do. On each run the Digital Human emails your agent, waits for the reply, and grades it.
+An uptime monitor runs the same send-and-reply loop on a schedule against a live email agent, so you catch a broken channel before your customers do. On each run the Digital Human emails your agent, waits for the reply, and grades it.
 
 <video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/email-uptime.mp4"></video>
 
@@ -90,16 +97,14 @@ Email monitors grade:
 | **Bounced** | The reply was delivered rather than bounced |
 | **Latency** | Time from send to reply, reported so you can watch it trend |
 
-The monitor probes from the same `mail.bluejaysims.com` sending domain, so the agent's inbox must allowlist it just as for simulations. Without the allowlist the probe email is quarantined, never reaches the agent, and the monitor reads DOWN.
-
-Email conversations run for minutes, so pick a comfortably long interval. See [Uptime Monitoring](/monitor/uptime/overview) for scheduling, alerting, and verdict rules.
+Monitors probe from the same `mail.bluejaysims.com` domain, so the inbox must allowlist it just as for simulations. Email conversations run for minutes, so pick a comfortably long interval. See [Uptime Monitoring](/monitor/uptime/overview) for scheduling, alerting, and verdict rules.
 
 ## Set it up with the API or MCP
 
 Email agents and runs are fully scriptable.
 
 - Create the agent with **add-agent**: `mode="TEXT"`, `connection_type="EMAIL"`, and `email_address` set to the agent's inbox. Over MCP this is the `add_agent` tool with the same fields.
-- For an outbound email agent, also set `type="OUTBOUND"`, `outbound_trigger_webhook_url`, and (optionally) `outbound_trigger_payload_template` with `{{digital_human.email}}` so your flow receives the address to email.
+- For an outbound email agent, also set `type="OUTBOUND"`, `outbound_trigger_webhook_url`, and optionally `outbound_trigger_payload_template` with `{{digital_human.email}}` so your flow receives the address to email.
 - Queue a run with **queue-email-simulation-run** (MCP tool `queue_email_simulation_run`), passing the `simulation_id`.
 
-Everything else, creating the simulation, adding Digital Humans, reading results, uses the same tools as any other medium.
+Creating the simulation, adding Digital Humans, and reading results use the same tools as any other medium.
