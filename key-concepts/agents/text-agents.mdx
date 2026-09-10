@@ -1,0 +1,61 @@
+---
+title: Chat and Text Agents
+sidebarTitle: Chat & Text
+description: Test and monitor a chat or text agent. A Digital Human exchanges messages with your agent and Bluejay grades the conversation.
+icon: comments
+---
+
+A chat or text agent is an agent with **Mode** set to **Text**. Bluejay tests it by having a Digital Human exchange messages with your agent. There is no audio. Bluejay grades the conversation from the transcript against your success criteria and custom metrics.
+
+## How it works
+
+1. When a simulation runs, the Digital Human opens the conversation.
+2. Your agent replies.
+3. Bluejay threads each exchange into one conversation and keeps going until it ends.
+4. When the conversation ends, Bluejay grades the run against your success criteria.
+
+## Ways to connect a text agent
+
+There are two main ways to connect a text agent.
+
+| Connection | How it works |
+|------------|--------------|
+| **SMS** | The agent has a phone number. The Digital Human texts that number, your agent replies over SMS, and Bluejay grades the thread. |
+| **HTTP webhook** | For a chat agent behind your own API. Bluejay POSTs each Digital Human message to your webhook URL. Your endpoint replies by calling Bluejay's send-http-text-message endpoint. |
+
+For the HTTP webhook path, pass the same `simulation_result_id` on every reply so it lands in the right conversation. See [Chat Testing](/simulation-integrations/http-webhooks) for the exact request and response shape.
+
+Some providers also expose their own chat connection types, for example Amelia, Google CES, Bland, and Kore. These are supported too.
+
+## Create a text agent
+
+From the Agents view, click the **+** to add an agent. This opens the **Connect Your Agent** dialog. Fill it in:
+
+1. **Name** the agent.
+2. Write its **system prompt**.
+3. Set **Agent type** to **Inbound** or **Outbound**.
+4. Set **Mode** to **Text**.
+5. Pick the **connection type**, either SMS or HTTP webhook.
+6. Enter its details. For SMS this is a phone number. For HTTP webhook this is your webhook URL.
+7. Click **Create**.
+
+## Run a text simulation
+
+Build a simulation on the text agent, add Digital Humans, and run it. Bluejay sends each Digital Human's opening message, drives the back-and-forth, and grades the result.
+
+## What Bluejay measures
+
+On a text run Bluejay grades your goals and custom metrics from the transcript. It does not produce voice quality signals and there is no recording.
+
+## Text uptime monitors
+
+An uptime monitor runs the same message exchange on a schedule against a live text agent. On each run it checks that your agent responds and does not malfunction, so you catch a broken channel before your customers do. See [Uptime Monitoring](/monitor/uptime/overview) for scheduling, alerting, and verdict rules.
+
+## Set it up with the API or MCP
+
+Text agents and runs are fully scriptable.
+
+- Create the agent with [add-agent](/api-reference/endpoint/add-agent): `mode="TEXT"` and `connection_type="SMS"` with the phone number, or `connection_type="HTTP_WEBHOOK"` with the webhook URL. Over MCP this is the `add_agent` tool with the same fields.
+- Queue a run with **queue-sms-simulation-run** for an SMS agent, or **queue-http-text-simulation-run** for an HTTP webhook agent. Over MCP the `queue_simulation_run` tool covers both. Pass `channel="sms"` or `channel="http_text"`.
+
+Creating the simulation, adding Digital Humans, and reading results use the same tools as any other medium.

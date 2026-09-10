@@ -1,0 +1,86 @@
+---
+title: Voice Agents
+sidebarTitle: Voice
+description: Test and monitor a voice agent over a real phone call. A Digital Human calls your agent and Bluejay grades the conversation.
+icon: phone
+---
+
+A voice agent is an agent with **Mode** set to **Voice**. Bluejay tests it by having a Digital Human hold a real spoken phone call with it. The two talk, Bluejay captures the audio and transcript, and then grades the conversation against your success criteria and custom metrics. You are testing the channel your customers actually hear.
+
+## How it works
+
+1. A simulation runs. For an **inbound** agent the Digital Human calls the agent. For an **outbound** agent the agent calls the Digital Human.
+2. They hold a spoken conversation over the connection you configured.
+3. Bluejay records the call and transcribes it in real time.
+4. When the call ends, Bluejay grades the run against your success criteria and custom metrics.
+
+Every run keeps the call recording and the full transcript, so you can listen back and see exactly what happened.
+
+## Connection types
+
+A voice agent can be reached in several ways. Bluejay connects over whichever one you configure.
+
+| Connection type | What you provide |
+|-----------------|------------------|
+| **Phone** | A phone number |
+| **SIP** | A SIP address |
+| **Websocket** | A websocket endpoint |
+| **LiveKit** | Room and agent details |
+| **Pipecat** | Endpoint details |
+| **Provider agent** | An agent id, with the provider API key stored in your org integrations |
+
+The provider agents are ElevenLabs, Retell, Vapi, Google CES, Google Dialogflow CX, Bland, Sierra and Amelia. For a plain phone agent you give it a phone number. For a provider agent you give its agent id, and the provider API key lives in your organization's integrations rather than on the agent.
+
+## Create a voice agent
+
+From the **Agents** view, click the **+** to add an agent. This opens the **Connect Your Agent** dialog. Fill it in:
+
+1. **Name** the agent.
+2. Write its **Agent Description / System Prompt**.
+3. Set **Agent type** to **Inbound** or **Outbound**.
+4. Set **Mode** to **Voice**. It sits next to Email and Text as a top-level choice.
+5. Pick the **connection type**.
+6. Enter its details. This is a phone number for a phone agent, or a provider agent id for a provider agent.
+7. Click **Create**.
+
+## Connect a provider agent
+
+For a provider agent, wire up the provider webhook and credentials first, then bind your Bluejay agent to the provider agent id. Each integration guide walks through the exact steps.
+
+- [Retell](/integrations/retell)
+- [ElevenLabs](/integrations/eleven-labs)
+- [Vapi](/integrations/vapi)
+- [Bland](/integrations/bland)
+
+## Run a voice simulation
+
+Build a simulation on the voice agent, add Digital Humans, and run it. Bluejay places or answers each call, drives the conversation, and grades the result. See [Simulations Overview](/test/simulations/overview) for how simulations are put together and scored.
+
+## What Bluejay measures on a voice run
+
+Alongside your goals and custom metrics, Bluejay reports voice quality signals from the call itself.
+
+| Signal | What it tells you |
+|--------|-------------------|
+| **Response latency** | How long the agent takes to start speaking after the caller |
+| **Talk-over** | Interruptions and moments where both sides speak at once |
+| **Pace** | Words per minute for each side |
+| **Speaking share** | How much of the call each side held the floor |
+| **Audio clarity** | How clean the agent's audio sounds |
+
+Your success criteria and custom metrics still decide whether a run passes. The voice signals sit alongside them so you can hear why a call felt off, not just that it failed.
+
+## Voice uptime monitors
+
+An uptime monitor places the same call on a schedule against a live voice agent, so you catch a broken agent before your customers do. On each run it checks that the agent answers, does not malfunction, and stays within a latency threshold.
+
+See [Uptime Monitoring](/monitor/uptime/overview) for scheduling, alerting, and verdict rules.
+
+## Set it up with the API or MCP
+
+Voice agents and runs are fully scriptable.
+
+- Create the agent with **add-agent**: `mode="VOICE"`, the `connection_type`, and its fields. This is a phone number for a phone agent, or a provider agent id and provider fields for a provider agent. Over MCP this is the `add_agent` tool with the same fields. See [Add Agent](/api-reference/endpoint/add-agent).
+- Queue a run with the standard simulation run endpoint, or the `queue_simulation_run` MCP tool, passing the `simulation_id`.
+
+Creating the simulation, adding Digital Humans, and reading results use the same tools as any other medium.
