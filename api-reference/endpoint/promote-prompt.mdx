@@ -1,7 +1,7 @@
 ---
-title: 'Promote Prompt'
-description: "Move the production label to the latest prompt version, or to the version identified by prompt_id."
-openapi: 'POST /v1/agents/{agent_id}/prompts/promote'
+title: 'Promote Agent Version'
+description: "Move the production label to the latest agent version, or to the version number you pass."
+openapi: 'POST /v1/agents/{agent_id}/versions/promote'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,11 +10,11 @@ openapi: 'POST /v1/agents/{agent_id}/prompts/promote'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Promote Prompt — POST /v1/agents/{agent_id}/prompts/promote
+## Promote Agent Version — POST /v1/agents/{agent_id}/versions/promote
 
-> **What this endpoint does:** move the production label to the latest prompt version, or to the version identified by `prompt_id`.
+> **What this endpoint does:** move the production label to the latest agent version, or to the version identified by the `version` query parameter. `prompt_id` (the version uuid) is a deprecated alias and is ignored when `version` is set.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/promote`
+**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
@@ -23,17 +23,17 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | agent_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/promote-prompt and include any optional parameters (e.g., `prompt_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/promote-prompt and include any optional parameters (e.g., `version`, or the deprecated `prompt_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
-**POST (optional `prompt_id` query):**
+**POST (optional `version` query):**
 ```python
 import requests
 
-def promote_prompt(agent_id: int, api_key: str, prompt_id=None) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/promote"
+def promote_version(agent_id: int, api_key: str, version=None) -> dict:
+    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote"
     headers = {"X-API-Key": api_key}
-    params = {"prompt_id": prompt_id} if prompt_id else None
+    params = {"version": version} if version is not None else None
     response = requests.post(url, headers=headers, params=params)
     response.raise_for_status()
     return response.json()
@@ -54,5 +54,10 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+<Note>
+  **New:** `POST /v1/agents/{agent_id}/versions/promote`
 
-Moves the production label to the latest prompt version, or to the version specified by `prompt_id` when that query parameter is provided.
+  **Deprecated:** `POST /v1/agents/{agent_id}/prompts/promote`. Old path, still works.
+</Note>
+
+Moves the production label to the latest agent version, or to the version number in the `version` query parameter. The old `prompt_id` query (the version uuid) still works but is deprecated and ignored when `version` is set.

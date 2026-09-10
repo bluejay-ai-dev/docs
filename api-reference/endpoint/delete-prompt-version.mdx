@@ -1,7 +1,7 @@
 ---
-title: 'Delete Prompt Version'
-description: "Delete a specific prompt version; cannot delete production; cannot delete only version. If deleting latest, reassign latest to highest remaining version."
-openapi: 'DELETE /v1/agents/{agent_id}/prompts/versions/{version}'
+title: 'Delete Agent Version'
+description: "Delete a specific agent version; cannot delete production; cannot delete only version. If deleting latest, reassign latest to highest remaining version."
+openapi: 'DELETE /v1/agents/{agent_id}/versions/{version}'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,11 +10,11 @@ openapi: 'DELETE /v1/agents/{agent_id}/prompts/versions/{version}'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Delete Prompt Version — DELETE /v1/agents/{agent_id}/prompts/versions/{version}
+## Delete Agent Version — DELETE /v1/agents/{agent_id}/versions/{version}
 
-> **What this endpoint does:** delete a specific prompt version; cannot delete production; cannot delete only version. if deleting latest, reassign latest to highest remaining version. returns metadata about the deletion.
+> **What this endpoint does:** delete a specific agent version; cannot delete production; cannot delete only version. if deleting latest, reassign latest to highest remaining version. returns metadata about the deletion.
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/versions/{version}`
+**Endpoint:** DELETE `https://api.getbluejay.ai/v1/agents/{agent_id}/versions/{version}`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
@@ -30,7 +30,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 import requests
 
 def delete_prompt_version(agent_id: int, version: int, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/versions/{version}"
+    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions/{version}"
     headers = {"X-API-Key": api_key}
     response = requests.delete(url, headers=headers)
     response.raise_for_status()
@@ -52,8 +52,13 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+<Note>
+  **New:** `DELETE /v1/agents/{agent_id}/versions/{version}`
 
-Deletes a specific prompt version; cannot delete production; cannot delete only version.
+  **Deprecated:** `DELETE /v1/agents/{agent_id}/prompts/versions/{version}`. Old path, still works.
+</Note>
+
+Deletes a specific agent version; cannot delete production; cannot delete only version.
 
 If deleting latest, reassign latest to highest remaining version.
 Returns metadata about the deletion.
