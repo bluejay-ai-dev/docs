@@ -10,11 +10,8 @@ permissions:
 
 jobs:
   checks:
-    # Dormant on purpose. Nothing runs for anyone until a PR carries the
-    # `gating-trial` label. Turning it on for the whole repo is deleting this line.
     # Most checks self-skip here: docs has no migrations, no prisma and no deps file.
-    if: contains(github.event.pull_request.labels.*.name, 'gating-trial')
     uses: bluejay-ai-dev/bluejay-github-actions/.github/workflows/pr-checks.yml@main
-    # Follows main so the gate is not frozen at an old sha. This inherits every secret
-    # here, so pin a sha again before the gating-trial label comes off.
+    # Follows main. This inherits every secret here, so anyone who can push that repo's
+    # main can change what receives them. Pin a sha if that stops being acceptable.
     secrets: inherit
