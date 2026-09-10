@@ -1,7 +1,7 @@
 ---
-title: 'Create Prompt Version'
-description: "Create a new prompt version under /agents/{agent_id}/prompts/versions."
-openapi: 'POST /v1/agents/{agent_id}/prompts/versions'
+title: 'Create Agent Version'
+description: "Create a new agent version under /agents/{agent_id}/versions."
+openapi: 'POST /v1/agents/{agent_id}/versions'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -10,11 +10,11 @@ openapi: 'POST /v1/agents/{agent_id}/prompts/versions'
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Prompt Version — POST /v1/agents/{agent_id}/prompts/versions
+## Create Agent Version — POST /v1/agents/{agent_id}/versions
 
-> **What this endpoint does:** create a new prompt version under /agents/{agent_id}/prompts/versions.
+> **What this endpoint does:** create a new agent version under /agents/{agent_id}/versions.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/versions`
+**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/versions`
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
@@ -23,11 +23,12 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|-------------|
 | agent_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
-| prompt_text | string |  |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version and include any optional parameters (e.g., `commit_message`, `labels`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+`prompt_text` is optional. Omit it to copy the current prompt (the agent's latest version) and increment the version. Send `""` to store a blank prompt.
 
-### Request Body (required fields)
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version and include any optional parameters (e.g., `prompt_text`, `commit_message`, `labels`, `override_label`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
 ```json
 {
   "prompt_text": "You are a helpful assistant."
@@ -42,7 +43,7 @@ Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/cr
 import requests
 
 def create_prompt_version(agent_id: int, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/prompts/versions"
+    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
     headers = {"X-API-Key": api_key}
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -64,5 +65,10 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+<Note>
+  **New:** `POST /v1/agents/{agent_id}/versions`
 
-Creates a new prompt version under `/agents/{agent_id}/prompts/versions`.
+  **Deprecated:** `POST /v1/agents/{agent_id}/prompts/versions`. Old path, still works.
+</Note>
+
+Creates a new agent version under `/agents/{agent_id}/versions`. `prompt_text` is optional. Omit it to copy the current prompt and increment the version.

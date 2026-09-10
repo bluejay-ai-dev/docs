@@ -1,6 +1,6 @@
 ---
 title: 'Queue HTTP Text Simulation Run'
-description: "Queue a new simulation run and test results for HTTP text agent. Takes simulation_id, optional prompt_id, knowledge_base_id, and digital_human_ids."
+description: "Queue a new simulation run and test results for HTTP text agent. Takes simulation_id, optional agent_version_id (or deprecated prompt_id), knowledge_base_id, and digital_human_ids."
 openapi: 'POST /v1/queue-http-text-simulation-run'
 ---
 <div className="ai-prompt-box">
@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Queue HTTP Text Simulation Run — POST /v1/queue-http-text-simulation-run
 
-> **What this endpoint does:** Queue a new simulation run and test results for HTTP text agent. Takes simulation_id, optional prompt_id, knowledge_base_id, and digital_human_ids. If digital_human_ids is not provided, uses all Digital Humans for the simulation. Returns simulation_run_id (experiment_run_id) and simulation_result_ids (array of test result IDs).
+> **What this endpoint does:** Queue a new simulation run and test results for HTTP text agent. Takes simulation_id, optional agent_version_id (or deprecated prompt_id), knowledge_base_id, and digital_human_ids. If digital_human_ids is not provided, uses all Digital Humans for the simulation. Returns simulation_run_id (experiment_run_id) and simulation_result_ids (array of test result IDs).
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/queue-http-text-simulation-run`
 **Auth:** `X-API-Key` header
@@ -24,7 +24,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | X-API-Key | string | API key required to authenticate requests. |
 | simulation_id | string | ID of the simulation to be run |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-http-text-simulation-run and include any optional parameters (e.g., `prompt_id`, `knowledge_base_id`, `digital_human_ids`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-http-text-simulation-run and include any optional parameters (e.g., `agent_version_id`, `knowledge_base_id`, `digital_human_ids`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
@@ -63,5 +63,11 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+
+<Note>
+  **New:** `agent_version_id`
+
+  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
+</Note>
 
 This endpoint initiates a new HTTP text simulation. Once a simulation is started, it is possible to send messages using the "Send HTTP Text Message" endpoint and receive them through the webhook configurable in the agent settings.

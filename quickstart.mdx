@@ -72,7 +72,7 @@ Get from account creation to running Simulations, evaluating production calls, a
 
     ## Advanced
 
-    Level up with Alerts, Dashboards, optimization, automated testing, and Prompt Versioning.
+    Level up with Alerts, Dashboards, optimization, automated testing, and Agent Versions.
 
     <Steps titleSize="h3">
       <Step title="Create Alerts">
@@ -107,12 +107,12 @@ Get from account creation to running Simulations, evaluating production calls, a
         Learn more in the [Workflows overview](/key-concepts/agents/workflow).
       </Step>
 
-      <Step title="Version Prompts via Prompt Versioning">
-        Prompt Versioning tracks changes to your Agent's system prompt over time. Open the **Prompts** section of your Agent. Create a new version with an updated prompt, add a commit message, and optionally tag it with labels like `production` or `staging`. Compare performance across Simulation Runs and roll back when needed.
+      <Step title="Track changes with Agent Versions">
+        Agent Versions track changes to your Agent's system prompt over time. Open the **Versions** tab of your Agent. Create a new version with an updated prompt, add a commit message, and optionally tag it with labels like `production` or `staging`. Compare performance across Simulation Runs and roll back when needed.
 
-        {/* screenshot: prompt-versioning-ui */}
+        {/* screenshot: agent-versions-ui */}
 
-        See the [Create Prompt Version API reference](/api-reference/endpoint/create-prompt-version).
+        See the [Create Agent Version API reference](/api-reference/endpoint/create-prompt-version).
       </Step>
     </Steps>
 
@@ -246,7 +246,7 @@ Get from account creation to running Simulations, evaluating production calls, a
           Use the [Get Simulation Runs](/api-reference/endpoint/get-simulation-runs) endpoint to poll for completion, or set up a [webhook](/api-reference/webhook/events-webhook) to get notified when runs finish.
         </Tip>
 
-        Learn more about [Simulation Runs](/test/simulations/simulation-runs). See the full [Queue Simulation Run API reference](/api-reference/endpoint/queue-simulation-run) for options like `phone_number`, `digital_human_ids`, and `prompt_id`.
+        Learn more about [Simulation Runs](/test/simulations/simulation-runs). See the full [Queue Simulation Run API reference](/api-reference/endpoint/queue-simulation-run) for options like `phone_number`, `digital_human_ids`, and `agent_version_id`.
       </Step>
 
       <Step title="Add Custom Metrics">
@@ -314,7 +314,7 @@ Get from account creation to running Simulations, evaluating production calls, a
 
     ## Advanced
 
-    Level up with Alerts, Dashboards, optimization, automated testing, and Prompt Versioning.
+    Level up with Alerts, Dashboards, optimization, automated testing, and Agent Versions.
 
     <Steps titleSize="h3">
       <Step title="Create Alerts">
@@ -345,12 +345,12 @@ Get from account creation to running Simulations, evaluating production calls, a
         For **conversation-path** scenarios (React Flow graphs used with simulations and Digital Humans), see the [Scenario Builder overview](/key-concepts/scenario-builder/overview), the [Scenario Builder cookbook](/cookbook/scenario-builder), and [Create scenario](/api-reference/endpoint/create-scenario) (**POST** `/v1/scenario`).
       </Step>
 
-      <Step title="Version Prompts via Prompt Versioning">
-        Prompt Versioning tracks changes to your Agent's system prompt over time. Create labeled versions, compare performance across Simulation Runs, and roll back when needed.
+      <Step title="Version Agents via Agent Versioning">
+        Agent versioning tracks changes to your Agent's system prompt over time. Create labeled versions, compare performance across Simulation Runs, and roll back when needed. Use `/v1/agents/{id}/versions`. The old `/prompts` paths still work (deprecated).
 
         ```python
         prompt_version = requests.post(
-            f"{BASE_URL}/agents/{agent_id}/prompts/versions",
+            f"{BASE_URL}/agents/{agent_id}/versions",
             headers={"X-API-Key": API_KEY},
             json={
                 "prompt_text": "You are a helpful customer support agent for Acme Corp. Always verify the customer's identity before sharing account details.",
@@ -359,14 +359,14 @@ Get from account creation to running Simulations, evaluating production calls, a
             }
         ).json()
 
-        print(f"Prompt version {prompt_version['version']} created (id: {prompt_version['id']})")
+        print(f"Agent version {prompt_version['version']} created (id: {prompt_version['id']})")
         ```
 
         <Tip>
-          Pass a `prompt_id` when [queuing a Simulation Run](/api-reference/endpoint/queue-simulation-run) to test a specific prompt version against your existing Digital Humans.
+          Pass an `agent_version_id` when [queuing a Simulation Run](/api-reference/endpoint/queue-simulation-run) to test a specific agent version against your existing Digital Humans. `prompt_id` is deprecated and still works (same uuid).
         </Tip>
 
-        See [Create Prompt Version](/api-reference/endpoint/create-prompt-version) for the full reference.
+        See [Create Agent Version](/api-reference/endpoint/create-prompt-version) for the full reference.
       </Step>
     </Steps>
 
