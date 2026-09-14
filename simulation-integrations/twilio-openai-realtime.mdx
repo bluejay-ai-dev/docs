@@ -77,16 +77,23 @@ You now have `OPENAI_PROJECT_ID`, `OPENAI_API_KEY`, and `OPENAI_WEBHOOK_SECRET`.
 
 ## Part 2: Twilio
 
-Everything in this part is under **Voice**, then **Manage**, then **SIP Domains** in the Twilio Console.
+Everything in this part is in the Twilio Console under **Communications**, then **Voice**, then **SIP domains**.
+
+<img src="/images/twilio-openai/twilio-voice-nav.png" alt="Twilio Console sidebar: Communications, Voice, SIP domains" width="240" />
 
 ### 3. Create a credential list
 
 Bluejay authenticates to your SIP domain with a username and password. Twilio stores those in a credential list.
 
-1. Open the **Credential Lists** tab and click **Create new Credential List**.
-2. Friendly name: `bluejay-sip-creds`.
-3. Add a credential. Username: `bluejay`. Password: at least 12 characters with one uppercase letter, one lowercase letter, and one digit.
-4. Save.
+1. Open the **Credential lists** tab and click **Create Credential List**.
+
+<img src="/images/twilio-openai/twilio-credential-lists.png" alt="SIP Domains page with the Credential lists tab selected and the Create Credential List button" />
+
+2. **Credential list friendly name**: `bluejay-sip-cred`.
+3. Under **Add credentials**, enter a **Username** of `bluejay` and a **Password** of at least 12 characters with one uppercase letter, one lowercase letter, and one digit.
+4. Click **Create**.
+
+<img src="/images/twilio-openai/twilio-create-credential-list.png" alt="Create new credential list dialog with friendly name, username, and password fields" />
 
 Keep the username and password. They go on the Bluejay agent in Part 4.
 
@@ -97,7 +104,7 @@ export TWILIO_API=https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID
 
 curl -X POST "$TWILIO_API/SIP/CredentialLists.json" \
   -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN" \
-  --data-urlencode "FriendlyName=bluejay-sip-creds"
+  --data-urlencode "FriendlyName=bluejay-sip-cred"
 # copy "sid" (CL...) from the response
 
 curl -X POST "$TWILIO_API/SIP/CredentialLists/$CREDENTIAL_LIST_SID/Credentials.json" \
@@ -110,13 +117,23 @@ curl -X POST "$TWILIO_API/SIP/CredentialLists/$CREDENTIAL_LIST_SID/Credentials.j
 
 ### 4. Create the SIP domain
 
-1. Open the **SIP Domains** tab and click **Create SIP Domain**.
-2. **Friendly name**: `openai-realtime`.
-3. **SIP URI**: pick a name, for example `yourcompany-openai`. Twilio appends `.sip.twilio.com`. The name must be unique across all of Twilio.
-4. Under **Voice authentication**, in **Credential lists**, select `bluejay-sip-creds`.
-5. Under **Call control configuration**, set **Configure method** to `Webhook`, **Webhook URL** to `https://<your-server>/twiml`, and **HTTP method** to `HTTP POST`.
-6. Leave **SIP registration** disabled.
-7. Save.
+1. Open the **SIP domains** tab and click **Create SIP Domain**.
+
+<img src="/images/twilio-openai/twilio-sip-domains-list.png" alt="SIP Domains list with the Create SIP Domain button" />
+
+2. **SIP domain friendly name**: `Twilio OpenAI`.
+3. **SIP URI**: pick a name, for example `twilio-openai`. Twilio appends `.sip.twilio.com`. The name must be unique across all of Twilio.
+4. Under **Voice authentication**, open **Credential lists** and select `bluejay-sip-cred`. Leave **IP access control lists** empty.
+5. Click **Create**.
+
+<img src="/images/twilio-openai/twilio-create-sip-domain.png" alt="Create SIP Domain form with friendly name, SIP URI, and the credential list selected under Voice authentication" />
+
+6. The domain's details page opens. Under **Call control configuration**, click **Edit configuration**.
+7. Set **Configure method** to `Webhook`, **Webhook URL** to `https://<your-server>/twiml`, and **HTTP method** to `HTTP POST`. Click **Save**.
+
+<img src="/images/twilio-openai/twilio-edit-call-control.png" alt="Edit call control configuration dialog with Configure method Webhook, Webhook URL, and HTTP POST" />
+
+8. Leave **SIP registration** disabled.
 
 The webhook URL is what Twilio requests when a call arrives at the domain. Your server answers it with TwiML in Part 3.
 
@@ -127,8 +144,8 @@ The REST parameter for the webhook URL is named `VoiceUrl`.
 ```bash
 curl -X POST "$TWILIO_API/SIP/Domains.json" \
   -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN" \
-  --data-urlencode "DomainName=yourcompany-openai.sip.twilio.com" \
-  --data-urlencode "FriendlyName=openai-realtime" \
+  --data-urlencode "DomainName=twilio-openai.sip.twilio.com" \
+  --data-urlencode "FriendlyName=Twilio OpenAI" \
   --data-urlencode "VoiceUrl=https://<your-server>/twiml" \
   --data-urlencode "VoiceMethod=POST" \
   --data-urlencode "SipRegistration=false"
@@ -585,7 +602,7 @@ In **Agent Settings**, then **Connection**, set the connection type to **SIP** a
 
 | Field | Value |
 |---|---|
-| SIP URI | `sip:openai@yourcompany-openai.sip.twilio.com` |
+| SIP URI | `sip:openai@twilio-openai.sip.twilio.com` |
 | SIP Username | `bluejay` |
 | SIP Password | The password from step 3 |
 
@@ -604,7 +621,7 @@ curl -X POST https://api.getbluejay.ai/v1/add-agent \
     "type": "INBOUND",
     "connection_type": "SIP",
     "mode": "VOICE",
-    "sip_uri": "sip:openai@yourcompany-openai.sip.twilio.com",
+    "sip_uri": "sip:openai@twilio-openai.sip.twilio.com",
     "sip_username": "bluejay",
     "sip_password": "YourStrongPassword123"
   }'
