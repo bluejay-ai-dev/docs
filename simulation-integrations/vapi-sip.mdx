@@ -1,0 +1,69 @@
+---
+title: "Vapi via SIP"
+description: "Bluejay dials a Vapi SIP URI and links tool calls back through the end-of-call report"
+icon: "phone-volume"
+---
+
+Use this when your Vapi assistant should be reached over SIP. Vapi issues a free SIP URI per assistant, Bluejay dials it, and the `X-Simulation-Result-Id` header arrives in the `end-of-call-report` webhook so you can attach tool calls and metadata to the result.
+
+<Note>
+  For most Vapi assistants the [Vapi integration](/simulation-integrations/vapi) is the simpler path. It syncs assistants into Bluejay and captures tool calls with no webhook of your own.
+</Note>
+
+## Setup
+
+1. In Vapi, go to **Phone Numbers** and click **Create a new phone number**. Choose **Free Vapi SIP** and enter the SIP identifier you want in the URI.
+
+<img src="/images/vapi_sip_1.png" alt="Vapi phone numbers page, Free Vapi SIP option" width="300" />
+
+<img src="/images/vapi_sip_2.png" alt="Vapi SIP URI identifier field" />
+
+2. Set up a webhook that accepts messages for everything you want to track from your agent along with the end of call report from VAPI. The webhook format that VAPI sends can be found [here](https://docs.vapi.ai/api-reference/webhooks/server-message). To get started you can set up the webhook (Server URL) under the SIP URI but you can also specify the webhook URL at different [levels](https://docs.vapi.ai/server-url/setting-server-urls).
+
+<img src="/images/vapi_sip_3.png" alt="Vapi Server URL field on the SIP number" />
+
+3. After your webhook is set up and you track the relevant tool calls and metadata from your agent, you can pull the simulation result ID from the `end-of-call-report` message that VAPI sends to your webhook.
+
+```json highlight="14"
+{
+  "message": {
+    "timestamp": 1759863299084,
+    "type": "end-of-call-report",
+    //....
+    "assistant": {
+      //....
+      "variableValues": {
+        "cid": "....",
+        "account-sid": "....",
+        "from-number": "+18888888888",
+        "special-item": "Apricots", // other SIP headers that could be sent from Bluejay
+        "simulation-run-id": "5678",
+        "simulation-result-id": "1234"
+      }
+    }
+  }
+}
+```
+
+4. You can now use this simulation result ID to update the simulation result with the tool calls and metadata you have collected from your agent by calling the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint.
+
+```python
+import requests
+
+url = "https://api.getbluejay.ai/v1/update-simulation-result"
+headers = {
+    "X-API-Key": "<your-api-key>"
+}
+
+# Pass in the simulation result ID, tool calls, and metadata collected from VAPI
+def update_simulation_result(simulation_result_id, tool_calls, metadata):
+    data = {
+        "simulation_result_id": simulation_result_id,
+        "tool_calls": tool_calls,
+        "metadata": metadata
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+```
+
+For technical support with SIP configuration, ask in our [Slack community](https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA).
