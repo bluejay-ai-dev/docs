@@ -1,19 +1,16 @@
 ---
 title: "OpenAI Realtime over Twilio SIP"
-description: "Connect an OpenAI Realtime voice agent to Bluejay through a Twilio SIP domain, with tool calls and traces reported back"
+description: "Connect a voice agent that already runs behind Twilio to Bluejay over SIP, then add tool call and trace reporting"
 icon: "phone-volume"
 ---
 
-This guide builds one thing end to end: a voice agent on the OpenAI Realtime API that Bluejay can call over SIP through your Twilio account. When you finish, every simulated call shows the transcript, the tool calls the agent made, and an OpenTelemetry trace in the Bluejay result.
+This guide uses an OpenAI Realtime agent as the example of a custom voice agent that lives behind Twilio. It has two halves.
 
-You will:
+**Parts 1 to 4** get you to a working integration: Twilio SIP domain, a small server, an OpenAI Realtime agent, and a Bluejay simulation running calls against it. You can stop there.
 
-1. Get an OpenAI project id, an API key, and a webhook signing secret.
-2. Create a Twilio SIP domain protected by a username and password.
-3. Deploy a small Node server that Twilio and OpenAI both talk to.
-4. Point a Bluejay agent at the SIP domain and run a simulation.
+**Part 5** builds on that working setup so each Bluejay result also shows the tool calls the agent made and an OpenTelemetry trace.
 
-Audio never passes through your server. Twilio dials OpenAI's SIP endpoint directly. Your server only answers two HTTP requests per call and holds a websocket to run tools and collect the transcript.
+Audio never passes through your server. Twilio dials OpenAI's SIP endpoint directly. Your server answers two HTTP requests per call.
 
 ### How it connects
 
@@ -24,17 +21,15 @@ sequenceDiagram
     participant SRV as Your server
     participant OAI as OpenAI Realtime
 
-    BJ->>TW: SIP INVITE, header X-Simulation-Result-Id
+    BJ->>TW: SIP INVITE
     TW-->>BJ: 407, credentials required
     BJ->>TW: INVITE with username and password
-    TW->>SRV: POST /twiml (SipHeader_X-Simulation-Result-Id)
-    SRV-->>TW: TwiML: Dial sip:<project>@sip.api.openai.com?X-Simulation-Result-Id=...
+    TW->>SRV: POST /twiml
+    SRV-->>TW: TwiML: Dial sip:<project>@sip.api.openai.com
     TW->>OAI: SIP INVITE over TLS
     OAI->>SRV: POST /openai-webhook (realtime.call.incoming, signed)
-    SRV->>OAI: POST /v1/realtime/calls/{id}/accept (instructions, tools)
-    SRV->>OAI: websocket ?call_id=... (tool calls, transcript)
+    SRV->>OAI: POST /v1/realtime/calls/{id}/accept (instructions)
     OAI-->>BJ: Audio, through Twilio
-    SRV->>BJ: POST /v1/update-simulation-result (trace id, then tool calls)
 ```
 
 ### Prerequisites
@@ -42,7 +37,7 @@ sequenceDiagram
 - A Twilio account with Programmable Voice and one phone number (used as the caller id on the leg to OpenAI)
 - An OpenAI account with a project that has Realtime API access
 - Somewhere to run a Node 20+ server on a public HTTPS URL (Railway, Fly, Render, a VM)
-- A Bluejay API key
+- A Bluejay account
 
 ## Part 1: OpenAI
 
@@ -162,15 +157,14 @@ The mapping must be created under `Auth/Calls`. The domain also has a top-level 
 
 ## Part 3: The server
 
-The server has three routes. Twilio calls `/twiml` when a call arrives and `/dial-status` when the leg to OpenAI ends. OpenAI calls `/openai-webhook` when its SIP endpoint receives the call. After accepting, the server opens a websocket to the call to run tools and collect the transcript, and reports to Bluejay.
+Three routes. Twilio calls `/twiml` when a call arrives and `/dial-status` when the leg to OpenAI ends. OpenAI calls `/openai-webhook` when its SIP endpoint receives the call, and your server accepts it with the agent's instructions.
 
 ### 5. Create the project
 
 ```bash
 mkdir openai-twilio-bridge && cd openai-twilio-bridge
 npm init -y
-npm install express ws @opentelemetry/api @opentelemetry/sdk-trace-base \
-  @opentelemetry/exporter-trace-otlp-http @opentelemetry/resources
+npm install express
 ```
 
 ### 6. Set the environment
@@ -181,45 +175,35 @@ npm install express ws @opentelemetry/api @opentelemetry/sdk-trace-base \
 | `OPENAI_PROJECT_ID` | From step 1, starts with `proj_` |
 | `OPENAI_WEBHOOK_SECRET` | From step 2, starts with `whsec_` |
 | `CALLER_ID` | A phone number on your Twilio account, in E.164 form. Twilio needs a phone number as the caller id on the leg to OpenAI because the incoming leg's caller is a SIP URI |
-| `BLUEJAY_API_KEY` | Your Bluejay API key |
 | `PUBLIC_HOST` | Your server's hostname, for example `openai-bridge.example.com` |
 | `MODEL` | `gpt-realtime` |
 | `VOICE` | `alloy` |
 | `PORT` | Whatever your host expects |
 
-### 7. Answer Twilio with TwiML
+### 7. Write the server
 
-Twilio sends the SIP headers from Bluejay's INVITE as form fields prefixed with `SipHeader_`. Read `SipHeader_X-Simulation-Result-Id` and append it to the SIP URI Twilio dials. Twilio sends headers written after `?` on the URI, and OpenAI hands them back to you in the webhook. That is how the server knows which Bluejay result a call belongs to.
+```javascript server.js
+const crypto = require('crypto');
+const express = require('express');
 
-```javascript
-app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
-  const b = req.body || {};
-  const simId = b['SipHeader_X-Simulation-Result-Id'] || '';
-  const uri = `sip:${OPENAI_PROJECT_ID}@sip.api.openai.com;transport=tls` +
-    (simId ? `?X-Simulation-Result-Id=${encodeURIComponent(simId)}` : '');
-  res.type('text/xml').send(
-    `<?xml version="1.0" encoding="UTF-8"?><Response>` +
-    `<Dial answerOnBridge="true" callerId="${CALLER_ID}" action="https://${PUBLIC_HOST}/dial-status" method="POST">` +
-    `<Sip>${uri}</Sip></Dial></Response>`
-  );
+const {
+  PORT = 8080, OPENAI_API_KEY, OPENAI_PROJECT_ID, OPENAI_WEBHOOK_SECRET,
+  CALLER_ID, PUBLIC_HOST, MODEL = 'gpt-realtime', VOICE = 'alloy',
+} = process.env;
+
+const INSTRUCTIONS =
+  "You are Robin, the front desk agent for Bluejay Repair Services, an appliance repair company. " +
+  "Open the call with: 'Thanks for calling Bluejay Repair Services, this is Robin, how can I help?' " +
+  "Keep every reply to one or two short spoken sentences. If the caller wants a repair booked, collect the " +
+  "appliance and the day they want, confirm the booking back with an explicit weekday and date, and say goodbye.";
+
+// The Realtime model has no clock. Without this, "next Tuesday" becomes an invented date.
+const today = () => new Date().toLocaleDateString('en-US', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles',
 });
+const instructions = () => `${INSTRUCTIONS}\n\nToday is ${today()}.`;
 
-app.post('/dial-status', express.urlencoded({ extended: false }), (req, res) => {
-  const b = req.body || {};
-  console.log('dial-status', b.CallSid, b.DialCallStatus, 'sip', b.DialSipResponseCode);
-  res.type('text/xml').send('<Response><Hangup/></Response>');
-});
-```
-
-`DialSipResponseCode` on `/dial-status` is the SIP status OpenAI returned. When a call fails, this is where the reason is.
-
-### 8. Verify and accept the OpenAI webhook
-
-OpenAI signs each webhook with the Standard Webhooks scheme: an HMAC-SHA256 over `{webhook-id}.{webhook-timestamp}.{raw body}` using the base64-decoded secret (drop the `whsec_` prefix). The route needs the raw body, so it uses `express.raw()`.
-
-Respond `200` before calling accept. OpenAI drops the call if the webhook takes too long.
-
-```javascript
+// Standard Webhooks: HMAC-SHA256 over `${id}.${timestamp}.${rawBody}` with the base64-decoded secret.
 function verifyWebhook(req) {
   const id = req.get('webhook-id');
   const ts = req.get('webhook-timestamp');
@@ -236,20 +220,35 @@ function verifyWebhook(req) {
   });
 }
 
-function sipHeader(data, name) {
-  const hit = ((data && data.sip_headers) || []).find((h) => h.name.toLowerCase() === name.toLowerCase());
-  return hit ? hit.value : undefined;
-}
+const app = express();
+app.get('/', (_req, res) => res.json({ ok: true }));
 
+// Twilio asks what to do with the call. Answer: dial OpenAI's SIP endpoint for this project.
+app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
+  console.log('twiml', req.body && req.body.CallSid);
+  res.type('text/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?><Response>` +
+    `<Dial answerOnBridge="true" callerId="${CALLER_ID}" action="https://${PUBLIC_HOST}/dial-status" method="POST">` +
+    `<Sip>sip:${OPENAI_PROJECT_ID}@sip.api.openai.com;transport=tls</Sip></Dial></Response>`
+  );
+});
+
+// Twilio reports how the leg to OpenAI ended. DialSipResponseCode is OpenAI's SIP status.
+app.post('/dial-status', express.urlencoded({ extended: false }), (req, res) => {
+  const b = req.body || {};
+  console.log('dial-status', b.CallSid, b.DialCallStatus, 'sip', b.DialSipResponseCode);
+  res.type('text/xml').send('<Response><Hangup/></Response>');
+});
+
+// OpenAI announces the call. Verify the signature, respond 200, then accept with the agent config.
 app.post('/openai-webhook', express.raw({ type: '*/*', limit: '1mb' }), async (req, res) => {
   if (!verifyWebhook(req)) return res.status(400).send('bad signature');
-  const event = JSON.parse(req.body.toString('utf8'));
+  let event;
+  try { event = JSON.parse(req.body.toString('utf8')); } catch { return res.status(400).send('bad json'); }
   res.status(200).end();
   if (event.type !== 'realtime.call.incoming') return;
 
   const callId = event.data.call_id;
-  const simulationResultId = sipHeader(event.data, 'X-Simulation-Result-Id');
-
   const r = await fetch(`https://api.openai.com/v1/realtime/calls/${callId}/accept`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
@@ -257,30 +256,127 @@ app.post('/openai-webhook', express.raw({ type: '*/*', limit: '1mb' }), async (r
       type: 'realtime',
       model: MODEL,
       instructions: instructions(),
-      tools: TOOLS,
-      tool_choice: 'auto',
-      audio: {
-        input: { transcription: { model: 'gpt-4o-mini-transcribe' } },
-        output: { voice: VOICE },
-      },
+      audio: { output: { voice: VOICE } },
     }),
   });
-  if (r.status === 200) runCallSession(callId, simulationResultId);
+  console.log('accept', callId, r.status);
 });
+
+app.listen(PORT, () => console.log('listening on', PORT));
 ```
 
-`instructions()` returns the agent prompt with today's date appended. The Realtime model has no clock. Without the date, "next Tuesday" turns into an invented date.
+Three things in this file matter more than they look:
+
+- `/openai-webhook` uses `express.raw()`. The signature is computed over the exact request bytes, so the body must not be parsed before verification.
+- The route responds `200` before calling accept. OpenAI drops the call if the webhook takes too long.
+- `callerId` on `<Dial>` is required. The incoming leg's caller is a SIP URI, and Twilio needs a phone number to place the outbound leg.
+
+### 8. Deploy
+
+Deploy to any host with a public HTTPS URL and set the environment variables from step 6. Confirm the routes answer:
+
+```bash
+curl https://<your-server>/
+# {"ok":true}
+
+curl -X POST https://<your-server>/openai-webhook -d '{}'
+# bad signature   (a 400 here is correct; unsigned requests must be rejected)
+```
+
+If your server's hostname was not known when you registered the webhook in step 2 or the SIP domain in step 4, go back and set it now.
+
+## Part 4: Bluejay
+
+### 9. Create the agent
+
+In **Agent Settings**, then **Connection**, set the connection type to **SIP** and fill in:
+
+| Field | Value |
+|---|---|
+| SIP URI | `sip:openai@twilio-openai.sip.twilio.com` |
+| SIP Username | `bluejay` |
+| SIP Password | The password from step 3 |
+
+The user part of the URI (`openai` here) can be any value.
+
+<Accordion title="Do this with the REST API">
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/add-agent \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "OpenAI Realtime via Twilio SIP",
+    "system_prompt": "Front desk agent for an appliance repair company.",
+    "goals": ["Greet the caller", "Collect the appliance and the day", "Book the repair and confirm the date"],
+    "type": "INBOUND",
+    "connection_type": "SIP",
+    "mode": "VOICE",
+    "sip_uri": "sip:openai@twilio-openai.sip.twilio.com",
+    "sip_username": "bluejay",
+    "sip_password": "YourStrongPassword123"
+  }'
+```
+
+</Accordion>
+
+### 10. Create and run a simulation
+
+1. Go to the **Simulations** page, click **Create** in the top right, select the agent, and add a digital human. An intent like "Your dishwasher is leaking. Book a repair for next Tuesday afternoon." works well with the example agent.
+2. In the **Simulations** tab, click **Run** on the simulation, then click **Run calls**.
+
+<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/create-simulation.mp4"></video>
+
+### 11. Check the result
+
+Open the finished call. You should see a transcript where the agent greets the caller, collects the appliance and the day, and confirms a date that matches the calendar. Your server logs show the two requests it answered:
+
+```
+twiml CA...
+accept rtc_... 200
+dial-status CA... completed sip 200
+```
+
+**Your agent is integrated.** Bluejay can run any simulation against it from here. Everything below is optional.
+
+## Part 5: Going further, tool calls and traces
+
+With the integration working, you can make each Bluejay result richer. Bluejay puts an `X-Simulation-Result-Id` header on every call it places. If your server carries that id through the call and posts back when the call ends, the result page shows the tool calls the agent made and an OpenTelemetry trace next to the transcript.
+
+Three changes to the server from Part 3.
+
+### 12. Carry the result id through the call
+
+Twilio passes Bluejay's SIP headers to `/twiml` as form fields prefixed with `SipHeader_`. Read `SipHeader_X-Simulation-Result-Id` and append it to the SIP URI. Twilio sends headers written after `?` on the URI, and OpenAI returns them to your webhook in `data.sip_headers`.
 
 ```javascript
-const today = () => new Date().toLocaleDateString('en-US', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles',
+app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
+  const b = req.body || {};
+  const simId = b['SipHeader_X-Simulation-Result-Id'] || '';
+  const uri = `sip:${OPENAI_PROJECT_ID}@sip.api.openai.com;transport=tls` +
+    (simId ? `?X-Simulation-Result-Id=${encodeURIComponent(simId)}` : '');
+  res.type('text/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?><Response>` +
+    `<Dial answerOnBridge="true" callerId="${CALLER_ID}" action="https://${PUBLIC_HOST}/dial-status" method="POST">` +
+    `<Sip>${uri}</Sip></Dial></Response>`
+  );
 });
-const instructions = () => `${INSTRUCTIONS}\n\nToday is ${today()}.`;
+
+function sipHeader(data, name) {
+  const hit = ((data && data.sip_headers) || []).find((h) => h.name.toLowerCase() === name.toLowerCase());
+  return hit ? hit.value : undefined;
+}
 ```
 
-### 9. Define a tool
+In `/openai-webhook`, read it before accepting:
 
-Tools are declared in the accept body. This example books an appliance repair. Replace `runTool` with a call into your own system.
+```javascript
+const simulationResultId = sipHeader(event.data, 'X-Simulation-Result-Id');
+```
+
+### 13. Give the agent a tool
+
+Tools are declared in the accept body. This example books a repair. Replace `runTool` with a call into your own system, and tell the model in `INSTRUCTIONS` that it must call the tool before confirming anything, or it will announce a booking it never made.
 
 ```javascript
 const TOOLS = [{
@@ -306,20 +402,51 @@ function runTool(name, args) {
 }
 ```
 
-Tell the model in `INSTRUCTIONS` that it must call the tool before confirming anything. Otherwise it will announce a booking it never made.
+Add `tools`, `tool_choice`, and input transcription to the accept body, and start a session after a successful accept:
 
-### 10. Run the call session
+```javascript
+body: JSON.stringify({
+  type: 'realtime',
+  model: MODEL,
+  instructions: instructions(),
+  tools: TOOLS,
+  tool_choice: 'auto',
+  audio: {
+    input: { transcription: { model: 'gpt-4o-mini-transcribe' } },
+    output: { voice: VOICE },
+  },
+}),
+// ...
+if (r.status === 200) runCallSession(callId, simulationResultId);
+```
+
+### 14. Run the call session and report to Bluejay
+
+Install the extra packages:
+
+```bash
+npm install ws @opentelemetry/api @opentelemetry/sdk-trace-base \
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/resources
+```
+
+Add `BLUEJAY_API_KEY` to the environment.
 
 After accept, attach to the call with a websocket. The model emits `response.function_call_arguments.done` when it wants a tool. Run the tool, send the result back as a `function_call_output` item, and ask for the next response. Transcripts arrive as `conversation.item.input_audio_transcription.completed` for the caller and `response.output_audio_transcript.done` for the agent.
 
 Each call gets one root span. Tool calls and utterances become child spans. The exporter sends them to Bluejay's OTLP endpoint with your API key.
 
 ```javascript
+const { WebSocket } = require('ws');
+const { trace, context } = require('@opentelemetry/api');
+const { BasicTracerProvider, SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
+const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
+const { resourceFromAttributes } = require('@opentelemetry/resources');
+
 const tracerProvider = new BasicTracerProvider({
   resource: resourceFromAttributes({ 'service.name': 'openai-twilio-bridge' }),
   spanProcessors: [new SimpleSpanProcessor(new OTLPTraceExporter({
     url: 'https://otlp.getbluejay.ai/v1/traces',
-    headers: { 'X-API-KEY': BLUEJAY_API_KEY },
+    headers: { 'X-API-KEY': process.env.BLUEJAY_API_KEY },
   }))],
 });
 const tracer = tracerProvider.getTracer('bridge');
@@ -327,7 +454,7 @@ const tracer = tracerProvider.getTracer('bridge');
 async function bluejay(body) {
   await fetch('https://api.getbluejay.ai/v1/update-simulation-result', {
     method: 'POST',
-    headers: { 'X-API-Key': BLUEJAY_API_KEY, 'Content-Type': 'application/json' },
+    headers: { 'X-API-Key': process.env.BLUEJAY_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 }
@@ -385,7 +512,7 @@ function runCallSession(callId, simulationResultId) {
 
 Two separate POSTs to Bluejay on purpose. The trace id goes up as soon as the session opens. Tool calls go up once, after the call ends. The endpoint appends tool calls on every call and also derives tool calls from any `trace_ids` in the same body, so sending both together produces duplicates.
 
-<Accordion title="Complete server.js">
+<Accordion title="Complete server.js with Part 5 included">
 
 ```javascript
 const crypto = require('crypto');
@@ -580,77 +707,19 @@ app.listen(PORT, () => console.log('listening on', PORT));
 
 </Accordion>
 
-### 11. Deploy
+### 15. Check the result again
 
-Deploy to any host that gives you a public HTTPS URL and set the environment variables from step 6. Then confirm the routes answer:
+Run the simulation from step 10 again and open the call. Alongside the transcript you should now see:
 
-```bash
-curl https://<your-server>/
-# {"ok":true}
-
-curl -X POST https://<your-server>/openai-webhook -d '{}'
-# bad signature   (a 400 here is correct; unsigned requests must be rejected)
-```
-
-If your server's hostname was not known when you registered the webhook in step 2 or the SIP domain in step 4, go back and set it now.
-
-## Part 4: Bluejay
-
-### 12. Create the agent
-
-In **Agent Settings**, then **Connection**, set the connection type to **SIP** and fill in:
-
-| Field | Value |
-|---|---|
-| SIP URI | `sip:openai@twilio-openai.sip.twilio.com` |
-| SIP Username | `bluejay` |
-| SIP Password | The password from step 3 |
-
-The user part of the URI (`openai` here) can be any value.
-
-<Accordion title="Do this with the REST API">
-
-```bash
-curl -X POST https://api.getbluejay.ai/v1/add-agent \
-  -H "X-API-Key: $BLUEJAY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "OpenAI Realtime via Twilio SIP",
-    "system_prompt": "Front desk agent for an appliance repair company.",
-    "goals": ["Greet the caller", "Collect the appliance and the day", "Book the repair and confirm the date"],
-    "type": "INBOUND",
-    "connection_type": "SIP",
-    "mode": "VOICE",
-    "sip_uri": "sip:openai@twilio-openai.sip.twilio.com",
-    "sip_username": "bluejay",
-    "sip_password": "YourStrongPassword123"
-  }'
-```
-
-</Accordion>
-
-### 13. Create and run a simulation
-
-1. Go to the **Simulations** page, click **Create** in the top right, select the agent, and add a digital human. For the example agent, an intent like "Your dishwasher is leaking. Book a repair for next Tuesday afternoon." exercises the tool.
-2. In the **Simulations** tab, click **Run** on the simulation, then click **Run calls**.
-
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/create-simulation.mp4"></video>
-
-### 14. Check the result
-
-Open the finished call. You should see:
-
-- The transcript, with the agent's greeting intact and a confirmed date that matches the calendar.
 - A `book_repair` entry under tool calls, with the parameters the model extracted and the confirmation your `runTool` returned.
 - A trace with a `voice.call` root span, one `execute_tool book_repair` child, and `agent.speech` and `customer.speech` spans for each turn.
 
-Your server logs show the same call from the other side:
+Your server logs show the reporting:
 
 ```
 twiml CA... simulation_result_id 933691
 accept rtc_... 200 simulation_result_id 933691
 bluejay 933691 200
-tool book_repair {"appliance":"dishwasher","requested_day":"next Tuesday afternoon"} -> {"confirmation":"BJ-4F1A",...}
 call ended rtc_... 1 tool calls, 6 turns
 bluejay 933691 200
 ```
@@ -664,8 +733,8 @@ bluejay 933691 200
 | Accept returns `401 mismatched_project` | `OPENAI_API_KEY` belongs to a different project than `OPENAI_PROJECT_ID` | Check the key's project with the `openai-project` header command in step 1 |
 | Webhook route returns `400 bad signature` on real calls | Wrong or rotated `OPENAI_WEBHOOK_SECRET` | Copy the secret from the webhook's page on platform.openai.com. Rotating creates a new one |
 | Bluejay call fails with SIP `403` or `407` | Agent credentials do not match the credential list, or the list is attached under SIP registration and not under Voice authentication | Check the username and password on the agent. In the Console, the list must appear under **Voice authentication** |
-| Tool calls missing from the result | The model confirmed without calling the tool, or `simulation_result_id` was undefined | Tighten `INSTRUCTIONS`. Check that `/twiml` logged a `simulation_result_id` and that it appears in the `accept` log line |
-| Trace missing from the result | Trace id posted after Bluejay finalised the result | Post `trace_ids` when the session opens, as in step 10, and keep `tool_calls` in the separate post at hangup |
 | Agent invents a date | Model has no clock | Keep the `Today is ...` line in `instructions()` |
+| Tool calls missing from the result (Part 5) | The model confirmed without calling the tool, or `simulation_result_id` was undefined | Tighten `INSTRUCTIONS`. Check that `/twiml` logged a `simulation_result_id` and that it appears in the `accept` log line |
+| Trace missing from the result (Part 5) | Trace id posted after Bluejay finalised the result | Post `trace_ids` when the session opens, as in step 14, and keep `tool_calls` in the separate post at hangup |
 
 For help, ask in our [Slack community](https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA).
