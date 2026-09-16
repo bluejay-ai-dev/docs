@@ -186,6 +186,138 @@ These three don't have archetypes the way Digital Humans do, so there's one exam
   Every field here is exactly what [create-custom-metric](/api-reference/endpoint/create-custom-metric) takes. `metric_type` decides which other fields apply — `tool_call` and the `audio_*` types read from `settings` instead of `prompt`.
 </Note>
 
+### Conditional and Composite Metrics
+
+Two custom metric shapes live entirely in `settings`, so the [create-custom-metric](/api-reference/endpoint/create-custom-metric) field list doesn't show them. A conditional metric is any metric carrying `settings.fire_conditions`: it evaluates only on conversations that match, and comes back not applicable on the rest instead of failing them. A composite metric is `metric_type: "composite"`: it reads other metrics' scores and derives its own verdict arithmetically, with no LLM call of its own.
+
+<AccordionGroup>
+  <Accordion title="Gate a metric on a workflow node">
+    `fire_conditions` is two levels. Conditions inside a group share that group's join, and the groups share the outer one. Both joins default to `and`, so a single gate needs nothing but `groups` and one condition. A condition's `type` is `workflow_node`, `tool_call`, or `metric`, taking `node_id`, `tool_name`, or a `metric_id` with an `operator` and a `value` respectively. Ten conditions is the ceiling across all groups.
+
+    ```json
+    {
+      "bluejay_as_code_id": "bab41bd7-84d6-476b-b582-3957ad7b1dfe",
+      "name": "Confirmation Read Back",
+      "prompt": "Before ending the call, did the agent read the full reservation back to the caller and get an explicit confirmation?",
+      "metric_type": "llm_judge",
+      "response_type": "pass_fail",
+      "settings": {
+        "fire_conditions": {
+          "groups": [
+            {
+              "conditions": [
+                { "type": "workflow_node", "node_id": "node_2701krkx52cweknrbj75rbmapswf" }
+              ]
+            }
+          ]
+        }
+      }
+    }
+    ```
+
+    Read your agent's node ids with `GET /v1/agents/{agent_id}/workflow/summary`. Operators are `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, and `not_contains`.
+
+    <Note>
+      You may also see `settings.fire_node_ids`, a flat list of node ids. It still works so that metrics saved before conditions existed keep running, but it can't express joins or the other two condition types. Write `fire_conditions` instead.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Derive a number from other metrics">
+    A quantitative composite declares the metrics it reads in `variables` and combines them in one `master_formula`. A metric is referenced by its id in double quotes, which is the only way to name one, so the formula survives a rename. The grammar is arithmetic only — `+ - * / % **` plus `min`, `max`, `abs`, `round`, `floor`, and `ceil`. A variable whose metric isn't already a number carries a `value_map` turning each of its outcomes into one.
+
+    ```json
+    {
+      "bluejay_as_code_id": "373c5941-90cb-4818-bf5d-a8962cd1beda",
+      "name": "Reservation Quality Score",
+      "prompt": "Weighted 1-5 score: 60% booking clarity, 40% whether every reservation detail was captured.",
+      "metric_type": "composite",
+      "response_type": "quantitative",
+      "min_value": 1,
+      "max_value": 5,
+      "settings": {
+        "composite": {
+          "output_type": "quantitative",
+          "variables": [
+            { "metric_id": "a8c007f9-390d-4d34-9e13-a72a4ad8aed9" },
+            {
+              "metric_id": "af9bd0ed-67b2-4148-9d64-82b2e1a4e325",
+              "value_map": { "pass": 5, "fail": 1 }
+            }
+          ],
+          "master_formula": "round(\"a8c007f9-390d-4d34-9e13-a72a4ad8aed9\" * 0.6 + \"af9bd0ed-67b2-4148-9d64-82b2e1a4e325\" * 0.4)"
+        }
+      }
+    }
+    ```
+
+    The stored result keeps its own arithmetic in `reasoning`, so a derived number stays auditable after the fact.
+  </Accordion>
+
+  <Accordion title="Derive a label from other metrics">
+    A categorical composite swaps the formula for `rules`. Each rule names an `output` and the `conditions` that produce it, in the same two-level shape as `fire_conditions` but comparing declared metrics against numbers. Rules are evaluated in order and the first one that holds wins, so put the strictest first. If none hold the metric is not applicable rather than falling back to a default label. Ten rules, and ten conditions per rule, are the ceilings.
+
+    ```json
+    {
+      "bluejay_as_code_id": "924ba13f-037d-4f34-af93-53b072168ea6",
+      "name": "Reservation Outcome Grade",
+      "metric_type": "composite",
+      "response_type": "enum",
+      "enum_options": ["Clean", "Usable", "Poor"],
+      "settings": {
+        "composite": {
+          "output_type": "categorical",
+          "variables": [
+            { "metric_id": "a8c007f9-390d-4d34-9e13-a72a4ad8aed9" },
+            {
+              "metric_id": "af9bd0ed-67b2-4148-9d64-82b2e1a4e325",
+              "value_map": { "pass": 1, "fail": 0 }
+            }
+          ],
+          "rules": [
+            {
+              "output": "Clean",
+              "conditions": {
+                "groups": [
+                  {
+                    "join": "and",
+                    "conditions": [
+                      { "metric_id": "a8c007f9-390d-4d34-9e13-a72a4ad8aed9", "operator": "greater_than_or_equal", "value": 4 },
+                      { "metric_id": "af9bd0ed-67b2-4148-9d64-82b2e1a4e325", "operator": "equals", "value": 1 }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "output": "Poor",
+              "conditions": {
+                "groups": [
+                  {
+                    "join": "or",
+                    "conditions": [
+                      { "metric_id": "a8c007f9-390d-4d34-9e13-a72a4ad8aed9", "operator": "less_than", "value": 3 },
+                      { "metric_id": "af9bd0ed-67b2-4148-9d64-82b2e1a4e325", "operator": "equals", "value": 0 }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+    ```
+
+    A rule can only read a metric that variables already declares.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Metrics that read other metrics stay one level deep. A conditional metric may produce no result at all, so nothing can be built on top of one: a fire condition or a composite variable pointing at a conditional metric is refused with `422`, and so is turning a metric that other metrics already read into a conditional or composite one. Reference a metric that always evaluates instead.
+</Warning>
+
+Shape errors are quieter than that. A bad `output_type`, or a formula reading a metric `variables` never declared, comes back `200` with `valid: false` and an errors array, because push checks the payload before it reaches the create call. Read `valid` on every push rather than the status code alone.
+
 ### Wiring them together
 
 A simulation's `digital_humans`, an agent's `custom_metrics`, and a custom metric's `agents` are all desired-state arrays, not append-only lists. Push replaces each one with exactly what you listed. Drop an id that was there before, and Bluejay unlinks it without deleting the object itself. See [reconciliation](/key-concepts/bluejay-as-code/overview) in the walkthrough for the full behavior.
