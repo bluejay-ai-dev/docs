@@ -110,20 +110,23 @@ The web-call bridge is inbound-only (the **Outbound** toggle is greyed out on VA
 
 ## Traces: LLM latency, prompts and tool calls
 
-Vapi can stream its Langfuse traces to Bluejay. Point Vapi's Langfuse export at Bluejay once and every call gets a trace on the **Traces** tab: one generation per model turn with the model, parameters, prompt, output, time to first token and end time, and the tool calls the model requested.
+Vapi can stream its Langfuse traces to Bluejay. Once it does, every call gets a trace on the **Traces** tab: one generation per model turn with the model, parameters, prompt, output, time to first token and end time, and the tool calls the model requested.
 
-1. In Vapi, go to **Provider Credentials**, then **Observability Providers**, then **Langfuse**.
-2. Fill in:
-
-| Field | Value |
-|---|---|
-| **Host URL** | `https://api.getbluejay.ai/v1/langfuse` |
-| **Public Key** | `bluejay` (any value works) |
-| **Secret Key** | your Bluejay API key |
-
-3. Save. Vapi verifies the host immediately and starts sending traces for every call on the account.
+In Bluejay, go to **Settings**, then **Integrations**, then **Vapi**, and click **Enable trace export**. Bluejay mints a key that can only deliver traces, registers itself as the Langfuse destination in your Vapi account using the private key you saved, and starts receiving traces for every call. **Disable** removes the credential from Vapi and revokes the key.
 
 Simulated calls are matched to their result automatically, so the trace shows up on the result's **Traces** tab next to the transcript. Calls reported through the webhook above get the same trace on their call log.
+
+<Accordion title="Manual setup">
+  If you would rather configure Vapi yourself, or you use another tool that exports to Langfuse, enter these under **Provider Credentials**, **Observability Providers**, **Langfuse** in Vapi:
+
+  | Field | Value |
+  |---|---|
+  | **Host URL** | `https://api.getbluejay.ai/v1/langfuse` |
+  | **Public Key** | `bluejay` (any value works) |
+  | **Secret Key** | a Bluejay API key |
+
+  Vapi verifies the host as soon as you save.
+</Accordion>
 
 <Note>
   The export is account-wide in Vapi. To trace only some assistants, set `observabilityPlan.tags` on those assistants and filter by tag in Bluejay.
