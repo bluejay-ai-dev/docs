@@ -96,7 +96,7 @@ If your assistant is attached to a Vapi phone number, you can also test it the w
 2. Paste your assistant's Vapi phone number in full international format (e.g. `+15551234567`).
 3. Create a simulation and run it. Bluejay dials the number and the Digital Human holds the conversation.
 
-Use this when you specifically want to exercise the real telephony path: carrier audio, DTMF, the exact number your customers dial. The tradeoff: tool calls aren't linked to the result over a plain phone call, so results cover the conversation itself (transcript, recording, metrics). For tool call capture, use the web-call setup above.
+Use this when you specifically want to exercise the real telephony path: carrier audio, DTMF, the exact number your customers dial. Tool calls still land on the result: after each call Bluejay fetches the call record from Vapi with your private key and attaches the tool calls to the **Tool Adherence** tab and a call trace to the **Traces** tab. For LLM-level traces (latency, prompts) see [Traces](#traces-llm-latency-prompts-and-tool-calls) below.
 
 ## Testing outbound Vapi assistants
 
@@ -107,6 +107,27 @@ The web-call bridge is inbound-only (the **Outbound** toggle is greyed out on VA
 3. In Bluejay, add a webhook subscribed to the `outbound_simulation_started` event (see [Webhooks](/key-concepts/webhooks/overview)). When you run the simulation, it delivers the list of numbers to dial.
 4. When the webhook fires, have your system place the calls through Vapi's outbound call API, one call per Digital Human, with `customer.number` set to each `phone_number` from the payload.
 5. The Digital Humans answer, the conversations run, and results land like any other simulation.
+
+## Traces: LLM latency, prompts and tool calls
+
+Vapi can stream its Langfuse traces to Bluejay. Point Vapi's Langfuse export at Bluejay once and every call gets a trace on the **Traces** tab: one generation per model turn with the model, parameters, prompt, output, time to first token and end time, and the tool calls the model requested.
+
+1. In Vapi, go to **Provider Credentials**, then **Observability Providers**, then **Langfuse**.
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| **Host URL** | `https://api.getbluejay.ai/v1/langfuse` |
+| **Public Key** | `bluejay` (any value works) |
+| **Secret Key** | your Bluejay API key |
+
+3. Save. Vapi verifies the host immediately and starts sending traces for every call on the account.
+
+Simulated calls are matched to their result automatically, so the trace shows up on the result's **Traces** tab next to the transcript. Calls reported through the webhook above get the same trace on their call log.
+
+<Note>
+  The export is account-wide in Vapi. To trace only some assistants, set `observabilityPlan.tags` on those assistants and filter by tag in Bluejay.
+</Note>
 
 ### Troubleshooting
 
