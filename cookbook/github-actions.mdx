@@ -17,7 +17,7 @@ Run Bluejay simulations in GitHub Actions and fail CI if your agent doesn't meet
 The action is a thin client over the Bluejay REST API:
 
 1. It queues a run for the simulation you specify (`POST /v1/queue-simulation-run`).
-2. It polls until the run finishes (`GET /v1/retrieve-simulation-results/{run_id}`).
+2. It polls until the run finishes (`GET /v1/retrieve-simulation-results/{run_id}`). The score uses `tests_passed` and `total_tests` on `simulation_run`, which is the full run even though `simulation_results` is now one page of at most 100 conversations.
 3. It computes the score as the **pass rate**: `tests_passed / total_tests × 100`.
 4. The step fails if the run doesn't complete successfully, or the score is below `min_score`.
 
