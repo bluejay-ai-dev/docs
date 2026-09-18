@@ -1,7 +1,7 @@
 ---
 title: 'Retrieve Call Log'
 description: "Retrieve a single call log by its call ID."
-openapi: 'GET /v1/retrieve-call-log/{call_id}'
+api: 'GET /v1/retrieve-call-log/{call_id}'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Retrieve Call Log — GET /v1/retrieve-call-log/{call_id}
 
-> **What this endpoint does:** Retrieve a single call log by its call ID. Returns the call, including evaluations.
+> **What this endpoint does:** Retrieve a single call log by its call ID. Returns the call, including evaluations and `credits_used`.
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/retrieve-call-log/{call_id}`
 **Auth:** `X-API-Key` header
@@ -51,5 +51,32 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+Retrieves the call log for a specific call identified by `call_id`. The response includes evaluations, hallucinations, redundancy, custom evaluation metrics, and `credits_used`.
 
-Retrieves the call log for a specific call identified by `call_id`. This endpoint returns detailed information about the call, including evaluations, hallucinations, redundancy, and custom evaluation metrics.
+`credits_used` is the credits burned by this call. It is `null` until usage has landed and can be priced.
+
+## Path
+
+`GET /v1/retrieve-call-log/{call_id}`
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| call_id | path | string | yes | ID of the call |
+| X-API-Key | header | string | yes | API key |
+| X-Organization-Id | header | string | no | Organization to scope the request |
+
+## Response
+
+```json
+{
+  "call_log": {},
+  "credits_used": 0.018,
+  "status": "200"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| call_log | object | The call, including evaluations |
+| credits_used | number or null | Credits burned by this call. Null until usage has landed and can be priced. |
+| status | string | `"200"` on success |
