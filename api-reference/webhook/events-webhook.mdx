@@ -41,6 +41,15 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | simulation_id | integer | yes | The ID of the simulation |
 | simulation_run_id | integer | yes | The ID of the simulation run |
 | digital_humans | array[object] | yes | The Digital Humans that were run for this simulation run |
+| **Variant: `observability_alert_triggered`** | | | |
+| alert_id | string | yes | The ID of the alert |
+| alert_name | string | yes | The name of the alert |
+| subtype | string | yes | `triggered` or `recovered` |
+| **Variant: `simulation_alert_triggered`** | | | |
+| alert_id | string | yes | The ID of the alert |
+| alert_name | string | yes | The name of the alert |
+| subtype | string | yes | `triggered` or `recovered` |
+| simulation_run_id | integer | no | The simulation run that crossed the threshold |
 
 ### Payload Schema
 Discriminated by `type`:
@@ -309,6 +318,39 @@ Discriminated by `type`:
       ]
     }
   ]
+}
+```
+
+**When `type` = `observability_alert_triggered`:**
+```json
+{
+  "type": "observability_alert_triggered",
+  "subtype": "triggered",
+  "alert_id": "string",
+  "alert_name": "string",
+  "display_text": "string",
+  "organization_id": "string",
+  "agent_id": 123,
+  "event_count": 123,
+  "min_events": 123
+}
+```
+
+**When `type` = `simulation_alert_triggered`:**
+```json
+{
+  "type": "simulation_alert_triggered",
+  "subtype": "triggered",
+  "alert_id": "string",
+  "alert_name": "string",
+  "display_text": "string",
+  "organization_id": "string",
+  "agent_id": 123,
+  "simulation_id": 123,
+  "simulation_run_id": 123,
+  "actual_value": 1.0,
+  "operator": "less_than",
+  "comparison_value": "string"
 }
 ```
 
