@@ -25,7 +25,7 @@ flowchart LR
 
 ## Integration Methods
 
-Bluejay supports three methods for tool call tracking, depending on your infrastructure.
+Bluejay supports four methods for tool call tracking, depending on your infrastructure.
 
 ### SIP Integration (Recommended for Phone Systems)
 
@@ -68,9 +68,22 @@ Bluejay joins the LiveKit room alongside your agent. When your agent invokes a t
 
 [LiveKit Integration Guide →](/simulation-integrations/livekit#tool-call-tracking)
 
+### Vapi (Automatic)
+
+**Best for**: agents hosted on Vapi and tested by dialing their phone number.
+
+Connect Vapi with your private key (see the [Vapi Integration Guide](/simulation-integrations/vapi)) and Bluejay fetches each simulated call from Vapi after it ends. Tool calls appear on the **Tool Adherence** tab and a trace of the call (turns and tool executions) on the **Traces** tab, with no changes to your agent.
+
+**Flow:**
+1. Add your Vapi private key under **Integrations**
+2. Run simulations against the agent's Vapi phone number as usual
+3. After each call ends, Bluejay matches it to the Vapi call record and attaches the tool calls and trace
+
+Bluejay matches on the number it dialed from, the call's start and end times, and the transcript, so concurrent calls to the same number are attributed correctly. The data lands a few minutes after the call ends, once Vapi has finished writing the call record.
+
 ### Why SIP for Phone-Based Agents?
 
-If your agent runs through traditional phone systems (PSTN), basic telephony integration does **not** support tool call enrichment. To unlock tool call and metadata tracking for phone-based agents, you need SIP.
+If your agent runs through traditional phone systems (PSTN), basic telephony integration does **not** support tool call enrichment. To unlock tool call and metadata tracking for phone-based agents, you need SIP. Agents hosted on Vapi are the exception: Bluejay reads their tool calls from Vapi directly, as described above.
 
 | Feature | Basic Telephony | SIP Integration |
 |---------|----------------|-----------------|
@@ -87,6 +100,7 @@ If your agent runs through traditional phone systems (PSTN), basic telephony int
 ### 1. Choose Your Integration Method
 
 - **Phone-based agents** → follow the [SIP Integration Guide](/simulation-integrations/sip)
+- **Vapi-hosted agents** → connect Vapi under **Integrations**; nothing else to do
 - **Web-based agents** → follow the [WebSocket Integration Guide](/simulation-integrations/websockets)
 
 ### 2. Track Tool Calls in Your Agent
