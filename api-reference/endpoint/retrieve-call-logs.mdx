@@ -1,6 +1,6 @@
 ---
 title: 'Retrieve Call Logs'
-description: "DEPRECATED. Use GET /v1/observability/conversations instead."
+description: "Retrieve an agent's call logs, newest first, each with its transcript."
 openapi: 'GET /v1/retrieve-call-logs/{agent_id}'
 ---
 <div className="ai-prompt-box">
@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Retrieve Call Logs — GET /v1/retrieve-call-logs/{agent_id}
 
-> **What this endpoint does:** **DEPRECATED**. Use GET `/v1/observability/conversations` instead, which takes the same filters plus metric and metadata filters. Each row includes `metric_results`.
+> **What this endpoint does:** Returns an agent's call logs, newest first, paged. Each call log includes its diarized `transcript`, evaluations, tool calls and `metrics`.
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}`
 **Auth:** `X-API-Key` header
@@ -54,6 +54,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-**DEPRECATED.** Use `GET /v1/observability/conversations` instead. Pass `agent_ids` to scope to an agent. Each row includes `metric_results`.
+Returns call logs for `agent_id`, newest first. Page through with `page` and `page_size` (up to 100), and use `last=all` for the full history.
 
-This endpoint still works for existing integrations. It returns call logs for `agent_id`, including evaluations.
+Each call log includes `transcript`: the diarized transcript, one entry per utterance with `speaker`, `utterance`, `start_offset_ms` and `end_offset_ms`.
