@@ -20,14 +20,35 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| simulation_result_id | string | Simulation result ID provided via SIP for the specific call |
+| simulation_result_id | string | Simulation result ID from the SIP `X-Simulation-Result-Id` header. Omit this when sending `start_time`, `end_time`, and `duration` instead. |
+
+Send `simulation_result_id`, or all three of `start_time`, `end_time`, and `duration`. One of those two identities is required.
+
+| Name | Type | Description |
+|------|------|-------------|
+| start_time | string | Call start, ISO-8601 with a timezone. |
+| end_time | string | Call end, ISO-8601 with a timezone. |
+| duration | integer | Call duration in seconds. |
 
 Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-simulation-result and include any optional parameters (e.g., `events`, `tool_calls`, `recorded_transcript`, `tags`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
-### Request Body (required fields)
+### Request Body
 ```json
 {
   "simulation_result_id": "string"
+}
+```
+
+Or, without the id:
+
+```json
+{
+  "start_time": "2026-09-29T18:00:00Z",
+  "end_time": "2026-09-29T18:02:00Z",
+  "duration": 120,
+  "recorded_transcript": [
+    {"speaker": "AGENT", "utterance": "Hello", "start_offset_ms": 0, "end_offset_ms": 400}
+  ]
 }
 ```
 
@@ -68,3 +89,9 @@ The simulation result ID can be found as a header of the websocket connect messa
 
 This ID associates your tool calls, events, tags, and metadata with the specific simulation result.
 Given this ID, this endpoint updates your simulation result to enrich the simulation with the tool calls, events, tags, and metadata you provide.
+
+If you do not have the ID, send `start_time`, `end_time`, and `duration` (seconds) instead. Bluejay looks in the workspaces your key can see for a connected simulation. Calls without a stored duration are always treated as candidates. When duration is stored, the stored start is compared to `start_time` and the end (stored start plus stored duration) is compared to `end_time`; both must fall within 90 seconds, and the stored duration must be within the larger of 5 seconds and 10% of `duration`.
+
+When you omit `recorded_transcript`, or send one with no readable words, exactly one call must match the window; that call is updated. When you include a transcript, every call in the window is scored: one call is kept only when the transcript shares at least 80% of its normalized words, and several calls are separated only when the closest transcript leads the next one by at least 0.08 on that same score. If more than one call is in the window and the transcript does not separate them, the response is `409` and nothing is written.
+
+`404` means nothing in your organization matched the window. `409` means the transcript was missing, not stored yet, too close to separate the calls, or not close enough to the only call in the window. Send `simulation_result_id` in that case.
