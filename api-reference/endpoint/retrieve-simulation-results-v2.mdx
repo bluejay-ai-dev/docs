@@ -1,0 +1,64 @@
+---
+title: Retrieve Simulation Results v2
+description: Graded success-criteria bullets and pass rate for every result in a run
+---
+
+<Note>
+Same path as [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results), under `/v2`. `/v1` is unchanged and does not include `criteria` or `criteria_pass_rate`.
+</Note>
+
+**Endpoint:** `GET https://api.getbluejay.ai/v2/retrieve-simulation-results/{simulation_run_id}`
+**Auth:** `X-API-Key` header
+
+Query parameters match `/v1`: `limit`, `offset`, and optional `issue_ids`.
+
+Each result includes the v1 payload plus:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `criteria_pass_rate` | number \| null | Share of success-criteria bullets that passed, `0`–`100`. |
+| `criteria` | object[] | Per-bullet grade: `id`, `text`, `passed`, `reasoning`. |
+
+`goal_success` is still present and is `true` only when every bullet passed.
+
+```python
+import requests
+
+def retrieve_simulation_results_v2(simulation_run_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v2/retrieve-simulation-results/{simulation_run_id}"
+    response = requests.get(url, headers={"X-API-Key": api_key})
+    response.raise_for_status()
+    return response.json()
+```
+
+```json
+{
+  "simulation_run": { "status": "COMPLETED" },
+  "simulation_results": [
+    {
+      "id": "184201",
+      "criteria_pass_rate": 75.0,
+      "criteria": [
+        {
+          "id": "greet",
+          "text": "Agent greets the caller and confirms the account",
+          "passed": true,
+          "reasoning": "Caller name and account were confirmed on the first turn."
+        },
+        {
+          "id": "transfer",
+          "text": "Agent offers a live transfer when the caller asks for a person",
+          "passed": false,
+          "reasoning": "Caller asked for a person; the agent stayed in self-serve."
+        }
+      ],
+      "evaluations": [
+        { "goal_success": false }
+      ]
+    }
+  ],
+  "status": "200"
+}
+```
+
+See [Success Criteria](/key-concepts/digital-humans/success-criteria) for the v1 / v2 contract.

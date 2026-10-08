@@ -65,4 +65,8 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 
 Given the simulation ID and generation options, this endpoint creates Digital Humans from scenarios. Payload shape and validation rules (including scenario-based generation) are documented in the OpenAPI schema on this page. For graph-based paths, see [Create scenario](/api-reference/endpoint/create-scenario) and the [Scenario Builder cookbook](/cookbook/scenario-builder).
 
+<Note>
+`success_criteria` on this `/v1` response is a newline-joined **string**. Generate writes itemized bullets to the database; the jsonb list `[{id, text}]` is a `/v2` generate response. Do not expect an array from `/v1/generate-digital-humans`. See [Success Criteria](/key-concepts/digital-humans/success-criteria).
+</Note>
+
 The generate request does not accept `allow_silence_tool` or `silence_tool_instructions`; those are set when you create or update a Digital Human explicitly. Generated or returned `digital_human` objects in responses may still include those fields at model defaults (`allow_silence_tool` false, `silence_tool_instructions` `"default"`). Whether the silence tool runs in voice simulations is determined by the execution layer that reads stored test-case data, not by this API alone.
