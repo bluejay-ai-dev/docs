@@ -1,0 +1,84 @@
+---
+title: Success Criteria
+description: Author expected behaviors as bullets, grade each one, and read the list on /v2
+icon: list-check
+---
+
+Success criteria are the assertions on a Digital Human. Write them as discrete expected behaviors. Bluejay grades each bullet met / not met, keeps an overall pass/fail, and exposes the checklist on `/v2`.
+
+`/v1` stays a string so existing integrations do not break.
+
+## Author bullets, not a paragraph
+
+Each bullet is one checkable behavior. A paragraph still grades — Bluejay wraps it as a single bullet — but a reviewer cannot see *which* behavior failed.
+
+<Check>
+Write one bullet per expected behavior:
+
+- Agent greets the caller and confirms the account
+- Agent states the required disclosure before collecting PII
+- Agent offers a live transfer when the caller asks for a person
+- Agent recaps next steps before hangup
+</Check>
+
+In the dashboard, add bullets on the Digital Human. On `/v1` create, update, and generate, send a newline-separated string — Bluejay stores it as `[{id, text}]`.
+
+Use [custom metrics](/key-concepts/custom-metrics/overview) for a different dimension (tone, compliance, latency). Do not invent a metric per success-criteria bullet.
+
+## How a call is graded
+
+The Success metric stays one metric. The judge returns a verdict per bullet.
+
+| Field | Meaning |
+| --- | --- |
+| `criteria[]` | Each authored bullet with `id`, `text`, `passed`, `reasoning` |
+| `criteria_pass_rate` | Share of bullets that passed, `0`–`100` |
+| `goal_success` | `true` only when every bullet passed (`criteria_pass_rate == 100`) |
+
+A call that meets 3 of 4 behaviors is **75** on `/v2` and **fail** on `/v1`. Reviewers override individual bullets; the rate and overall pass/fail recompute from the full list.
+
+Goal widgets average `criteria_pass_rate`. Older rows with no criteria list fall back to boolean 100 / 0.
+
+## `/v1` vs `/v2`
+
+Storage is always jsonb `[{id, text}]` on the test case. The HTTP version decides what the caller sees.
+
+| Surface | `success_criteria` / grade |
+| --- | --- |
+| `/v1` digital human get, create, update, delete | Newline-joined **string** |
+| `POST /v1/generate-digital-humans` | Writes bullets internally, returns a **string** |
+| `GET /v1/retrieve-simulation-result(s)` | `goal_success` boolean only |
+| `GET /v2/retrieve-simulation-result(s)` | `criteria[]` + `criteria_pass_rate` |
+| `POST /v2/generate-digital-humans` | Returns `[{id, text}]` — this is the generate list. Do not put that list on `/v1`. |
+
+<Note>
+Generate already itemizes bullets in the database. The jsonb list on the **generate response** is a `/v2` field. `/v1/generate-digital-humans` will keep returning a string.
+</Note>
+
+```python
+import os
+import requests
+
+BASE = "https://api.getbluejay.ai"
+headers = {"X-API-Key": os.environ["BLUEJAY_API_KEY"]}
+
+# v1 — same string contract as before
+dh = requests.get(f"{BASE}/v1/get-digital-human/{dh_id}", headers=headers).json()
+print(dh["success_criteria"])
+# "Agent greets the caller\nAgent states the disclosure"
+
+# v2 — graded checklist after a run
+result = requests.get(
+    f"{BASE}/v2/retrieve-simulation-result/{result_id}",
+    headers=headers,
+).json()["simulation_result"]
+print(result["criteria_pass_rate"], result["criteria"])
+```
+
+## Where to read the checklist
+
+- Conversation details in the app — each bullet with met / not met, plus per-bullet override
+- [Retrieve Simulation Results v2](/api-reference/endpoint/retrieve-simulation-results-v2) and [Retrieve Simulation Result v2](/api-reference/endpoint/retrieve-simulation-result-v2)
+- Goal widgets — average of the 0–100 rate
+
+[Retrieve v1](/api-reference/endpoint/retrieve-simulation-results) is unchanged: `goal_success` is still pass/fail.
