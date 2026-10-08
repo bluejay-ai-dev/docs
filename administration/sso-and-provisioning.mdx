@@ -1,0 +1,87 @@
+---
+title: 'SSO and User Provisioning'
+description: 'Sign in with your identity provider over SAML, and let it add and remove your team automatically over SCIM'
+icon: shield-check
+---
+
+Enterprise organizations can sign in to Bluejay through their identity provider (IdP) with SAML single sign-on, and let that IdP add and remove people automatically with SCIM 2.0. Okta, Microsoft Entra ID, OneLogin, and any other SAML 2.0 and SCIM 2.0 provider work.
+
+An organization admin sets up both under **Settings → Security → Organization**.
+
+## Single sign-on (SAML)
+
+<Steps>
+  <Step title="Create a SAML app in your IdP">
+    Create a SAML 2.0 application named Bluejay with these values:
+
+    | Field | Value |
+    |-------|-------|
+    | Single sign-on URL (ACS URL) | `https://auth.getbluejay.ai/auth/v1/sso/saml/acs` |
+    | Audience URI (SP Entity ID) | `https://auth.getbluejay.ai/auth/v1/sso/saml/metadata` |
+    | Name ID format | `EmailAddress` |
+    | Application username | Email |
+  </Step>
+  <Step title="Assign people">
+    Assign the app to everyone who should have Bluejay access.
+  </Step>
+  <Step title="Turn on SSO in Bluejay">
+    In **Settings → Security → Organization → Single Sign-On**, paste your IdP's metadata URL (or the metadata XML) and the email domains that should use SSO, then save.
+  </Step>
+  <Step title="Sign in">
+    Your team opens [app.getbluejay.ai](https://app.getbluejay.ai), clicks **Continue with SSO**, and enters their work email. Bluejay sends them to your IdP and back. Clicking the Bluejay tile in your IdP's dashboard works too.
+  </Step>
+</Steps>
+
+<Note>
+Once SSO is on, everyone with an email on those domains signs in through your IdP.
+</Note>
+
+SSO signs people in; it does not decide who belongs to your organization. A person needs to be a member already, or have a pending invite, before their first SSO sign-in. Invite people from the **Team** page, or let your IdP do it with SCIM below.
+
+A person's first SSO sign-in creates a new Bluejay account for them in your organization. If they also had a password or Google account, remove the old one from the **Team** page once SSO works for them.
+
+## User provisioning (SCIM)
+
+With SCIM, assigning someone to the Bluejay app in your IdP gives them access, and removing them takes it away. Nobody has to invite or remove people by hand.
+
+SSO must be turned on first.
+
+<Steps>
+  <Step title="Generate a token in Bluejay">
+    In **Settings → Security → Organization → User provisioning (SCIM)**, click **Generate token**. Copy the base URL and the token. The token is shown once.
+
+    | Setting | Value |
+    |---------|-------|
+    | SCIM base URL | `https://api.getbluejay.ai/scim/v2` |
+    | Authentication | Bearer token: `Authorization: Bearer <token>`. Sending the token alone in `Authorization` also works. |
+  </Step>
+  <Step title="Connect your IdP">
+    On the Bluejay app in your IdP, turn on SCIM provisioning. Enter the base URL and the token, set the unique identifier to `userName` (email), and test the connection.
+  </Step>
+  <Step title="Choose what syncs">
+    Turn on **Create users**, **Update user attributes**, and **Deactivate users**.
+  </Step>
+  <Step title="Assign people">
+    Assign people, or groups of people, to the Bluejay app. Each one is provisioned.
+  </Step>
+</Steps>
+
+### What happens
+
+| In your IdP | In Bluejay |
+|-------------|------------|
+| Assign a person | They can sign in with SSO right away. No invite email is sent. |
+| Change their name | Their name updates in Bluejay. |
+| Unassign or deactivate them | They lose access to your organization on their next request: they are signed out and their API keys in your organization are revoked. Their access to other organizations is unaffected. |
+| Assign them again | They can sign in again. Their work stays in your organization. |
+
+### Details
+
+- Everyone provisioned joins as a **Member**. Change roles on the **Team** page.
+- Only emails on your organization's SSO domains can be provisioned.
+- Groups are not synced as Bluejay roles or workspaces. Assigning a group to the app provisions each person in it.
+- Clicking **Generate token** again replaces the token; the old one stops working right away, so update your IdP. **Revoke** stops syncing; people who already have access keep it.
+
+### Supported endpoints
+
+Bluejay implements SCIM 2.0 users: `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` on `/Users`, with `userName eq` and `externalId eq` filters, plus `/ServiceProviderConfig`, `/Schemas`, and `/ResourceTypes`.
