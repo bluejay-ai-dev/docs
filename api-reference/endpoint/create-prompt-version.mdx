@@ -1,18 +1,18 @@
 ---
-title: 'Create Agent Version'
-description: "Create a new agent version under /agents/{agent_id}/versions."
-openapi: 'POST /v1/agents/{agent_id}/versions'
+title: "Create Agent Version"
+description: "Create a new agent version for a Bluejay agent. If you omit prompt_text, Bluejay copies the current prompt to the next version."
+openapi: "POST /v1/agents/{agent_id}/versions"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Agent Version — POST /v1/agents/{agent_id}/versions
+## Create Agent Version: POST /v1/agents/{agent_id}/versions
 
-> **What this endpoint does:** create a new agent version under /agents/{agent_id}/versions.
+> **What this endpoint does:** create a new prompt version under /agents/{agent_id}/prompts/versions.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/versions`
 **Auth:** `X-API-Key` header
@@ -24,25 +24,29 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | agent_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-`prompt_text` is optional. Omit it to copy the current prompt (the agent's latest version) and increment the version. Send `""` to store a blank prompt.
-
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version and include any optional parameters (e.g., `prompt_text`, `commit_message`, `labels`, `override_label`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version and include any optional parameters (e.g., `X-Organization-Id`, `prompt_text`, `commit_message`, `labels`, `override_label`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body
 ```json
 {
-  "prompt_text": "You are a helpful assistant."
+  "prompt_text": "string",
+  "commit_message": "string",
+  "labels": [
+    "string"
+  ],
+  "override_label": true,
+  "metadata": {
+    "key": "value"
+  }
 }
 ```
-
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
 ### Example
 **POST with body:**
 ```python
 import requests
 
-def create_prompt_version(agent_id: int, payload: dict, api_key: str) -> dict:
+def create_agent_version(agent_id: int, payload: dict, api_key: str) -> dict:
     url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
     headers = {"X-API-Key": api_key}
     response = requests.post(url, headers=headers, json=payload)
@@ -51,7 +55,7 @@ def create_prompt_version(agent_id: int, payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -65,10 +69,7 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-<Note>
-  **New:** `POST /v1/agents/{agent_id}/versions`
 
-  **Deprecated:** `POST /v1/agents/{agent_id}/prompts/versions`. Old path, still works.
-</Note>
+Creates the next agent version of an agent. `prompt_text` is optional. If you omit it, Bluejay copies the current prompt.
 
-Creates a new agent version under `/agents/{agent_id}/versions`. `prompt_text` is optional. Omit it to copy the current prompt and increment the version.
+`POST /v1/agents/{agent_id}/prompts/versions` is the deprecated path of this endpoint.

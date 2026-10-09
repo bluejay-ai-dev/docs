@@ -1,18 +1,18 @@
 ---
-title: 'Get scenario'
-description: 'Fetch one scenario by UUID, including the full typed React Flow definition.'
-openapi: 'GET /v1/scenario/{workflow_id}'
+title: "Get Scenario"
+description: "Get one Bluejay Scenario Builder scenario by UUID. The response has the full typed React Flow definition of the nodes and edges of the graph."
+openapi: "GET /v1/scenario/{workflow_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Get scenario — GET /v1/scenario/{workflow_id}
+## Get Scenario: GET /v1/scenario/{workflow_id}
 
-> **What this endpoint does:** Returns one scenario if it exists and belongs to your organization (otherwise 404). The `definition` field is a React Flow graph with the same typed node and `data` shapes as create/update (see **components** — graph definition, nodes, and branch-option schemas).
+> **What this endpoint does:** Get one workflows_v2 by ID (organization must match).
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/scenario/{workflow_id}`
 **Auth:** `X-API-Key` header
@@ -20,16 +20,18 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
-| workflow_id | string (UUID) | Path parameter for the scenario to fetch (named `workflow_id` for backward compatibility). |
+| workflow_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-scenario and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **Simple GET:**
 ```python
 import requests
 
-def get_scenario(scenario_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/scenario/{scenario_id}"
+def get_scenario(workflow_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/scenario/{workflow_id}"
     headers = {"X-API-Key": api_key}
     response = requests.get(url, headers=headers)
     response.raise_for_status()
@@ -37,9 +39,9 @@ def get_scenario(scenario_id: str, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 401: Unauthorized; 404: Not found or no access; 500: Server error.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -52,4 +54,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Use this to load the full graph (`definition`) for editing or execution setup. Interpret `nodes`/`edges` using the discriminated OpenAPI types so `single` vs `options` vs `start` and each `data` variant deserialize correctly.
+Returns one scenario with its full `definition`. The path parameter `workflow_id` is the scenario UUID.

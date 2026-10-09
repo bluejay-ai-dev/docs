@@ -1,16 +1,16 @@
 ---
-title: 'Create Simulation'
-description: "Create a new simulation with the provided details. Returns the simulation ID and a status code."
-openapi: 'POST /v1/create-simulation'
+title: "Create Simulation"
+description: "Create a Bluejay simulation for an agent. A simulation groups Digital Humans and settings so that you can run them together as one run."
+openapi: "POST /v1/create-simulation"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Simulation — POST /v1/create-simulation
+## Create Simulation: POST /v1/create-simulation
 
 > **What this endpoint does:** Create a new simulation with the provided details. Returns the simulation id and a status code.
 
@@ -24,7 +24,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | X-API-Key | string | API key required to authenticate requests. |
 | agent_id | string | ID of the agent to be used in the simulation |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-simulation and include any optional parameters (e.g., `name`, `description`, `agent_version_id`, `knowledge_base_id`, `sequential_calling`, `max_concurrent`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-simulation and include any optional parameters (e.g., `X-Organization-Id`, `name`, `description`, `prompt_id`, `agent_version_id`, `knowledge_base_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
@@ -49,7 +49,7 @@ def create_simulation(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -63,10 +63,7 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-<Note>
-  **New:** `agent_version_id`
 
-  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
-</Note>
+Creates a simulation for an agent and returns `simulation_id`.
 
- Given the agent ID, and simulation settings, this endpoint creates a simulation and returns the simulation ID.
+`prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.

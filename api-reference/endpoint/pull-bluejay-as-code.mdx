@@ -1,18 +1,16 @@
 ---
 title: "Pull Bluejay as Code"
-description: "Export a Bluejay configuration as a JSON payload, rooted at any of four entity types."
+description: "Export a Bluejay configuration as JSON from a root simulation, agent, Digital Human, or custom metric, with a bluejay_as_code_id on each item."
 openapi: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Pull Bluejay as Code — GET /v1/bluejay-as-code/{root_type}/{root_id}
-
-> **What this endpoint does:** Export a Bluejay configuration as a JSON payload, rooted at any of four entity types. The simulation root (`/v1/bluejay-as-code/simulation/{id}`) is the most common — it returns the simulation, its agent, all linked Digital Humans, and all associated custom metrics, each with `bluejay_as_code_id` populated. Use this payload as the starting point for version-controlled config management.
+## Pull Bluejay as Code: GET /v1/bluejay-as-code/{root_type}/{root_id}
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}`
 **Auth:** `X-API-Key` header
@@ -20,30 +18,19 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
+| root_type | string (enum: simulation, agent, digital-human, custom-metric) |  |
+| root_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
-| root_type | string (path) | One of `simulation`, `agent`, `digital-human`, `custom-metric`. Determines which entity anchors the bundle. |
-| root_id | string (path) | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity to export. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/pull-bluejay-as-code.
-
-### Response Shape
-```json
-{
-  "agents": [ { "bluejay_as_code_id": "...", ... } ],
-  "simulations": [ { "bluejay_as_code_id": "...", ... } ],
-  "digital_humans": [ { "bluejay_as_code_id": "...", ... } ],
-  "custom_metrics": [ { "bluejay_as_code_id": "...", ... } ]
-}
-```
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/pull-bluejay-as-code and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
+**Simple GET:**
 ```python
 import requests
 
-def pull_bluejay_as_code(simulation_id: str, api_key: str) -> dict:
-    # Most integrations anchor on a simulation. You can also use root_type
-    # "agent", "digital-human", or "custom-metric" to anchor on those entities.
-    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/simulation/{simulation_id}"
+def pull_bluejay_as_code(root_type: str, root_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
     headers = {"X-API-Key": api_key}
     response = requests.get(url, headers=headers)
     response.raise_for_status()
@@ -51,9 +38,9 @@ def pull_bluejay_as_code(simulation_id: str, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Commit the returned `bluejay_as_code_id` values into your config file — do not auto-generate them at runtime.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -64,3 +51,10 @@ Before writing code, verify:
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
+
+
+Exports a bundle of `agents`, `simulations`, `digital_humans`, and `custom_metrics`. Each item has a `bluejay_as_code_id`.
+
+`root_type` is `simulation`, `agent`, `digital-human`, or `custom-metric`. `root_id` is the Bluejay ID or the `bluejay_as_code_id` of the root.
+
+Commit the `bluejay_as_code_id` values to your config. Do not create new values for each push.

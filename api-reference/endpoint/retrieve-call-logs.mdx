@@ -1,18 +1,19 @@
 ---
-title: 'Retrieve Call Logs'
-description: "DEPRECATED. Use GET /v1/observability/conversations instead."
-openapi: 'GET /v1/retrieve-call-logs/{agent_id}'
+title: "Retrieve Call Logs"
+description: "Deprecated. List Bluejay call logs for one agent. Use List Conversations, which has the same filters and adds metric and metadata filters."
+openapi: "GET /v1/retrieve-call-logs/{agent_id}"
+deprecated: true
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Retrieve Call Logs — GET /v1/retrieve-call-logs/{agent_id}
+## Retrieve Call Logs: GET /v1/retrieve-call-logs/{agent_id}
 
-> **What this endpoint does:** **DEPRECATED**. Use GET `/v1/observability/conversations` instead, which takes the same filters plus metric and metadata filters. Each row includes `metric_results`.
+> **What this endpoint does:** Deprecated. Use GET /v1/observability/conversations, which takes the same filters plus metric and metadata filters and grouped counts.
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}`
 **Auth:** `X-API-Key` header
@@ -23,7 +24,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | agent_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/retrieve-call-logs and include any optional parameters (e.g., `label`, `page_size`, `page`, `last`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/retrieve-call-logs and include any optional parameters (e.g., `label`, `page_size`, `page`, `last`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **Simple GET:**
@@ -39,7 +40,7 @@ def retrieve_call_logs(agent_id: str, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -54,6 +55,8 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-**DEPRECATED.** Use `GET /v1/observability/conversations` instead. Pass `agent_ids` to scope to an agent. Each row includes `metric_results`.
+<Warning>
+  This endpoint is deprecated. Use [List Conversations](/api-reference/endpoint/list-conversations) with `agent_ids`.
+</Warning>
 
-This endpoint still works for existing integrations. It returns call logs for `agent_id`, including evaluations.
+Returns call logs for one agent, with evaluations.

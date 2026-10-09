@@ -1,0 +1,61 @@
+---
+title: "Delete Custom Background Noise"
+description: "Remove a custom background noise from the Bluejay library. The request fails with 409 while a Digital Human still uses the noise."
+openapi: "DELETE /v1/custom-background-noises/{noise_id}"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Delete Custom Background Noise: DELETE /v1/custom-background-noises/{noise_id}
+
+> **What this endpoint does:** Remove a noise from the library. Blocked (409) while any digital human still references its storage_path. Never deletes the storage object.
+
+**Endpoint:** DELETE `https://api.getbluejay.ai/v1/custom-background-noises/{noise_id}`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| noise_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-custom-background-noise and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Example
+**DELETE request:**
+```python
+import requests
+
+def delete_custom_background_noise(noise_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/custom-background-noises/{noise_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.delete(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Removes a custom background noise from the library. The stored file is not deleted.
+
+The response is 409 while a Digital Human uses the noise. Remove it from those Digital Humans first.
+
+Rate limit: 30 requests per minute.

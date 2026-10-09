@@ -1,9 +1,85 @@
 ---
-title: 'Update Uptime Monitor'
-description: 'Update an uptime monitor. Partial update: only the fields you pass are changed.'
-openapi: 'PUT /v1/uptime/monitors/{monitor_id}'
+title: "Update Uptime Monitor"
+description: "Update a Bluejay uptime monitor by monitor_id. Only the fields that you send change. A new checks list replaces the full list."
+openapi: "PUT /v1/uptime/monitors/{monitor_id}"
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
-`checks` replaces the whole array, so include every check you want to keep — the template checks plus any custom-metric or digital-human entries. See [Create Uptime Monitor](/api-reference/endpoint/create-uptime-monitor) for the check and notification shapes.
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-Changing `checks` or `agent_id` rebuilds the monitor's backing simulation; notification and pause/resume edits do not.
+## Update Uptime Monitor: PUT /v1/uptime/monitors/{monitor_id}
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| monitor_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-uptime-monitor and include any optional parameters (e.g., `X-Organization-Id`, `agent_id`, `frequency`, `active_window`, `checks`, `notifications`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
+```json
+{
+  "agent_id": 123,
+  "frequency": "string",
+  "active_window": {
+    "days": [
+      "monday"
+    ],
+    "start_time": "string",
+    "end_time": "string",
+    "timezone": "string"
+  },
+  "checks": [
+    {
+      "key": "value"
+    }
+  ],
+  "notifications": {
+    "key": "value"
+  },
+  "enabled": true,
+  "start_at": "string"
+}
+```
+
+### Example
+**PUT with body:**
+```python
+import requests
+
+def update_uptime_monitor(monitor_id: str, payload: dict, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Updates an uptime monitor. Only the fields you send change.
+
+- `checks` replaces the full list. Send every check you want to keep. For the shapes, see [Create Uptime Monitor](/api-reference/endpoint/create-uptime-monitor).
+- A change to `checks` or `agent_id` rebuilds the simulation of the monitor. Notification, pause, and resume changes do not.

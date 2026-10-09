@@ -1,44 +1,58 @@
 ---
-title: 'Attach Agent to Knowledge Base'
-description: 'Give an agent access to a knowledge base'
-openapi: 'POST /v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}'
+title: "Attach Agent to Knowledge Base"
+description: "Give a Bluejay agent access to a knowledge base. The request is idempotent. Attaching the same agent again does not add a duplicate."
+openapi: "POST /v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Attach Agent to Knowledge Base — POST /v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}
-
-> **What this endpoint does:** Give an agent access to a knowledge base.
+## Attach Agent to Knowledge Base: POST /v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}`
 **Auth:** `X-API-Key` header
 
-### Parameters
+### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
+| knowledge_base_id | string |  |
+| agent_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
-| knowledge_base_id | string (uuid) | **Required.** The knowledge base. |
-| agent_id | integer | **Required.** The agent to attach. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/attach-agent-to-knowledge-base and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
+**POST with body:**
 ```python
 import requests
 
-def attach_agent(kb_id: str, agent_id: int, api_key: str) -> dict:
-    r = requests.post(f"https://api.getbluejay.ai/v1/knowledge-base/{kb_id}/agents/{agent_id}", headers={"X-API-Key": api_key})
-    r.raise_for_status()
-    return r.json()
+def attach_agent_to_knowledge_base(knowledge_base_id: str, agent_id: int, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Handle 404 (not found / not in your organization) and 422 (validation error).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-Attaching is idempotent — re-attaching the same agent will not create duplicates.
+
+Links an agent to a knowledge base. A second request for the same pair does not add a duplicate.
+
+Rate limit: 60 requests per minute.

@@ -1,5 +1,57 @@
 ---
-title: 'Get Alert Results'
-description: 'Retrieve the fired results for an alert, each resolved to the simulation run or observability call that caused it.'
-openapi: 'GET /v1/alerts/{alert_id}/results'
+title: "Get Alert Results"
+description: "List the times a Bluejay alert fired, newest first. Each result links to the simulation run or the production call that caused it."
+openapi: "GET /v1/alerts/{alert_id}/results"
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Get Alert Results: GET /v1/alerts/{alert_id}/results
+
+> **What this endpoint does:** Get an alert's fired results (events). Config is read from the unified ``alerts`` table; events are read from ClickHouse (observability_alert_events / simulation_alerts_history) by the alert's source_scope. Each result resolves to the entity that caused it: for simulation, the experiment (simulation) + run; for observability, the call. Newest-first, page-paginated; pass ``source`` to restrict to one data source.
+
+**Endpoint:** GET `https://api.getbluejay.ai/v1/alerts/{alert_id}/results`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| alert_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-alert-results and include any optional parameters (e.g., `source`, `page_size`, `page`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Example
+**Simple GET:**
+```python
+import requests
+
+def get_alert_results(alert_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/alerts/{alert_id}/results"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Returns the times an alert fired, newest first. A simulation result links to the simulation and run. An observability result links to the call. Filter with `source`. `page_size` is 20 by default and 100 at most.

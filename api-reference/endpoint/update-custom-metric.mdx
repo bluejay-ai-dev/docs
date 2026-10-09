@@ -1,20 +1,20 @@
 ---
-title: 'Update Custom Metric'
-description: "Update a specific custom metric by ID."
-openapi: 'PUT /v1/update-custom-metric/{metric_id}'
+title: "Update Custom Metric"
+description: "Update a Bluejay custom metric by metric_id. Change the prompt, response type, agents, model, or other settings of the metric."
+openapi: "PUT /v1/update-metric/{metric_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Update Custom Metric — PUT /v1/update-custom-metric/{metric_id}
+## Update Custom Metric: PUT /v1/update-metric/{metric_id}
 
 > **What this endpoint does:** Update a specific custom metric by ID.
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-custom-metric/{metric_id}`
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-metric/{metric_id}`
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
@@ -24,13 +24,21 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | metric_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-custom-metric and include any optional parameters (e.g., `name`, `description`, `response_type`, `agent_ids`, `min_value`, `max_value`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-custom-metric and include any optional parameters (e.g., `X-Organization-Id`, `bluejay_as_code_id`, `name`, `prompt`, `summary`, `metric_type`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body
 ```json
 {
+  "bluejay_as_code_id": "string",
   "name": "string",
-  "description": "string",
+  "prompt": "string",
+  "summary": "string",
+  "metric_type": "string",
+  "settings": {
+    "key": "value"
+  },
+  "eval_segment": "agent",
+  "scope": "observability",
   "response_type": "pass_fail",
   "agent_ids": [
     123
@@ -42,12 +50,19 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
     "string"
   ],
   "scoring_guidance": "string",
-  "eval_route": "AUDIO",
+  "eval_modality": "AUDIO",
   "model": "string",
+  "audio_model": "string",
   "temperature": 1.0,
   "enum_options": [
     "string"
   ],
+  "tool_names": [
+    "string"
+  ],
+  "json_schema": {
+    "key": "value"
+  },
   "allow_not_applicable": true
 }
 ```
@@ -58,7 +73,7 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
 import requests
 
 def update_custom_metric(metric_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/update-custom-metric/{metric_id}"
+    url = f"https://api.getbluejay.ai/v1/update-metric/{metric_id}"
     headers = {"X-API-Key": api_key}
     response = requests.put(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -66,7 +81,7 @@ def update_custom_metric(metric_id: str, payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -81,4 +96,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to update an existing custom metric for your agents. Provide the metric ID and updated details to update the metric.
+Updates one custom metric.
+
+`PUT /v1/update-custom-metric/{metric_id}` is the deprecated path of this endpoint.

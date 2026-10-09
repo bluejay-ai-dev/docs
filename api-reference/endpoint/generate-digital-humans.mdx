@@ -1,18 +1,18 @@
 ---
-title: 'Generate Digital Humans'
-description: "Given an agent this endpoint generates Digital Humans to test that agent based on varying simulation types."
-openapi: 'POST /v1/generate-digital-humans'
+title: "Generate Digital Humans"
+description: "Generate Bluejay Digital Humans for an agent with AI. Bluejay writes the intent and fields for each Digital Human from the agent prompt."
+openapi: "POST /v1/generate-digital-humans"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Generate Digital Humans — POST /v1/generate-digital-humans
+## Generate Digital Humans: POST /v1/generate-digital-humans
 
-> **What this endpoint does:** Given an agent this endpoint generates Digital Humans to test that agent based on varying simulation types.
+> **What this endpoint does:** Given an agent this endpoint generates digital humans to test that agent based on varying simulation types.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/generate-digital-humans`
 **Auth:** `X-API-Key` header
@@ -22,9 +22,9 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| agent_id | string | ID of the agent to be used to generate the Digital Humans |
+| agent_id | string | ID of the agent to be used to generate the digital humans |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/generate-digital-humans and include any optional parameters (e.g., `simulation_id`, `agent_version_id` (or the deprecated alias `prompt_id`), `knowledge_base_id`, `goal_adherence`, `workflow_adherence`, `workflow_adherence_v2`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/generate-digital-humans and include any optional parameters (e.g., `X-Organization-Id`, `simulation_id`, `prompt_id`, `agent_version_id`, `knowledge_base_id`, `goal_adherence`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
@@ -49,9 +49,9 @@ def generate_digital_humans(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 400: Request or generation constraint violation; 422: Validation Error.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -63,6 +63,7 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-Given the simulation ID and generation options, this endpoint creates Digital Humans from scenarios. Payload shape and validation rules (including scenario-based generation) are documented in the OpenAPI schema on this page. For graph-based paths, see [Create scenario](/api-reference/endpoint/create-scenario) and the [Scenario Builder cookbook](/cookbook/scenario-builder).
 
-The generate request does not accept `allow_silence_tool` or `silence_tool_instructions`; those are set when you create or update a Digital Human explicitly. Generated or returned `digital_human` objects in responses may still include those fields at model defaults (`allow_silence_tool` false, `silence_tool_instructions` `"default"`). Whether the silence tool runs in voice simulations is determined by the execution layer that reads stored test-case data, not by this API alone.
+Generates Digital Humans for an agent and links them to the simulation. To generate from a graph, see [Create Scenario](/api-reference/endpoint/create-scenario).
+
+This request does not accept `allow_silence_tool` or `silence_tool_instructions`. To set them, use [Update Digital Human](/api-reference/endpoint/update-digital-human).

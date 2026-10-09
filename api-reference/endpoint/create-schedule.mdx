@@ -1,16 +1,16 @@
 ---
-title: 'Create Schedule'
-description: ''
-openapi: 'POST /v1/create-schedule'
+title: "Create Schedule"
+description: "Create a schedule that runs a Bluejay simulation again and again: every N minutes or hours, daily, weekly, monthly, or on a cron expression."
+openapi: "POST /v1/create-schedule"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Schedule — POST /v1/create-schedule
+## Create Schedule: POST /v1/create-schedule
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/create-schedule`
 **Auth:** `X-API-Key` header
@@ -23,13 +23,20 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | simulation_id | string | The unique identifier for the associated simulation. |
 | schedule | object | object | object | object | object | object | The schedule for the cron job. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-schedule and include any optional parameters (e.g., `enabled`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-schedule and include any optional parameters (e.g., `X-Organization-Id`, `timezone`, `enabled`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
 {
   "simulation_id": "string",
   "schedule": {
+    "window": {
+      "days": [
+        "monday"
+      ],
+      "start_time": "string",
+      "end_time": "string"
+    },
     "frequency": "string",
     "interval": 123
   }
@@ -52,7 +59,7 @@ def create_schedule(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -67,4 +74,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to create a schedule to run your simulations on a recurring basis. Provide the schedule configuration in the request body, including the simulation ID. The endpoint returns the created schedule with its ID, simulation ID, cron expression, and enabled status.
+Creates a schedule for a simulation. The response returns the schedule as `cron_expression`.
+
+`schedule.frequency` selects the shape of `schedule`: every N minutes, every N hours, daily, weekly, monthly, or cron. `timezone` is an IANA name. If it is null, the schedule uses UTC.

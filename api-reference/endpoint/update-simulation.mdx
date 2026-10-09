@@ -1,18 +1,18 @@
 ---
-title: 'Update Simulation'
-description: "Update a specific simulation by ID. Only fields provided in the request body will be updated."
-openapi: 'PUT /v1/simulation/{simulation_id}'
+title: "Update Simulation"
+description: "Update a Bluejay simulation by simulation_id. Only the fields in the request body change. Other simulation settings keep their values."
+openapi: "PUT /v1/simulation/{simulation_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Update Simulation — PUT /v1/simulation/{simulation_id}
+## Update Simulation: PUT /v1/simulation/{simulation_id}
 
-> **What this endpoint does:** update a specific simulation by id. only fields provided in the request body will be updated.
+> **What this endpoint does:** update a specific simulation by id.
 
 **Endpoint:** PUT `https://api.getbluejay.ai/v1/simulation/{simulation_id}`
 **Auth:** `X-API-Key` header
@@ -24,15 +24,16 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | simulation_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-simulation and include any optional parameters (e.g., `name`, `description`, `agent_version_id`, `knowledge_base_id`, `max_concurrent`, `hangup_on_transfer`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-simulation and include any optional parameters (e.g., `X-Organization-Id`, `bluejay_as_code_id`, `name`, `description`, `prompt_id`, `agent_version_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body
 ```json
 {
+  "bluejay_as_code_id": "string",
   "name": "string",
   "description": "string",
-  "agent_version_id": "string",
   "prompt_id": "string",
+  "agent_version_id": "string",
   "knowledge_base_id": "string",
   "max_concurrent": 123,
   "hangup_on_transfer": true,
@@ -48,10 +49,20 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
   ],
   "custom_metrics_failing_threshold": 123,
   "custom_metrics_passing_threshold": 123,
+  "outcome_failing_threshold": 123,
+  "outcome_passing_threshold": 123,
+  "runs_per_digital_human": 123,
+  "delay_between_tests_seconds": 1.0,
+  "inactivity_timeout_seconds": 123,
   "tags": [
     "string"
   ],
-  "pinned": true
+  "pinned": true,
+  "custom_error_enabled": true,
+  "custom_error_prompt": "string",
+  "enable_rerun_failed_test_results": true,
+  "enable_rerun_on_custom_error": true,
+  "rerun_max_retries": 123
 }
 ```
 
@@ -69,7 +80,7 @@ def update_simulation(simulation_id: int, payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -83,11 +94,7 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-<Note>
-  **New:** `agent_version_id`
 
-  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
-</Note>
+Updates a simulation. Only the fields you send change.
 
-Update a specific simulation by ID. Only fields provided in the request body will be updated.
-
+`prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.

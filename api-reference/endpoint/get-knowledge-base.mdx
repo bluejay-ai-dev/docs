@@ -1,43 +1,55 @@
 ---
-title: 'Get Knowledge Base'
-description: 'Fetch a knowledge base with its documents and ingestion status'
-openapi: 'GET /v1/knowledge-base/{knowledge_base_id}'
+title: "Get Knowledge Base"
+description: "Get one Bluejay knowledge base with its documents. Each document has an ingestion status that shows if it is ready to use."
+openapi: "GET /v1/knowledge-base/{knowledge_base_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Get Knowledge Base — GET /v1/knowledge-base/{knowledge_base_id}
-
-> **What this endpoint does:** Fetch a knowledge base with its documents and ingestion status.
+## Get Knowledge Base: GET /v1/knowledge-base/{knowledge_base_id}
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id}`
 **Auth:** `X-API-Key` header
 
-### Parameters
+### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
+| knowledge_base_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
-| knowledge_base_id | string (uuid) | **Required.** The knowledge base to fetch. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-knowledge-base and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
+**Simple GET:**
 ```python
 import requests
 
-def get_knowledge_base(kb_id: str, api_key: str) -> dict:
-    r = requests.get(f"https://api.getbluejay.ai/v1/knowledge-base/{kb_id}", headers={"X-API-Key": api_key})
-    r.raise_for_status()
-    return r.json()
+def get_knowledge_base(knowledge_base_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Handle 404 (not found / not in your organization) and 422 (validation error).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-Returns the knowledge base plus its documents, each with an ingestion `status`.
+
+Returns a knowledge base and its documents. Each document has an ingestion `status`.

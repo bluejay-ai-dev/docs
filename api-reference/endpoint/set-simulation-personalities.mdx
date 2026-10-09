@@ -1,0 +1,69 @@
+---
+title: "Set Simulation Personalities"
+description: "Set the personalities that a Bluejay simulation runs with. The request replaces the current selection. An empty list clears it."
+openapi: "PUT /v1/simulations/{simulation_id}/personalities"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Set Simulation Personalities: PUT /v1/simulations/{simulation_id}/personalities
+
+> **What this endpoint does:** Replace the selection. Each run then queues one conversation per digital human per selected personality; an empty selection is one conversation per digital human.
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/simulations/{simulation_id}/personalities`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| simulation_id | integer |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/set-simulation-personalities and include any optional parameters (e.g., `X-Organization-Id`, `personality_ids`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
+```json
+{
+  "personality_ids": [
+    "string"
+  ]
+}
+```
+
+### Example
+**PUT with body:**
+```python
+import requests
+
+def set_simulation_personalities(simulation_id: int, payload: dict, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/simulations/{simulation_id}/personalities"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Replaces the personality selection of a simulation. Each run then queues one conversation per Digital Human per selected personality. With an empty `personality_ids`, each Digital Human runs once, as itself.
+
+Rate limit: 60 requests per minute.

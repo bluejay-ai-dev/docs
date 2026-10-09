@@ -1,16 +1,16 @@
 ---
-title: 'Events Webhook'
-description: "Upon an event on the platform, we'll send you the results to the URL you registered within the dashboard."
-openapi: 'WEBHOOK events_webhook'
+title: "Events Webhook"
+description: "Bluejay sends a POST request with the event result to each webhook URL that you register in the dashboard and subscribe to that event."
+openapi: "WEBHOOK events_webhook"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the webhook payload, then plan the handler, then implement with minimal changes.
 
-## Handle Events Webhook — WEBHOOK
+## Handle Events Webhook: WEBHOOK
 
 > **What this webhook does:** Upon an event on the platform, we'll send you the results to the URL you registered within the dashboard
 
@@ -21,7 +21,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|----------|-------------|
 | **Variant: `simulation_result_evaluated`** | | | |
 | id | integer | yes | The ID of the simulation result |
-| digital_human_id | integer | yes | The ID of the Digital Human |
+| digital_human_id | integer | yes | The ID of the digital human |
 | simulation_run_id | integer | yes | The ID of the simulation run that this simulation result belongs to |
 | simulation_id | integer | yes | The ID of the simulation that this simulation result belongs to |
 | agent_id | integer | yes | The ID of the agent that this simulation result belongs to |
@@ -31,25 +31,16 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | recording_url | string (nullable) | yes | URL to the recording file (supported formats: .mp4, .wav, .m4a) |
 | start_time_utc | string | yes | When the call started, in UTC |
 | participants | array[object] | yes | List of call participants |
-| status | string (enum: INITIALIZING, QUEUED, EVALUATING, COMPLETED, INCOMPLETED) | yes | Enum representing the possible states of a call. |
+| status | string (enum: INITIALIZING, QUEUED, READY, DISPATCHED, RUNNING, CONVERSATION_ENDED, EVALUATING, COMPLETED, NOT_EVALUATED, NO_CONNECTION, NO_ANSWER, CALL_DROPPED, OUT_OF_FUNDS, SYSTEM_ERROR, CUSTOM_ERROR, CANCELLED, INCOMPLETED, REJECTED, INSUFFICIENT_FUNDS) | yes | Enum representing the possible states of a conversation. |
 | **Variant: `simulation_ended`** | | | |
 | id | integer | yes | The ID of the simulation result |
-| digital_human_id | integer | yes | The ID of the Digital Human |
+| digital_human_id | integer | yes | The ID of the digital human |
 | simulation_run_id | integer | yes | The ID of the simulation run that this simulation result belongs to |
 | **Variant: `outbound_simulation_started`** | | | |
 | agent_id | integer | yes | The ID of the agent that this simulation belongs to |
 | simulation_id | integer | yes | The ID of the simulation |
 | simulation_run_id | integer | yes | The ID of the simulation run |
-| digital_humans | array[object] | yes | The Digital Humans that were run for this simulation run |
-| **Variant: `observability_alert_triggered`** | | | |
-| alert_id | string | yes | The ID of the alert |
-| alert_name | string | yes | The name of the alert |
-| subtype | string | yes | `triggered` or `recovered` |
-| **Variant: `simulation_alert_triggered`** | | | |
-| alert_id | string | yes | The ID of the alert |
-| alert_name | string | yes | The name of the alert |
-| subtype | string | yes | `triggered` or `recovered` |
-| simulation_run_id | integer | no | The simulation run that crossed the threshold |
+| digital_humans | array[object] | yes | The digital humans that were run for this simulation run |
 
 ### Payload Schema
 Discriminated by `type`:
@@ -84,7 +75,14 @@ Discriminated by `type`:
       "scoring_guidance": "string",
       "enum_options": [
         "string"
-      ]
+      ],
+      "human_edited": true,
+      "human_response_value": "string",
+      "human_reasoning": "string",
+      "override_reason_code": "string",
+      "override_notes": "string",
+      "last_edited_by": "string",
+      "last_edited_at": "string"
     }
   ],
   "evaluations": [
@@ -120,6 +118,11 @@ Discriminated by `type`:
       "goal_reasoning": "string",
       "pronunciation_score": 1.0,
       "pronunciation_reasoning": "string",
+      "sentiment_label": "string",
+      "sentiment_score": 1.0,
+      "sentiment_scores": {
+        "key": "value"
+      },
       "custom_metrics": [
         {
           "name": "example_name",
@@ -132,9 +135,42 @@ Discriminated by `type`:
           "category": "string",
           "tags": [],
           "scoring_guidance": "string",
-          "enum_options": []
+          "enum_options": [],
+          "human_edited": true,
+          "human_response_value": "string",
+          "human_reasoning": "string",
+          "override_reason_code": "string",
+          "override_notes": "string",
+          "last_edited_by": "string",
+          "last_edited_at": "string"
         }
-      ]
+      ],
+      "human_edited": true,
+      "human_goal_success": true,
+      "human_goal_reasoning": "string",
+      "human_hallucination": true,
+      "human_hallucination_reasoning": "string",
+      "human_redundancy": true,
+      "human_redundancy_reasoning": "string",
+      "human_pronunciation_score": 1.0,
+      "human_pronunciation_reasoning": "string",
+      "override_goal_reason_code": "string",
+      "override_goal_notes": "string",
+      "override_hallucination_reason_code": "string",
+      "override_hallucination_notes": "string",
+      "override_redundancy_reason_code": "string",
+      "override_redundancy_notes": "string",
+      "override_pronunciation_reason_code": "string",
+      "override_pronunciation_notes": "string",
+      "last_edited_by": "string",
+      "last_edited_at": "string",
+      "predicted_age": 1.0,
+      "customer_gender": "string",
+      "gender_confidence": 1.0,
+      "detected_language": "string",
+      "language_confidence": 1.0,
+      "agent_audio_clarity": 1.0,
+      "user_audio_clarity": 1.0
     }
   ],
   "created_at": "string",
@@ -259,6 +295,11 @@ Discriminated by `type`:
       "goal_reasoning": "string",
       "pronunciation_score": 1.0,
       "pronunciation_reasoning": "string",
+      "sentiment_label": "string",
+      "sentiment_score": 1.0,
+      "sentiment_scores": {
+        "key": "value"
+      },
       "custom_metrics": [
         {
           "name": "example_name",
@@ -271,9 +312,51 @@ Discriminated by `type`:
           "category": "string",
           "tags": [],
           "scoring_guidance": "string",
-          "enum_options": []
+          "enum_options": [],
+          "human_edited": true,
+          "human_response_value": "string",
+          "human_reasoning": "string",
+          "override_reason_code": "string",
+          "override_notes": "string",
+          "last_edited_by": "string",
+          "last_edited_at": "string"
         }
-      ]
+      ],
+      "human_edited": true,
+      "human_goal_success": true,
+      "human_goal_reasoning": "string",
+      "human_hallucination": true,
+      "human_hallucination_reasoning": "string",
+      "human_redundancy": true,
+      "human_redundancy_reasoning": "string",
+      "human_pronunciation_score": 1.0,
+      "human_pronunciation_reasoning": "string",
+      "override_goal_reason_code": "string",
+      "override_goal_notes": "string",
+      "override_hallucination_reason_code": "string",
+      "override_hallucination_notes": "string",
+      "override_redundancy_reason_code": "string",
+      "override_redundancy_notes": "string",
+      "override_pronunciation_reason_code": "string",
+      "override_pronunciation_notes": "string",
+      "last_edited_by": "string",
+      "last_edited_at": "string",
+      "predicted_age": 1.0,
+      "customer_gender": "string",
+      "gender_confidence": 1.0,
+      "detected_language": "string",
+      "language_confidence": 1.0,
+      "agent_audio_clarity": 1.0,
+      "user_audio_clarity": 1.0
+    }
+  ],
+  "metrics": [
+    {
+      "metric_name": "example_name",
+      "metric_type": "string",
+      "value": "string",
+      "human_edited": false,
+      "reasoning": "string"
     }
   ],
   "annotations": [],
@@ -321,39 +404,6 @@ Discriminated by `type`:
 }
 ```
 
-**When `type` = `observability_alert_triggered`:**
-```json
-{
-  "type": "observability_alert_triggered",
-  "subtype": "triggered",
-  "alert_id": "string",
-  "alert_name": "string",
-  "display_text": "string",
-  "organization_id": "string",
-  "agent_id": 123,
-  "event_count": 123,
-  "min_events": 123
-}
-```
-
-**When `type` = `simulation_alert_triggered`:**
-```json
-{
-  "type": "simulation_alert_triggered",
-  "subtype": "triggered",
-  "alert_id": "string",
-  "alert_name": "string",
-  "display_text": "string",
-  "organization_id": "string",
-  "agent_id": 123,
-  "simulation_id": 123,
-  "simulation_run_id": 123,
-  "actual_value": 1.0,
-  "operator": "less_than",
-  "comparison_value": "string"
-}
-```
-
 
 Refer to the Bluejay API documentation for additional optional payload fields.
 
@@ -372,7 +422,7 @@ async def handle_events_webhook(request: Request):
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Return a 200 OK response to acknowledge receipt.
 
@@ -387,6 +437,4 @@ Then implement the handler, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Upon an event on the platform, all webhooks that are subscribed to the specific event will receive the results to the URL you registered within the dashboard.
-
-
+When an event occurs, Bluejay sends the result to each webhook URL that subscribes to that event. Register the URL in the dashboard.

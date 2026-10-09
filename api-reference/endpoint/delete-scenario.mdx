@@ -1,18 +1,18 @@
 ---
-title: 'Delete scenario'
-description: 'Delete a scenario and its stored typed React Flow graph by UUID.'
-openapi: 'DELETE /v1/scenario/{workflow_id}'
+title: "Delete Scenario"
+description: "Delete a Bluejay Scenario Builder scenario by UUID. The scenario moves to Recently Deleted. The response has deleted_workflow_id."
+openapi: "DELETE /v1/scenario/{workflow_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Delete scenario — DELETE /v1/scenario/{workflow_id}
+## Delete Scenario: DELETE /v1/scenario/{workflow_id}
 
-> **What this endpoint does:** Deletes a scenario row. This removes the stored React Flow graph (typed nodes/edges as documented under Scenario Builder components).
+> **What this endpoint does:** Delete a workflows_v2 row.
 
 **Endpoint:** DELETE `https://api.getbluejay.ai/v1/scenario/{workflow_id}`
 **Auth:** `X-API-Key` header
@@ -20,15 +20,18 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
+| workflow_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-scenario and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **DELETE request:**
 ```python
 import requests
 
-def delete_scenario(scenario_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/scenario/{scenario_id}"
+def delete_scenario(workflow_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/scenario/{workflow_id}"
     headers = {"X-API-Key": api_key}
     response = requests.delete(url, headers=headers)
     response.raise_for_status()
@@ -36,9 +39,9 @@ def delete_scenario(scenario_id: str, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 401: Unauthorized; 404: Not found or no access; 500: Server error.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -51,4 +54,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Successful responses include `message` and `deleted_workflow_id` (UUID of the removed scenario; the response field name is kept for backward compatibility).
+Deletes a scenario. The scenario moves to Recently Deleted. The response field `deleted_workflow_id` is the scenario UUID.

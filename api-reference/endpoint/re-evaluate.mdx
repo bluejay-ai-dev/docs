@@ -1,18 +1,18 @@
 ---
-title: 'Reevaluate'
-description: "Re-evaluate a call."
-openapi: 'POST /v1/re-evaluate/{conversation_id}'
+title: "Re-evaluate"
+description: "Run the Bluejay evaluation again for one conversation by conversation_id. Send a version number to score it against another agent version."
+openapi: "POST /v1/re-evaluate/{conversation_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Reevaluate — POST /v1/re-evaluate/{conversation_id}
+## Re-evaluate: POST /v1/re-evaluate/{conversation_id}
 
-> **What this endpoint does:** Re-evaluate a call.
+> **What this endpoint does:** Re-evaluate a call. Optional JSON body: ``{"version": int}``. Omit or send ``{}`` to keep the version already stamped on the call.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}`
 **Auth:** `X-API-Key` header
@@ -20,15 +20,17 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
-| call_id | string |  |
+| conversation_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/re-evaluate and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **POST with body:**
 ```python
 import requests
 
-def reevaluate(call_id: str, api_key: str) -> dict:
+def re_evaluate(conversation_id: str, api_key: str) -> dict:
     url = f"https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}"
     headers = {"X-API-Key": api_key}
     response = requests.post(url, headers=headers)
@@ -37,7 +39,7 @@ def reevaluate(call_id: str, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -51,4 +53,7 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-Reevaluate an existing call by call ID. Will create a new evaluation for the call.
+
+Creates a new evaluation for a conversation.
+
+The JSON body is optional. Send `{"version": 3}` to score against agent version 3. Omit the body, or send `{}`, to keep the version stored on the conversation. An unknown version returns 400.

@@ -1,97 +1,77 @@
 ---
 title: "API Reference Introduction"
 sidebarTitle: "Introduction"
-description: 'Build with the Bluejay simulations and observability APIs'
+description: "Base URL, API key authentication, error format, pagination, and rate limits for the Bluejay REST API for agent testing and monitoring."
 icon: code
 ---
 
-Bluejay provides APIs for testing, monitoring, and improving conversational AI agents across voice and chat workflows.
+The Bluejay REST API takes and returns JSON. For a list of all endpoints, see the [cheat sheet](/api-reference/cheat-sheet).
 
 ## Base URL
 
 ```bash
-https://api.getbluejay.ai/v1
+https://api.getbluejay.ai
 ```
+
+All endpoint paths start with `/v1`.
 
 ## Authentication
 
-Sign up for a [Bluejay Account](https://app.getbluejay.ai) and
-generate an API key from the [API Keys page](https://app.getbluejay.ai/settings/api-keys).
-If you do not have a Bluejay account, book a demo [here](https://cal.com/rohanv/15min) to receive one. 
+Send your API key in the `X-API-Key` header of each request.
 
-Use that key to authenticate requests to the Bluejay API.
+```bash
+curl https://api.getbluejay.ai/v1/all-agents \
+  -H "X-API-Key: YOUR_API_KEY"
+```
 
-## Start here
+1. Sign in to [Bluejay](https://app.getbluejay.ai).
+2. Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys).
+3. Create a key.
 
-<CardGroup cols={2}>
-  <Card
-    title="Run simulations"
-    icon="flask"
-    href="/api-reference/endpoint/queue-simulation-run"
-  >
-    Queue realistic simulation runs to evaluate agents before they reach production.
-  </Card>
-  <Card
-    title="Evaluate production calls"
-    icon="chart-line"
-    href="/api-reference/endpoint/evaluate"
-  >
-    Measure quality, latency, and behavior in live conversations with observability workflows.
-  </Card>
-  <Card
-    title="Manage agents"
-    icon="robot"
-    href="/api-reference/endpoint/add-agent"
-  >
-    Create, update, and organize the agents that power your evaluation workflows.
-  </Card>
-  <Card
-    title="Subscribe to webhooks"
-    icon="bolt"
-    href="/api-reference/webhook/events-webhook"
-  >
-    Push results and event data into downstream systems when runs complete.
-  </Card>
-</CardGroup>
+An API key belongs to one workspace. Requests with that key read and write only in that workspace. The key ignores the `X-Organization-Id` header.
 
-## Running a Simulation via API
+## Errors
 
-<Steps>
-  <Step title="Add Agent" titleSize="h3">
-    [Add your agent](/api-reference/endpoint/add-agent) to Bluejay if you haven't already.
-  </Step>
-  <Step title="Create Simulation" titleSize="h3">
-    [Create a simulation](/api-reference/endpoint/create-simulation) to group your Digital Humans so you can run them in parallel.
-  </Step>
-  <Step title="Generate or Create Digital Humans" titleSize="h3">
-    [Generate](/api-reference/endpoint/generate-digital-humans) or [create](/api-reference/endpoint/create-digital-human) Digital Humans. Make sure to attach the Simulation ID so the Digital Humans are associated with the Simulation you created in Step 2.
-  </Step>
-  <Step title="Queue Simulation Run" titleSize="h3">
-    [Queue a simulation run](/api-reference/endpoint/queue-simulation-run) to trigger the simulation — think of this as the Run button.
-  </Step>
-</Steps>
+Errors return an HTTP status code and a JSON body with `detail`.
 
-## Integrating Observability
+```json
+{ "detail": "Agent not found" }
+```
 
-<Steps>
-  <Step title="Add Agent" titleSize="h3">
-    [Add your agent](/api-reference/endpoint/add-agent) to Bluejay if you haven't already.
-  </Step>
-  <Step title="Define Custom Metrics" titleSize="h3">
-    [Create custom metrics](/api-reference/endpoint/create-custom-metric) that capture the quality signals you care about — resolution rate, tone, compliance, or anything specific to your use case.
-  </Step>
-  <Step title="Send Calls to Evaluate" titleSize="h3">
-    [Call the evaluate endpoint](/api-reference/endpoint/evaluate) with a recording URL or transcript from your production calls. Bluejay scores each call against your agent's configured metrics.
-  </Step>
-  <Step title="Review Results" titleSize="h3">
-    List production conversations with `GET /v1/observability/conversations` to inspect scores, latency, and per-metric results. `GET /v1/retrieve-call-logs/{agent_id}` is deprecated.
-  </Step>
-</Steps>
+| Status | Meaning |
+|---|---|
+| 400 | The request is not valid for the current state, for example a delete that a rule blocks. |
+| 401 | The API key is missing, not valid, or revoked. |
+| 402 | The organization needs a payment method. `code` is `NO_PAYMENT_METHOD` or `RED_TEAMING_PAYMENT_METHOD_REQUIRED`. |
+| 403 | The resource is not in your organization or workspace. `code` is `INSUFFICIENT_CREDITS` or `SPEND_ALERT_REACHED` when billing blocks the request. |
+| 404 | The resource does not exist. |
+| 409 | The request conflicts with current data, for example a duplicate. |
+| 422 | A field failed validation. `detail` is a list of items with `loc`, `msg`, and `type`. |
+| 429 | The rate limit is exceeded. The body is `{"error": "Rate limit exceeded: ..."}`. |
+| 503 | Authentication is not available for a short time. Send the request again. |
 
-## Core API areas
+Billing errors put `code` next to `detail`:
 
-- `Agents`: create and manage the systems you want to evaluate.
-- `Simulations`: define test scenarios, Digital Humans, and simulation runs.
-- `Observability`: evaluate live calls, logs, and quality signals.
-- `Workflows`: automate evaluation and operational follow-up.
-- `Webhooks`: stream Bluejay events into your own tooling.
+```json
+{ "detail": "...", "code": "INSUFFICIENT_CREDITS" }
+```
+
+## Pagination
+
+List endpoints use one of three styles. Each endpoint page shows its parameters, defaults, and maximum values.
+
+| Style | Parameters | Example endpoints |
+|---|---|---|
+| Page | `page` (starts at 1) and `page_size` | [Get All Digital Humans](/api-reference/endpoint/get-all-digital-humans), [List Conversations](/api-reference/endpoint/list-conversations) |
+| Offset | `limit` and `offset` | [List Issues](/api-reference/endpoint/list-issues), [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results) |
+| Limit | `limit` only | [List Traces](/api-reference/endpoint/list-traces), [List Agent Versions](/api-reference/endpoint/list-prompt-versions) |
+
+Other list endpoints return all rows in one response.
+
+## Rate limits
+
+Most endpoints allow 100 requests per minute for each client IP address. An endpoint with a different limit shows it at the end of its page.
+
+[Evaluate](/api-reference/endpoint/evaluate) counts requests for each organization. It allows 100 requests per minute, or 500 for enterprise accounts.
+
+A request over the limit returns 429. Wait until the next minute, then send the request again.

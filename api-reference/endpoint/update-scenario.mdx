@@ -1,18 +1,18 @@
 ---
-title: 'Update scenario'
-description: 'Partially update a scenario; replacing definition re-validates the same typed React Flow graph as create.'
-openapi: 'PUT /v1/scenario/{workflow_id}'
+title: "Update Scenario"
+description: "Update a Bluejay Scenario Builder scenario. Send only the fields to change. A new definition replaces the full graph and is validated."
+openapi: "PUT /v1/scenario/{workflow_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Update scenario — PUT /v1/scenario/{workflow_id}
+## Update Scenario: PUT /v1/scenario/{workflow_id}
 
-> **What this endpoint does:** Partial update. Omitted fields are unchanged. When agent_ids is present in the JSON body (even as [] or null), junction links are replaced atomically: an empty array or null clears all agent links. When definition is present, it is fully replaced and re-validated like on create. The graph must satisfy the same rules and typed shapes as **POST** `/v1/scenario` (see **components**).
+> **What this endpoint does:** Update name, description, agent links, and/or definition (React Flow graph).
 
 **Endpoint:** PUT `https://api.getbluejay.ai/v1/scenario/{workflow_id}`
 **Auth:** `X-API-Key` header
@@ -21,43 +21,21 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 ### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
+| workflow_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-scenario and include any optional parameters (e.g., `name`, `agent_ids`, `description`, `definition`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-scenario and include any optional parameters (e.g., `X-Organization-Id`, `name`, `agent_ids`, `description`, `definition`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body
 ```json
 {
-  "name": "example_name",
+  "name": "string",
   "agent_ids": [
     123
   ],
   "description": "string",
   "definition": {
-    "nodes": [
-      {
-        "id": "string",
-        "type": "start",
-        "position": {
-          "x": 1.0,
-          "y": 1.0
-        },
-        "data": {
-          "key": "value"
-        }
-      }
-    ],
-    "edges": [
-      {
-        "id": "string",
-        "source": "string",
-        "target": "string",
-        "sourceHandle": "string"
-      }
-    ],
-    "viewport": {
-      "key": "value"
-    }
+    "key": "value"
   }
 }
 ```
@@ -67,8 +45,8 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
 ```python
 import requests
 
-def update_scenario(scenario_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/scenario/{scenario_id}"
+def update_scenario(workflow_id: str, payload: dict, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/scenario/{workflow_id}"
     headers = {"X-API-Key": api_key}
     response = requests.put(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -76,9 +54,9 @@ def update_scenario(scenario_id: str, payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 400: Invalid definition; 401: Unauthorized; 404: Not found or no access.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -91,6 +69,7 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Omitted fields are left unchanged. If `agent_ids` appears in the body (including `[]`), all agent links are **replaced**; `[]` clears links. If `definition` appears, it is **fully replaced** and validated like **POST** `/v1/scenario` (same discriminated node and `data` types as [Create scenario](/api-reference/endpoint/create-scenario)).
+Updates a scenario. Fields you do not send do not change.
 
-Sends only the fields you want to change; include `definition` only when replacing the entire React Flow graph.
+- `agent_ids` replaces all agent links. `[]` removes all links.
+- `definition` replaces the full graph. Bluejay validates it the same as [Create Scenario](/api-reference/endpoint/create-scenario).

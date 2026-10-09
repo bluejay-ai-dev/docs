@@ -1,18 +1,18 @@
 ---
-title: 'Send HTTP Text Message'
-description: "Receive a text message via HTTP, process it through the lambda, and send response to webhook."
-openapi: 'POST /v1/send-http-text-message'
+title: "Send HTTP Text Message"
+description: "Send one agent reply or tool call into a running Bluejay HTTP text simulation. The Digital Human answers through your agent webhook."
+openapi: "POST /v1/send-http-text-message"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Send HTTP Text Message — POST /v1/send-http-text-message
+## Send HTTP Text Message: POST /v1/send-http-text-message
 
-> **What this endpoint does:** Receive a text message via HTTP, process it through the lambda, and send response to webhook. Uses simulation_result_id (test_result_id) for Redis operations and evaluations.
+> **What this endpoint does:** Receive a text message via HTTP, process it through the lambda, and send response to webhook. Uses simulation_result_id (sim_conversation_id) for Redis operations and evaluations.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/send-http-text-message`
 **Auth:** `X-API-Key` header
@@ -23,36 +23,17 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
 | simulation_result_id | string | ID of the simulation result (test result) |
-| message | string | Text message to send (required when `type="message"`) |
-| name | string | Tool name (required when `type="tool_call"`) |
+| message | string | Text message to send |
 
-### Optional Parameters
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| type | string | `"message"` | `"message"` for a conversation turn; `"tool_call"` to log a tool invocation without affecting the transcript |
-| parameters | object | null | Tool input parameters (used when `type="tool_call"`) |
-| output | any | null | Tool return value (used when `type="tool_call"`) |
-| end_conversation | boolean | false | End and evaluate the conversation |
-| end_turn | boolean | true | Process immediately (true) or stack for batching (false) |
-| message_id | string | null | Deduplication key |
+The body is one of: HttpTextAgentUserMessageRequest, HttpTextAgentToolCallRequest. The table and example below use HttpTextAgentUserMessageRequest.
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/send-http-text-message and include any optional parameters that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/send-http-text-message and include any optional parameters (e.g., `X-Organization-Id`, `end_conversation`, `end_turn`, `message_id`, `type`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
-### Request Body examples
+### Request Body (required fields)
 ```json
-// Regular message turn
 {
   "simulation_result_id": "string",
   "message": "string"
-}
-
-// Tool call log (does not affect transcript or trigger agent response)
-{
-  "simulation_result_id": "string",
-  "type": "tool_call",
-  "name": "tool_name",
-  "parameters": {},
-  "output": {}
 }
 ```
 
@@ -72,7 +53,7 @@ def send_http_text_message(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -87,4 +68,18 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to send HTTP text messages to an active HTTP text simulation run.
+Sends one agent turn into a running HTTP text simulation. The Digital Human reply goes to the webhook in the agent settings.
+
+## Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `simulation_result_id` | string | Required. The simulation result to send to. |
+| `type` | string | `message` (default) or `tool_call`. |
+| `message` | string | Required when `type` is `message`. The agent text. |
+| `name` | string | Required when `type` is `tool_call`. The tool name. |
+| `parameters` | object | Tool parameters. |
+| `output` | any | Tool output. |
+| `end_turn` | boolean | Default `true`. If `false`, Bluejay holds the message and waits for more. |
+| `end_conversation` | boolean | Default `false`. If `true`, Bluejay ends and evaluates the conversation. |
+| `message_id` | string | Unique ID. Bluejay drops a repeated ID in the same conversation. |

@@ -1,16 +1,77 @@
 ---
-title: 'Create Uptime Monitor'
-description: 'Create an uptime monitor for an agent. Provisions the backing health-check simulation and schedule.'
-openapi: 'POST /v1/uptime/monitors'
+title: "Create Uptime Monitor"
+description: "Create a Bluejay uptime monitor for an agent. Bluejay creates the health-check simulation and the schedule that place each test call."
+openapi: "POST /v1/uptime/monitors"
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
-The `checks` array holds the health-check cards a run grades. Each check is an object:
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Create Uptime Monitor: POST /v1/uptime/monitors
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/uptime/monitors`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| agent_id | integer |  |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-uptime-monitor and include any optional parameters (e.g., `X-Organization-Id`, `frequency`, `active_window`, `checks`, `notifications`, `enabled`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "agent_id": 123
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-uptime-monitor. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def create_uptime_monitor(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/uptime/monitors"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Creates an uptime monitor and the simulation and schedule that run it. `active_window` limits the days and hours. If it is null, the monitor runs at all times.
+
+## Checks
+
+Each item in `checks` is one health check that a run grades:
 
 ```json
 {
   "id": "latency",
   "label": "Latency",
-  "description": "Average response time stayed under a threshold.",
   "enabled": true,
   "isTemplate": true,
   "checkType": "latency",
@@ -18,11 +79,13 @@ The `checks` array holds the health-check cards a run grades. Each check is an o
 }
 ```
 
-The three template checks (`checkType` of `connection`, `agent_malfunction`, or `latency`) have `isTemplate: true`. A user-added check has `isTemplate: false` and points at a custom metric (`customMetricId`, with a `condition` of `data_type`, `operator`, and `comparison_value`) or a Digital Human (`digitalHumanId`).
+- A template check has `isTemplate: true` and a `checkType` of `connection`, `agent_malfunction`, or `latency`.
+- A custom check has `isTemplate: false` and a `customMetricId` with a `condition` of `data_type`, `operator`, and `comparison_value`.
+- A `digitalHumanId` check changes the caller to that Digital Human. See [Custom caller](/monitor/uptime/overview#custom-caller).
 
-A `digitalHumanId` check swaps the default caller for that Digital Human — see [Custom caller](/monitor/uptime/overview#custom-caller). It only picks who places the probe, so at least one enabled check must still carry a `checkType` or `customMetricId`, or the request is rejected with a 400.
+At least one enabled check must have a `checkType` or a `customMetricId`. If not, the response is 400.
 
-The `notifications` object accepts any of:
+## Notifications
 
 ```json
 {

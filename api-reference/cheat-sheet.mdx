@@ -1,0 +1,320 @@
+---
+title: "API Cheat Sheet"
+sidebarTitle: "Cheat Sheet"
+description: "All Bluejay API endpoints on one page, grouped by resource, with the HTTP method, the path, and one line about what each endpoint does."
+---
+
+Every documented endpoint, grouped as in the sidebar. The base URL is `https://api.getbluejay.ai`. Select an endpoint to open its page.
+
+## Agents
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/add-agent`](/api-reference/endpoint/add-agent) | Adds an agent. |
+| `POST` | [`/v1/update-agent`](/api-reference/endpoint/update-agent) | Updates an agent by `agent_id`. |
+| `PUT` | [`/v1/update-agent-by-external-id`](/api-reference/endpoint/update-agent-by-external-id) | Updates an agent by `external_agent_id`, the ID of the agent at your voice provider. |
+| `PUT` | [`/v1/folders/move-agent`](/api-reference/endpoint/move-agent-to-folder) | Moves an agent into a folder. |
+| `GET` | [`/v1/agents/{agent_id}`](/api-reference/endpoint/get-agent) | Returns one agent by `agent_id`. |
+| `GET` | [`/v1/agent-by-external-id/{external_id}`](/api-reference/endpoint/get-agent-by-external-id) | Returns one agent by `external_agent_id`. |
+| `GET` | [`/v1/get-agents-by-folder/{folder_id}`](/api-reference/endpoint/get-agents-by-folder) | Returns the ID and name of each agent in a folder. |
+| `GET` | [`/v1/all-agents`](/api-reference/endpoint/get-all-agents) | Returns all agents in your organization. |
+| `DELETE` | [`/v1/agent/{agent_id}`](/api-reference/endpoint/delete-agent) | Deletes an agent by `agent_id`. |
+
+## Agent Versions
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/agents/{agent_id}/versions`](/api-reference/endpoint/create-prompt-version) | Creates the next agent version of an agent. |
+| `POST` | [`/v1/agents/{agent_id}/versions/promote`](/api-reference/endpoint/promote-prompt) | Moves the `production` label to the latest version, or to the version in `version`. |
+| `GET` | [`/v1/agents/{agent_id}/versions`](/api-reference/endpoint/list-prompt-versions) | Returns the agent versions of an agent. |
+| `GET` | [`/v1/agents/{agent_id}/versions/{version}`](/api-reference/endpoint/get-prompt-version) | Returns one agent version by number. |
+| `GET` | [`/v1/agents/{agent_id}/versions/{prompt_id}`](/api-reference/endpoint/get-prompt-by-id) | Returns one agent version by UUID. |
+| `GET` | [`/v1/agents/{agent_id}/prompts`](/api-reference/endpoint/get-prompt-by-label) | Deprecated. Returns one version by `label`. |
+| `DELETE` | [`/v1/agents/{agent_id}/versions/{version}`](/api-reference/endpoint/delete-prompt-version) | Deletes one agent version. |
+| `DELETE` | [`/v1/agents/{agent_id}/versions`](/api-reference/endpoint/delete-prompt-version-by-label) | Deletes the version that has the `label` you send. |
+| `DELETE` | [`/v1/agents/{agent_id}/versions/{prompt_id}`](/api-reference/endpoint/delete-prompt-by-id) | Deletes one agent version by UUID. |
+| `GET` | [`/v1/agents/{agent_id}/versions/{version}/labels`](/api-reference/endpoint/list-prompt-version-labels) | Returns the labels on one agent version. |
+| `POST` | [`/v1/agents/{agent_id}/versions/{version}/labels`](/api-reference/endpoint/add-prompt-version-labels) | Adds labels to one agent version. |
+| `DELETE` | [`/v1/agents/{agent_id}/versions/{version}/labels`](/api-reference/endpoint/remove-prompt-version-labels) | Removes labels from one agent version. |
+
+## Labels
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/agents/{agent_id}/labels`](/api-reference/endpoint/create-label) | Creates a label for an agent. |
+| `GET` | [`/v1/agents/{agent_id}/labels`](/api-reference/endpoint/list-labels) | Returns the labels of an agent. |
+| `GET` | [`/v1/agents/{agent_id}/labels/{label_id}`](/api-reference/endpoint/get-label-by-id) | Returns one label. |
+| `PUT` | [`/v1/agents/{agent_id}/labels/{label_id}`](/api-reference/endpoint/update-label) | Renames a label. |
+| `DELETE` | [`/v1/agents/{agent_id}/labels/{label_id}`](/api-reference/endpoint/delete-label) | Deletes a label. |
+
+## Folders
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-folder`](/api-reference/endpoint/create-folder) | Creates a folder for agents. |
+| `PUT` | [`/v1/update-folder/{folder_id}`](/api-reference/endpoint/update-folder) | Renames a folder. |
+| `GET` | [`/v1/folder/{folder_id}`](/api-reference/endpoint/get-folder) | Returns one folder. |
+| `GET` | [`/v1/all-folders`](/api-reference/endpoint/get-all-folders) | Returns all folders in your organization. |
+| `DELETE` | [`/v1/folder/{folder_id}`](/api-reference/endpoint/delete-folder) | Deletes a folder. |
+
+## Knowledge Bases
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/knowledge-base`](/api-reference/endpoint/create-knowledge-base) | Creates an empty knowledge base. |
+| `GET` | [`/v1/knowledge-base`](/api-reference/endpoint/list-knowledge-bases) | Returns the knowledge bases in your organization, each with `document_count`. |
+| `GET` | [`/v1/knowledge-base/{knowledge_base_id}`](/api-reference/endpoint/get-knowledge-base) | Returns a knowledge base and its documents. |
+| `PUT` | [`/v1/knowledge-base/{knowledge_base_id}`](/api-reference/endpoint/update-knowledge-base) | Updates a knowledge base. |
+| `DELETE` | [`/v1/knowledge-base/{knowledge_base_id}`](/api-reference/endpoint/delete-knowledge-base) | Deletes a knowledge base and returns 204. |
+| `POST` | [`/v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}`](/api-reference/endpoint/attach-agent-to-knowledge-base) | Links an agent to a knowledge base. |
+| `DELETE` | [`/v1/knowledge-base/{knowledge_base_id}/agents/{agent_id}`](/api-reference/endpoint/detach-agent-from-knowledge-base) | Unlinks an agent from a knowledge base and returns 204. |
+
+## Simulations
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-simulation`](/api-reference/endpoint/create-simulation) | Creates a simulation for an agent and returns `simulation_id`. |
+| `POST` | [`/v1/simulation/{simulation_id}/add-digital-humans`](/api-reference/endpoint/add-digital-humans-to-simulation) | Links existing Digital Humans to a simulation. |
+| `POST` | [`/v1/simulation/{simulation_id}/remove-digital-humans`](/api-reference/endpoint/remove-digital-humans-from-simulation) | Unlinks Digital Humans from a simulation. |
+| `PUT` | [`/v1/simulation/{simulation_id}`](/api-reference/endpoint/update-simulation) | Updates a simulation. |
+| `GET` | [`/v1/simulation/{simulation_id}`](/api-reference/endpoint/get-simulation) | Returns one simulation by `simulation_id`. |
+| `GET` | [`/v1/get-all-simulations`](/api-reference/endpoint/get-all-simulations) | Returns all simulations in your organization, for all agents. |
+| `GET` | [`/v1/get-simulations-by-agent/{agent_id}`](/api-reference/endpoint/get-simulations-by-agent) | Returns the simulations for one agent. |
+| `DELETE` | [`/v1/simulation/{simulation_id}`](/api-reference/endpoint/delete-simulation) | Deletes a simulation by `simulation_id`. |
+
+## Digital Humans
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-digital-human`](/api-reference/endpoint/create-digital-human) | Creates one Digital Human. |
+| `POST` | [`/v1/create-digital-humans`](/api-reference/endpoint/create-digital-humans) | Creates many Digital Humans in one request. |
+| `POST` | [`/v1/generate-digital-humans`](/api-reference/endpoint/generate-digital-humans) | Generates Digital Humans for an agent and links them to the simulation. |
+| `PUT` | [`/v1/update-digital-human/{digital_human_id}`](/api-reference/endpoint/update-digital-human) | Updates a Digital Human. |
+| `GET` | [`/v1/digital-human/{digital_human_id}`](/api-reference/endpoint/get-digital-human) | Returns one Digital Human by `digital_human_id`. |
+| `GET` | [`/v1/digital-humans-by-simulation/{simulation_id}`](/api-reference/endpoint/get-digital-humans-by-simulation) | Returns the Digital Humans linked to a simulation. |
+| `GET` | [`/v1/digital-humans`](/api-reference/endpoint/get-all-digital-humans) | Returns the Digital Humans in your organization, newest first. |
+| `DELETE` | [`/v1/digital-human/{digital_human_id}`](/api-reference/endpoint/delete-digital-human) | Deletes a Digital Human by `digital_human_id`. |
+| `POST` | [`/v1/generate-objectives`](/api-reference/endpoint/generate-objectives) | Generates objectives from the intent of a Digital Human and saves them on the Digital Human. |
+| `POST` | [`/v1/generate-intent-summary`](/api-reference/endpoint/generate-intent-summary) | Writes `intent_summary` on a Digital Human. |
+
+## Custom Background Noises
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/custom-background-noises`](/api-reference/endpoint/list-custom-background-noises) | Returns the custom background noises in your organization, oldest first. |
+| `POST` | [`/v1/custom-background-noises/upload-url`](/api-reference/endpoint/create-custom-background-noise-upload-url) | Returns `upload_url` and `storage_path`. |
+| `POST` | [`/v1/custom-background-noises`](/api-reference/endpoint/create-custom-background-noise) | Adds an uploaded file to the background noise library. |
+| `PATCH` | [`/v1/custom-background-noises/{noise_id}`](/api-reference/endpoint/update-custom-background-noise) | Renames a custom background noise. |
+| `DELETE` | [`/v1/custom-background-noises/{noise_id}`](/api-reference/endpoint/delete-custom-background-noise) | Removes a custom background noise from the library. |
+
+## Personalities
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/personalities`](/api-reference/endpoint/list-personalities) | Returns the personality library of your organization. |
+| `POST` | [`/v1/personalities`](/api-reference/endpoint/create-personalities) | Creates one or more personalities. |
+| `PATCH` | [`/v1/personalities/{personality_id}`](/api-reference/endpoint/update-personality) | Updates a personality. |
+| `DELETE` | [`/v1/personalities/{personality_id}`](/api-reference/endpoint/delete-personality) | Deletes a personality and removes it from every simulation that selects it. |
+| `GET` | [`/v1/simulations/{simulation_id}/personalities`](/api-reference/endpoint/get-simulation-personalities) | Returns the personalities that a simulation runs with. |
+| `PUT` | [`/v1/simulations/{simulation_id}/personalities`](/api-reference/endpoint/set-simulation-personalities) | Replaces the personality selection of a simulation. |
+| `POST` | [`/v1/create-customer-persona`](/api-reference/endpoint/create-customer-persona) | Creates a customer persona with `name`, `description`, and `goal`. |
+| `PUT` | [`/v1/update-customer-persona/{persona_id}`](/api-reference/endpoint/update-customer-persona) | Updates a customer persona. |
+| `GET` | [`/v1/customer-persona/{persona_id}`](/api-reference/endpoint/get-customer-persona) | Returns one customer persona by `persona_id`. |
+| `GET` | [`/v1/customer-personas-by-agent/{agent_id}`](/api-reference/endpoint/get-customer-persona-by-agent) | Returns the customer personas for one agent. |
+| `DELETE` | [`/v1/customer-persona/{persona_id}`](/api-reference/endpoint/delete-customer-persona) | Deletes a customer persona and its agent links. |
+
+## Communities
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-community`](/api-reference/endpoint/create-community) | Creates a community. |
+| `PUT` | [`/v1/update-community/{community_id}`](/api-reference/endpoint/update-community) | Updates a community. |
+| `PUT` | [`/v1/add-to-community/{community_id}`](/api-reference/endpoint/add-to-community) | Adds Digital Humans to a community. |
+| `GET` | [`/v1/community/{community_id}`](/api-reference/endpoint/get-community) | Returns one community by `community_id`. |
+| `GET` | [`/v1/communities`](/api-reference/endpoint/get-communities) | Returns the communities in your organization. |
+| `DELETE` | [`/v1/community/{community_id}`](/api-reference/endpoint/delete-community) | Deletes a community. |
+
+## Simulation Runs
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/queue-simulation-run`](/api-reference/endpoint/queue-simulation-run) | Queues a run of a simulation and returns the run ID. |
+| `POST` | [`/v1/queue-sms-simulation-run`](/api-reference/endpoint/queue-sms-simulation-run) | Queues an SMS run of a simulation. |
+| `GET` | [`/v1/get-simulation-runs/{simulation_id}`](/api-reference/endpoint/get-simulation-runs) | Returns the runs of a simulation. |
+| `POST` | [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) | Adds tool calls, events, tags, metadata, and trace IDs to a simulation result. |
+| `GET` | [`/v1/retrieve-simulation-results/{simulation_run_id}`](/api-reference/endpoint/retrieve-simulation-results) | Returns a simulation run and one page of its results, oldest first. |
+| `GET` | [`/v1/retrieve-simulation-result/{test_result_id}`](/api-reference/endpoint/retrieve-simulation-result) | Returns one simulation result and its custom metric results. |
+| `POST` | [`/v1/end-conversations`](/api-reference/endpoint/end-conversations) | Ends running conversations. |
+
+## Text/Chat Simulations
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run) | Starts a text run for an HTTP agent and returns `simulation_run_id` and `simulation_result_ids`. |
+| `POST` | [`/v1/send-http-text-message`](/api-reference/endpoint/send-http-text-message) | Sends one agent turn into a running HTTP text simulation. |
+
+## Schedules
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-schedule`](/api-reference/endpoint/create-schedule) | Creates a schedule for a simulation. |
+| `GET` | [`/v1/schedules`](/api-reference/endpoint/list-schedules) | Returns the schedules for the agents you can see. |
+| `GET` | [`/v1/schedule/{schedule_id}`](/api-reference/endpoint/get-schedule) | Returns one schedule by `schedule_id`. |
+| `PUT` | [`/v1/update-schedule/{schedule_id}`](/api-reference/endpoint/update-schedule) | Updates a schedule and returns the updated schedule. |
+| `DELETE` | [`/v1/delete-schedule/{schedule_id}`](/api-reference/endpoint/delete-schedule) | Deletes a schedule. |
+
+## Red Teaming
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/red-team-simulations`](/api-reference/endpoint/start-red-team-simulation) | Starts a red team test against an agent. |
+| `GET` | [`/v1/red-team-simulations`](/api-reference/endpoint/list-red-team-simulations) | Returns the red team tests for the agents you can see. |
+| `GET` | [`/v1/red-team-simulations/{test_id}`](/api-reference/endpoint/get-red-team-simulation) | Returns one red team test by `test_id`. |
+| `POST` | [`/v1/red-team-simulations/{test_id}/stop`](/api-reference/endpoint/stop-red-team-simulation) | Stops a red team test. |
+| `GET` | [`/v1/red-team-simulations/entitlements`](/api-reference/endpoint/get-red-team-entitlements) | Returns `custom_matrix`. |
+
+## Self-Improve
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/self-improve/runs`](/api-reference/endpoint/start-self-improve-run) | Starts a loop that changes the agent prompt, pushes it to the provider, and runs the simulation to score it. |
+| `GET` | [`/v1/self-improve/runs`](/api-reference/endpoint/list-self-improve-runs) | Returns the self-improve runs for the agents you can see. |
+| `GET` | [`/v1/self-improve/runs/{run_id}`](/api-reference/endpoint/get-self-improve-run) | Returns one self-improve run by `run_id`. |
+| `POST` | [`/v1/self-improve/runs/{run_id}/stop`](/api-reference/endpoint/stop-self-improve-run) | Requests a stop and returns `STOP_REQUESTED`. |
+
+## Scenario Builder
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/scenario`](/api-reference/endpoint/create-scenario) | Creates a scenario. |
+| `GET` | [`/v1/scenario`](/api-reference/endpoint/list-scenarios) | Returns `workflows` and `total_count`. |
+| `GET` | [`/v1/scenario/{workflow_id}`](/api-reference/endpoint/get-scenario) | Returns one scenario with its full `definition`. |
+| `PUT` | [`/v1/scenario/{workflow_id}`](/api-reference/endpoint/update-scenario) | Updates a scenario. |
+| `DELETE` | [`/v1/scenario/{workflow_id}`](/api-reference/endpoint/delete-scenario) | Deletes a scenario. |
+
+## Observability
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/evaluate`](/api-reference/endpoint/evaluate) | Sends one production conversation for evaluation. |
+| `POST` | [`/v1/re-evaluate/{conversation_id}`](/api-reference/endpoint/re-evaluate) | Creates a new evaluation for a conversation. |
+| `GET` | [`/v1/observability/conversations`](/api-reference/endpoint/list-conversations) | Returns production conversations, newest first. |
+| `GET` | [`/v1/observability/conversations/{conversation_id}`](/api-reference/endpoint/get-conversation) | Returns one production conversation with its transcript and metric results. |
+| `GET` | [`/v1/retrieve-call-log/{call_id}`](/api-reference/endpoint/retrieve-call-log) | Returns one call log and its evaluations. |
+| `GET` | [`/v1/retrieve-call-logs/{agent_id}`](/api-reference/endpoint/retrieve-call-logs) | Deprecated. Returns call logs for one agent, with evaluations. |
+| `DELETE` | [`/v1/call-log/{call_id}`](/api-reference/endpoint/delete-call-log) | Deletes a call log. |
+| `POST` | [`/v1/translate-transcript`](/api-reference/endpoint/translate-transcript) | Translates a transcript. |
+
+## Traces
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/traces`](/api-reference/endpoint/list-traces) | Returns recent traces for the conversations you can see. |
+| `POST` | [`/v1/traces/{trace_id}`](/api-reference/endpoint/get-trace) | Returns one trace and its spans. |
+| `POST` | [`/v1/spans/{trace_id}/{span_id}`](/api-reference/endpoint/get-span) | Returns one span of a trace. |
+
+## Issues
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/observability/issues`](/api-reference/endpoint/list-issues) | An issue is a problem that Bluejay finds across your calls. |
+| `GET` | [`/v1/observability/issues/{issue_id}`](/api-reference/endpoint/get-issue) | Returns one issue. |
+| `PUT` | [`/v1/observability/issues/{issue_id}`](/api-reference/endpoint/update-issue) | Updates an issue. |
+
+## Alerts
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-alert`](/api-reference/endpoint/create-alert) | Creates an alert. |
+| `PUT` | [`/v1/update-alert/{alert_id}`](/api-reference/endpoint/update-alert) | Updates an alert. |
+| `GET` | [`/v1/alerts`](/api-reference/endpoint/get-alerts) | Returns the alerts in your organization. |
+| `GET` | [`/v1/alerts/{alert_id}/results`](/api-reference/endpoint/get-alert-results) | Returns the times an alert fired, newest first. |
+| `DELETE` | [`/v1/alert/{alert_id}`](/api-reference/endpoint/delete-alert) | Deletes an alert and its agent links. |
+
+## Uptime Monitors
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/uptime/monitors`](/api-reference/endpoint/list-uptime-monitors) | Returns the uptime monitors in your organization. |
+| `GET` | [`/v1/uptime/monitors/{monitor_id}`](/api-reference/endpoint/get-uptime-monitor) | Returns one uptime monitor and its recent checks. |
+| `POST` | [`/v1/uptime/monitors`](/api-reference/endpoint/create-uptime-monitor) | Creates an uptime monitor and the simulation and schedule that run it. |
+| `PUT` | [`/v1/uptime/monitors/{monitor_id}`](/api-reference/endpoint/update-uptime-monitor) | Updates an uptime monitor. |
+| `DELETE` | [`/v1/uptime/monitors/{monitor_id}`](/api-reference/endpoint/delete-uptime-monitor) | Deletes an uptime monitor and stops its scheduled checks. |
+| `GET` | [`/v1/uptime/monitors/{monitor_id}/series`](/api-reference/endpoint/get-uptime-monitor-series) | Returns outcome counts, uptime percentage, and p50, p90, p95, and p99 latency per time bucket. |
+| `POST` | [`/v1/uptime/monitors/{monitor_id}/incidents/resolve`](/api-reference/endpoint/resolve-uptime-incidents) | Resolves every unresolved DOWN check of a monitor. |
+| `POST` | [`/v1/uptime/monitors/{monitor_id}/checks/{check_id}/resolve`](/api-reference/endpoint/resolve-uptime-check) | Resolves one DOWN check. |
+| `POST` | [`/v1/uptime/monitors/{monitor_id}/checks/{check_id}/unresolve`](/api-reference/endpoint/unresolve-uptime-check) | Opens a resolved DOWN check again. |
+| `GET` | [`/v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript`](/api-reference/endpoint/get-uptime-check-transcript) | Returns the transcript of one check. |
+
+## Custom Metrics
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | [`/v1/create-metric`](/api-reference/endpoint/create-custom-metric) | Creates one custom metric. |
+| `POST` | [`/v1/create-metrics`](/api-reference/endpoint/create-custom-metrics) | Creates many custom metrics in one request. |
+| `PUT` | [`/v1/update-metric/{metric_id}`](/api-reference/endpoint/update-custom-metric) | Updates one custom metric. |
+| `PUT` | [`/v1/update-metrics`](/api-reference/endpoint/update-custom-metrics) | Applies the same `updates` to each metric in `metric_ids`. |
+| `GET` | [`/v1/metric/{metric_id}`](/api-reference/endpoint/get-custom-metric) | Returns one custom metric. |
+| `GET` | [`/v1/metrics`](/api-reference/endpoint/get-custom-metrics) | Returns custom metrics. |
+| `GET` | [`/v1/custom-metrics-by-agent/{agent_id}`](/api-reference/endpoint/get-custom-metrics-by-agent) | Deprecated. Returns the custom metrics of one agent. |
+| `DELETE` | [`/v1/metric/{metric_id}`](/api-reference/endpoint/delete-custom-metric) | Deletes one custom metric. |
+| `POST` | [`/v1/delete-metrics`](/api-reference/endpoint/delete-custom-metrics) | Deletes many custom metrics. |
+
+## Metrics Lab
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/metrics-lab/labs`](/api-reference/endpoint/list-labs) | Returns labs, newest first, with counts. |
+| `POST` | [`/v1/metrics-lab/lab`](/api-reference/endpoint/create-lab) | Creates a lab with a set of conversations and custom metrics. |
+| `GET` | [`/v1/metrics-lab/lab/{lab_id}`](/api-reference/endpoint/get-lab) | Returns the full lab. |
+| `PUT` | [`/v1/metrics-lab/lab/{lab_id}`](/api-reference/endpoint/update-lab) | Updates the name or description of a lab. |
+| `PUT` | [`/v1/metrics-lab/lab/{lab_id}/settings`](/api-reference/endpoint/update-lab-settings) | Merges the settings you send into the current lab settings. |
+| `DELETE` | [`/v1/metrics-lab/lab/{lab_id}`](/api-reference/endpoint/delete-lab) | Deletes a lab. |
+| `POST` | [`/v1/metrics-lab/lab/{lab_id}/metrics`](/api-reference/endpoint/add-metrics-to-lab) | Adds custom metrics to a lab. |
+| `POST` | [`/v1/metrics-lab/lab/{lab_id}/conversations`](/api-reference/endpoint/add-conversations-to-lab) | Adds conversations to a lab. |
+| `DELETE` | [`/v1/metrics-lab/lab/{lab_id}/conversations`](/api-reference/endpoint/remove-conversations-from-lab) | Removes conversations from a lab. |
+| `POST` | [`/v1/metrics-lab/evaluate-conversation`](/api-reference/endpoint/evaluate-lab-conversation) | Queues an evaluation of one conversation with the metrics you send. |
+| `PUT` | [`/v1/metrics-lab/lab/{lab_id}/human-evaluation`](/api-reference/endpoint/set-human-evaluation) | Creates or updates the human label for one metric on one conversation. |
+| `POST` | [`/v1/metrics-lab/lab/{lab_id}/metric-revisions`](/api-reference/endpoint/create-metric-revision) | Creates a revision of a custom metric in a lab. |
+
+## Dashboards
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/dashboards`](/api-reference/endpoint/list-dashboards) | Returns dashboards, newest first. |
+| `POST` | [`/v1/dashboards`](/api-reference/endpoint/create-dashboard) | Creates an empty dashboard. |
+| `GET` | [`/v1/dashboards/{dashboard_id}`](/api-reference/endpoint/get-dashboard) | Returns a dashboard and its widgets, in layout order. |
+| `PUT` | [`/v1/dashboards/{dashboard_id}`](/api-reference/endpoint/update-dashboard) | Updates the name or description of a dashboard. |
+| `PUT` | [`/v1/dashboards/{dashboard_id}/layout`](/api-reference/endpoint/update-dashboard-layout) | Sets the position and size of widgets on a dashboard. |
+| `POST` | [`/v1/dashboards/{dashboard_id}/duplicate`](/api-reference/endpoint/duplicate-dashboard) | Creates a copy named `<name> (Copy)` with a copy of each widget in the same layout. |
+| `DELETE` | [`/v1/dashboards/{dashboard_id}`](/api-reference/endpoint/delete-dashboard) | Deletes a dashboard, its widgets, and their metrics. |
+
+## Widgets
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/widgets`](/api-reference/endpoint/list-widgets) | Returns widgets with their metrics, newest first. |
+| `POST` | [`/v1/widgets`](/api-reference/endpoint/create-widget) | Creates a widget on a dashboard. |
+| `GET` | [`/v1/widgets/{widget_id}`](/api-reference/endpoint/get-widget) | Returns one widget and its metrics. |
+| `PUT` | [`/v1/widgets/{widget_id}`](/api-reference/endpoint/update-widget) | Replaces the full configuration and metrics of a widget. |
+| `POST` | [`/v1/widgets/{widget_id}/duplicate`](/api-reference/endpoint/duplicate-widget) | Creates a copy named `Copy of <name>` on the dashboard in `dashboard_id`. |
+| `DELETE` | [`/v1/widgets/{widget_id}`](/api-reference/endpoint/delete-widget) | Deletes a widget and its metrics. |
+
+## Bluejay as Code
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/bluejay-as-code/{root_type}/{root_id}`](/api-reference/endpoint/pull-bluejay-as-code) | Exports a bundle of `agents`, `simulations`, `digital_humans`, and `custom_metrics`. |
+| `POST` | [`/v1/bluejay-as-code`](/api-reference/endpoint/push-bluejay-as-code) | Applies a bundle. |
+
+## Miscellaneous
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | [`/v1/phone-numbers`](/api-reference/endpoint/phone-numbers) | Returns the phone numbers in your organization. |
+
+## Webhooks
+
+| Method | Path | Description |
+|---|---|---|
+| `WEBHOOK` | [`Your URL`](/api-reference/webhook/events-webhook) | When an event occurs, Bluejay sends the result to each webhook URL that subscribes to that event. |

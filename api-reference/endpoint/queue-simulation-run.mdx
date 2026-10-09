@@ -1,16 +1,16 @@
 ---
-title: 'Queue Simulation Run'
-description: "Queue a simulation run for processing."
-openapi: 'POST /v1/queue-simulation-run'
+title: "Queue Simulation Run"
+description: "Queue a Bluejay simulation run. Each linked Digital Human calls or messages the agent, and Bluejay returns the run ID at once."
+openapi: "POST /v1/queue-simulation-run"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Queue Simulation Run — POST /v1/queue-simulation-run
+## Queue Simulation Run: POST /v1/queue-simulation-run
 
 > **What this endpoint does:** Queue a simulation run for processing.
 
@@ -22,14 +22,16 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| simulation_id | string | ID of the simulation to be run |
+| bluejay_as_code_id | string | Bluejay-as-Code ID of the simulation to run |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-simulation-run and include any optional parameters (e.g., `agent_version_id`, `knowledge_base_id`, `digital_human_ids`, `phone_number`, `sip_uri`, `livekit_agent_name`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+The body is one of: SimulationRunRequestUsingBACId, SimulationRunRequest. The table and example below use SimulationRunRequestUsingBACId.
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-simulation-run and include any optional parameters (e.g., `X-Organization-Id`, `prompt_id`, `agent_version_id`, `knowledge_base_id`, `digital_human_ids`, `phone_number`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
 {
-  "simulation_id": "string"
+  "bluejay_as_code_id": "string"
 }
 ```
 
@@ -49,7 +51,7 @@ def queue_simulation_run(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -63,10 +65,10 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-<Note>
-  **New:** `agent_version_id`
 
-  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
-</Note>
+Queues a run of a simulation and returns the run ID. The calls run after the response. Poll [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results) for results.
 
- Given the simulation ID, and optionally the Digital Human IDs, this endpoint queues a simulation run and returns the run ID.
+- Send `simulation_id`, or the `bluejay_as_code_id` of the simulation.
+- If you omit `digital_human_ids`, all Digital Humans in the simulation run.
+- `phone_number`, `sip_uri`, and the provider agent IDs override the agent values for this run only.
+- `prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.

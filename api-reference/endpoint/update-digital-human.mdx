@@ -1,18 +1,18 @@
 ---
-title: 'Update Digital Human'
-description: "Update a Digital Human by ID. Returns 404 if the Digital Human does not exist or belongs to a different organization."
-openapi: 'PUT /v1/update-digital-human/{digital_human_id}'
+title: "Update Digital Human"
+description: "Update a Bluejay Digital Human by digital_human_id. Returns 404 when the Digital Human does not exist or is in a different organization."
+openapi: "PUT /v1/update-digital-human/{digital_human_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Update Digital Human — PUT /v1/update-digital-human/{digital_human_id}
+## Update Digital Human: PUT /v1/update-digital-human/{digital_human_id}
 
-> **What this endpoint does:** Update a Digital Human by ID. Returns 404 if the Digital Human does not exist or belongs to a different organization. Body fields are patch-style: omit a field to leave it unchanged; include `allow_silence_tool` and/or `silence_tool_instructions` to update them (use the string `"default"` for built-in silence-tool behavior). **Effective tag:** If the body includes `tag`, workflow rules use that tag; otherwise they use existing stored tags. **Workflow-tagged (tag lowercased contains `workflow`):** **400** if intent, success_criteria, role_description, original_transcript, or formatted_transcript **change** from stored values. Same values as DB (idempotent full PUT) are OK. `enriched_playback` remains updatable. **Transcript update behavior (three cases):** - `original_transcript` only: the middleware calls an LLM formatter to produce `formatted_transcript`; both are stored. - Both `original_transcript` and `formatted_transcript`: LLM formatting is skipped; both values are stored as-is and intent/description is derived from the formatted transcript. - `formatted_transcript` only: LLM formatting is skipped; `formatted_transcript` is stored, `original_transcript` is set to null in the DB, and intent/description is derived from the formatted transcript. See docs: Workflow tags & enriched playback.
+> **What this endpoint does:** Update a digital human by ID.
 
 **Endpoint:** PUT `https://api.getbluejay.ai/v1/update-digital-human/{digital_human_id}`
 **Auth:** `X-API-Key` header
@@ -24,7 +24,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | digital_human_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-digital-human and include any optional parameters (e.g., `intent`, `success_criteria`, `name`, `tag`, `language`, `accent`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-digital-human and include any optional parameters (e.g., `X-Organization-Id`, `intent`, `success_criteria`, `name`, `tag`, `language`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body
 ```json
@@ -36,13 +36,18 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
   "language": "en",
   "accent": "multilingual",
   "gender": "male",
+  "custom_voice_id": "string",
   "background_noise": "none",
+  "custom_background_noise_url": "string",
   "voice_speed": "slowest",
   "audio_quality": "high",
+  "connection_quality": "none",
   "fluency": "beginner",
   "verbosity": "low",
   "phone_number": "string",
+  "extension": "string",
   "outbound_text_number": "string",
+  "follow_up_sms_success_criteria": "string",
   "background_noise_volume": 1.0,
   "expected_tool_calls": [
     {
@@ -53,21 +58,23 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
     }
   ],
   "allow_end_call_tool": true,
+  "allow_silence_tool": true,
+  "allow_dtmf_tool": true,
+  "default_dtmf_or_voiced": "voiced",
+  "silence_tool_instructions": "string",
   "endpointing_delay": 1.0,
   "creativity": 1.0,
   "hangup_phrases": [
     "string"
   ],
   "hangup_instructions": "string",
-  "allow_silence_tool": false,
-  "silence_tool_instructions": "default",
   "silence_timeout": 123,
   "simulation_ids": [
     123
   ],
   "traits": [
     {
-      "trait_name": "example_name",
+      "trait_name": "2024-01-01T00:00:00Z",
       "trait_data_type": "BOOLEAN",
       "value": "string",
       "is_sip_header": false
@@ -82,16 +89,19 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
       "match_phrase": "string",
       "response_type": "phrase",
       "response_value": "string",
+      "scripted_response_audio_snippet_url": "string",
       "occurrence_mode": "always",
       "occurrence_n": 123,
       "silence_duration": 123
     }
   ],
+  "scripted_responses_ordered": true,
   "role_description": "string",
   "speaks_first_config": {
     "speaks_first": true,
     "mode": "custom",
-    "message": "string"
+    "message": "string",
+    "dynamic": true
   },
   "original_transcript": "string",
   "formatted_transcript": [
@@ -110,11 +120,23 @@ Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpo
   },
   "always_on_mode": true,
   "always_on_active": true,
+  "test_name": "string",
+  "journey_steps": [
+    {
+      "step": 123,
+      "intent": "",
+      "success_criteria": "",
+      "modality": "voice",
+      "direction": "inbound",
+      "wait_seconds": 123,
+      "response_window_seconds": 123,
+      "unresponsive": false,
+      "phone_number": "string"
+    }
+  ],
   "override_conflict": true
 }
 ```
-
-> **Note:** `endpointing_delay` is referenced as **patience** in the UI. It controls how long (in seconds) the Digital Human waits after silence before assuming the speaker has finished talking. On an SMS Digital Human it is the minimum wait (in seconds) before a reply is sent, counting the time spent composing it. Requests may send it as `patience` instead; `endpointing_delay` is kept for existing integrations and wins if both are given.
 
 ### Example
 **PUT with body:**
@@ -130,9 +152,9 @@ def update_digital_human(digital_human_id: int, payload: dict, api_key: str) -> 
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 400: Workflow-tagged Digital Human: field changes not allowed, or business-rule violation (e.g. invalid phone number, invalid accent); 404: Digital Human not found or belongs to a different organization; 422: Validation Error.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -145,4 +167,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to update an existing Digital Human. Effective **tag** (body vs stored) can affect validation; see the OpenAPI schema and response codes on this page for update constraints.
+Updates a Digital Human. Validation uses the `tag` in the body. If you do not send `tag`, validation uses the stored `tag`.

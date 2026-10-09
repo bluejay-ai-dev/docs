@@ -1,5 +1,89 @@
 ---
-title: 'Update Alert'
-description: 'Update an existing alert. Unset fields are preserved; nullable fields can be cleared explicitly.'
-openapi: 'PUT /v1/update-alert/{alert_id}'
+title: "Update Alert"
+description: "Update a Bluejay alert by alert_id. Fields that you do not send keep their values. Send a nullable field as null to clear it."
+openapi: "PUT /v1/update-alert/{alert_id}"
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Update Alert: PUT /v1/update-alert/{alert_id}
+
+> **What this endpoint does:** Update an existing alert
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-alert/{alert_id}`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| alert_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-alert and include any optional parameters (e.g., `X-Organization-Id`, `sample_size`, `name`, `description`, `is_enabled`, `entity_type`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body
+```json
+{
+  "sample_size": 123,
+  "name": "string",
+  "description": "string",
+  "is_enabled": true,
+  "entity_type": "standard_metric",
+  "entity_field": "string",
+  "operator": "equals",
+  "comparison_value": "string",
+  "notification_channels": [
+    {
+      "type": "user@example.com",
+      "target": "https://example.com"
+    }
+  ],
+  "applies_to_all_agents": true,
+  "agent_ids": [
+    123
+  ],
+  "simulation_id": 123,
+  "evaluation_scope": "per_test_result",
+  "aggregation": "none",
+  "threshold_time_interval": 123,
+  "min_events": 123,
+  "min_events_type": "events",
+  "source_scope": "all"
+}
+```
+
+### Example
+**PUT with body:**
+```python
+import requests
+
+def update_alert(alert_id: str, payload: dict, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/update-alert/{alert_id}"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Updates an alert. A field you do not send does not change. Send `simulation_id` as `null` to apply the alert to all simulations of the agent.

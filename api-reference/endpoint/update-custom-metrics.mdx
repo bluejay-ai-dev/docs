@@ -1,0 +1,87 @@
+---
+title: "Bulk Update Custom Metrics"
+description: "Apply the same change to many Bluejay custom metrics in one request. Only the keys in updates change, and a null value is written as null."
+openapi: "PUT /v1/update-metrics"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Bulk Update Custom Metrics: PUT /v1/update-metrics
+
+> **What this endpoint does:** Bulk update custom metrics: apply the same patch to each metric in metric_ids. Only keys present in updates are applied; each key's value (including null) is written.
+
+**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-metrics`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| metric_ids | array[string] | UUIDs of custom metrics to update |
+| updates | object | Patch payload; only keys that are present are applied; each value (including null) is written. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-custom-metrics and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "metric_ids": [
+    "string"
+  ],
+  "updates": {
+    "tags": [
+      "string"
+    ],
+    "agent_ids": [
+      123
+    ],
+    "eval_modality": "AUDIO",
+    "eval_segment": "agent",
+    "scope": "observability",
+    "model": "string",
+    "audio_model": "string",
+    "temperature": 1.0,
+    "allow_not_applicable": true
+  }
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/update-custom-metrics. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**PUT with body:**
+```python
+import requests
+
+def bulk_update_custom_metrics(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/update-metrics"
+    headers = {"X-API-Key": api_key}
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Applies the same `updates` to each metric in `metric_ids`. Only the keys you send change. A key with `null` is set to null.
+
+`PUT /v1/update-custom-metrics` is the deprecated path of this endpoint.

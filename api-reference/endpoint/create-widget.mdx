@@ -1,0 +1,75 @@
+---
+title: "Create Widget"
+description: "Create a chart widget with its metrics on one Bluejay dashboard. A widget belongs to exactly one dashboard and plots one or more metrics."
+openapi: "POST /v1/widgets"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Create Widget: POST /v1/widgets
+
+> **What this endpoint does:** Create a widget with its metrics on a dashboard. A widget belongs to exactly one dashboard.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/widgets`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| name | string |  |
+| chart_type | string (enum: line, bar, pie, table, kpi, pivot_table, histogram) |  |
+| dashboard_id | string | Dashboard the widget belongs to; a widget lives on exactly one dashboard |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-widget and include any optional parameters (e.g., `X-Organization-Id`, `description`, `chart_mode`, `data_type`, `bar_mode`, `aggregation`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "name": "example_name",
+  "chart_type": "line",
+  "dashboard_id": "string"
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-widget. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def create_widget(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/widgets"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Creates a widget on a dashboard.
+
+- `metrics` is required unless `chart_type` is `table`.
+- `simulation_ids` must not be empty when `group_by` is `simulation`.
+- `color_overrides` maps a label to a `#rrggbb` color. Labels match without case.
