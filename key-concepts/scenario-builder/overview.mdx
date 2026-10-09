@@ -1,55 +1,148 @@
 ---
 title: "Scenario Builder Overview"
 sidebarTitle: "Overview"
-description: Author conversation scenarios as path graphs that drive Digital Humans
+description: "Build a scenario as a graph of agent and user turns in the Scenario Builder. Each path through the graph becomes one Digital Human."
 icon: map
 ---
 
-The Scenario Builder lets you describe how a conversation should go as a path graph. Each path through the graph becomes a Digital Human you can run against your agent. Use it when you want fine‑grained control over what your Digital Humans say, in what order, and on which branches.
+A scenario is a directed graph of agent turns and user turns. Each path from the start node to a leaf node becomes one Digital Human that follows that path turn by turn.
 
-## What You'll Learn
+<video
+  controls
+  muted
+  playsInline
+  preload="metadata"
+  className="w-full aspect-video rounded-xl"
+  src="https://okihfrlvyycxyylukqey.supabase.co/storage/v1/object/public/bluejay-docs-files/workflows.mp4"
+></video>
 
-- What a scenario is and how it produces Digital Humans
-- How to enumerate paths and assign counts per path
-- How scenarios connect to simulations
+The **Scenario Builder** page has two item types:
 
-## How Scenarios Work
+| Type | What it models |
+|---|---|
+| Scenario | A conversation your agent must handle. Agent turns define what your agent must say. User turns define what the Digital Human says. |
+| IVR Flow | A phone tree with menus, hold steps, and transfer points. Your agent calls in, and the Digital Human plays the IVR system. |
 
-A scenario is a graph of nodes (utterances, branches, decisions) connected by edges. Starting from the `Start` node, the builder enumerates every distinct path through the graph up to a per‑scenario cap. Each path becomes a single Digital Human whose `enriched_playback` follows that path turn by turn.
+<Note>
+Scenarios are for voice agents only. If you connect a text or email agent, the API returns a 400 error.
+</Note>
 
-```mermaid
-flowchart LR
-    Start --> Greet
-    Greet --> Question{Caller intent?}
-    Question -->|Refill| Refill[Request refill]
-    Question -->|Booking| Booking[Book appointment]
-    Refill --> Confirm
-    Booking --> Confirm
-    Confirm --> Goodbye
+## Create a scenario
+
+1. Open the **Scenario Builder** page and click **Create**.
+2. Select **Create Scenario** or **Create IVR Flow**.
+3. For a scenario, enter a **Name**, and optionally select agents.
+4. Select a creation method:
+   - **Blank template**: start with an empty canvas.
+   - **Auto-generate from prompt**: describe the flow, and AI drafts the nodes and edges.
+   - **Import from JSON**: paste a scenario definition. Click **Load example** to see the format.
+5. Edit the graph on the canvas, then save.
+6. To run the scenario, click **Test**. The **Create Simulation** dialog opens with the scenario selected.
+
+## Run a scenario
+
+In the **Create Simulation** dialog, select the **Scenario Adherence** type and the scenario. For an IVR Flow, select the **IVR Flow** type. Bluejay creates one Digital Human for each path.
+
+With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) with `workflow_adherence_v2`, a map of scenario ID to the number of Digital Humans. The maximum is 200 for each scenario. If the scenario has more paths than the number, Bluejay uses the first paths up to the number.
+
+```json
+{
+  "agent_id": 123,
+  "simulation_id": 456,
+  "workflow_adherence_v2": { "scenario-uuid-1": 20, "scenario-uuid-2": 50 }
+}
 ```
 
-In the example above the builder enumerates two paths from `Start` (Refill and Booking). Selecting this scenario in a simulation produces two Digital Humans, one per path.
+## Node types
 
-## Key Capabilities
+<img
+  src="/images/workflows.png"
+  alt="Scenario graph: start node, agent and user turns, an options branch, and leaf nodes. Each start-to-leaf path becomes one Digital Human."
+  style={{ maxWidth: '100%', borderRadius: '0.5rem' }}
+/>
 
-- **Deterministic playback**: each generated Digital Human follows its assigned path turn by turn
-- **Branching coverage**: every reachable branch yields its own Digital Human, up to the per‑scenario cap
-- **Pasted JSON or LLM draft**: author scenarios visually, paste a graph, or generate from a prompt
-- **Reuse across simulations**: one scenario can drive many simulation runs
+| Node `type` | Description |
+|---|---|
+| `start` | The entry point. A graph has exactly one start node. It has no `data`. |
+| `single` | One turn from the agent or the user. `data.speaker` is `agent` (default) or `user`. |
+| `options` | A branch point for the user, for example "press 1 or say billing". User only. |
 
-## Common Use Cases
+### `single` node `data.type`
 
-- Capture every meaningful branch of a workflow (happy path + edge cases) as one scenario
-- Reproduce specific incidents from production transcripts as a deterministic path
-- Build a regression suite of conversation paths an agent must consistently handle
+| `data.type` | Speaker | Required field |
+|---|---|---|
+| `exact` | agent or user | `message`: the exact words. |
+| `contextual` | agent only | `message`: a direction that the agent says in its own words. |
+| `silence` | agent or user | `duration_ms`: 0 to 86,400,000. |
+| `dtmf` | agent or user | `digits`: `0-9`, `*`, `#`, `A-D` (not case-sensitive). |
 
-## Next Steps
+### `options` node
 
-<CardGroup cols={2}>
-  <Card title="Scenario Builder Cookbook" icon="book-open" href="/cookbook/scenario-builder">
-    Practical examples and patterns for building scenarios.
-  </Card>
-  <Card title="Create Scenario API" icon="code" href="/api-reference/endpoint/create-scenario">
-    Create and manage scenarios programmatically.
-  </Card>
-</CardGroup>
+`data.branch_options` has two or more entries. Each entry has a unique `id` and a `type` of `exact`, `silence`, or `dtmf` with the matching field. `contextual` is not allowed. Each edge out of an options node sets `sourceHandle` to the `id` of its branch.
+
+<img
+  src="/images/workflows-option-node.png"
+  alt="Options node with two branches. Each outgoing edge sets sourceHandle to a branch id."
+  style={{ display: 'block', margin: '0 auto', width: '50%', borderRadius: '0.5rem' }}
+/>
+
+<Warning>
+If you change a `branch_options[].id`, the edges that use that `sourceHandle` no longer match. Keep branch IDs stable.
+</Warning>
+
+## Validation rules
+
+A graph with no `single` or `options` node is saved as a draft. Bluejay only rejects a draft that has more than one start node. When the graph has a content node, these rules apply:
+
+1. The graph has one start node.
+2. The graph has no directed cycles.
+3. Each `single` and `options` node is reachable from the start node.
+4. Each node follows the `single` and `options` rules above.
+
+If a rule fails, the API returns 400 with the reason.
+
+## API
+
+| Action | Endpoint |
+|---|---|
+| Create | [`POST /v1/scenario`](/api-reference/endpoint/create-scenario) |
+| List | [`GET /v1/scenario`](/api-reference/endpoint/list-scenarios). Optional `agent_id` filter. |
+| Get | [`GET /v1/scenario/{id}`](/api-reference/endpoint/get-scenario) |
+| Update | [`PUT /v1/scenario/{id}`](/api-reference/endpoint/update-scenario). Changes only the fields you send. If you send `agent_ids`, it replaces all agent links. |
+| Delete | [`DELETE /v1/scenario/{id}`](/api-reference/endpoint/delete-scenario) |
+
+Example create request with one branch:
+
+```json
+{
+  "name": "Support and Billing Menu",
+  "agent_ids": [123],
+  "definition": {
+    "nodes": [
+      { "id": "start", "type": "start", "data": {} },
+      { "id": "agent-menu", "type": "single",
+        "data": { "type": "exact", "speaker": "agent",
+                  "message": "Press 1 for support, or say billing." } },
+      { "id": "user-choice", "type": "options",
+        "data": { "branch_options": [
+          { "id": "branch-support", "type": "dtmf", "digits": "1" },
+          { "id": "branch-billing", "type": "exact", "message": "Billing" }
+        ] } },
+      { "id": "agent-support", "type": "single",
+        "data": { "type": "contextual", "speaker": "agent",
+                  "message": "Start to troubleshoot the support issue." } },
+      { "id": "agent-billing", "type": "single",
+        "data": { "type": "contextual", "speaker": "agent",
+                  "message": "Answer the billing question." } }
+    ],
+    "edges": [
+      { "id": "e1", "source": "start", "target": "agent-menu" },
+      { "id": "e2", "source": "agent-menu", "target": "user-choice" },
+      { "id": "e3", "source": "user-choice", "target": "agent-support", "sourceHandle": "branch-support" },
+      { "id": "e4", "source": "user-choice", "target": "agent-billing", "sourceHandle": "branch-billing" }
+    ]
+  }
+}
+```
+
+This graph has two paths, so it makes two Digital Humans.

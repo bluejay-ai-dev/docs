@@ -1,61 +1,52 @@
 ---
-title: Self-Improve
-description: Let Bluejay automatically diagnose failures and improve your agent's prompt, round by round
+title: "Self-Improve"
+description: "Self-Improve runs a simulation, finds why calls fail, rewrites your agent prompt, and runs again until the agent reaches a target pass rate."
 icon: wand-magic-sparkles
 ---
 
-Self-Improve runs your simulation against your agent, diagnoses why calls fail, rewrites the agent's prompt, pushes the fix to your provider, and re-runs to verify it worked. It keeps iterating until it hits your target pass rate or runs out of rounds, keeping only changes that measurably help.
+Self-Improve runs a simulation against your agent, finds a failure pattern, rewrites the agent prompt in your provider, and runs the simulation again. It keeps a change only if the pass rate goes up.
 
-{/* VIDEO — self-improve walkthrough */}
+## Supported providers
 
-### Supported providers
+Self-Improve supports Vapi, ElevenLabs, and Retell agents with the native connection type for that provider. A synced agent qualifies. Bland agents are not supported.
 
-Self-Improve pushes prompt fixes to **Vapi**, **ElevenLabs**, and **Retell** agents. The agent must be connected through the provider's native connection type (a synced agent qualifies).
+## Start a run
 
-### How to start a run
-
-Self-Improve is driven from the **Bluejay AI** chat. Ask it to improve your agent against a simulation, for example:
+Ask **Bluejay AI** to improve an agent against a simulation. For example:
 
 > Improve my "Billing Support" agent against the "Billing regression suite" simulation until it passes 90% of calls.
 
-Bluejay AI shows you a preview of the run (agent, simulation, target, and rounds) and asks you to confirm before anything starts.
+Bluejay AI shows a preview of the agent, simulation, target, and rounds. Confirm the preview to start the run.
 
-### What happens each round
+| Setting | Default | Range |
+|---|---|---|
+| Target pass rate | 0.9 | 0 to 1 |
+| Maximum rounds | 5 | 1 to 20 |
+| Minimum improvement to keep a fix | 0.02 | 0 to 1 |
+| Number of generated metrics | 5 | 1 to 20 |
 
-1. **Metrics**: Bluejay generates pass/fail metrics from your agent's goals and tools (or reuses metrics you name) and freezes them on the simulation, so every round is scored the same way.
-2. **Baseline**: your agent's current prompt runs the full simulation. If it already beats the target, the run ends with no changes.
-3. **Diagnose**: failing calls are analyzed to find one focused failure pattern.
-4. **Fix**: a rewritten prompt targeting that pattern is pushed to your provider.
-5. **Verify**: the simulation runs again. If the pass rate improves enough, the fix is kept; otherwise it's reverted and that approach isn't retried.
+To use your own metrics, name them. Bluejay AI passes them as `success_metric_ids`.
 
-The loop stops when the target pass rate is reached, the round cap is hit, or two consecutive rounds produce no gain.
+## Each round
 
-### What you get at the end
+1. Metrics: Bluejay generates Pass/Fail metrics from the agent goals and tools, or uses the metrics you named. It locks the metrics on the simulation, so each round uses the same scoring.
+2. Baseline: the current prompt runs the full simulation. If the pass rate already meets the target, the run ends with no change.
+3. Diagnose: Bluejay reads the failed calls and finds one failure pattern.
+4. Fix: Bluejay writes a new prompt for that pattern and pushes it to your provider.
+5. Verify: the simulation runs again. If the pass rate goes up by at least the minimum improvement, Bluejay keeps the fix. If not, Bluejay reverts it and does not try that pattern again.
 
-If the run beat the baseline, the winning prompt is saved as a **new agent version** on the agent, labeled `latest`, with a commit message like `self-improve run 3: 60% -> 90%`. Your previous version stays intact, and the `production` label is never moved: promoting the improved prompt to production stays a human decision.
+The run stops when the pass rate meets the target, the round limit is reached, or two rounds in a row give no gain.
 
-You can watch progress or review any run by asking Bluejay AI for the run status. It shows the baseline pass rate, the current round, and what each round tried and whether it was kept.
+## Result
 
-### Things to note
+If the run beats the baseline, Bluejay saves the best prompt as a new Agent Version on the agent with the `latest` label. The commit message has the format `self-improve run <id>: 60% -> 90% (target reached)`. Your previous version stays. Bluejay never moves the `production` label. You decide when to promote the new version.
 
-- **One active run per agent.** Starting a second run on the same agent is rejected until the first finishes or is stopped.
-- **You can stop a run at any time** by asking Bluejay AI to stop it. In-flight changes that weren't verified are reverted.
-- **Runs execute real simulations**, so each round costs the same as running the simulation manually.
-- **Bland agents aren't supported yet**: there's no prompt push path for Bland.
+To see progress, ask Bluejay AI for the run status. It shows the baseline pass rate, the current round, and what each round tried.
 
-### Resources
+## Limits
 
-<CardGroup cols={2}>
-  <Card title="Simulation Overview" icon="flask-vial" href="/test/simulations/overview">
-    The simulations Self-Improve runs each round.
-  </Card>
-  <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
-    The pass/fail metrics that score every round.
-  </Card>
-  <Card title="Agent Versions" icon="code-branch" href="/api-reference/endpoint/create-prompt-version">
-    How agent versions and labels work.
-  </Card>
-  <Card title="Vapi Simulations" icon="/logo/vapi.svg" href="/simulation-integrations/vapi">
-    Connect a Vapi assistant so Self-Improve can push fixes to it.
-  </Card>
-</CardGroup>
+- An agent can have one active run. A second run on the same agent is rejected until the first run ends or stops.
+- To stop a run, ask Bluejay AI. Bluejay reverts changes that it did not verify.
+- Each round runs the full simulation and costs the same as a manual run.
+
+The API is `POST /v1/self-improve/runs`, `GET /v1/self-improve/runs`, `GET /v1/self-improve/runs/{run_id}`, and `POST /v1/self-improve/runs/{run_id}/stop`.

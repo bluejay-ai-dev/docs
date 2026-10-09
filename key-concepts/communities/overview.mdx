@@ -1,72 +1,33 @@
 ---
-title: "Communities Overview"
+title: "Communities"
 sidebarTitle: "Overview"
-description: Understand how Communities are organized and used in Bluejay
+description: A Community is a saved group of Digital Humans that you run again against any agent or Agent Version. Create one and use it in a simulation.
 icon: people-group
 ---
 
-A Community is a **test suite for your agent**. Just like a software test suite bundles individual test cases to verify that your code works correctly, a Community bundles Digital Humans — each representing a distinct user scenario — to verify that your agent handles real-world conversations correctly.
+A Community is a saved group of Digital Humans, used as a test suite. You can run the same Community against different agents or Agent Versions and compare the results.
 
-## What You'll Learn
+A Digital Human can be in more than one Community.
 
-- Why Communities are the primary way to build comprehensive agent test coverage
-- How to accumulate Digital Humans into a Community over time
-- How to run a Community against any agent for consistent, reproducible benchmarks
+## Create a Community
 
-## Think of Communities as Test Suites
+1. Open the **Digital Humans** page.
+2. Click **Create Community**.
+3. Enter a **Title**, an optional **Description**, and optional **Digital Humans**.
+4. Save.
 
-In traditional software testing, you don't write one test and call it done. You accumulate test cases over time — covering happy paths, edge cases, regressions, and failure modes — until your test suite gives you confidence that your code is production-ready.
+To add Digital Humans later, select them in the list and click **Add to Community**. Then select an **Existing Community** or create one.
 
-Communities work the same way for AI agents. Each Digital Human in a Community is like an individual test case: it carries a specific scenario, persona traits, and success criteria. The Community as a whole is the test suite that exercises your agent across the full range of situations it needs to handle.
+With the API or MCP, use `create_community` with `title`, `description`, and `digital_human_ids`. To change members, use `PUT /v1/add-to-community/{community_id}` and `PUT /v1/remove-from-community/{community_id}`.
 
-```mermaid
-flowchart TD
-    subgraph community ["Community (Test Suite)"]
-        DH1["Happy-path customer"]
-        DH2["Edge case: billing dispute"]
-        DH3["Frustrated, non-English speaker"]
-        DH4["Technical power user"]
-        DH5["Regression: past failure scenario"]
-    end
-    community --> SimA[Run against Agent v1]
-    community --> SimB[Run against Agent v2]
-    SimA --> Compare[Compare Results]
-    SimB --> Compare
-```
+## Run a Community
 
-## Building a Community Over Time
+1. Go to **Simulations > Create Simulation**.
+2. Select **Use Previous Digital Humans**.
+3. Select the Community in the **Communities** list.
 
-The most effective Communities are not built all at once — they grow as your agent matures:
+## Grow the suite
 
-1. **Start with the basics.** Create Digital Humans for the core scenarios your agent must handle — the happy paths and most common requests.
-2. **Add edge cases.** As you discover gaps in your agent's performance (through production monitoring, observability, or manual testing), create new Digital Humans that target those specific weaknesses.
-3. **Lock in regressions.** When your agent fails on a real conversation, turn that failure into a Digital Human so it never slips through again — just like adding a regression test in code.
-4. **Expand coverage.** Over time, layer in Digital Humans for different languages, customer segments, emotional states, and scenario types until your Community comprehensively tests every capability your agent claims to support.
+When an agent fails on a real Conversation, create a Digital Human that copies the failure and add it to the Community. The next run then tests for that failure again.
 
-The goal is to reach the point where running your Community gives you genuine confidence that a new agent version is ready for production.
-
-## Key Capabilities
-
-- **Reusable test suites** -- define a Community once, run it against any agent or agent version
-- **Cross-agent comparison** -- use the same Community to benchmark different agents side-by-side under identical conditions
-- **Incremental growth** -- add new Digital Humans to a Community at any time as your testing needs evolve
-- **Flexible organization** -- group by audience segment, language, scenario type, or any criteria you define
-- **Batch simulation runs** -- run every Digital Human in a Community in a single batch operation
-
-## Common Use Cases
-
-- Build a comprehensive "billing support" Community and run it against every new agent version before release
-- Create language-specific Communities to validate multilingual support across your agent fleet
-- Compare two competing agent architectures by running the same Community against both
-- After a production incident, add a Digital Human that reproduces the failure so it becomes a permanent part of your test suite
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Digital Humans" icon="users" href="/key-concepts/digital-humans/overview">
-    The personas that make up every Community.
-  </Card>
-  <Card title="Create Community API" icon="code" href="/api-reference/endpoint/create-community">
-    Create and manage Communities programmatically.
-  </Card>
-</CardGroup>
+See [Create Community](/api-reference/endpoint/create-community) for the API.

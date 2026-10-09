@@ -1,94 +1,54 @@
 ---
-title: "Digital Humans Overview"
+title: "Digital Humans"
 sidebarTitle: "Overview"
-description: Understand what Digital Humans are and how they power realistic agent testing on Bluejay
+description: A Digital Human is a simulated customer that calls, texts, or emails your agent in a simulation. Learn its parts and how to make it repeatable.
 icon: users
 ---
 
-Digital Humans are fundamental test cases that interact with your agent when you launch a [simulation](/test/simulations/overview).
+import { Transcript } from "/snippets/transcript.jsx";
 
-## What You'll Learn
+A Digital Human is a simulated customer that calls, texts, or emails your agent during a [simulation](/test/simulations/overview).
 
-- What a Digital Human represents in Bluejay
-- How a Digital Human is built
-- Why Digital Humans are central to your test suite
+## Parts of a Digital Human
 
-## The Mental Model
+| Part | Owns | Field |
+|---|---|---|
+| Intent | What the caller wants, in one or two sentences | `intent` |
+| Success Criteria | One or two outcomes of the agent that the transcript can show | `success_criteria` |
+| Role description | Who the caller is and how they behave | `role_description` |
+| Traits | Case facts the caller can say, for example a member ID | `traits` |
+| Scripted responses | Fixed replies to specific agent lines | `scripted_responses` |
+| Behavior | Voice, noise, pace, interruptions, and hangup | See [Configuration](/key-concepts/digital-humans/configuration) |
 
-```mermaid
-flowchart LR
-    subgraph YourAgent["Your Agent"]
-        A[Voice / Chat Agent]
-    end
+To add Digital Humans to a simulation, write them one at a time, generate them from the agent context, or upload a CSV. For the CSV format, see [Bulk upload with CSV](/key-concepts/digital-humans/configuration#bulk-upload-with-csv). To use the same set again, group them in a [Community](/key-concepts/communities/overview).
 
-    subgraph Bluejay["Bluejay Simulation"]
-        DH[Digital Human] -->|calls or chats with| A
-        A -->|responds to| DH
-    end
+<Transcript
+  turns={[
+    { role: "agent", t: "00:01", text: "Thanks for calling. Can I have your member ID?" },
+    { role: "human", t: "00:04", text: "Sure, it is 4829-3371." },
+    { role: "agent", t: "00:09", text: "Thank you. I booked a callback for tomorrow at 10 AM." }
+  ]}
+  verdict={{ metric: "Success Criteria", pass: true, reason: "The agent verified the member ID and booked a callback." }}
+/>
 
-    DH --> T[Transcript]
-    T --> E[Metric Evaluation]
-    E --> R[Pass / Fail Results]
-```
+## Write a Digital Human
 
-Digital Humans are configurable test cases that behave like your customers. When creating a Digital Human, ask yourself: "how would my customers interact with my agent?"
+1. Keep `intent` and `success_criteria` to one or two sentences each.
+2. Put grading that applies to every call in a [Custom Metric](/key-concepts/custom-metrics/overview), not in `success_criteria`.
+3. Describe the caller in `intent`. If you write "correctly", "appropriately", or "successfully", move that text to `success_criteria`.
+4. Ground the case in the agent context: the agent description, the synced [Workflow](/key-concepts/agents/overview#workflow), and the knowledge base.
 
-## Anatomy of a Digital Human
+## Make runs repeatable
 
-A **Digital Human** is composed of the following:
+Each "if the agent says X, the caller does Y" rule in `intent` is only a suggestion to the model. Move it to a field:
 
-<AccordionGroup>
-  <Accordion title="Intent" icon="bullseye">
-    Intent defines **what the Digital Human will talk about** during the conversation. This field is defined in plain English.
-  </Accordion>
-  <Accordion title="Success Criteria" icon="circle-check">
-    Success criteria define **how Bluejay determines whether the interaction was successful**. This field is defined in plain English.
-  </Accordion>
-  <Accordion title="Behavior" icon="sliders">
-    Behavior settings control **how the Digital Human sounds and acts**, including accent, language, emotion, speaking speed, background noise, when to speak first, and more.
-  </Accordion>
-  <Accordion title="Traits" icon="sliders">
-    Traits set fields specific to the Digital Human, e.g. DoB or credit card information. Full responses can be configured with [scripted responses](/key-concepts/digital-humans/configuration#scripted-responses).
-  </Accordion>
-</AccordionGroup>
+| Need | Field |
+|---|---|
+| A fixed value, for example a date of birth or order number | `traits` |
+| A fixed line, keypad entry, or pause | `scripted_responses` |
+| A fixed opening line | `speaks_first_config` |
+| The same call on each run | `creativity` from 0.0 to 0.3 |
 
-More configuration options are listed in [configuration](/key-concepts/digital-humans/configuration).
+For exploratory and red team cases, keep `creativity` near the default of 0.7.
 
-## Why Digital Humans Matter
-
-Digital Humans are the core of simulating real interactions with your agent. Without well-crafted Digital Humans, your simulations won't reflect reality.
-
-<CardGroup cols={2}>
-  <Card title="Exhaustive coverage" icon="bullseye">
-    Each Digital Human represents a real-world customer scenario. Build a diverse set and you'll battle-test your agent to the sky.
-  </Card>
-  <Card title="Automated at scale" icon="bolt">
-    Tell Bluejay about your agent's behavior, and Bluejay will automatically create hundreds of test cases for you.
-  </Card>
-  <Card title="Real human behaviors" icon="sliders">
-    Fine-tune accents, languages, emotions, DTMF tones, scripted responses, IVR navigation, silence, and more to match any real-world scenario.
-  </Card>
-  <Card title="Repeatable benchmarks" icon="arrows-rotate">
-    Group Digital Humans into Communities to reuse the same benchmark population across agents, versions, and evaluation cycles.
-  </Card>
-</CardGroup>
-
-## Resources
-
-<CardGroup cols={2}>
-  <Card title="Best Practices" icon="pen-fancy" href="/key-concepts/digital-humans/best-practices">
-    Best practices to create reliable and exhaustive tests with Digital Humans.
-  </Card>
-  <Card title="Configuration" icon="gear" href="/key-concepts/digital-humans/configuration">
-    Configure accents, DTMF, scripted responses, IVR simulation, and more.
-  </Card>
-  <Card title="Bulk Upload via CSV" icon="file-csv" href="/key-concepts/digital-humans/csv-upload">
-    Create many Digital Humans at once from a CSV, with intent, behavior, tool calls, and traits per row.
-  </Card>
-  <Card title="Use Cases" icon="lightbulb" href="/key-concepts/digital-humans/use-cases">
-    Real-world patterns for building effective Digital Human test suites.
-  </Card>
-  <Card title="Deep Dive" icon="book" href="/key-concepts/digital-humans/configuration">
-    Full reference for Digital Human fields, generation, and best practices.
-  </Card>
-</CardGroup>
+Before you create a batch, create one Digital Human, run it, and read the transcript. Bluejay accepts a configuration that has no effect, for example a scripted response that never matches.
