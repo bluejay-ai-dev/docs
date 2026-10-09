@@ -449,14 +449,14 @@ A playback acknowledgment. Sent as a WebSocket text frame (UTF-8 JSON).
 
 | Scenario                                | Bluejay behavior                                       |
 | --------------------------------------- | ------------------------------------------------------ |
-| HTTP 401/403 on upgrade                 | `test_result.status = REJECTED`                        |
+| HTTP 401/403 on upgrade                 | Simulation conversation status `REJECTED`              |
 | Host unreachable / TCP refused / TLS failure | 3 retries with backoff, then `INCOMPLETED`        |
 | Upgrade accepted but closed immediately | `INCOMPLETED`, close code logged                       |
 | Protocol violation (bad JSON, missing field, odd-length audio) | `session.error` sent, frame dropped, session continues |
 | Your server closes gracefully           | Session torn down; status set by call completion       |
 | Network drop or crash                   | `INCOMPLETED`, session ended                           |
 
-If you send a `session.error`, Bluejay logs it and surfaces it in `test_result.metadata`. The connection stays open unless you also close it.
+If you send a `session.error`, Bluejay logs it and surfaces it in the simulation conversation's `metadata`. The connection stays open unless you also close it.
 
 | Close code | Meaning                                    |
 | ---------- | ------------------------------------------ |
