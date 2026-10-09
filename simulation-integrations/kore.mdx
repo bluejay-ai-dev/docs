@@ -1,120 +1,81 @@
 ---
 title: "Kore.ai"
-description: "Test Kore.ai chatbots end-to-end with Bluejay's Digital Humans"
+description: "Test a Kore.ai chatbot with Bluejay Digital Humans through the Kore.ai Webhook channel, with HS256 app credentials and an access token."
 icon: '/logo/kore.svg'
 ---
 
-## Prerequisites
+Bluejay sends Digital Human messages to your Kore.ai bot through its Webhook channel, and the bot replies to a Bluejay webhook URL.
 
-You need:
+## Connect
 
-- A Kore.ai bot with a **Webhook channel** configured (Bot Builder → Channels & Flows → Webhook).
-- The Webhook channel's **app credentials** with **HS256** as the JWT signing algorithm. RS256 is not supported.
-- A Bluejay account.
-
-<Warning>
-  If your Kore.ai tenant is on an internal network (private IPs like `10.x.x.x` resolving via DNS), Bluejay must be able to reach the host. Test reachability from a public network with `curl https://<your-kore-host>/` before configuring the integration. Internal-only tenants require a VPN tunnel or a publicly reachable Kore endpoint.
-</Warning>
-
-## Setting Up the Integration
+You need a Kore.ai bot with a **Webhook** channel. The channel app must use **HS256** as the JWT signing algorithm. Bluejay does not support RS256.
 
 <Steps>
-<Step title="Collect Kore.ai credentials">
-
-In the Kore.ai Bot Builder, go to **Channels & Flows → Webhook → Configurations**. From the panel, copy:
-
-| Field | Example | Notes |
-|---|---|---|
-| **Host URL** | `https://platform.kore.ai` | The Kore.ai platform domain — **just the host**, no path. |
-| **Bot ID** | `st-d536681d-57be-5068-88e3-eb4b9644b9a8` | Shown as "Bot Id". |
-| **Client ID** | `cs-8167aff9-e1ed-5ff3-9d27-12d09462ff27` | Shown under the Webhook channel's app. |
-| **Client Secret** | (hidden) | Click *Display* to reveal. **Treat as a secret.** Must be paired with **HS256**. |
-
-<Tip>
-  Do **not** paste the full Post URL (`https://.../chatbot/v2/webhook/<bot_id>`) into the Kore Host field — Bluejay appends the path automatically and you'll get a 404. The Host field is just the platform domain.
-</Tip>
-
+<Step title="Copy the Kore.ai credentials">
+In Bot Builder, open **Channels & Flows**, then **Webhook**, then **Configurations**. Copy the values in the table below.
 </Step>
-
 <Step title="Create the agent in Bluejay">
+Create an agent with mode **Text** and connection type **Kore.ai**. Enter the four fields, then save the agent.
+</Step>
+<Step title="Generate the access token">
+In the agent **Connection** settings, click **Generate access token**. Copy the token. To see it again later, click **View access token**.
+</Step>
+<Step title="Configure the Kore.ai Webhook channel">
+Set **Integration Mode** to **Asynchronous**. Paste the **Bluejay Webhook URL** into **Post URL**. Paste the token into **Access Token**.
+</Step>
+<Step title="Publish the bot">
+Save the channel, then publish the bot. The Webhook channel does not send messages until you publish.
+</Step>
+</Steps>
 
-Use the [Add Agent endpoint](/api-reference/endpoint/add-agent) and pass `connection_type: "KORE"` with all four Kore fields:
+| Bluejay field | Kore.ai value | API field |
+|---|---|---|
+| Kore Host | The platform domain only, for example `https://platform.kore.ai` | `kore_host` |
+| Bot ID | **Bot Id**, starts with `st-` | `kore_bot_id` |
+| Client ID | The Webhook app **Client ID**, starts with `cs-` | `kore_client_id` |
+| Client Secret | The Webhook app **Client Secret** | `kore_client_secret` |
+
+The Bluejay Webhook URL has this format: `https://api.getbluejay.ai/v1/kore-webhook/<agent_id>`.
+
+<Note>
+Do not put the full Post URL in **Kore Host**. Bluejay adds the `/chatbot/v2/webhook/<bot_id>` path, so a full URL gives a 404.
+</Note>
+
+<Accordion title="Create the agent with the API">
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/add-agent \
-  -H "X-API-Key: your-api-key" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Kore Support Bot",
     "type": "INBOUND",
     "mode": "TEXT",
     "connection_type": "KORE",
-    "system_prompt": "...",
-    "knowledge_base": "",
-    "goals": [],
     "kore_host": "https://platform.kore.ai",
-    "kore_bot_id": "st-d536681d-57be-5068-88e3-eb4b9644b9a8",
-    "kore_client_id": "cs-8167aff9-e1ed-5ff3-9d27-12d09462ff27",
+    "kore_bot_id": "st-...",
+    "kore_client_id": "cs-...",
     "kore_client_secret": "<HS256 secret>"
   }'
 ```
 
-Then call `/v1/generate-kore-inbound-token` with the returned `agent_id` to receive the plaintext access token (shown once).
+Then send `POST /v1/generate-kore-inbound-token` with the `agent_id`. The response shows the token one time. A second call replaces the token.
 
-</Step>
+</Accordion>
 
-<Step title="Configure Bluejay's Webhook URL in Kore.ai">
+## Test
 
-Back in the Kore.ai Bot Builder → **Channels & Flows → Webhook → Configurations**:
+Create a simulation for the agent and run it. With the API, use [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run). Kore.ai agents use the same queue as HTTP Webhook agents.
 
-1. Set **Integration Mode** to **Asynchronous**.
-2. Paste Bluejay's **Webhook URL** into the **Post URL** field. The URL format is:
-   ```
-   https://api.getbluejay.ai/v1/kore-webhook/<agent_id>
-   ```
-3. Paste Bluejay's **Access Token** into the **Access Token** field.
-4. **Save**, then **Publish** the bot.
-
-<Warning>
-  The Webhook channel will not fire until the bot is published. If you re-publish later, the existing URL and Access Token stay valid — you don't need to rotate them.
-</Warning>
-
-</Step>
-
-<Step title="Run a simulation">
-
-<Tabs>
-<Tab title="Website">
-In Bluejay, open **Agents & Simulations** and select the agent you connected above. Create a simulation, add Digital Humans with scenarios and success criteria, then click **Create and start** to queue a run.
-</Tab>
-
-<Tab title="API">
-Use the [Queue HTTP Text Simulation Run endpoint](/api-reference/endpoint/queue-http-text-simulation-run) — Kore agents route through the same simulation queue as HTTP webhook agents.
-
-```bash
-curl -X POST https://api.getbluejay.ai/v1/queue-http-text-simulation-run \
-  -H "X-API-Key: your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{ "simulation_id": "<id>" }'
-```
-</Tab>
-</Tabs>
-
-</Step>
-</Steps>
-
-## Rotating credentials
-
-- **Access Token** — click **Regenerate access token** in Bluejay's Connection Settings. The old token is invalidated immediately; re-paste the new one into Kore.ai.
-- **Client Secret** — update it in both Kore.ai (regenerate on Kore's side) and Bluejay (paste the new value into Client Secret on the agent's Connection Settings).
-
-## Troubleshooting
-
-| Symptom | Likely cause | Fix |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `[KORE→] httpx error … type=ConnectTimeout` | Kore host unreachable from Bluejay's network (private IPs / firewall) | Use a publicly reachable Kore tenant, or arrange a network tunnel |
-| `[KORE→] response status=401 invalid access token` | JWT rejected by Kore | Verify Client ID and Client Secret match the Webhook channel exactly, and the channel uses **HS256** |
-| `[KORE→] response status=404` | Bot ID wrong, or bot not published | Check `kore_bot_id`; ensure the bot was published after enabling the Webhook channel |
-| URL contains `/chatbot/v2/webhook/...` doubled | `kore_host` was set to the full Post URL instead of just the host | Edit Kore Host to just `https://<platform>` |
-| Inbound `POST /v1/kore-webhook/{id}` returns 401 | Access Token in Kore doesn't match Bluejay's encrypted token | Click **Regenerate access token** in Bluejay and re-paste in Kore |
-| Bot replies appear in Kore but never reach Bluejay | Webhook channel set to **Synchronous** instead of **Asynchronous** | Switch to Asynchronous and re-publish |
+| `ConnectTimeout` in the result error | Bluejay cannot reach the Kore.ai host | Use a host that the public internet can reach. |
+| Kore.ai returns 401 | Kore.ai rejects the JWT | Check Client ID and Client Secret, and make sure the app uses HS256. |
+| Kore.ai returns 404 | Wrong Bot ID, bot not published, or full URL in Kore Host | Fix the field, then publish the bot. |
+| `POST /v1/kore-webhook/<agent_id>` returns 401 | The access token in Kore.ai does not match | Copy the token from **View access token** into Kore.ai again. |
+| Replies show in Kore.ai but not in Bluejay | The channel uses Synchronous mode | Set Asynchronous mode and publish again. |
+
+## Limits
+
+- If your Kore.ai tenant resolves to private IP addresses, Bluejay cannot reach it. You need a public endpoint or a network tunnel.
+- If you rotate the Client Secret in Kore.ai, update **Client Secret** on the Bluejay agent.

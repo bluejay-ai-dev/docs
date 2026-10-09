@@ -1,59 +1,70 @@
 ---
-title: 'ElevenLabs Observability'
-description: 'Integrating ElevenLabs with Bluejay Observability'
+title: 'ElevenLabs'
+description: 'Connect ElevenLabs to Bluejay. Sync ElevenLabs agents and workflows, run websocket or phone simulations, and monitor production calls.'
 icon: '/logo/elevenlabs.svg'
 ---
 
+The ElevenLabs integration syncs your ElevenLabs agents and their workflows into Bluejay and runs simulations against them. It also sends production calls to Bluejay through the post-call webhook.
 
-This guide walks you through how to connect your ElevenLabs voice agents to Bluejay's observability software. Once connected, every ElevenLabs call streams into Bluejay so you can monitor live conversations, evaluate transcripts against your custom metrics, and trigger alerts in real time. You connect an agent to ElevenLabs from its Connection Settings tab.
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/elevenlabs-simulations-walkthrough.mp4"></video>
 
-<video controls className="w-full aspect-video rounded-xl" src="/videos/elevenlabs-walkthrough.mp4"></video>
+## Connect
 
+Get an API key in ElevenLabs under **Developers > API Keys**. Then go to **Settings > Integrations > Eleven Labs** in Bluejay.
 
-### Prerequisites
+| Field | Value |
+|---|---|
+| Webhook Secret | The HMAC secret of your ElevenLabs post-call webhook. See [Monitor](#monitor). |
+| ElevenLabs API Key | Your ElevenLabs API key. Bluejay uses it to sync agents, open calls, and get tool calls. |
+| Sync Agents from ElevenLabs | Imports every agent with its name, prompt, and workflow into the **Synced from ElevenLabs** folder. |
+| Autosync from ElevenLabs | Syncs agents again on a schedule. |
 
-- An ElevenLabs account
-- Your ElevenLabs API key
-- Your ElevenLabs Agent ID
-- A Bluejay account
+To connect one agent by hand, open its **Connection Settings**, choose the **ElevenLabs** tile, and set **ElevenLabs Agent ID**.
 
-### Configuration Instructions
+Synced workflows show in the **Workflow** tab of the agent. **Sync** pulls the latest workflow, and **Push** sends your edits back. You can also change the branch or merge a branch to Main.
 
-#### 1. Set up the ElevenLabs webhook
+<video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-workflows-tab.jpg" src="/images/elevenlabs-sim-workflows-tab.mp4" aria-label="The Workflows tab in Bluejay" />
 
-1. In ElevenLabs, go to **Settings** > **Post-Call Webhook** > **Select Webhook** > **Create Webhook**.
-2. Name your webhook and paste this URL into the URL field:
+## Test
 
-```
-https://api.getbluejay.ai/v1/integrations/ElevenLabs
-```
+<Tabs>
+<Tab title="Websocket">
 
-3. Keep the **Webhook Auth Method** as **HMAC** and click **Create**.
-4. Save the webhook configuration in ElevenLabs.
+Bluejay opens a live web call to the agent over websocket. No phone number is necessary. The agent `first_message` and the Digital Human settings decide who speaks first. Bluejay gets tool calls from the ElevenLabs conversation history after the call.
 
-![Set up the ElevenLabs webhook](/images/elevenlabs-1-webhook.gif)
+1. Create a simulation on the **Simulations** page and select the agent.
+2. Add Digital Humans. For a multi-agent workflow, choose **Generate From Workflow** to make Digital Humans for each path.
+3. Click **Create New Run**, then **Run N calls**.
 
-#### 2. Paste the webhook configuration into Bluejay
+Simulations always use the Main branch. Merge other branches to Main before you test them.
 
-1. Copy the webhook configuration shown in ElevenLabs.
-2. In Bluejay, open **Settings**, then **Integrations**, and paste the configuration into the **ElevenLabs** integration panel.
+<video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-generate.jpg" src="/images/elevenlabs-sim-generate.mp4" aria-label="Generate Digital Humans from a synced workflow" />
 
-![Paste the webhook secret into Bluejay](/images/elevenlabs-2-paste-secret.gif)
+</Tab>
+<Tab title="Phone">
 
-#### 3. Sync your ElevenLabs agents to Bluejay
+Bluejay dials the ElevenLabs phone number like a real caller. Use this to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result.
 
-1. In ElevenLabs, click the **Developers** tab in the bottom-left of the sidebar.
-2. Open the **API Keys** section.
-3. Create a new API key or copy an existing one.
-4. In Bluejay, paste the API key into the ElevenLabs integration panel and click **Save Changes**, then click **Sync Agents from ElevenLabs**. This imports your ElevenLabs agents into Bluejay.
+1. Create an agent with type **Inbound**, mode **Voice**, and the **Phone** connection type.
+2. Set **Your Agent's Phone Number** in E.164 format, for example `+15551234567`.
+3. Create and run a simulation.
 
-![Sync your ElevenLabs agents to Bluejay](/images/elevenlabs-3-sync.gif)
+</Tab>
+</Tabs>
 
-### Using your own webhook
+## Monitor
 
-If you already port your own webhook into ElevenLabs, you can also send ElevenLabs transcripts directly to Bluejay's webhook.
+ElevenLabs sends each production call to Bluejay through a post-call webhook.
 
-Create an [API key in Bluejay](https://app.getbluejay.ai/settings/api-keys).
+1. In ElevenLabs settings, find **Post-Call Webhook** and click **Select Webhook > Create Webhook**.
+2. Set the URL to `https://api.getbluejay.ai/v1/integrations/ElevenLabs`.
+3. Keep **Webhook Auth Method** as **HMAC** and click **Create**.
+4. Copy the webhook secret into **Webhook Secret** in Bluejay.
+5. In each ElevenLabs agent, open **Security > Post Call Webhook** and select the webhook.
+
+<video controls muted playsInline preload="metadata" poster="/images/elevenlabs-1-webhook.jpg" src="/images/elevenlabs-1-webhook.mp4" aria-label="Set up the ElevenLabs webhook" />
+
+If you relay the ElevenLabs payload through your own service, send it with a Bluejay API key. A changed payload no longer matches the ElevenLabs signature.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
@@ -62,25 +73,24 @@ curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
   -d @elevenlabs-post-call-body.json
 ```
 
-To attach your own identifiers, add a top-level `metadata` object (different than `data.metadata` that comes from ElevenLabs). Here we add two fields, `member_id` and `clinic` that Bluejay will import:
+Add a top-level `metadata` object to attach your own fields. You can group widgets by them, filter the **Logs** page, use them in alerts, and use them as `{{member_id}}` in a [metric prompt](/key-concepts/custom-metrics/prompting-guide).
 
 ```json
 {
   "type": "post_call_transcription",
-  "data": { ... },
-  "metadata": {
-    "member_id": 124356,
-    "clinic": "Bluejay Clinic"
-  }
+  "data": { },
+  "metadata": { "member_id": 124356, "clinic": "Bluejay Clinic" }
 }
 ```
 
-These fields can be used to group a dashboard widget, filter the Logs page, point to an alert, or be referenced as `{{member_id}}` in a [metric's prompt](/key-concepts/custom-metrics/dynamic-variables).
+Bluejay overwrites these metadata keys: `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, and `original_webhook_data`.
 
-Note that Bluejay reserves and overwrites the following metadata fields: `eleven_labs_conversation_id`, `eleven_labs_user_id`, `eleven_labs_agent_id`, `organization_id`, `call_duration_secs`, `termination_reason`, `cost`, `main_language`, or `original_webhook_data`.
+## Limits
 
-### Up Next
-
-<Card title="ElevenLabs Simulations" icon="flask-vial" href="/integrations/eleven-labs-simulations">
-  Run Bluejay simulations against your ElevenLabs agents.
-</Card>
+| Symptom | Cause |
+|---|---|
+| Run fails with a missing integration error | No API key is saved. Bluejay needs the key at run time. |
+| `NO_CONNECTION` with an auth error | The API key is not valid. |
+| `NO_CONNECTION` with a concurrency error | The run is over the concurrency of your ElevenLabs plan. |
+| Edits do not show in the call | The edits are on a branch other than Main. |
+| Tool calls missing or partial | Bluejay gets them after the call. Long calls can return partial results. |

@@ -1,31 +1,29 @@
 ---
-title: "Cookbook"
-description: "Recipes for every Digital Human type, agent, simulation, and custom metric Bluejay as Code can create, plus the field renames and gotchas the OpenAPI reference doesn't cover."
+title: "Bluejay as Code Cookbook"
+sidebarTitle: "Cookbook"
+description: "Bluejay as Code payload examples for each Digital Human type, agents, simulations, and conditional and composite custom metrics, with renamed fields."
 icon: book
 ---
 
-Read the [pull → edit → push walkthrough](/key-concepts/bluejay-as-code/overview) first if you haven't already. This page picks up from there: which fields turn a Digital Human into a voicemail line, a customer journey, or a transcript replay, and the handful of field names Bluejay as Code renames from the API.
+This page gives payload examples for each entity type in [Bluejay as Code](/key-concepts/bluejay-as-code/overview). For the full field lists, see [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), [update-simulation](/api-reference/endpoint/update-simulation), and [create-custom-metric](/api-reference/endpoint/create-custom-metric).
 
-**Full field lists:** [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), [create-custom-metric](/api-reference/endpoint/create-custom-metric).
+## Renamed fields
 
-## Field Names That Differ From the API
-
-Bluejay as Code uses a few friendlier names in the payload than the underlying resource does:
-
-| In your payload | API field | Entity |
+| Payload field | API field | Entity |
 |---|---|---|
 | `description` | `intent` | Digital Human |
 | `human_name` | `name` | Digital Human |
 | `temperature` | `creativity` | Digital Human |
+| `description` | `prompt` | Custom metric (old files only) |
 
-You can also set a Digital Human's voice with one combined key instead of three. `"accent": "en_american_masculine"` follows the pattern `language_accent_gender`, with gender spelled `masculine` or `feminine`. Bluejay splits it into `language`, `accent`, and `gender` on push. Pull always emits the three separate fields, so this shorthand only matters when you're hand-writing a new Digital Human.
+On push, a Digital Human also accepts `"accent": "en_american_masculine"` in the form `language_accent_gender`. Bluejay splits it into `language`, `accent`, and `gender`. Pull always returns the three fields.
 
-## Choosing a Digital Human Type
+## Digital Human types
 
-A Digital Human's `tag` decides its type. The one exception is customer journeys, which use `journey_steps` instead. Pick one type per Digital Human. Each example below omits `simulations`; add it to attach the Digital Human to one, as shown on the [walkthrough](/key-concepts/bluejay-as-code/overview).
+The `tag` field sets the type. A customer journey uses `journey_steps` in place of a tag. The examples omit `simulations`.
 
 <AccordionGroup>
-  <Accordion title="Base human">
+  <Accordion title="Base">
     ```json
     {
       "bluejay_as_code_id": "a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44",
@@ -37,7 +35,7 @@ A Digital Human's `tag` decides its type. The one exception is customer journeys
   </Accordion>
 
   <Accordion title="Voicemail">
-    Set `tag` to `voicemail-custom` or `voicemail-ai-generated`.
+    Set `tag` to `voicemail-custom` for your own greeting, or `voicemail-ai-generated` for a generated greeting. For `voicemail-ai-generated`, set `speaks_first_config.mode` to `"ai_generated"` and omit `message`. A voicemail Digital Human needs no `description` or `success_criteria`.
 
     ```json
     {
@@ -47,18 +45,18 @@ A Digital Human's `tag` decides its type. The one exception is customer journeys
       "speaks_first_config": {
         "speaks_first": true,
         "mode": "custom",
-        "message": "Hi, you've reached Maria. Leave a message after the tone."
+        "message": "Hi, you have reached Maria. Leave a message after the tone."
       }
     }
     ```
 
     <Note>
-      If `tag` carries more than one label, put the voicemail tag first. Bluejay only checks the first label.
+      If `tag` has more than one label, put the voicemail label first. Bluejay checks only the first label.
     </Note>
   </Accordion>
 
   <Accordion title="Transcript replay">
-    `formatted_transcript` replays a real call instead of `description`/`success_criteria`. `original_transcript` takes raw text instead and costs one LLM call to extract the turns.
+    `formatted_transcript` replays a real call in place of `description` and `success_criteria`. `original_transcript` takes raw text, and Bluejay uses one LLM call to extract the turns.
 
     ```json
     {
@@ -66,15 +64,14 @@ A Digital Human's `tag` decides its type. The one exception is customer journeys
       "human_name": "Replayed Caller",
       "formatted_transcript": [
         { "role": "caller", "utterance": "Hi, I need to reschedule my appointment." },
-        { "role": "agent", "utterance": "Sure, what day works better for you?" },
-        { "role": "caller", "utterance": "Could we do next Thursday afternoon?" }
+        { "role": "agent", "utterance": "Sure, what day works better for you?" }
       ]
     }
     ```
   </Accordion>
 
   <Accordion title="Customer journey">
-    A [customer journey](/test/simulations/customer-journeys) runs multiple calls with the same caller in order.
+    A [customer journey](/test/simulations/customer-journeys) runs one call per step, in order. Bluejay adds the `Customer Journey` tag. `step` values must start at 1 and have no gaps. Each step needs an `intent`.
 
     ```json
     {
@@ -82,81 +79,41 @@ A Digital Human's `tag` decides its type. The one exception is customer journeys
       "human_name": "Returning Caller",
       "journey_steps": [
         { "step": 1, "intent": "Book a Tuesday morning physical with Dr. Patel", "success_criteria": "Appointment booked and confirmation number read back" },
-        { "step": 2, "intent": "Call back to confirm the appointment", "success_criteria": "Agent confirms the existing booking" }
+        { "step": 2, "intent": "Call back to cancel the appointment", "success_criteria": "Appointment cancelled" }
       ]
     }
     ```
   </Accordion>
 
   <Accordion title="Scenario Builder">
-    A Digital Human tagged `Scenario` is generated by [Scenario Builder](/key-concepts/scenario-builder/overview).
-
-    ```json
-    {
-      "bluejay_as_code_id": "1f6c2e9a-4d3b-4a71-9c8e-7b0a2d1f6c94",
-      "human_name": "Pharmacy Refill Caller",
-      "tag": "Scenario",
-      "workflow_v2_id": "64c79823-3d67-4648-874e-0a5de4c721bd",
-      "workflow_path_index": 0,
-      "enriched_playback": [
-        { "turn": 1, "type": "message", "speaker": "user", "intent": "Caller wants to refill a prescription.", "exact_message": "Hi, I'm calling to refill my prescription." },
-        { "turn": 2, "type": "message", "speaker": "agent", "criteria": "The agent verifies identity and confirms the prescription before proceeding.", "exact_match_text": "Sure, can I verify your name and date of birth first?" }
-      ]
-    }
-    ```
-
-    <Note>
-      Don't write `enriched_playback` by hand. It won't stay in sync with the graph.
-    </Note>
+    [Scenario Builder](/key-concepts/scenario-builder/overview) generates Digital Humans with the `Scenario` tag, `workflow_v2_id`, `workflow_path_index`, and `enriched_playback`. Do not write `enriched_playback` by hand, because it does not stay in sync with the scenario graph.
   </Accordion>
 
   <Accordion title="Red teaming">
-    A Digital Human generated by a [red teaming](/key-concepts/red-teaming/overview) run carries `attack_vector`, `attack_type`, and a much larger `attack_plan`. Launch these through [red teaming](/key-concepts/red-teaming/launching-a-test), not Bluejay as Code.
-
-    ```json
-    {
-      "bluejay_as_code_id": "8a3f1c7d-6e2b-4a90-b5d1-3c8f7a2e6b41",
-      "human_name": "Verification Bypass Attempt",
-      "attack_vector": "ambient_pretext",
-      "attack_type": "audio_native"
-    }
-    ```
+    [Red teaming](/key-concepts/red-teaming/overview) generates Digital Humans with `attack_vector`, `attack_type`, and `attack_plan`. Start these from [red teaming](/key-concepts/red-teaming/launching-a-test), not from Bluejay as Code.
   </Accordion>
 </AccordionGroup>
 
-`livekit_metadata` is also a generated field: agent connection plumbing set through the agent's LiveKit connection settings, not written by hand.
+`livekit_metadata` comes from the agent LiveKit connection settings. Do not write it by hand.
 
-## Agents, Simulations, and Custom Metrics
-
-These three don't have archetypes the way Digital Humans do, so there's one example each instead of an accordion per variant.
-
-### Agents
+## Agents
 
 ```json
 {
   "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
   "name": "Front Desk Scheduler",
-  "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing.",
+  "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine.",
   "type": "INBOUND",
-  "goals": [
-    "Verify caller identity before discussing PHI",
-    "Book, reschedule, or cancel the appointment",
-    "Confirm provider, date, time, and reason for visit"
-  ]
+  "goals": ["Verify caller identity", "Book, reschedule, or cancel the appointment"]
 }
 ```
 
-<Note>
-  Every field here is exactly what [add-agent](/api-reference/endpoint/add-agent) takes.
-</Note>
-
-### Simulations
+## Simulations
 
 ```json
 {
   "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
   "name": "Scheduling Coverage",
-  "description": "Booking, rescheduling, and cancellation paths for the front desk agent.",
   "max_concurrent": 5,
   "max_call_duration": 10,
   "max_call_duration_units": "minutes",
@@ -164,17 +121,15 @@ These three don't have archetypes the way Digital Humans do, so there's one exam
 }
 ```
 
-<Note>
-  Every field here is exactly what [update-simulation](/api-reference/endpoint/update-simulation) takes. A simulation has no `agent` field of its own: a *new* simulation's owner comes from whichever agent's `simulations` array lists its `bluejay_as_code_id`, or from the bundle's only agent when there's just one. An existing simulation's owner can't be reassigned on push.
-</Note>
+Push cannot move an existing simulation to a different agent.
 
-### Custom Metrics
+## Custom metrics
 
 ```json
 {
   "bluejay_as_code_id": "2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44",
   "name": "DOB Verified Before PHI",
-  "prompt": "The agent verifies the caller's date of birth before discussing any patient-specific information.",
+  "prompt": "The agent verifies the caller's date of birth before it discusses patient information.",
   "metric_type": "llm_judge",
   "eval_segment": "agent",
   "scope": "all",
@@ -182,185 +137,95 @@ These three don't have archetypes the way Digital Humans do, so there's one exam
 }
 ```
 
-<Note>
-  Every field here is exactly what [create-custom-metric](/api-reference/endpoint/create-custom-metric) takes. `metric_type` decides which other fields apply — `tool_call` and the `audio_*` types read from `settings` instead of `prompt`.
-</Note>
+`metric_type` sets which fields apply. The `tool_call` and `audio_*` types read `settings` in place of `prompt`.
 
-### Conditional and Composite Metrics
+### Conditional metrics
 
-Two kinds of custom metric are configured entirely through `settings`, so they don't appear in the [create-custom-metric](/api-reference/endpoint/create-custom-metric) field list.
+A conditional metric runs only on conversations that match its `settings.fire_conditions`. On other conversations the result is not applicable.
 
-A **conditional** metric only runs on conversations that match a condition you set. On every other call it comes back not applicable instead of failing, so a metric about insurance doesn't drag down calls that never discussed insurance.
-
-A **composite** metric doesn't judge the conversation at all. It reads the scores of other metrics on the same call and turns them into a number or a label. There's no LLM call, so it costs nothing to run.
-
-The examples below continue the Cedar Park Family Medicine agent from the [walkthrough](/key-concepts/bluejay-as-code/overview), and read the two metrics already in that payload plus one more, `Scheduling Clarity`, a 1-5 score on how clearly the agent handled the booking.
-
-<AccordionGroup>
-  <Accordion title="Only run a metric on calls that reached a workflow node">
-    Add `fire_conditions` to any metric's `settings`. Conditions are grouped: the conditions inside a group are joined by that group's `join`, and the groups are joined by the outer one. Both joins default to `and`, so a single condition needs nothing but `groups`.
-
-    This metric only runs on calls that reached the agent's insurance step.
-
-    ```json
-    {
-      "bluejay_as_code_id": "e6b0d419-2c7a-4f35-8d91-5a3f7c2e0b18",
-      "name": "Copay Explained",
-      "prompt": "Did the agent state the caller's copay amount for the visit they booked?",
-      "metric_type": "llm_judge",
-      "response_type": "pass_fail",
-      "settings": {
-        "fire_conditions": {
-          "groups": [
-            {
-              "conditions": [
-                { "type": "workflow_node", "node_id": "node_4a71c9e2b83d5f60" }
-              ]
-            }
-          ]
-        }
-      }
+```json
+{
+  "bluejay_as_code_id": "e6b0d419-2c7a-4f35-8d91-5a3f7c2e0b18",
+  "name": "Copay Explained",
+  "prompt": "Did the agent state the copay amount for the visit?",
+  "metric_type": "llm_judge",
+  "response_type": "pass_fail",
+  "settings": {
+    "fire_conditions": {
+      "groups": [
+        { "conditions": [{ "type": "workflow_node", "node_id": "node_4a71c9e2b83d5f60" }] }
+      ]
     }
-    ```
+  }
+}
+```
 
-    Get your agent's node IDs from `GET /v1/agents/{agent_id}/workflow/summary`.
+The conditions in a group use the group `join`. The groups use the outer `join`. Both default to `and`. You can use 10 conditions maximum across all groups.
 
-    A condition's `type` is one of three:
+| `type` | Fires when | Fields |
+|---|---|---|
+| `workflow_node` | The call reached a node in the agent workflow | `node_id` |
+| `tool_call` | The agent called a tool | `tool_name` |
+| `metric` | Another metric on the call has a given score | `metric_id`, `operator`, `value` |
 
-    | Type | Fires when | Takes |
-    |---|---|---|
-    | `workflow_node` | The call reached a node in the agent's workflow | `node_id` |
-    | `tool_call` | The agent called a tool | `tool_name` |
-    | `metric` | Another metric on the same call scored a certain way | `metric_id`, `operator`, `value` |
+Operators: `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, `not_contains`.
 
-    A `metric` condition's `operator` is one of `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, or `not_contains`. You can mix types freely, up to ten conditions across all groups.
+Get node IDs from `GET /v1/agents/{agent_id}/workflow/summary`. Old files can have `settings.fire_node_ids`, a flat list of node IDs. It still works.
 
-    <Note>
-      An older metric you pull might have `settings.fire_node_ids` instead — a flat list of node IDs. It still works, but it can't express groups or the other two condition types. Write `fire_conditions` for anything new.
-    </Note>
-  </Accordion>
+### Composite metrics
 
-  <Accordion title="Combine other metrics into a score">
-    Set `metric_type` to `composite` and `output_type` to `quantitative`. List the metrics it reads in `variables`, then combine them in `master_formula`.
+A composite metric reads the scores of other metrics on the same call. It makes no LLM call.
 
-    Refer to a metric by its ID in double quotes. That's the only way to name one, and it means the formula keeps working when someone renames a metric. Formulas are arithmetic only — `+`, `-`, `*`, `/`, `%`, `**`, and the functions `min`, `max`, `abs`, `round`, `floor`, and `ceil`.
+- List the input metrics in `settings.composite.variables`. A metric that is not a number needs a `value_map`.
+- In a formula, name a metric by its ID in double quotes.
+- Formula operators: `+`, `-`, `*`, `/`, `%`, `**`. Functions: `min`, `max`, `abs`, `round`, `floor`, `ceil`.
 
-    A metric that isn't already a number needs a `value_map` to become one. Here a pass on `Appointment Details Confirmed` counts as 5 and a fail counts as 1.
+For a number, set `output_type` to `quantitative` and write a `master_formula`:
 
-    ```json
-    {
-      "bluejay_as_code_id": "3d1f8b60-9a4c-4e27-b5d3-0c6e2a7f4193",
-      "name": "Scheduling Quality Score",
-      "prompt": "Weighted 1-5 score: 60% scheduling clarity, 40% whether the appointment details were confirmed.",
-      "metric_type": "composite",
-      "response_type": "quantitative",
-      "min_value": 1,
-      "max_value": 5,
-      "settings": {
-        "composite": {
-          "output_type": "quantitative",
-          "variables": [
-            { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37" },
-            {
-              "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21",
-              "value_map": { "pass": 5, "fail": 1 }
-            }
-          ],
-          "master_formula": "round(\"7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37\" * 0.6 + \"9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21\" * 0.4)"
-        }
-      }
+```json
+{
+  "bluejay_as_code_id": "3d1f8b60-9a4c-4e27-b5d3-0c6e2a7f4193",
+  "name": "Scheduling Quality Score",
+  "prompt": "Weighted 1-5 score from scheduling clarity and confirmed details.",
+  "metric_type": "composite",
+  "response_type": "quantitative",
+  "min_value": 1,
+  "max_value": 5,
+  "settings": {
+    "composite": {
+      "output_type": "quantitative",
+      "variables": [
+        { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37" },
+        { "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21", "value_map": { "pass": 5, "fail": 1 } }
+      ],
+      "master_formula": "round(\"7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37\" * 0.6 + \"9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21\" * 0.4)"
     }
-    ```
+  }
+}
+```
 
-    Each result saves its own arithmetic in `reasoning`, so you can always see where a score came from:
+For a label, set `output_type` to `categorical`, set `response_type` to `enum`, and write `rules`. Bluejay checks the rules in order and uses the first match. If no rule matches, the result is not applicable. You can use 10 rules maximum, with 10 conditions maximum each.
 
-    ```
-    Scheduling Clarity=4, Appointment Details Confirmed=5 -> round(4 * 0.6 + 5 * 0.4) = 4.
-    ```
-  </Accordion>
+```json
+"rules": [
+  {
+    "output": "Clean",
+    "conditions": { "groups": [{ "join": "and", "conditions": [
+      { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37", "operator": "greater_than_or_equal", "value": 4 },
+      { "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21", "operator": "equals", "value": 1 }
+    ]}]}
+  },
+  {
+    "output": "Poor",
+    "conditions": { "groups": [{ "conditions": [
+      { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37", "operator": "less_than", "value": 4 }
+    ]}]}
+  }
+]
+```
 
-  <Accordion title="Combine other metrics into a label">
-    Set `output_type` to `categorical` and replace the formula with `rules`. Each rule gives an `output` and the `conditions` that produce it, grouped the same way `fire_conditions` are. Conditions here compare a declared metric against a number, so pass/fail inputs still need a `value_map`.
-
-    Rules are checked in order and the first one that holds wins, so put the strictest first. If no rule holds, the metric is not applicable — there's no fallback label. You get up to ten rules, each with up to ten conditions.
-
-    ```json
-    {
-      "bluejay_as_code_id": "8e5c3a97-1d42-4b60-9f8e-2a7d4c1b6e50",
-      "name": "Call Outcome Grade",
-      "prompt": "Grades the booking as Clean, Usable, or Poor from scheduling clarity and whether the appointment details were confirmed.",
-      "metric_type": "composite",
-      "response_type": "enum",
-      "enum_options": ["Clean", "Usable", "Poor"],
-      "settings": {
-        "composite": {
-          "output_type": "categorical",
-          "variables": [
-            { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37" },
-            {
-              "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21",
-              "value_map": { "pass": 1, "fail": 0 }
-            }
-          ],
-          "rules": [
-            {
-              "output": "Clean",
-              "conditions": {
-                "groups": [
-                  {
-                    "join": "and",
-                    "conditions": [
-                      { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37", "operator": "greater_than_or_equal", "value": 4 },
-                      { "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21", "operator": "equals", "value": 1 }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "output": "Usable",
-              "conditions": {
-                "groups": [
-                  {
-                    "join": "or",
-                    "conditions": [
-                      { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37", "operator": "greater_than_or_equal", "value": 3 },
-                      { "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21", "operator": "equals", "value": 1 }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "output": "Poor",
-              "conditions": {
-                "groups": [
-                  {
-                    "join": "or",
-                    "conditions": [
-                      { "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37", "operator": "less_than", "value": 3 },
-                      { "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21", "operator": "equals", "value": 0 }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      }
-    }
-    ```
-
-    A rule can only read a metric that `variables` already lists.
-  </Accordion>
-</AccordionGroup>
+A rule can read only a metric that `variables` lists. Each result stores its calculation in `reasoning`.
 
 <Warning>
-  Metrics that read other metrics stay one level deep. A conditional metric might produce no result at all, so nothing can be built on top of one. Pointing a fire condition or a composite variable at a conditional metric is refused with a `422`, and so is making a metric conditional or composite when other metrics already read it. Point at a metric that always runs instead.
+Risk: a rejected push. A fire condition or composite variable that points at a conditional metric returns `422`. A metric that other metrics read cannot become conditional or composite.
 </Warning>
-
-One thing to watch on push: a malformed payload, like a bad `output_type` or a formula reading a metric that `variables` doesn't list, comes back as `200` with `valid: false` and an `errors` array, not as a `4xx`. Check `valid` on every push rather than the status code alone.
-
-### Wiring them together
-
-A simulation's `digital_humans`, an agent's `custom_metrics`, and a custom metric's `agents` are all desired-state arrays, not append-only lists. Push replaces each one with exactly what you listed. Drop an id that was there before, and Bluejay unlinks it without deleting the object itself. See [reconciliation](/key-concepts/bluejay-as-code/overview) in the walkthrough for the full behavior.

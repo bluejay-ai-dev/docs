@@ -1,257 +1,325 @@
 ---
 title: 'MCP Server'
-description: 'Connect AI agents and coding assistants to Bluejay using the Model Context Protocol'
+description: 'Connect Claude Code, Claude Desktop, Cursor, Windsurf, or another MCP client to the Bluejay MCP server, and see the full list of Bluejay tools.'
 icon: 'robot'
 ---
 
-Bluejay exposes a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives AI assistants — Claude, Cursor, Windsurf, and any other MCP-compatible client — direct, structured access to the full Bluejay API. Instead of writing HTTP calls by hand, your AI assistant can run simulations, manage agents, queue test runs, and retrieve results as native tool calls.
+The Bluejay MCP server gives an AI assistant tools to manage agents, Digital Humans, simulations, metrics, and monitoring in your Bluejay organization.
 
-## MCP Endpoint
+## Connect
 
-```
-https://api.getbluejay.ai/mcp
-```
+The endpoint is `https://api.getbluejay.ai/mcp`. It uses the Streamable HTTP transport in stateless mode.
 
-The server uses **stateless HTTP** (MCP Streamable HTTP transport). Every request to `/mcp` is a standard HTTP POST that returns the tool result inline. No persistent connection or SSE stream is required.
+To get an API key, open **Settings**, then **API Keys**, and click **Create API Key**. Copy the key. Send it in the `X-API-Key` header. `Authorization: Bearer <api_key>` also works.
 
-## Authentication
+<Tabs>
+<Tab title="Claude Code">
 
-All requests to the MCP server must be authenticated. The recommended method is an **API key** passed in the `X-API-Key` header.
-
-### Get your API key
-
-1. Sign in to [app.getbluejay.ai](https://app.getbluejay.ai)
-2. Navigate to **Settings > API Keys**
-3. Click **Generate API Key** and copy the value immediately — it is only shown once
-
-### Pass your API key
-
-Include your key in the `X-API-Key` header on every request to the MCP server:
-
-```http
-X-API-Key: <your_api_key_here>
+```bash
+claude mcp add --transport http bluejay https://api.getbluejay.ai/mcp \
+  --header "X-API-Key: <your_api_key>"
 ```
 
-### Error responses
+</Tab>
+<Tab title="Claude Desktop">
+Add this to `claude_desktop_config.json`, then restart Claude Desktop. The `mcp-remote` package connects the local client to the remote server.
+
+```json
+{
+  "mcpServers": {
+    "bluejay": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://api.getbluejay.ai/mcp", "--header", "X-API-Key:<your_api_key>"]
+    }
+  }
+}
+```
+
+</Tab>
+<Tab title="Cursor">
+Add this to `~/.cursor/mcp.json` or `.cursor/mcp.json` in your project.
+
+```json
+{
+  "mcpServers": {
+    "bluejay": {
+      "url": "https://api.getbluejay.ai/mcp",
+      "headers": { "X-API-Key": "<your_api_key>" }
+    }
+  }
+}
+```
+
+</Tab>
+<Tab title="Windsurf">
+Add this to `~/.codeium/windsurf/mcp_config.json`.
+
+```json
+{
+  "mcpServers": {
+    "bluejay": {
+      "serverUrl": "https://api.getbluejay.ai/mcp",
+      "headers": { "X-API-Key": "<your_api_key>" }
+    }
+  }
+}
+```
+
+</Tab>
+<Tab title="Other clients">
+Add a remote MCP server with URL `https://api.getbluejay.ai/mcp` and header `X-API-Key: <your_api_key>`.
+</Tab>
+</Tabs>
+
+If authentication fails, the server returns `{ "error": "Unauthorized", "detail": "<reason>" }`.
 
 | Status | Meaning |
-|--------|---------|
-| `401`  | Missing or invalid credential |
-| `403`  | Valid JWT but user has no organization |
+|---|---|
+| `401` | The credential is missing, not valid, expired, or revoked. |
+| `403` | The user has no organization. |
 
-Unauthenticated requests receive a JSON body: `{ "error": "Unauthorized", "detail": "<reason>" }`.
+## Test
 
-## Configuring your MCP client
+Ask your assistant: "List my agents." The assistant calls `list_agents` and shows the agents in your organization. For a longer task, ask: "Create a simulation called Regression Test for Support Bot, generate 5 Digital Humans, and run it."
 
-<CardGroup cols={2}>
-  <Card title="Claude Code & Claude Desktop" icon="terminal" href="/mcp/claude-code">
-    Set up Bluejay MCP in Claude Desktop or Claude Code CLI
-  </Card>
-  <Card title="Cursor & Windsurf" icon="code" href="/mcp/cursor-windsurf">
-    Set up Bluejay MCP in Cursor or Windsurf
-  </Card>
-</CardGroup>
+## Tools
 
-## Available tools
-
-The MCP server injects your identity from the `X-API-Key` header automatically — you never pass credentials as tool arguments. The families below cover the most common tools; the server exposes more (the full list comes back from your MCP client's tool discovery).
+The server reads your organization from the API key. You do not pass credentials as tool arguments.
 
 ### Agents
 
 | Tool | Description |
-|------|-------------|
-| `add_agent` | Create a new agent |
-| `update_agent` | Update an agent by ID |
-| `update_agent_by_external_id` | Update an agent by your own external ID |
-| `get_agent` | Fetch a single agent |
-| `get_agent_by_external_id` | Fetch an agent by external ID |
-| `get_agents_by_folder` | List agents in a folder |
-| `list_agents` | List all agents in your organization |
-| `delete_agent` | Delete an agent |
-
-### Simulations
-
-| Tool | Description |
-|------|-------------|
-| `create_simulation` | Create a new simulation |
-| `update_simulation` | Update a simulation |
-| `get_simulation` | Fetch a simulation |
-| `list_simulations` | List all simulations |
-| `get_simulations_by_agent` | List simulations for a given agent |
-| `get_simulation_runs` | List runs for a simulation |
-| `delete_simulation` | Delete a simulation |
-
-### Digital Humans
-
-| Tool | Description |
-|------|-------------|
-| `create_digital_human` | Create a single Digital Human |
-| `bulk_create_digital_humans` | Create multiple Digital Humans at once |
-| `generate_digital_humans` | AI-generate Digital Humans for a simulation |
-| `update_digital_human` | Update a Digital Human |
-| `get_digital_human` | Fetch a Digital Human |
-| `get_digital_humans_by_simulation` | List Digital Humans for a simulation |
-| `delete_digital_human` | Delete a Digital Human |
-
-### Simulation Runs
-
-| Tool | Description |
-|------|-------------|
-| `queue_simulation_run` | Queue a voice simulation run |
-| `queue_sms_simulation_run` | Queue an SMS simulation run |
-| `queue_http_text_simulation_run` | Queue an HTTP/text simulation run |
-| `queue_email_simulation_run` | Queue an email simulation run |
-| `get_simulation_results` | List results for a simulation run |
-| `get_simulation_result` | Fetch a single simulation result |
-
-### Evaluation & Observability
-
-| Tool | Description |
-|------|-------------|
-| `evaluate` | Submit a production call for evaluation |
-| `send_http_text_message` | Send a message in an active HTTP/text simulation |
-| `translate_transcript` | Translate a call transcript |
-| `end_conversations` | End one or more active conversations |
-| `delete_call_log` | Delete a call log |
-| `update_call_log` | Update a call log |
-
-### Custom Metrics
-
-| Tool | Description |
-|------|-------------|
-| `create_custom_metric` | Create a custom evaluation metric |
-| `create_custom_metrics` | Bulk-create custom metrics |
-| `update_custom_metric` | Update a custom metric |
-| `get_custom_metric` | Fetch a custom metric |
-| `list_custom_metrics` | List all custom metrics |
-| `get_custom_metrics_by_agent` | List custom metrics for an agent |
-| `delete_custom_metric` | Delete a custom metric |
-| `bulk_delete_custom_metrics` | Delete multiple custom metrics |
-
-### Folders
-
-| Tool | Description |
-|------|-------------|
-| `create_folder` | Create a folder |
-| `update_folder` | Update a folder |
-| `get_folder` | Fetch a folder |
-| `list_folders` | List all folders |
-| `move_agent_to_folder` | Move an agent into a folder |
-| `delete_folder` | Delete a folder |
+|---|---|
+| `add_agent` | Create an agent. |
+| `get_agent` | Get one agent. |
+| `list_agents` | List agents. |
+| `update_agent` | Update an agent. |
+| `delete_agent` | Delete an agent. |
 
 ### Agent Versions
 
 | Tool | Description |
-|------|-------------|
-| `create_prompt_version` | Create a new agent version |
-| `get_prompt` | Fetch an agent version |
-| `list_prompts` | List all agent versions |
-| `list_prompt_versions` | List an agent's versions |
-| `get_prompt_version` | Fetch a specific agent version |
-| `add_prompt_version_labels` | Add labels to an agent version |
-| `get_prompt_version_labels` | Get labels for an agent version |
-| `delete_prompt_version_labels` | Remove labels from an agent version |
-| `delete_prompt` | Delete an agent version by unique ID |
-| `delete_prompt_version` | Delete an agent version by version number |
+|---|---|
+| `create_prompt_version` | Create an agent version. |
+| `get_prompt_version` | Get an agent version by version number. |
+| `get_prompt` | Get an agent version by ID. |
+| `list_prompt_versions` | List agent versions. |
+| `list_prompts` | List agent versions, with an optional label filter. |
+| `delete_prompt_version` | Delete an agent version by version number. |
+| `delete_prompt` | Delete an agent version by ID. |
+| `add_prompt_version_labels` | Add labels to an agent version. |
+| `get_prompt_version_labels` | Get the labels on an agent version. |
+| `delete_prompt_version_labels` | Remove labels from an agent version. |
 
-### Labels
-
-| Tool | Description |
-|------|-------------|
-| `create_label` | Create a label |
-| `list_labels` | List all labels |
-| `get_label` | Fetch a label |
-| `update_label` | Update a label |
-| `delete_label` | Delete a label |
-
-### Communities
+### Digital Humans
 
 | Tool | Description |
-|------|-------------|
-| `create_community` | Create a community |
-| `update_community` | Update a community |
-| `get_community` | Fetch a community |
-| `list_communities` | List all communities |
-| `delete_community` | Delete a community |
+|---|---|
+| `create_digital_humans` | Create one or more Digital Humans. |
+| `generate_digital_humans` | Generate Digital Humans with AI. |
+| `get_digital_human` | Get one Digital Human. |
+| `list_digital_humans` | List Digital Humans. |
+| `update_digital_humans` | Update one or more Digital Humans. |
+| `delete_digital_human` | Delete a Digital Human. |
+| `duplicate_digital_human` | Copy a Digital Human. |
+| `bulk_set_digital_human_simulations` | Set the simulations of up to 100 Digital Humans. |
+| `get_digital_human_run_history` | List all calls of one Digital Human. |
+| `get_voice_options` | List the valid languages, accents, and genders. |
+| `create_custom_background_noise_upload_url` | Get a signed URL to upload a background noise file. |
+| `create_custom_background_noise` | Add an uploaded noise to the library. |
+| `list_custom_background_noises` | List the background noise library. |
+| `create_community` | Create a community. |
+| `get_community` | Get one community. |
+| `list_communities` | List communities. |
+| `update_community` | Update a community. |
+| `delete_community` | Delete a community. |
 
-### Workflows
-
-| Tool | Description |
-|------|-------------|
-| `create_workflow` | Create a workflow |
-| `update_workflow` | Update a workflow |
-| `get_workflow` | Fetch a workflow |
-| `list_workflows` | List all workflows |
-| `delete_workflow` | Delete a workflow |
-
-### Schedules
-
-| Tool | Description |
-|------|-------------|
-| `create_schedule` | Schedule a recurring simulation run |
-| `update_schedule` | Update a schedule |
-| `get_schedule` | Fetch a schedule |
-| `list_schedules` | List all schedules |
-| `delete_schedule` | Delete a schedule |
-
-### Phone Numbers
+### Simulations
 
 | Tool | Description |
-|------|-------------|
-| `list_phone_numbers` | List phone numbers in your organization |
-| `add_phone_number` | Add a phone number |
-| `release_phone_number` | Release a phone number |
+|---|---|
+| `create_simulation` | Create a simulation. |
+| `get_simulation` | Get one simulation. |
+| `list_simulations` | List simulations. |
+| `update_simulation` | Update a simulation. |
+| `delete_simulation` | Delete a simulation. |
+| `queue_simulation_run` | Run a simulation. |
+| `queue_email_simulation_run` | Run an email simulation. |
+| `get_simulation_runs` | List the runs of a simulation. |
+| `get_simulation_results` | Get one page of the results of a run. |
+| `get_simulation_result` | Get one result. |
+| `get_simulation_transcript` | Get the transcript of one simulation conversation. |
+| `send_http_text_message` | Send an agent message in an HTTP Webhook conversation. |
+| `end_conversations` | End running conversations. |
 
-### Alerts
-
-| Tool | Description |
-|------|-------------|
-| `create_alert` | Create an alert on a metric |
-| `update_alert` | Update an alert |
-| `list_alerts` | List alerts |
-| `get_alert_results` | Fetch alert firing history |
-| `delete_alert` | Delete an alert |
-
-### Uptime Monitors
-
-| Tool | Description |
-|------|-------------|
-| `create_uptime_monitor` | Create a monitor (provisions its health-check simulation and schedule) |
-| `update_uptime_monitor` | Partial update — checks, notifications, frequency, pause/resume |
-| `list_uptime_monitors` | List monitors with checks, notifications, and last status |
-| `get_uptime_monitor` | Fetch one monitor and its recent checks |
-| `delete_uptime_monitor` | Delete a monitor and stop its checks |
-
-Checks and notifications use the same shapes as the [REST API](/api-reference/endpoint/create-uptime-monitor), including the digital-human custom caller.
-
-### Agent Workflows (provider sync)
+### Metrics
 
 | Tool | Description |
-|------|-------------|
-| `sync_agent_workflow` | Pull the latest workflow from the provider |
-| `push_agent_workflow` | Push edited workflow back to the provider |
-| `get_workflow_summary` | Fetch the synced workflow graph |
-| `list_workflow_paths` | Enumerate distinct paths through the workflow |
-| `add_workflow_node` / `update_workflow_node` / `delete_workflow_node` | Edit nodes |
-| `add_workflow_edge` / `delete_workflow_edge` | Edit edges |
+|---|---|
+| `create_custom_metrics` | Create one or more custom metrics. |
+| `get_custom_metric` | Get one custom metric. |
+| `list_custom_metrics` | List custom metrics. |
+| `update_custom_metric` | Update a custom metric. |
+| `delete_custom_metrics` | Delete one or more custom metrics. |
+| `list_custom_metric_templates` | List metric library templates. |
+| `get_custom_metric_template` | Get one metric library template. |
+| `evaluate` | Send a call or chat for evaluation. |
+
+### Monitor
+
+| Tool | Description |
+|---|---|
+| `list_conversations` | Query production conversations. |
+| `get_conversation` | Get one conversation with its transcript, tool calls, and errors. |
+| `list_traces` | List recent traces. |
+| `get_trace` | Get one trace. |
+| `get_span` | Get one span. |
+| `create_alert` | Create an alert. |
+| `list_alerts` | List alerts. |
+| `update_alert` | Update an alert. |
+| `delete_alert` | Delete an alert. |
+| `get_alert_results` | List the recent triggers of an alert. |
+| `create_uptime_monitor` | Create an uptime monitor. |
+| `get_uptime_monitor` | Get one uptime monitor. |
+| `list_uptime_monitors` | List uptime monitors. |
+| `update_uptime_monitor` | Update an uptime monitor. |
+| `delete_uptime_monitor` | Delete an uptime monitor. |
+| `get_uptime_monitor_series` | Get uptime and latency over time for a monitor. |
+
+### Labs
+
+| Tool | Description |
+|---|---|
+| `create_lab` | Create a Metrics Lab for one custom metric. |
+| `get_lab_detail` | Get the full state of a lab. |
+| `list_labs` | List labs. |
+| `update_lab` | Rename a lab or change its description. |
+| `delete_lab` | Delete a lab. |
+| `add_conversations_to_lab` | Add conversations to a lab. |
+| `add_metrics_to_lab` | Add metrics to a lab. |
+| `create_metric_revision` | Create a metric revision in a lab. |
+| `evaluate_conversation` | Evaluate one conversation. |
+
+### Red Team
+
+| Tool | Description |
+|---|---|
+| `start_red_team_simulation` | Start a red team simulation against one agent. |
+| `get_red_team_simulation` | Get the status, Digital Human tree, and report. |
+| `list_red_team_simulations` | List red team simulations. |
+| `stop_red_team_simulation` | Stop a red team simulation. |
 
 ### Self-Improve
 
 | Tool | Description |
-|------|-------------|
-| `start_self_improve_run` | Start an autonomous prompt-improvement loop |
-| `get_self_improve_run` | Fetch run status and per-round history |
-| `list_self_improve_runs` | List runs |
-| `stop_self_improve_run` | Stop a run |
+|---|---|
+| `start_self_improve_run` | Start a self-improve run for one Vapi agent. |
+| `get_self_improve_run` | Get the status, pass rates, and history of a run. |
+| `list_self_improve_runs` | List self-improve runs. |
+| `stop_self_improve_run` | Stop a self-improve run. |
 
-### Other families
+### Dashboards
 
-The server also exposes tools for **Metrics Lab** (labs, annotations), **Traces & Spans**, **Scenario nodes** (IVR, hold, human-agent), **Voice options**, and provider-specific helpers for **Vapi** (squads, assistant tools) and **ElevenLabs** (agents, branches, merge).
+| Tool | Description |
+|---|---|
+| `create_dashboard` | Create an empty dashboard. |
+| `get_dashboard` | Get a dashboard with its widgets and layout. |
+| `list_dashboards` | List dashboards. |
+| `update_dashboard` | Rename a dashboard or change its description. |
+| `update_dashboard_layout` | Set the widget positions on a dashboard. |
+| `duplicate_dashboard` | Copy a dashboard and its widgets. |
+| `delete_dashboard` | Delete a dashboard and its widgets. |
+| `create_widget` | Create a chart widget on a dashboard. |
+| `get_widget` | Get one widget. |
+| `list_widgets` | List widgets. |
+| `update_widget` | Replace the configuration of a widget. |
+| `duplicate_widget` | Copy a widget. |
+| `delete_widget` | Delete a widget. |
 
-## Example: Run a simulation end-to-end
+### Scenarios
 
-With the MCP server connected, you can ask your AI assistant:
+These tools edit Scenario Builder graphs. The API calls each graph a workflow.
 
-> "List my agents, pick the one named 'Support Bot', create a simulation called 'Regression Test', generate 5 Digital Humans, and queue a simulation run."
+| Tool | Description |
+|---|---|
+| `create_workflow` | Create a scenario. |
+| `get_workflow` | Get one scenario. |
+| `list_workflows` | List scenarios. |
+| `update_workflow` | Update a scenario. |
+| `duplicate_workflow` | Copy a scenario. |
+| `delete_workflow` | Delete a scenario. |
+| `validate_workflow_definition` | Check a scenario graph without saving it. |
+| `list_scenario_nodes` | List the nodes and edges of a scenario. |
+| `create_scenario_node` | Add a node. |
+| `update_scenario_node` | Update a node. |
+| `delete_scenario_node` | Remove a node and its edges. |
+| `add_scenario_edge` | Add an edge. |
+| `delete_scenario_edge` | Remove an edge. |
 
-The assistant will chain the `list_agents` → `create_simulation` → `generate_digital_humans` → `queue_simulation_run` tools automatically, without you writing any code.
+### Workflows
+
+These tools edit the agent workflow that Bluejay syncs from the provider.
+
+| Tool | Description |
+|---|---|
+| `sync_agent_workflow` | Pull the latest workflow from the provider. |
+| `push_agent_workflow` | Push the stored workflow to the provider. This makes it live. |
+| `get_workflow_summary` | Get the workflow graph. |
+| `list_workflow_paths` | List the paths through the workflow. |
+| `add_workflow_node` | Add a node. |
+| `update_workflow_node` | Update a node. |
+| `delete_workflow_node` | Remove a node and its edges. |
+| `add_workflow_edge` | Add an edge. |
+| `delete_workflow_edge` | Remove an edge. |
+
+### Schedules
+
+| Tool | Description |
+|---|---|
+| `create_schedule` | Create a schedule. |
+| `get_schedule` | Get one schedule. |
+| `list_schedules` | List schedules. |
+| `update_schedule` | Update a schedule. |
+| `delete_schedule` | Delete a schedule. |
+
+### Folders
+
+| Tool | Description |
+|---|---|
+| `create_folder` | Create a folder. |
+| `get_folder` | Get one folder. |
+| `list_folders` | List folders. |
+| `update_folder` | Update a folder. |
+| `delete_folder` | Delete a folder. |
+| `move_agent_to_folder` | Move an agent to a folder or to the root. |
+
+### Labels
+
+| Tool | Description |
+|---|---|
+| `create_label` | Create a label on an agent. |
+| `get_label` | Get one label. |
+| `list_labels` | List the labels of an agent. |
+| `update_label` | Update a label. |
+| `delete_label` | Delete a label. |
+
+### Other
+
+| Tool | Description |
+|---|---|
+| `add_phone_number` | Buy a phone number. |
+| `list_phone_numbers` | List phone numbers. |
+| `release_phone_number` | Release a phone number. |
+| `translate_transcript` | Translate a transcript. |
+| `sync_vapi_agents` | Sync Vapi assistants and squads into Bluejay. |
+| `create_vapi_squad` | Create a Vapi squad. |
+| `list_vapi_tools` | List Vapi tools. |
+| `list_vapi_assistant_tools` | List the tools on a Vapi assistant. |
+| `add_vapi_assistant_tool` | Add a tool to a Vapi assistant. |
+| `remove_vapi_assistant_tool` | Remove a tool from a Vapi assistant. |
+| `list_elevenlabs_agents` | List ElevenLabs agents. |
+| `list_elevenlabs_branches` | List the branches of an ElevenLabs agent. |
+| `merge_elevenlabs_branches` | Merge one ElevenLabs branch into another. |
+| `list_bland_pathways` | List Bland pathways. |
+| `sync_bland_knowledge_bases` | Pull knowledge bases from Bland again. |
+| `get_bland_knowledge_base_changes` | List Bland knowledge bases that changed on a sync. |

@@ -1,0 +1,65 @@
+---
+title: "Alert Notifications"
+sidebarTitle: "Notifications"
+description: "Send Bluejay alert and uptime monitor notifications to Slack, PagerDuty, Better Stack, or email when an alert fires or a monitor goes down."
+icon: bell
+---
+
+Bluejay sends a notification to each destination you turn on for an alert or an uptime monitor.
+
+## Connect
+
+<Tabs>
+<Tab title="Slack">
+1. Open **Settings**, then **Integrations**, then the **Slack** tab.
+2. Click **Connect**.
+3. In Slack, review the permissions and click **Allow**.
+
+![Connect to Slack](/images/integrations-slack-connect.png)
+
+To remove the connection, click **Disconnect** on the same tab.
+</Tab>
+<Tab title="PagerDuty">
+1. In PagerDuty, open the service that receives Bluejay incidents.
+2. Under **Integrations**, add an **Events API V2** integration.
+3. Copy the **Integration Key**.
+4. In Bluejay, open **Settings**, then **Integrations**, then the **PagerDuty** tab.
+5. Paste the key into **Routing Key** and click **Save Changes**.
+</Tab>
+<Tab title="Better Stack">
+1. In Better Stack, open **API tokens**, then **Team-based tokens**.
+2. Select the team whose on-call rotation receives Bluejay incidents.
+3. Under **Uptime API tokens**, create a token and copy it.
+4. In Bluejay, open **Settings**, then **Integrations**, then the **Better Stack** tab.
+5. Paste the token into **API token** and click **Save Changes**.
+
+Bluejay stores the token encrypted. Better Stack needs no other setup, and the free plan works.
+</Tab>
+<Tab title="Email">
+Email needs no connection. Bluejay sends to your team members.
+</Tab>
+</Tabs>
+
+## Turn on notifications
+
+1. Open an alert in **Alerts**, or a monitor in **Uptime**.
+2. Turn on **Slack Notifications**, **PagerDuty Notifications**, **Better Stack Notifications**, or **Email Notifications**.
+3. For Slack, select a channel.
+4. For email, select **All Team Members** or **Specific People**.
+5. Save.
+
+A toggle stays off until you connect its destination. On an alert, click **Send test notification** to check the setup.
+
+![Slack Notifications in the alert dialog](/images/integrations-slack-alarm-dialog.png)
+
+## Incidents
+
+PagerDuty and Better Stack receive incidents. Your escalation policy in that tool decides who gets the page.
+
+| Source | Opens an incident | Resolves the incident |
+|---|---|---|
+| Uptime monitor | When the monitor goes DOWN | When the monitor recovers |
+| Observability alert | When the alert triggers | PagerDuty: when the alert recovers |
+| Simulation alert | One incident per run | Never. Resolve it in PagerDuty or Better Stack. |
+
+Each uptime monitor uses one fixed dedup key. A DOWN and its recovery update the same incident, and a second DOWN does not open a new incident while the first one is open.

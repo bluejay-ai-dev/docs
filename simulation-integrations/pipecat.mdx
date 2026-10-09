@@ -1,37 +1,42 @@
 ---
 title: "Pipecat Simulations"
-description: "Connect directly to a pipecat transport for simulations"
+description: "Run Bluejay simulations against a Pipecat Cloud agent. Bluejay starts your agent in a Daily room and puts a Digital Human in the same room."
 icon: "/logo/pipecat.svg"
 ---
 
-## Pipecat
+Bluejay calls the Pipecat Cloud start endpoint for your agent. Then it joins the Daily room that Pipecat creates and talks to your agent as a Digital Human.
 
-If your agent is running with the Pipecat framework this is an easy way to simulate calls to your agent. We will manage the transport connection and place our Digital Human directly in communication with your agent.
+## Connect
 
-### Connection model
+<Steps>
+<Step title="Deploy the agent">
+Deploy your agent to Pipecat Cloud. Use the [Pipecat quickstart](https://docs.pipecat.ai/getting-started/quickstart). Record the agent name from `pcc-deploy.toml`.
+</Step>
+<Step title="Create a public API key">
+In the Pipecat dashboard, open **API Keys**. Create a key on the **Public** tab. The key starts with `pk_`.
+</Step>
+<Step title="Add the key to Bluejay">
+Open **Settings**, then **Integrations**, then the **Pipecat** tab. Paste the key and click **Save Changes**.
+</Step>
+<Step title="Create the agent">
+Create an agent with mode **Voice** and connection type **Pipecat**. Enter the **Pipecat Agent Name**.
+</Step>
+</Steps>
 
-Bluejay will connect to your Pipecat agent's transport layer and establish a bidirectional audio/data stream, allowing our Digital Human to interact with your agent in real-time.
+<Warning>
+A private Pipecat key does not work. Bluejay rejects a key that does not start with `pk_`, and the call fails.
+</Warning>
 
-## Quick Start
+## Fields
 
-1. **Deploy Pipecat Agent**: Deploy an agent to Pipecat Cloud following Pipecat's [Quickstart guide](https://docs.pipecat.ai/getting-started/quickstart)
+| Field | Required | Description |
+|---|---|---|
+| Pipecat Agent Name | Yes | The agent name in Pipecat Cloud. |
+| Pipecat Agent Configuration | No | JSON that Bluejay sends as `body` to your agent on start. |
+| Pipecat Room Properties | No | JSON that Bluejay merges into the Daily room properties. |
 
-2. **Add Pipecat Public Key**: Get your [Pipecat Public API key](https://docs.pipecat.ai/deployment/pipecat-cloud/fundamentals/accounts-and-organizations#public-api-keys) and add it to Bluejay
-   - Retrieve your Pipecat Public API key from the Pipecat dashboard:
-     - Navigate to the API Keys tab
-     - Locate Pipecat Cloud API Keys and select the public tab
-     - Create a new key and copy it
-   - Input your Pipecat Public API key into the Bluejay dashboard:
-     - Click **Settings** in the bottom left of the screen
-     - Select Integrations
-     - Locate Pipecat and add your Pipecat public key
+Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and related keys) to the `body` it sends on start. Your bot can read its own result ID from `args.body` and report tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
 
-3. **Create Bluejay Agent**:
-   - Select `Pipecat Direct` as the Connection Type
-   - Enter your Pipecat agent name (the one from `pcc-deploy.toml`)
+## Test
 
-4. **Create a Simulation**
-
-5. **Run the Simulation**
-
-6. **View Results**
+Create a simulation for the agent and run it. Each call starts a new Pipecat session. Open the result to see the transcript and recording.
