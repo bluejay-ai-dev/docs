@@ -1,55 +1,36 @@
 ---
 title: "Webhooks"
-description: "Receive real-time notifications for simulation, observability, and alert events"
+description: "Receive a signed HTTP POST from Bluejay when a simulation or production conversation is evaluated, a simulation ends, or an alert fires."
 icon: bolt
 ---
 
-## Overview
+A webhook sends a `POST` request with a JSON body to your URL when a subscribed event occurs. The [Events Webhook reference](/api-reference/webhook/events-webhook) has the full payload schemas.
 
-Webhooks let you receive real-time HTTP notifications when events occur in your Bluejay simulations, observability logs, and alerts. Instead of polling, Bluejay sends a POST request to your endpoint whenever a subscribed event fires. See the [Events Webhook reference](/api-reference/webhook/events-webhook) for the full payload schema.
+## Create a webhook
 
-## Security
+1. Open Settings → Webhooks.
+2. Add your URL. Use HTTPS.
+3. Select the events.
+4. If you want only some agents, select agents or folders. A folder includes every agent in it.
+5. Generate the signing key and copy it to your receiver.
 
-### Source
-
-All webhook requests originate from `api.getbluejay.ai`. If your endpoint sits behind a firewall or IP allowlist, whitelist that hostname (or its resolved IPs) so our requests can reach you.
-
-### Request headers
-
-Every webhook request includes the following headers:
-
-| Header | Description |
-| --- | --- |
-| `Content-Type` | Always `application/json`. |
-| `User-Agent` | Identifies the request as coming from Bluejay. |
-| `X-Bluejay-Signature` | HMAC-SHA256 signature of the raw request body, signed with your webhook's signing secret. Use this to verify the request came from Bluejay. |
-| `X-Bluejay-Event` | The event type (for example, `simulation_result_evaluated`). Matches the `type` field in the body. |
-| `X-Bluejay-Delivery` | Unique ID for this delivery attempt. Useful for idempotency and log correlation. |
-
-### Verifying requests
-
-1. Read the raw request body (do not re-serialize the JSON — signature verification is byte-sensitive).
-2. Compute `HMAC-SHA256(body, signing_secret)` using the signing secret shown in your webhook settings.
-3. Compare the hex digest against the `X-Bluejay-Signature` header using a constant-time comparison.
-
-Reject any request whose signature does not match.
-
-### Recommendations
-
-- Always use an HTTPS endpoint.
-- Respond within 5 seconds; do heavier work asynchronously.
-- Treat deliveries as at-least-once and dedupe on `X-Bluejay-Delivery`.
+If you select no agents and no folders, the webhook fires for all agents in the workspace. If you select no events, the default is **Observability log evaluated**. You can disable a webhook without deleting it.
 
 ## Events
 
-You can subscribe to these event types. Select a tab to see its payload.
+| UI label | `type` in the body | Fires when |
+|----------|--------------------|------------|
+| Simulation evaluated | `simulation_result_evaluated` | A simulation result finishes evaluation. |
+| Simulation ended | `simulation_ended` | A simulated conversation ends, before evaluation. |
+| Outbound simulation started | `outbound_simulation_started` | An outbound simulation run starts. |
+| Observability log evaluated | `observability_call_evaluated` | A production conversation finishes evaluation. |
+| Observability alert triggered | `observability_alert_triggered` | An observability [alert](/key-concepts/alerts/overview) enters or leaves alarm. |
+| Simulation alert triggered | `simulation_alert_triggered` | A simulation alert fires for a run. |
+
+Alert events go to webhooks that subscribe here. You do not add them on the alert.
 
 <Tabs>
-  <Tab title="Simulation result evaluated">
-    Fires when a simulation result finishes evaluating.
-
-    **Event type:** `simulation_result_evaluated`
-
+  <Tab title="Simulation evaluated">
     ```json
     {
       "type": "simulation_result_evaluated",
@@ -72,27 +53,7 @@ You can subscribe to these event types. Select a tab to see its payload.
     }
     ```
   </Tab>
-  <Tab title="Observability call evaluated">
-    Fires when an observability call finishes evaluating. The payload is the full call log with the event type attached.
-
-    **Event type:** `observability_call_evaluated`
-
-    ```json
-    {
-      "type": "observability_call_evaluated",
-      "id": "call_123",
-      "agent_id": 34,
-      "evaluations": [ ... ],
-      "transcript": [ ... ],
-      "metadata": {}
-    }
-    ```
-  </Tab>
   <Tab title="Simulation ended">
-    Fires when a simulation instance completes execution, before evaluation runs.
-
-    **Event type:** `simulation_ended`
-
     ```json
     {
       "type": "simulation_ended",
@@ -108,10 +69,6 @@ You can subscribe to these event types. Select a tab to see its payload.
     ```
   </Tab>
   <Tab title="Outbound simulation started">
-    Fires when an outbound simulation kicks off.
-
-    **Event type:** `outbound_simulation_started`
-
     ```json
     {
       "type": "outbound_simulation_started",
@@ -129,10 +86,22 @@ You can subscribe to these event types. Select a tab to see its payload.
     }
     ```
   </Tab>
-  <Tab title="Observability alert triggered">
-    Fires when an observability alert enters or leaves alarm. Subscribe under Settings → Webhooks — not on the alert itself.
+  <Tab title="Observability log evaluated">
+    The body is the full Conversation, with `type` added.
 
-    **Event type:** `observability_alert_triggered`
+    ```json
+    {
+      "type": "observability_call_evaluated",
+      "id": "call_123",
+      "agent_id": 34,
+      "evaluations": [ ... ],
+      "transcript": [ ... ],
+      "metadata": {}
+    }
+    ```
+  </Tab>
+  <Tab title="Observability alert triggered">
+    `subtype` is `triggered` or `recovered`.
 
     ```json
     {
@@ -149,9 +118,7 @@ You can subscribe to these event types. Select a tab to see its payload.
     ```
   </Tab>
   <Tab title="Simulation alert triggered">
-    Fires when a simulation alert fires for a run. Subscribe under Settings → Webhooks — not on the alert itself.
-
-    **Event type:** `simulation_alert_triggered`
+    `subtype` is `triggered` or `recovered`.
 
     ```json
     {
@@ -172,19 +139,35 @@ You can subscribe to these event types. Select a tab to see its payload.
   </Tab>
 </Tabs>
 
-## Scoping webhooks to agents and folders
+## Verify the signature
 
-When you create a webhook, pick the agents or folders it should listen to. Only events from those agents — or from any agent in the selected folders — will trigger delivery.
+Each request has an `X-Bluejay-Signature` header. The value is the hex HMAC-SHA256 of the raw body, signed with your webhook's signing key.
 
-- **Select agents** to narrow down to specific agents.
-- **Select folders** to include every agent in that folder.
-- **Combine both** for granular rules.
+1. Read the raw request body. Do not parse and serialize the JSON again, because the signature uses the exact bytes.
+2. Compute `HMAC-SHA256(body, signing_key)` as a hex digest.
+3. Compare it to `X-Bluejay-Signature` with a constant-time comparison.
+4. If the values do not match, reject the request.
+
+```python
+import hmac, hashlib
+
+def is_valid(body: bytes, signature: str, signing_key: str) -> bool:
+    expected = hmac.new(signing_key.encode(), body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+## Delivery
+
+- Requests come from `api.getbluejay.ai`. If you use an allowlist, allow that host.
+- Bluejay sends each event once and does not retry. A non-2xx response or a network error marks the delivery as failed.
+- The Webhooks table shows the last call time and a failure indicator for the last delivery.
 
 ## Troubleshooting
 
-**Webhook not triggering**
+If a webhook does not fire, do these checks:
 
-- Confirm the webhook is enabled.
-- Confirm the source agent or folder is in the webhook's scope.
-- Confirm the event type is included in the subscription.
-- Confirm the endpoint URL is reachable and responds within 5 seconds.
+1. Make sure the webhook is enabled.
+2. Make sure the event is selected.
+3. Make sure the agent is in the selected agents or folders.
+4. Make sure the agent and the webhook are in the same workspace.
+5. Make sure your URL is reachable from the internet.

@@ -1,73 +1,69 @@
 ---
 title: "Observability Overview"
 sidebarTitle: "Overview"
-description: Understand how observability works in Bluejay
+description: "Send production conversations to Bluejay with the evaluate API or a provider integration, and score each one against your Custom Metrics."
 icon: eye
 ---
 
-Observability gives you visibility into live customer interactions so you can understand quality, reliability, and operational health in the real world. It complements testing by showing what actually happens after deployment.
+Observability evaluates your production conversations against your Custom Metrics and shows the results on the Logs page, dashboards, alerts, and Issues.
 
-## What You'll Learn
+## Send conversations
 
-- How to send production conversations to Bluejay for evaluation
-- What gets captured and scored automatically
-- How to use results for dashboards, alerts, and continuous improvement
+| Method | Use it when |
+|--------|-------------|
+| [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) | You send conversations from your own backend. |
+| [Retell](/integrations/retell), [Vapi](/integrations/vapi), [Bland](/integrations/bland), [ElevenLabs](/integrations/eleven-labs) | Your agent runs on one of these providers. |
 
-## How Observability Works
+Each conversation needs a recording, a transcript, or both. A TEXT agent accepts only a transcript or `transcript_url`.
 
-Use Observability to evaluate production calls, inspect transcripts and traces, review metrics, and identify where your agent is drifting from the experience you intended to ship.
+## Send a conversation with the API
 
-```mermaid
-flowchart LR
-    Source[Call Source] --> Ingest[Ingest]
-    Ingest --> Transcribe[Transcribe if needed]
-    Transcribe --> Eval[Evaluate]
-    Eval --> Hallucination[Hallucination Check]
-    Eval --> Redundancy[Redundancy Check]
-    Eval --> CustomMetrics[Custom Metrics]
-    Hallucination --> Results[Results & Traces]
-    Redundancy --> Results
-    CustomMetrics --> Results
+<Steps>
+  <Step title="Get your API key">
+    Copy a key from Settings → API Keys. Send it in the `X-API-Key` header.
+  </Step>
+  <Step title="Send the conversation">
+    After the call ends, send a `POST` request to `https://api.getbluejay.ai/v1/evaluate`.
+  </Step>
+  <Step title="Get the results">
+    Open the Logs page, or subscribe to the **Observability log evaluated** [webhook](/key-concepts/webhooks/overview). You can also poll [`GET /v1/observability/conversations/{conversation_id}`](/api-reference/endpoint/get-conversation) or [`GET /v1/retrieve-call-log/{call_id}`](/api-reference/endpoint/retrieve-call-log).
+  </Step>
+</Steps>
+
+Minimal request:
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/evaluate \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "123",
+    "start_time_utc": "2026-07-16T18:00:00Z",
+    "participants": [
+      { "role": "AGENT", "spoke_first": true },
+      { "role": "USER", "spoke_first": false }
+    ],
+    "recording_url": "https://storage.example.com/call.mp3"
+  }'
 ```
 
-You can send conversations to Bluejay via the evaluate API, webhooks, or native integrations with providers like Retell, Vapi, Bland, and ElevenLabs. Bluejay accepts audio recordings, transcripts, or both. Every conversation is evaluated against your Custom Metrics and the built-in hallucination and redundancy detectors.
+The response contains a `call_id`. Use `external_agent_id` in place of `agent_id` to identify the agent by its provider ID.
 
-## What Gets Captured
+## Request fields
 
-- **Hallucination detection** -- identifies when agents provide incorrect or fabricated information
-- **Redundancy analysis** -- measures unnecessary repetition in agent responses
-- **Custom Metric scores** -- every metric you've defined is evaluated and scored
-- **Token and latency data** -- operational signals for understanding performance
-- **Full transcripts** -- stored and searchable for detailed investigation
-- **Issues** -- recurring failures grouped so you can triage a pattern instead of a single call. See [Issues](/monitor/observability/issues).
+| Field | Required | Description |
+|-------|----------|-------------|
+| `agent_id` or `external_agent_id` | Yes | The Bluejay agent ID, or your provider's agent ID. |
+| `start_time_utc` | Yes | When the call started, in UTC. |
+| `participants` | Yes | Exactly 2 entries. `role` is `AGENT` or `USER`. Set `spoke_first` on one. |
+| `recording_url` / `recording_base64` | One of these, or a transcript | `.mp3`, `.mp4`, `.wav`, or `.m4a`. URL max 5000 characters. |
+| `transcript` / `transcript_url` | One of these, or a recording | Entries with `start_offset_ms`, `end_offset_ms`, `speaker`, and `utterance`. |
+| `call_direction` | No | `INBOUND` (default) or `OUTBOUND`, from the agent's view. |
+| `tool_calls`, `events`, `metadata` | No | See [Tool Calls](/monitor/observability/tool-calls). |
+| `trace_id` | No | Links an OpenTelemetry trace. See [Traces](/key-concepts/traces/overview). |
+| `custom_metrics`, `custom_metric_tags` | No | Extra Custom Metrics to run on this call, by ID or by tag. |
+| `label`, `version` | No | The Agent Version the call ran against. The default is the `production` label. |
+| `tags` | No | Tags to filter the call by. |
+| `multichannel` | No | Set `true` when each participant is on a separate audio channel. |
 
-## Ingestion Methods
-
-| Method | Best For |
-|--------|----------|
-| [Evaluate API](/api-reference/endpoint/evaluate) | Direct integration from your backend |
-| [Webhook ingestion](/key-concepts/webhooks/overview) | Platforms that support outbound webhooks |
-| [Retell integration](/integrations/retell) | Retell-powered agents |
-| [Vapi integration](/integrations/vapi) | Vapi-powered agents |
-| [Bland integration](/integrations/bland) | Bland-powered agents |
-| [ElevenLabs integration](/integrations/eleven-labs) | ElevenLabs Conversational AI |
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="API Integration Tutorial" icon="code" href="/monitor/observability/api-integration-tutorial">
-    Step-by-step guide to connecting your pipeline.
-  </Card>
-  <Card title="Tool Calls" icon="wrench" href="/monitor/observability/tool-calls">
-    Include tool call data and metadata in evaluations.
-  </Card>
-  <Card title="Traces" icon="route" href="/key-concepts/traces/overview">
-    Send OpenTelemetry traces to Bluejay.
-  </Card>
-  <Card title="Webhooks" icon="bolt" href="/key-concepts/webhooks/overview">
-    Receive real-time notifications for evaluation events.
-  </Card>
-  <Card title="Issues" icon="triangle-exclamation" href="/monitor/observability/issues">
-    Recurring failures across production calls, ready to triage.
-  </Card>
-</CardGroup>
+The [evaluate reference](/api-reference/endpoint/evaluate) lists all fields.

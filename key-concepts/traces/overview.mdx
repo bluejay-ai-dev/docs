@@ -1,9 +1,11 @@
 ---
-title: "Traces Overview"
+title: "Traces"
 sidebarTitle: "Overview"
-description: "Send OpenTelemetry traces to Bluejay for production observability and simulation analysis"
+description: "Send OpenTelemetry traces to Bluejay and link them to simulation results or production conversations to see spans next to the evaluation."
 icon: route
 ---
+
+A trace is a set of OpenTelemetry spans from your agent. Bluejay shows the trace next to the simulation result or production Conversation that you link it to.
 
 <iframe
   src="https://www.youtube.com/embed/wNhFpwT3dTQ"
@@ -14,22 +16,9 @@ icon: route
   style={{ borderRadius: '0.5rem' }}
 ></iframe>
 
-## What are Traces?
+## Export traces to Bluejay
 
-As part of your voice-agent stack, traces are used to monitor and observe the behavior of your application in real-time. They provide insights into the execution flow, latency, and performance of your system.
-
-Bluejay accepts traces for two purposes:
-
-- **Production observability** — link traces to call evaluations via the [`/v1/evaluate`](/api-reference/endpoint/evaluate) endpoint
-- **Simulation analysis** — link traces to simulation results via the [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result) endpoint
-
-## Sending Traces to Bluejay
-
-Bluejay supports any traces that conform to the [OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) standard, this includes OpenInference, Langfuse, OpenLLMetry, and more.
-
-### Using the OpenTelemetry SDK
-
-Configure the OpenTelemetry SDK to export traces to Bluejay:
+Bluejay accepts OTLP over HTTP at `https://otlp.getbluejay.ai/v1/traces`. Send your API key in the `X-API-KEY` header. Any OpenTelemetry-compatible library works, for example OpenInference, OpenLLMetry, or Langfuse.
 
 ```python
 from opentelemetry.sdk import trace as trace_sdk
@@ -37,46 +26,45 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 
-endpoint = "https://otlp.getbluejay.ai/v1/traces"
-resource = Resource.create({SERVICE_NAME: "<your_service_name>"})
+tracer_provider = trace_sdk.TracerProvider(
+    resource=Resource.create({SERVICE_NAME: "<your_service_name>"})
+)
+tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(
+    "https://otlp.getbluejay.ai/v1/traces",
+    headers={"X-API-KEY": "<BLUEJAY_API_KEY>"},
+)))
 
-tracer_provider = trace_sdk.TracerProvider(resource=resource)
-headers = {
-    "X-API-KEY": "[BLUEJAY PROVISIONED API KEY]"
-}
-
-tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint, headers=headers)))
-```
-
-OpenAI Example:
-```python
+# Example: instrument the OpenAI client
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
-
 OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
 ```
 
-{/* ### Using Langfuse
+For LiveKit agents, see [LiveKit](/integrations/livekit).
 
-```python
-OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp.getbluejay.ai/v1/traces"
-OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <BASE64_ENCODED_TRACE_KEY>"
+## Link a trace
 
-# collect traces via langfuse as normal
-``` */}
+<Tabs>
+  <Tab title="Simulations">
+    1. Read the `X-Simulation-Result-Id` that Bluejay sends with each simulated call. It arrives as a SIP header, a WebSocket upgrade header, or a LiveKit participant attribute.
+    2. Collect the trace IDs that your agent creates during the call.
+    3. After the call ends, call `tracer_provider.force_flush()`. If you skip this, the trace can be missing.
+    4. Send `simulation_result_id` and `trace_ids` to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
 
-### Using LiveKit
+    ```python
+    import httpx
 
-LiveKit requires additional setup — see the [LiveKit Traces guide](/simulation-integrations/livekit#linking-traces-to-simulation-results).
+    async def link_traces(simulation_result_id, trace_ids, api_key):
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                "https://api.getbluejay.ai/v1/update-simulation-result",
+                json={"simulation_result_id": simulation_result_id, "trace_ids": trace_ids},
+                headers={"X-API-Key": api_key},
+            )
+    ```
 
----
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Traces for Observability" icon="eye" href="/monitor/observability/traces">
-    Link traces to production conversation evaluations.
-  </Card>
-  <Card title="Traces for Simulations" icon="flask-vial" href="/test/simulations/traces">
-    Link traces to simulation results.
-  </Card>
-</CardGroup>
+    The same request also accepts `tool_calls`, `events`, and `metadata`. See [Tool Calls](/monitor/observability/tool-calls).
+  </Tab>
+  <Tab title="Production">
+    Add `trace_id` to your [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request. See [Observability](/monitor/observability/overview).
+  </Tab>
+</Tabs>

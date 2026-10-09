@@ -1,61 +1,41 @@
 ---
 title: "GitHub Actions"
-description: "Gate your CI/CD pipeline with real agent performance tests"
+description: "Run a Bluejay simulation in GitHub Actions on each pull request or push, and fail CI when the agent pass rate is below a threshold."
 icon: code-branch
 ---
 
-Run Bluejay simulations in GitHub Actions and fail CI if your agent doesn't meet quality standards. Just like unit tests, but for AI agents.
+The Bluejay GitHub Action runs a simulation in CI and fails the step if the pass rate is below `min_score`.
 
-**Key capabilities:**
-- Fail CI if your pass rate drops below your threshold
-- Automatically test every PR and commit
-- Zero-install; runs on GitHub-hosted runners
-- Override prompts, knowledge bases, and Digital Humans per run
+## How the action works
 
-## How It Works
+1. It queues a run for the simulation (`POST /v1/queue-simulation-run`).
+2. It polls until the run ends (`GET /v1/retrieve-simulation-results/{run_id}`).
+3. It computes the score as the pass rate: `tests_passed / total_tests × 100`.
+4. The step fails if the run does not complete, or if the score is below `min_score`.
 
-The action is a thin client over the Bluejay REST API:
+## Prerequisites
 
-1. It queues a run for the simulation you specify (`POST /v1/queue-simulation-run`).
-2. It polls until the run finishes (`GET /v1/retrieve-simulation-results/{run_id}`).
-3. It computes the score as the **pass rate**: `tests_passed / total_tests × 100`.
-4. The step fails if the run doesn't complete successfully, or the score is below `min_score`.
+1. A Bluejay API key from the [developers page](https://app.getbluejay.ai/developers).
+2. An agent connected to your assistant.
+3. A simulation on that agent, with the Digital Humans you want to run.
 
-## Before Starting
+The agent in Bluejay holds the connection to your assistant. The CI workflow needs only `api_key` and `simulation_id`, for all connection types.
 
-You'll need:
+## Option 1: Test an existing agent
 
-1. **Bluejay API Key** – Get yours from the [Bluejay dashboard](https://app.getbluejay.ai/developers)
-2. **An agent** – Connected to your assistant
-3. **A simulation** – Attached to that agent, with the Digital Humans (test scenarios) you want to run
-
-The agent you configure in Bluejay owns the connection to your assistant, so the CI workflow is the same regardless of how your agent is connected: pass an `api_key` and a `simulation_id`.
-
-There are two integration patterns. Most teams should start with Option 1.
-
-## Option 1: Test an Existing Agent (Recommended)
-
-Configure the agent and simulation once — in the dashboard or via the API — and CI only references the simulation. All run history accumulates on one simulation, so you can compare runs over time in the dashboard.
+Use this option unless you have a preview deployment for each PR. You set up the agent and simulation one time, and CI refers to the simulation. All runs stay on one simulation, so you can compare them.
 
 <Steps>
   <Step title="Add your API key and variables">
-    Go to: `Settings → Secrets and variables → Actions`
-
-**Add a Secret:**
-- Click `New repository secret`
-- Name: `BLUEJAY_API_KEY`
-- Value: Your API key from the [developers page](https://app.getbluejay.ai/developers)
-
-**Add Variables:**
-- Click the `Variables` tab
-- Click `New repository variable`
-- Add the following:
+    1. In GitHub, go to **Settings > Secrets and variables > Actions**.
+    2. Click **New repository secret**. Set the name to `BLUEJAY_API_KEY` and the value to your API key.
+    3. Open the **Variables** tab and click **New repository variable**. Add these variables:
 
 | Variable Name | Value | Required |
 |--------------|-------|----------|
 | `BLUEJAY_SIMULATION_ID` | Your simulation ID (e.g., `12345`) | Yes |
 | `BLUEJAY_MIN_SCORE` | Minimum passing score (e.g., `80`) | No |
-| `BLUEJAY_PROMPT_ID` | Agent version override ID (the action input is still named `prompt_id`) | No |
+| `BLUEJAY_PROMPT_ID` | Agent Version override ID (the action input is `prompt_id`) | No |
 | `BLUEJAY_KB_ID` | Knowledge base override ID | No |
 | `BLUEJAY_DIGITAL_HUMAN_IDS` | Comma-separated Digital Human IDs | No |
   </Step>
@@ -94,7 +74,7 @@ jobs:
           api_key: ${{ secrets.BLUEJAY_API_KEY }}
           # Required: simulation id (manual input OR repo variable)
           simulation_id: ${{ inputs.simulation_id || vars.BLUEJAY_SIMULATION_ID }}
-          # Optional overrides (omit any you don't use)
+          # Optional overrides (omit the ones you do not use)
           prompt_id: ${{ vars.BLUEJAY_PROMPT_ID }}
           knowledge_base_id: ${{ vars.BLUEJAY_KB_ID }}
           digital_human_ids: ${{ vars.BLUEJAY_DIGITAL_HUMAN_IDS }}
@@ -107,25 +87,25 @@ jobs:
   </Step>
 
   <Step title="Trigger a simulation">
-    Make changes to your codebase and open a pull request. The GitHub Action will automatically run Bluejay tests on every PR.
+    Open a pull request. The action runs the simulation on each PR.
 
 ![GitHub Action Check](/images/trigger_github_action.png)
   </Step>
 
   <Step title="Monitor your simulation">
-    Click on the **Actions** tab in your GitHub repository to view the simulation run in real-time. You'll see the status and score once the simulation completes.
+    Open the **Actions** tab in your GitHub repository to see the run. The status and score show when the run ends.
 
 ![GitHub Action Monitor](/images/monitor_github_action.png)
   </Step>
 </Steps>
 
-## Option 2: Fully Stateless (Create → Test → Delete)
+## Option 2: Create, test, and delete
 
-If your CI spins up an ephemeral deployment per PR (a preview environment with its own URL), you can create the Bluejay agent and simulation inside the workflow, run the tests, and delete everything afterwards. Your Digital Humans stay persistent — they are your test suite — while the agent and simulation are created fresh each run.
+Use this option if CI makes a preview deployment for each PR. The workflow creates an agent and a simulation, runs the test, and deletes them. Your Digital Humans stay, because they are your test suite.
 
-In the `add-agent` payload, include the connection field that matches how Bluejay reaches your preview deployment — see the [add-agent API reference](/api-reference/endpoint/add-agent) for the available fields. The agent's connection type is inferred from whichever field you provide.
+In the `add-agent` payload, include the connection field for your preview deployment. See [Add Agent](/api-reference/endpoint/add-agent) for the fields. Bluejay sets the connection type from the field you send.
 
-Set the `BLUEJAY_DIGITAL_HUMAN_IDS` repository variable (e.g. `101,102`) before using this pattern — unlike Option 1, it is required here: a freshly created simulation has no Digital Humans attached, and the run fails without them.
+For this option, `BLUEJAY_DIGITAL_HUMAN_IDS` is required, for example `101,102`. A new simulation has no Digital Humans, and the run fails without them.
 
 ```yaml
 name: Agent Tests (ephemeral)
@@ -203,23 +183,19 @@ jobs:
           exit $status
 ```
 
-<Info>
-  Deleting the agent and simulation removes the run's history from your dashboard. If you want results you can browse and compare later, skip the cleanup step — or use Option 1 with a persistent agent, which is what most teams want.
-</Info>
+<Warning>
+  The cleanup step deletes the agent and the simulation, and the run history with them. To keep results, remove the cleanup step or use Option 1.
+</Warning>
 
-## Pinning to a Commit SHA
+## Pin to a commit SHA
 
-Some organizations require third-party actions to be pinned to a full-length commit SHA instead of a tag (you'll see an error like *"all actions must be pinned to a full-length commit SHA"*). Tags such as `v1` are movable pointers; a commit SHA is immutable, so pinning it guarantees the exact code your pipeline runs.
-
-The action's repository is public, so you can resolve the commit `v1` points to yourself:
+If your organization requires a full-length commit SHA for third-party actions, the error is *"all actions must be pinned to a full-length commit SHA"*. A tag such as `v1` can move. A commit SHA cannot. To find the commit for `v1`, run:
 
 ```bash
 git ls-remote https://github.com/bluejay-ai-dev/bluejay-github-actions 'refs/tags/v1^{}'
 ```
 
-(Or on GitHub: open the [repository](https://github.com/bluejay-ai-dev/bluejay-github-actions), click **Tags**, and copy the commit for `v1`.)
-
-Then use the SHA in your workflow:
+You can also open the [repository](https://github.com/bluejay-ai-dev/bluejay-github-actions), click **Tags**, and copy the commit for `v1`. Then use the SHA:
 
 ```yaml
 uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7bdd7 # v1
@@ -227,71 +203,41 @@ uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7
 
 The SHA above is what `v1` resolves to as of July 2026.
 
-<Info>
-  SHA pins don't follow tag updates: when we ship fixes to `v1`, re-run the command above and bump your pin. [Dependabot](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot) with `package-ecosystem: github-actions` can do this for you automatically.
-</Info>
+<Note>
+  A SHA pin does not follow updates to `v1`. To get fixes, run the command again and update the pin. [Dependabot](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot) with `package-ecosystem: github-actions` can update it for you.
+</Note>
 
 ## Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `api_key` | Yes | — | Your Bluejay API key. |
-| `simulation_id` | Yes | — | ID of the simulation to run. |
-| `prompt_id` | No | — | Deprecated. Same uuid as `agent_version_id`. Override the agent version for this run. |
-| `knowledge_base_id` | No | — | Override knowledge base for this run. |
-| `digital_human_ids` | No | — | Comma-separated list of Digital Human IDs. |
-| `wait_for_results` | No | `true` | Wait for simulation to finish. |
+| `api_key` | Yes | None | Your Bluejay API key. |
+| `simulation_id` | Yes | None | ID of the simulation to run. |
+| `prompt_id` | No | None | Agent Version UUID to use for this run. |
+| `knowledge_base_id` | No | None | Override knowledge base for this run. |
+| `digital_human_ids` | No | None | Comma-separated list of Digital Human IDs. |
+| `phone_number` | No | None | Phone number to use for this run. |
+| `sip_uri` | No | None | SIP URI to use for this run. |
+| `wait_for_results` | No | `true` | If `true`, wait for the run to end and fail CI on the score. |
 | `min_score` | No | `80` | Required pass rate (0–100). |
 | `poll_interval_seconds` | No | `10` | Polling frequency in seconds. |
-| `timeout_seconds` | No | `1500` | Timeout (25 minutes). |
+| `timeout_seconds` | No | `1500` | Maximum wait in seconds (25 minutes). |
 
 ## Outputs
 
 | Output | Description |
 |--------|-------------|
 | `simulation-run-id` | The ID of the queued simulation run. |
-| `final-status` | Final simulation status: `completed`, `failed`, `cancelled`, etc. |
+| `final-status` | Final run status: `completed`, `failed`, or `cancelled`. |
 | `score` | Pass rate of the run: `tests_passed / total_tests × 100`. |
+| `report-url` | Link to the run report, if available. |
 
-## Customize When Tests Run
+## Triggers
 
-Any [GitHub Actions trigger](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows) works — only the `on:` section changes; the job itself stays the same.
+Any [GitHub Actions trigger](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows) works. Change only the `on:` section. For example, to run daily at 09:00 UTC:
 
-<Tabs>
-  <Tab title="Push Only">
-```yaml
-on:
-  push:
-    branches: [main, production, staging]
-```
-  </Tab>
-
-  <Tab title="Pull Requests Only">
-```yaml
-on:
-  pull_request:
-    types: [opened, synchronize]
-```
-  </Tab>
-
-  <Tab title="Scheduled Runs">
-Daily at 9 AM UTC:
 ```yaml
 on:
   schedule:
     - cron: '0 9 * * *'
 ```
-  </Tab>
-
-  <Tab title="Manual">
-```yaml
-on:
-  workflow_dispatch:
-    inputs:
-      simulation_id:
-        description: 'Bluejay Simulation ID to run'
-        required: false
-        type: string
-```
-  </Tab>
-</Tabs>

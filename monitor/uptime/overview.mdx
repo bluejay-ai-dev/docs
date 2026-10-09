@@ -1,37 +1,85 @@
 ---
 title: 'Uptime Monitoring'
-description: 'Run a health check against a live agent on a schedule and get paged when it stops answering'
+description: 'Run a scheduled health check against a live voice, SMS, or email agent, record UP or DOWN, and send a notification when it changes.'
 icon: heart-pulse
 ---
 
-An uptime monitor calls, texts, or emails one of your live agents on a fixed interval, grades what happened, and records UP or DOWN. When the verdict flips, it notifies Slack, email, or PagerDuty.
-
-It works on voice, SMS, and email agents, inbound and outbound.
+An uptime monitor calls, texts, or emails one of your live agents on a schedule. It grades the result as UP, DOWN, or UNKNOWN, and sends a notification when the verdict changes between UP and DOWN. It works for voice, SMS, and email agents, inbound and outbound.
 
 ## Checks
 
-A monitor grades one or more checks. Every monitor needs at least one check that names what to grade, otherwise there is nothing to measure and the monitor is rejected.
+A monitor must have at least one check that grades something. If it has none, Bluejay rejects the monitor.
 
-| Check | What it measures |
-|-------|------------------|
-| **Agent Responds** | The call connected and the agent spoke |
-| **Agent Malfunction** | The agent stated an error during the conversation |
-| **Latency** | Average response time stayed under a threshold |
-| **Custom metric** | Any of your custom metrics, scored against a condition |
+| Check | Passes when |
+|-------|-------------|
+| **Agent Responds** | The call connected and the agent spoke. |
+| **Agent Malfunction** | The agent did not state an error during the conversation. |
+| **Latency** | The average response time stayed under the threshold. |
+| **Custom metric** | One of your Custom Metrics met its condition. |
 
-You can also point a check at one of your own Digital Humans so the probe uses that persona instead of the default. A Digital Human on its own is not gradable, so pair it with one of the checks above.
+Email monitors use different checks:
 
-Email monitors grade a different set: **Agent Responds** (the agent replied), **Authentication** (the reply passed SPF, DKIM, and DMARC), **Spam** (it cleared spam filtering), **Bounced** (it was delivered, not bounced), and **Latency** (send to reply, under a threshold).
+| Check | Passes when |
+|-------|-------------|
+| **Agent Responds** | The agent replied. |
+| **Authentication** | The reply passed SPF, DKIM, and DMARC. |
+| **Spam** | The reply was not marked as spam. |
+| **Bounced** | The probe email was delivered. |
+| **Latency** | The time from send to reply stayed under the threshold. |
 
-For email monitors, the agent's inbox must allowlist our sending domain, `mail.bluejaysims.com`. Corporate mail (Google Workspace, Microsoft 365) quarantines an unrecognized sender, so without the allowlist the probe email is held and never reaches the agent.
+<Warning>
+  For email monitors, allowlist `mail.bluejaysims.com` in the agent's inbox. If you do not, Google Workspace or Microsoft 365 can quarantine the probe email, and the agent never receives it.
+</Warning>
 
-## Managing monitors via the API
+## Verdicts
 
-Everything the UI does — create, update, pause and resume, delete — is available over the [REST API](/api-reference/endpoint/create-uptime-monitor) and as [MCP tools](/mcp/overview#uptime-monitors), so tooling that updates your agent can update its monitor in the same step. Updates are partial: pass only the fields you change.
+| Verdict | Meaning |
+|---------|---------|
+| **UP** | All measurable checks passed. |
+| **DOWN** | At least one check failed. |
+| **UNKNOWN** | Nothing could be measured. |
 
-### Custom caller
+Uptime percentage is UP divided by (UP + DOWN). UNKNOWN does not count. Notifications fire only on a change between UP and DOWN. UNKNOWN never sends a notification.
 
-The custom caller is one entry in the monitor's `checks` array:
+## Latency
+
+Latency is the time from the end of the caller's turn to the start of the agent's reply, averaged across the conversation. The agent's greeting is not included. Agent Responds covers the greeting.
+
+| Channel | Default `latency_threshold_ms` |
+|---------|--------------------------------|
+| Voice | 3000 |
+| SMS and webchat | 60000 |
+| Email | Measured from send to reply. Set a value for your agent. |
+
+## Alert after repeated failures
+
+One slow conversation or one Agent Malfunction verdict can be noise. Set `alert_after_failures` on a check so it counts toward DOWN only after that many failures in a row. One pass resets the count.
+
+```json
+{
+  "id": "latency",
+  "checkType": "latency",
+  "enabled": true,
+  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
+}
+```
+
+Keep Agent Responds at the default of 1. An agent that does not answer must send a notification at once.
+
+## Frequency and timeouts
+
+Select a frequency from every 1 minute to every hour. The default is every 5 minutes. A check that does not finish in time is UNKNOWN.
+
+| Monitor | Timeout |
+|---------|---------|
+| Voice | 5 minutes |
+| Voice with a custom Digital Human | 10 minutes |
+| SMS | 15 minutes |
+| Email | 15 minutes |
+
+## Custom caller
+
+To make the probe use one of your Digital Humans, add this entry to the monitor's `checks` array:
 
 ```json
 {
@@ -44,49 +92,12 @@ The custom caller is one entry in the monitor's `checks` array:
 }
 ```
 
-Send it alongside the template checks with [Update Uptime Monitor](/api-reference/endpoint/update-uptime-monitor). `checks` replaces the whole array, and the Digital Human only picks who places the probe, so keep at least one enabled check with a `checkType` or `customMetricId` in the payload. To go back to the default caller, resend the checks without the `digitalHumanId` entry.
-
-## How latency is measured
-
-Latency is the gap between your caller finishing and your agent starting to speak, averaged across the conversation.
-
-The agent's opening greeting is not included. The first measured gap is the agent's first real answer. Time to greeting is covered by Agent Responds instead.
-
-SMS and webchat monitors measure the same gap, between your message and the agent's reply. Text replies take far longer than voice, so the default threshold there is 60000 ms instead of 3000 ms. Set `latency_threshold_ms` to whatever your agent should beat.
-
-Email monitors measure latency, from the probe email being sent to the agent's reply arriving. Mail is asynchronous, so the default threshold is far higher; set `latency_threshold_ms` to your agent's expected reply time.
-
-## Alerting after repeated failures
-
-Latency is an average over a single conversation and Agent Malfunction is a judgment call, so one bad result is not always a real problem. Set `alert_after_failures` on a check and it only counts toward DOWN once it has failed that many checks in a row. A single pass resets the count.
-
-```json
-{
-  "id": "latency",
-  "checkType": "latency",
-  "enabled": true,
-  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
-}
-```
-
-Leave Agent Responds at the default of 1. An agent that cannot be reached is not ambiguous and should page immediately.
-
-## Verdicts
-
-| Verdict | Meaning |
-|---------|---------|
-| **UP** | Every measurable check passed |
-| **DOWN** | At least one check failed |
-| **UNKNOWN** | Nothing could be measured |
-
-Uptime percentage is UP divided by UP plus DOWN. UNKNOWN is excluded, so it never counts for or against you.
-
-Alerts fire only on a measurable flip between UP and DOWN. UNKNOWN never pages.
-
-## Frequency
-
-Pick an interval that comfortably exceeds how long a conversation takes. SMS conversations run for minutes, so use 10 minutes or more; a check that has not finished in five minutes is recorded as UNKNOWN.
+A Digital Human only selects the caller. It grades nothing, so keep at least one enabled check with a `checkType` or `customMetricId`. `checks` replaces the full array on [Update Uptime Monitor](/api-reference/endpoint/update-uptime-monitor). To go back to the default caller, send the checks without the `digitalHumanId` entry.
 
 ## Outbound agents
 
-Bluejay never dials your outbound agent. Something on your side has to start the conversation, which is either Vapi or Retell placing the call automatically, or your own outbound trigger webhook. An outbound agent with neither is rejected, because every check would time out.
+Bluejay does not call your outbound agent. Your side must start the conversation. Use Vapi or Retell to place the call, or set your own outbound trigger webhook. If an outbound agent has neither, Bluejay rejects the monitor.
+
+## API and MCP
+
+The [REST API](/api-reference/endpoint/create-uptime-monitor) and the [MCP tools](/mcp/overview#uptime-monitors) can create, update, pause, resume, and delete monitors. Updates are partial. Send only the fields you change.
