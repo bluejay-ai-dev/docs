@@ -1,396 +1,156 @@
 ---
-title: 'Quickstart'
-description: 'Go from zero to a full Bluejay evaluation workflow — via the UI or the API'
+title: "Quickstart: run your first simulation"
+sidebarTitle: "Quickstart"
+description: "Connect your voice agent to Bluejay, create Digital Humans, run a simulation, and read the pass or fail result for each call."
 icon: rocket
+keywords: ["quickstart", "connect agent", "simulation", "Digital Human", "Vapi", "Retell", "LiveKit", "ElevenLabs", "Bland", "SIP", "WebSocket"]
 ---
 
-Get from account creation to running Simulations, evaluating production calls, and optimizing your Agent quality in under 15 minutes.
+import { Transcript } from "/snippets/transcript.jsx";
 
-## Prerequisites
+A simulation sends Digital Humans to call your agent, then scores each Conversation with Custom Metrics.
 
-- A Bluejay account ([book a demo](https://cal.com/rohanv/15min) if you don't have one)
-- For API steps: an API key from the [API Keys page](https://app.getbluejay.ai/api-keys)
+You need a Bluejay account at [app.getbluejay.ai](https://app.getbluejay.ai). If you do not have one, [book a demo](https://cal.com/rohanv/15min).
+
+## Connect your agent
+
+Select your stack. Bluejay keeps your choice on other pages that use the same tabs.
 
 <Tabs>
-  <Tab title="UI">
-
-    ## Basic
-
-    Everything you need to run your first Simulation and connect production monitoring.
-
-    <Steps titleSize="h3">
-      <Step title="Add an Agent">
-        An Agent represents the conversational AI system you want to test and monitor. Navigate to the **Agents** page in the Bluejay dashboard and click **Add Agent**. Fill in the Agent name, system prompt, knowledge base, and goals.
-
-        {/* screenshot: add-agent-ui */}
-
-        Learn more in the [Agents overview](/key-concepts/agents/overview) or jump to the [Add Agent API reference](/api-reference/endpoint/add-agent).
+  <Tab title="Vapi">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
       </Step>
-
-      <Step title="Create a Simulation">
-        A Simulation groups Digital Humans together so you can run them in parallel against your Agent — think of it as a test suite. Open your Agent and click **Create Simulation**. Give it a name and optionally configure settings like max call duration or sequential calling.
-
-        {/* screenshot: create-simulation-ui */}
-
-        Learn more in the [Simulations overview](/test/simulations/overview) or explore [Simulation Types](/test/simulations/types).
+      <Step title="Add your Vapi key">
+        Under **Voice Connection Type**, select **VAPI**. Paste your Vapi private key into **Private Key**, then click **Save & Sync**.
       </Step>
-
-      <Step title="Create or Generate Digital Humans">
-        Digital Humans are the synthetic callers that interact with your Agent during Simulations. Inside your Simulation, click **Generate Digital Humans**. Choose from goal adherence, red teaming, load testing, or Customer Persona modes. You can also manually create individual Digital Humans for specific scenarios.
-
-        {/* screenshot: generate-digital-humans-ui */}
-
-        Learn more in the [Digital Humans overview](/key-concepts/digital-humans/overview).
-      </Step>
-
-      <Step title="Run the Simulation">
-        Click the **Run** button on your Simulation. Bluejay's Digital Humans will call your Agent, and results are evaluated automatically. You can watch conversations happen in real time and review results as they complete.
-
-        {/* screenshot: run-simulation-ui */}
-
-        Learn more about [Simulation Runs](/test/simulations/simulation-runs).
-      </Step>
-
-      <Step title="Add Custom Metrics">
-        Custom Metrics define the exact quality signals you care about — compliance checks, empathy scoring, task completion, or anything specific to your domain. Navigate to the **Custom Metrics** section of your Agent, click **Create Metric**, and define the name, description, response type, and scoring guidance.
-
-        {/* screenshot: create-custom-metric-ui */}
-
-        Learn more in the [Custom Metrics overview](/key-concepts/custom-metrics/overview).
-      </Step>
-
-      <Step title="Hook Up Observability">
-        Observability evaluates your production conversations against the same Custom Metrics you use in Simulations. Go to the **Observability** tab for your Agent. You can connect a native integration ([Retell](/integrations/retell), [Vapi](/integrations/vapi), [Bland](/integrations/bland), [ElevenLabs](/integrations/eleven-labs)) or configure webhook-based ingestion directly from the Dashboard.
-
-        {/* screenshot: observability-setup-ui */}
-
-        Learn more in the [Observability overview](/monitor/observability/overview) or follow the [API integration tutorial](/monitor/observability/api-integration-tutorial).
+      <Step title="Select the assistant">
+        In **VAPI Assistant ID**, paste the ID or search by name. Click **Create**.
       </Step>
     </Steps>
-
-    ---
-
-    ## Advanced
-
-    Level up with Alerts, Dashboards, optimization, automated testing, and Agent Versions.
-
-    <Steps titleSize="h3">
-      <Step title="Create Alerts">
-        Alerts notify your team when a Custom Metric crosses a threshold so issues get caught before they compound. Navigate to the **Alerts** configuration for your Agent. Set the Custom Metric, threshold, and delivery channel ([Slack](/integrations/slack), email).
-
-        {/* screenshot: create-alert-ui */}
-
-        Learn more in the [Alerts overview](/key-concepts/alerts/overview).
-      </Step>
-
-      <Step title="Create Custom Dashboards">
-        Dashboards aggregate Simulation and production data into a single view. Open the **Dashboards** section to see at-a-glance health scores, trend sparklines, and Alert badges across all your Agents. Customize views to focus on the Custom Metrics that matter most.
-
-        {/* screenshot: custom-dashboard-ui */}
-
-        Learn more in the [Dashboards overview](/key-concepts/dashboards/overview).
-      </Step>
-
-      <Step title="Optimize Metrics via Metrics Lab">
-        Metrics Lab lets you prototype, test, and refine Custom Metrics before deploying them. Open **Metrics Lab** from the sidebar. Import or draft Custom Metrics, annotate sample conversations, and run side-by-side comparisons to find the most reliable scoring approach. Promote validated Custom Metrics to production with one click.
-
-        {/* screenshot: metrics-lab-ui */}
-
-        Learn more in the [Metrics Lab overview](/key-concepts/metrics-lab/overview).
-      </Step>
-
-      <Step title="Edit Agent Workflows">
-        For ElevenLabs, Vapi, Retell, and Google Dialogflow CX agents, the **Workflow** tab in Agent Settings renders your provider's multi-agent workflow as an editable graph. Sync it from the provider, edit nodes and edges in Bluejay, push changes back, and generate Digital Humans that cover every path through the flow.
-
-        {/* screenshot: workflow-tab-ui */}
-
-        Learn more in the [Workflows overview](/key-concepts/agents/workflow).
-      </Step>
-
-      <Step title="Track changes with Agent Versions">
-        Agent Versions track changes to your Agent's system prompt over time. Open the **Versions** tab of your Agent. Create a new version with an updated prompt, add a commit message, and optionally tag it with labels like `production` or `staging`. Compare performance across Simulation Runs and roll back when needed.
-
-        {/* screenshot: agent-versions-ui */}
-
-        See the [Create Agent Version API reference](/api-reference/endpoint/create-prompt-version).
-      </Step>
-    </Steps>
-
+    Full setup: [Vapi](/integrations/vapi).
   </Tab>
-  <Tab title="API">
-
-    ## Basic
-
-    Everything you need to run your first Simulation and connect production monitoring.
-
-    ```python
-    import requests
-
-    API_KEY = "your-api-key"
-    BASE_URL = "https://api.getbluejay.ai/v1"
-    ```
-
-    <Steps titleSize="h3">
-      <Step title="Add an Agent">
-        An Agent represents the conversational AI system you want to test and monitor. You'll attach Simulations, Custom Metrics, and Observability pipelines to it.
-
-        ```python
-        agent = requests.post(
-            f"{BASE_URL}/add-agent",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "name": "Support Agent",
-                "system_prompt": "You are a helpful customer support agent for Acme Corp.",
-                "knowledge_base": "Acme Corp FAQ and product documentation.",
-                "goals": [
-                    "Resolve customer issues accurately",
-                    "Maintain a professional and empathetic tone",
-                    "Escalate when unable to resolve"
-                ],
-                "type": "INBOUND",
-                "mode": "VOICE"
-            }
-        ).json()
-
-        agent_id = agent["agent_id"]
-        print(f"Agent created: {agent_id}")
-        ```
-
-        <Note>
-          Save the `agent_id` from the response — you'll use it in every subsequent step.
-        </Note>
-
-        Learn more in the [Agents overview](/key-concepts/agents/overview). See the full [Add Agent API reference](/api-reference/endpoint/add-agent) for all available fields like `connection_type`, `phone_number`, and `external_agent_id`.
+  <Tab title="Retell">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
       </Step>
-
-      <Step title="Create a Simulation">
-        A Simulation groups Digital Humans together so you can run them in parallel against your Agent — think of it as a test suite.
-
-        ```python
-        simulation = requests.post(
-            f"{BASE_URL}/create-simulation",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "agent_id": str(agent_id),
-                "name": "Support Agent — Regression Suite",
-                "max_call_duration": 5,
-                "max_call_duration_units": "minutes"
-            }
-        ).json()
-
-        simulation_id = simulation["simulation_id"]
-        print(f"Simulation created: {simulation_id}")
-        ```
-
-        Learn more in the [Simulations overview](/test/simulations/overview) and explore [Simulation Types](/test/simulations/types). See the full [Create Simulation API reference](/api-reference/endpoint/create-simulation) for options like `sequential_calling`, `max_concurrent`, and `selected_custom_metrics`.
+      <Step title="Add your Retell key">
+        Under **Voice Connection Type**, select **Retell**. Paste your Retell key into **API Key**, then click **Save & Sync**.
       </Step>
-
-      <Step title="Create or Generate Digital Humans">
-        Digital Humans are the synthetic callers that interact with your Agent during Simulations. You can generate them automatically from your Agent's goals or create them manually for specific scenarios.
-
-        **Generate automatically from goals:**
-
-        ```python
-        digital_humans = requests.post(
-            f"{BASE_URL}/generate-digital-humans",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "agent_id": str(agent_id),
-                "simulation_id": str(simulation_id),
-                "goal_adherence": [
-                    {"goal": "Resolve billing dispute", "num_calls": 3},
-                    {"goal": "Process a return request", "num_calls": 2}
-                ],
-                "red_teaming": 2
-            }
-        ).json()
-
-        print(f"Generated {len(digital_humans['digital_humans'])} Digital Humans")
-        ```
-
-        **Or create one manually:**
-
-        ```python
-        dh = requests.post(
-            f"{BASE_URL}/create-digital-human",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "simulation_id": str(simulation_id),
-                "name": "Frustrated Customer",
-                "scenario": "Customer received the wrong item and wants a full refund.",
-                "success_criteria": "Agent processes the return and confirms refund timeline."
-            }
-        ).json()
-        ```
-
-        Learn more in the [Digital Humans overview](/key-concepts/digital-humans/overview). See [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) and [Create Digital Human](/api-reference/endpoint/create-digital-human) API references for all options.
-      </Step>
-
-      <Step title="Run the Simulation">
-        Queue a Simulation Run to start the conversations. Bluejay's Digital Humans will call your Agent, and results are evaluated automatically.
-
-        ```python
-        run = requests.post(
-            f"{BASE_URL}/queue-simulation-run",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "simulation_id": str(simulation_id)
-            }
-        ).json()
-
-        print(f"Simulation run queued: {run['simulation_run_id']}")
-        print(f"Result IDs: {run['simulation_result_ids']}")
-        ```
-
-        <Tip>
-          Use the [Get Simulation Runs](/api-reference/endpoint/get-simulation-runs) endpoint to poll for completion, or set up a [webhook](/api-reference/webhook/events-webhook) to get notified when runs finish.
-        </Tip>
-
-        Learn more about [Simulation Runs](/test/simulations/simulation-runs). See the full [Queue Simulation Run API reference](/api-reference/endpoint/queue-simulation-run) for options like `phone_number`, `digital_human_ids`, and `agent_version_id`.
-      </Step>
-
-      <Step title="Add Custom Metrics">
-        Custom Metrics define the exact quality signals you care about — compliance checks, empathy scoring, task completion, or anything specific to your domain.
-
-        ```python
-        metric = requests.post(
-            f"{BASE_URL}/create-custom-metric",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "agent_ids": [agent_id],
-                "name": "Identity Verification",
-                "description": "Did the agent verify the customer's identity before sharing account details?",
-                "response_type": "pass_fail",
-                "scoring_guidance": "Pass if the agent asks for at least two identifying pieces of information before disclosing any account-specific data. Fail otherwise."
-            }
-        ).json()
-
-        print(f"Metric created: {metric['id']}")
-        ```
-
-        Learn more in the [Custom Metrics overview](/key-concepts/custom-metrics/overview). See the [Create Custom Metric API reference](/api-reference/endpoint/create-custom-metric) for all response types (`pass_fail`, `yes_no`, `qualitative`, `quantitative`, `json`, `enum`).
-      </Step>
-
-      <Step title="Hook Up Observability">
-        Observability evaluates your production conversations against the same Custom Metrics you use in Simulations. Send calls to Bluejay via the API, webhooks, or native integrations.
-
-        ```python
-        evaluation = requests.post(
-            f"{BASE_URL}/evaluate",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "agent_id": str(agent_id),
-                "transcript": [
-                    {"speaker": "CUSTOMER", "utterance": "Hi, I need help with my recent order."},
-                    {"speaker": "AGENT", "utterance": "Of course! Could you provide your order number?"},
-                    {"speaker": "CUSTOMER", "utterance": "It's 12345."},
-                    {"speaker": "AGENT", "utterance": "I see order 12345. It looks like it shipped yesterday. You should receive it by Friday."}
-                ],
-                "participants": [
-                    {"role": "AGENT", "spoke_first": False, "name": "Support Agent"},
-                    {"role": "CUSTOMER", "spoke_first": True, "name": "Customer"}
-                ],
-                "call_direction": "INBOUND"
-            }
-        ).json()
-
-        print(f"Evaluation queued: {evaluation['call_id']}")
-        ```
-
-        You can also send audio recordings via `recording_url` or `recording_base64` instead of transcripts. Learn more in the [Observability overview](/monitor/observability/overview) or follow the [API integration tutorial](/monitor/observability/api-integration-tutorial). See the full [Evaluate API reference](/api-reference/endpoint/evaluate).
-
-        | Ingestion Method | Best For |
-        |---|---|
-        | [Evaluate API](/api-reference/endpoint/evaluate) | Direct backend integration |
-        | [Webhook ingestion](/key-concepts/webhooks/overview) | Platforms with outbound webhooks |
-        | [Retell](/integrations/retell) | Retell-powered agents |
-        | [Vapi](/integrations/vapi) | Vapi-powered agents |
-        | [Bland](/integrations/bland) | Bland-powered agents |
-        | [ElevenLabs](/integrations/eleven-labs) | ElevenLabs Conversational AI |
+      <Step title="Select the agent">
+        In **Retell Agent ID**, paste the ID or search by name. Click **Create**.
       </Step>
     </Steps>
-
-    ---
-
-    ## Advanced
-
-    Level up with Alerts, Dashboards, optimization, automated testing, and Agent Versions.
-
-    <Steps titleSize="h3">
-      <Step title="Create Alerts">
-        Alerts notify your team when a Custom Metric crosses a threshold so issues get caught before they compound. Alerts are configured through the Bluejay Dashboard — set threshold-based triggers on any Custom Metric and route notifications to Slack channels or email.
-
-        <Note>
-          Connect Bluejay to Slack via the [Slack integration](/integrations/slack) to receive alert notifications in your team channels.
-        </Note>
-
-        Learn more in the [Alerts overview](/key-concepts/alerts/overview).
+    Full setup: [Retell](/integrations/retell).
+  </Tab>
+  <Tab title="LiveKit">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
       </Step>
-
-      <Step title="Create Custom Dashboards">
-        Dashboards aggregate Simulation and production data into a single view — health scores, trend sparklines, and Alert badges for every Agent. Dashboards are configured through the Bluejay UI and pull from both Simulation results and Observability evaluations, so once you've completed the basic steps, your Dashboards will populate automatically.
-
-        Learn more in the [Dashboards overview](/key-concepts/dashboards/overview).
+      <Step title="Add your LiveKit credentials">
+        Under **Voice Connection Type**, select **LiveKit**. Enter **API Key**, **API Secret**, and **LiveKit URL**.
       </Step>
-
-      <Step title="Optimize Metrics via Metrics Lab">
-        Metrics Lab lets you prototype, test, and refine Custom Metrics before deploying them. It's an interactive UI experience — import or draft Custom Metrics, annotate sample conversations, run side-by-side comparisons, and promote validated Custom Metrics to production. Once refined, you can manage Custom Metrics programmatically via the [Custom Metrics API](/api-reference/endpoint/create-custom-metric).
-
-        Learn more in the [Metrics Lab overview](/key-concepts/metrics-lab/overview).
-      </Step>
-
-      <Step title="Test Agents via Workflows">
-        Workflows let you chain Simulation Runs, evaluations, and notifications into automated pipelines. Configure pipelines in the Bluejay dashboard, then attach a cron cadence with the [Create Schedule API](/api-reference/endpoint/create-schedule) for nightly regression suites or weekly quality checks.
-
-        For **conversation-path** scenarios (React Flow graphs used with simulations and Digital Humans), see the [Scenario Builder overview](/key-concepts/scenario-builder/overview), the [Scenario Builder cookbook](/cookbook/scenario-builder), and [Create scenario](/api-reference/endpoint/create-scenario) (**POST** `/v1/scenario`).
-      </Step>
-
-      <Step title="Version Agents via Agent Versioning">
-        Agent versioning tracks changes to your Agent's system prompt over time. Create labeled versions, compare performance across Simulation Runs, and roll back when needed. Use `/v1/agents/{id}/versions`. The old `/prompts` paths still work (deprecated).
-
-        ```python
-        agent_version = requests.post(
-            f"{BASE_URL}/agents/{agent_id}/versions",
-            headers={"X-API-Key": API_KEY},
-            json={
-                "prompt_text": "You are a helpful customer support agent for Acme Corp. Always verify the customer's identity before sharing account details.",
-                "commit_message": "Added identity verification requirement",
-                "labels": ["staging"]
-            }
-        ).json()
-
-        print(f"Agent version {agent_version['version']} created (id: {agent_version['id']})")
-        ```
-
-        <Tip>
-          Pass an `agent_version_id` when [queuing a Simulation Run](/api-reference/endpoint/queue-simulation-run) to test a specific agent version against your existing Digital Humans. `prompt_id` is deprecated and still works (same uuid).
-        </Tip>
-
-        See [Create Agent Version](/api-reference/endpoint/create-prompt-version) for the full reference.
+      <Step title="Name the agent">
+        Enter the **LiveKit Agent Name**. Click **Create**.
       </Step>
     </Steps>
-
+    Optional fields: **LiveKit Customer Tool Topic** and **LiveKit Metadata** (JSON). Full setup: [LiveKit](/integrations/livekit).
+  </Tab>
+  <Tab title="ElevenLabs">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
+      </Step>
+      <Step title="Add your ElevenLabs key">
+        Under **Voice Connection Type**, select **ElevenLabs**. Paste your ElevenLabs key into **API Key**, then click **Save & Sync**.
+      </Step>
+      <Step title="Select the agent">
+        In **ElevenLabs Agent ID**, paste the ID or search by name. Click **Create**.
+      </Step>
+    </Steps>
+    Full setup: [ElevenLabs](/integrations/eleven-labs).
+  </Tab>
+  <Tab title="Bland">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
+      </Step>
+      <Step title="Add your Bland key">
+        Under **Voice Connection Type**, select **Bland**. Paste your Bland key into **API Key**, then click **Save & Sync**.
+      </Step>
+      <Step title="Select the pathway">
+        Enter the **Bland Pathway ID**. If you use a web agent, enter the **Bland Web Agent ID**. Click **Create**.
+      </Step>
+    </Steps>
+    Full setup: [Bland](/integrations/bland).
+  </Tab>
+  <Tab title="Phone/SIP">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
+      </Step>
+      <Step title="Enter the address">
+        Under **Voice Connection Type**, select **Phone** or **SIP**. For **Phone**, enter the **Phone Number**. For **SIP**, enter the **SIP URI**, for example `sip:username@domain.com`.
+      </Step>
+      <Step title="Create the agent">
+        Click **Create**.
+      </Step>
+    </Steps>
+    Full setup: [SIP](/simulation-integrations/sip).
+  </Tab>
+  <Tab title="WebSocket">
+    <Steps>
+      <Step title="Open the Connect Your Agent dialog">
+        In the sidebar header, click **+** (Add agent). Enter a **Name**, then set **Mode** to **Voice**.
+      </Step>
+      <Step title="Enter the endpoint">
+        Under **Voice Connection Type**, select **Websocket**. Enter the **Websocket URL**, for example `wss://your-websocket-endpoint.com`.
+      </Step>
+      <Step title="Create the agent">
+        If your endpoint needs auth, enter **Websocket Username** and **Websocket Password**. Click **Create**.
+      </Step>
+    </Steps>
+    Full setup: [WebSocket](/simulation-integrations/websockets).
   </Tab>
 </Tabs>
 
----
+<Note>
+  You can also save provider keys in **Settings** > **Integrations**. Use the **Sync Agents from** button for your provider to import all agents.
+</Note>
 
-## Next Steps
+## Create Digital Humans
 
-<CardGroup cols={2}>
-  <Card title="Key Concepts" icon="book" href="/key-concepts/agents/overview">
-    Deep dive into Agents, Digital Humans, Custom Metrics, and more.
-  </Card>
-  <Card title="Simulation Types" icon="flask-vial" href="/test/simulations/types">
-    Explore goal adherence, red teaming, load testing, and replay strategies.
-  </Card>
-  <Card title="Observability Guide" icon="chart-line" href="/monitor/observability/api-integration-tutorial">
-    Step-by-step guide to connecting your production pipeline.
-  </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Full endpoint documentation for every Bluejay API.
-  </Card>
-  <Card title="Join the Community" icon="slack" href="https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA">
-    Ask questions, share what you're building, and get help from the Bluejay team and other builders in our Slack.
-  </Card>
-</CardGroup>
+<Steps>
+  <Step title="Open Simulations">
+    In the sidebar, click **Simulations**. Click **Create**.
+  </Step>
+  <Step title="Describe the callers">
+    Select **Generate from Natural Language**. Describe the callers and goals you want to test. Bluejay generates the Digital Humans.
+  </Step>
+</Steps>
+
+To write each Digital Human by hand, open **Digital Humans** and click **Create Custom**. See [Digital Humans](/key-concepts/digital-humans/overview).
+
+## Run the simulation
+
+Click **Run N Calls** in the **Create Simulation** dialog. To run the same simulation again later, open it and click **Create New Run**.
+
+## Read the results
+
+The run page shows pass and fail totals and one row for each Conversation. The **Outcome** column shows the result for each call. Open a row to see the **Transcript**, the audio, and each Custom Metric result.
+
+<Transcript
+  turns={[
+    { role: "agent", t: "00:01", text: "Thanks for calling Northside Dental. How can I help?" },
+    { role: "human", t: "00:04", text: "I need to move my cleaning from Tuesday to Thursday." },
+    { role: "agent", t: "00:09", text: "I can do that. Thursday at 10 AM or 2 PM?" },
+    { role: "human", t: "00:13", text: "2 PM, please." },
+    { role: "agent", t: "00:16", text: "Done. Your cleaning is now Thursday at 2 PM." }
+  ]}
+  verdict={{ metric: "Appointment Rescheduled", pass: true, reason: "Agent moved the appointment and confirmed the new time." }}
+/>
+
+To add your own pass or fail checks, see [Custom Metrics](/key-concepts/custom-metrics/overview). For all run fields, see [Simulation results](/test/simulations/simulation-results).
