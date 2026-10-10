@@ -1,8 +1,10 @@
 ---
 title: "Bluejay as Code"
-description: "Manage Bluejay resources in your codebase."
+description: "Keep Bluejay agents, simulations, Digital Humans, and custom metrics in version-controlled JSON. Pull the config, edit it, and push it back."
 icon: code-branch
 ---
+
+Bluejay as Code stores your agents, simulations, Digital Humans, and custom metrics as one JSON payload in your repository. You pull the payload, edit it, and push it back, and Bluejay creates or updates each entity.
 
 <iframe
   src="https://www.youtube.com/embed/MnFCBV9PwMA"
@@ -13,246 +15,95 @@ icon: code-branch
   style={{ borderRadius: '0.5rem' }}
 ></iframe>
 
-## What is Bluejay as Code?
+## Pull the payload
 
-Bluejay as Code lets you manage your agent configuration as version-controlled files in your codebase. **This is Bluejay's equivalent of Terraform.** Pull your current setup to export it as a JSON payload, edit it like source code, then push to apply changes — Bluejay creates or updates each entity as needed.
-
-## How to Use Bluejay as Code
-
-The flow is **pull → edit → push**. You pull your simulation as a JSON payload, edit it locally like any other source file, and push it back to apply the changes. The example below uses a healthcare front desk scheduling agent for Cedar Park Family Medicine.
-
-```mermaid
-sequenceDiagram
-    participant Config File
-    participant Bluejay
-
-    Config File->>Bluejay: GET /bluejay-as-code/simulation/{simulation_id}
-    Bluejay-->>Config File: JSON payload
-    note over Config File: Edit fields, add/remove entities, commit
-    Config File->>Bluejay: POST /bluejay-as-code
-    Bluejay-->>Config File: { valid, actions[], simulation_id }
+```bash
+curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -o simulation.json
 ```
 
-<Steps>
-  <Step title="Pull your configuration">
-    Send a `GET` request to the Bluejay as Code endpoint with your simulation ID. Bluejay returns a single JSON payload containing the agent, the simulation, every Digital Human, and every custom metric attached to it.
+The root type is `simulation`, `agent`, `digital-human`, or `custom-metric`. Each root returns the same payload shape with the related entities. See [Pull](/api-reference/endpoint/pull-bluejay-as-code).
 
-    ```bash
-    curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID \
-      -H "X-API-Key: $BLUEJAY_API_KEY" \
-      -o simulation.json
-    ```
-
-    <Tip>
-      The pull endpoint also accepts three other root types if you'd rather anchor your bundle on something else: `GET /v1/bluejay-as-code/agent/{id}`, `/digital-human/{id}`, or `/custom-metric/{id}`. Each one walks the same graph and returns the same payload shape — pick whichever entity is most natural for your workflow. The rest of this guide uses the simulation root because it's the most common.
-    </Tip>
-  </Step>
-
-  <Step title="Inspect the file you pulled">
-    `simulation.json` is the full state of your simulation. Pulled this way, it contains **exactly one agent and one simulation**; Digital Humans and custom metrics are arrays of any size. A hand-built payload you push can include more than one agent or simulation.
-
-    Every entity carries a `bluejay_as_code_id` — a **UUID** that Bluejay populates on pull. When you add a new entity locally, generate a fresh UUID once and commit it alongside the rest of the entity's fields.
-
-    A simulation has no field of its own for its owning agent. With one agent in the bundle, as below, Bluejay assigns it automatically. With more than one, list the simulation's `bluejay_as_code_id` in the owning agent's `simulations` array instead.
-
-    <Tip>
-      Each entity in the payload accepts the same fields as the corresponding API resource. For example, Digital Humans take the same arguments as [`POST /v1/create-digital-human`](/api-reference/endpoint/create-digital-human) — including `success_criteria`, `traits`, `voice`, and so on.
-    </Tip>
-
-    ```json simulation.json
-    {
-      "agents": [
-        {
-          "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
-          "name": "Front Desk Scheduler",
-          "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing."
-        }
-      ],
-      "simulations": [
-        {
-          "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
-          "name": "Scheduling Coverage",
-          "description": "Booking, rescheduling, and cancellation paths for the front desk agent."
-        }
-      ],
-      "digital_humans": [
-        {
-          "bluejay_as_code_id": "a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44",
-          "human_name": "Maria Alvarez",
-          "description": "New patient booking her first physical with Dr. Patel.",
-          "success_criteria": "Agent books a Tuesday or Thursday morning slot with Dr. Patel.",
-          "language": "en",
-          "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
-        },
-        {
-          "bluejay_as_code_id": "c5d9f1a3-8e2b-4c47-9d18-6f3a2b8e0c52",
-          "human_name": "James Okafor",
-          "description": "Existing patient rescheduling his follow-up with Dr. Liu.",
-          "success_criteria": "Agent cancels the old slot and books the next available afternoon.",
-          "language": "en",
-          "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
-        }
-      ],
-      "custom_metrics": [
-        {
-          "bluejay_as_code_id": "2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44",
-          "name": "DOB Verified Before PHI",
-          "description": "The agent verifies the caller's date of birth before discussing any patient-specific information."
-        },
-        {
-          "bluejay_as_code_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21",
-          "name": "Appointment Details Confirmed",
-          "description": "Before ending the call, the agent reads back provider, date, time, and reason for visit, and the caller confirms."
-        }
-      ]
-    }
-    ```
-  </Step>
-
-  <Step title="Edit the payload">
-    Edit fields in place to update existing entities, append new objects to add coverage, or remove entries from `digital_humans` or `custom_metrics` to detach them on the next push.
-
-    <Note>
-      **You generate the `bluejay_as_code_id` for new objects yourself.** Bluejay only populates UUIDs on pull — anything you add locally needs an ID you create (for example with `uuidgen` or `uuid.uuid4()`). Commit it to the file so future pushes recognize the same object.
-    </Note>
-
-    For example, add a Digital Human that simulates an urgent-symptom call so you can verify the agent's escalation behavior. Append the new entity to the `digital_humans` array:
-
-    ```json simulation.json
-    {
-      "bluejay_as_code_id": "7e2c9a1b-3d4f-4a8e-b612-9c5f0d3a1e88",
-      "human_name": "Eleanor Pham",
-      "description": "Caller reports chest pain at the start of the call.",
-      "success_criteria": "Agent tells the caller to hang up and call 911.",
-      "language": "en",
-      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
-    }
-    ```
-
-    And tighten the agent's `system_prompt` to handle that path explicitly:
-
-    ```json simulation.json
+```json simulation.json
+{
+  "agents": [
     {
       "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
       "name": "Front Desk Scheduler",
-      "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before discussing any patient-specific information. Help patients book, reschedule, or cancel appointments. Confirm provider, date, time, and reason for visit before finalizing. If the caller reports chest pain, difficulty breathing, or suicidal ideation, instruct them to hang up and call 911 immediately."
+      "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine. Verify the caller's date of birth before you discuss patient information."
     }
-    ```
-
-    Coverage isn't limited to one-off calls. To exercise a multi-call flow with the same caller, add a Digital Human with a `journey_steps` array. Each step is one call, run in order:
-
-    ```json simulation.json
+  ],
+  "simulations": [
     {
-      "bluejay_as_code_id": "d4f8a2c1-6b3e-4a09-8f27-1c5e9b0d3a76",
-      "human_name": "Returning Caller",
-      "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"],
-      "journey_steps": [
-        { "step": 1, "intent": "Book a Tuesday morning physical with Dr. Patel", "success_criteria": "Appointment booked and confirmation number read back" },
-        { "step": 2, "intent": "Call back to confirm the appointment", "success_criteria": "Agent confirms the existing booking" },
-        { "step": 3, "intent": "Cancel the appointment", "success_criteria": "Appointment cancelled and cancellation acknowledged" }
-      ]
+      "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
+      "name": "Scheduling Coverage"
     }
-    ```
-
-    Bluejay auto-tags this Digital Human `"Customer Journey"` and runs the steps in order, each call gated on the one before. `step` numbers must be unique and contiguous from `1`, and every step needs an `intent` (`success_criteria` is optional).
-
-    Some Digital Humans simulate a call reaching voicemail instead of a person. Set `tag` to `voicemail-custom` for a greeting you write yourself, or `voicemail-ai-generated` for one Bluejay generates:
-
-    ```json simulation.json
+  ],
+  "digital_humans": [
     {
-      "bluejay_as_code_id": "9b3c7d5e-2a41-4a0f-8c6b-3e2d1f9a7c50",
-      "human_name": "Voicemail Line",
-      "tag": "voicemail-custom",
-      "speaks_first_config": {
-        "speaks_first": true,
-        "mode": "custom",
-        "message": "Hi, you've reached Maria. Leave a message after the tone."
-      },
+      "bluejay_as_code_id": "a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44",
+      "human_name": "Maria Alvarez",
+      "description": "New patient booking her first physical with Dr. Patel.",
+      "success_criteria": "Agent books a Tuesday or Thursday morning slot with Dr. Patel.",
       "simulations": ["b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09"]
     }
-    ```
-
-    For `voicemail-ai-generated`, drop `message` and set `speaks_first_config.mode` to `"ai_generated"`. A voicemail Digital Human doesn't need `description` (intent) or `success_criteria` — the tag and `speaks_first_config` cover its purpose instead, same as `journey_steps` does for a journey.
-  </Step>
-
-  <Step title="Push your changes">
-    Send the edited file back with a `POST`. Bluejay reconciles each entity by `bluejay_as_code_id`:
-
-    - **Create:** a UUID Bluejay has not seen before becomes a new entity.
-    - **Update:** a known UUID with edited fields updates the existing entity.
-    - **Release:** a Digital Human or custom metric whose UUID is missing from the payload is unlinked from the simulation. The object itself still exists in Bluejay and can be reused or attached to other simulations; deleting it from the file removes the association, not the entity.
-
-    The response lists every action taken so you can confirm the reconciliation matches your diff.
-
-    ```bash
-    curl https://api.getbluejay.ai/v1/bluejay-as-code \
-      -H "X-API-Key: $BLUEJAY_API_KEY" \
-      -H "Content-Type: application/json" \
-      --data @simulation.json
-    ```
-
-    ```json response
+  ],
+  "custom_metrics": [
     {
-      "valid": true,
-      "errors": [],
-      "actions": [
-        "Updated agent 'Front Desk Scheduler'",
-        "Created Digital Human 'Eleanor Pham'",
-        "Linked 1 existing Digital Human(s) to simulation"
-      ],
-      "simulation_id": 1284
+      "bluejay_as_code_id": "2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44",
+      "name": "DOB Verified Before PHI",
+      "prompt": "The agent verifies the caller's date of birth before it discusses patient information."
     }
-    ```
-  </Step>
-</Steps>
-
-<Note>
-  The push endpoint is a single `POST /v1/bluejay-as-code` regardless of which root type you pulled from — the payload itself describes everything Bluejay needs to reconcile. On success, the response includes the resolved `simulation_id` for the simulation in the bundle so you can deep-link straight into the UI.
-</Note>
-
-## Endpoints
-
-<CardGroup cols={2}>
-  <Card title="Pull" icon="download" href="/api-reference/endpoint/pull-bluejay-as-code">
-    Export a simulation's full config as a payload.
-  </Card>
-  <Card title="Push" icon="upload" href="/api-reference/endpoint/push-bluejay-as-code">
-    Apply a payload — create or update each entity.
-  </Card>
-</CardGroup>
-
-## Full Example
-
-```python
-import json
-import uuid
-import requests
-
-BASE_URL = "https://api.getbluejay.ai/v1"
-API_KEY  = "your-api-key"
-SIM_ID   = "your-simulation-uuid"
-
-headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
-
-# 1. Pull current config
-payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", headers=headers).json()
-
-# 2. Edit — update the agent system prompt
-payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
-
-# 3. Add a new Digital Human — generate a UUID once and commit it to your config file
-payload["digital_humans"].append({
-    "bluejay_as_code_id": str(uuid.uuid4()),  # generate once, then hardcode in your config
-    "human_name": "Frustrated Caller",
-    "description": "A customer who has been on hold for 20 minutes and wants a quick resolution.",
-    "language": "en",
-    "simulations": [payload["simulations"][0]["bluejay_as_code_id"]],
-})
-
-# 4. Push
-result = requests.post(f"{BASE_URL}/bluejay-as-code", headers=headers, json=payload).json()
-
-assert result["valid"], result["errors"]
-for action in result["actions"]:
-    print(action)
+  ]
+}
 ```
+
+## Edit the payload
+
+- To update an entity, change its fields.
+- To add an entity, append an object with a new `bluejay_as_code_id`. Generate the UUID one time (for example with `uuidgen`) and commit it.
+- To unlink a Digital Human or custom metric, remove it from the list that links it.
+
+Each entity takes the same fields as its API resource. A few Digital Human fields have different names. See the [Cookbook](/key-concepts/bluejay-as-code/cookbook).
+
+A simulation has no field for its agent. If the payload has one agent, Bluejay links the new simulation to it. If the payload has more agents, list the simulation `bluejay_as_code_id` in the `simulations` array of its agent.
+
+## Push the payload
+
+```bash
+curl https://api.getbluejay.ai/v1/bluejay-as-code \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data @simulation.json
+```
+
+```json response
+{
+  "valid": true,
+  "errors": [],
+  "actions": [
+    "Updated agent 'Front Desk Scheduler'",
+    "Created digital human 'Eleanor Pham'",
+    "Linked 1 existing digital human(s) to simulation"
+  ],
+  "simulation_id": 1284
+}
+```
+
+Bluejay matches each entity by `bluejay_as_code_id`:
+
+| Case | Result |
+|---|---|
+| New `bluejay_as_code_id` | Bluejay creates the entity. |
+| Known `bluejay_as_code_id` | Bluejay updates the entity. |
+| Digital Human missing from a simulation's links | Bluejay removes it from the simulation. The Digital Human stays. |
+| Custom metric missing from an agent's links | Bluejay detaches it from the agent. The metric stays. |
+
+The links are desired state. A simulation's `digital_humans`, an agent's `custom_metrics`, and a custom metric's `agents` replace the current links on push. A Digital Human's `simulations` list sets the same links from the other side.
+
+<Warning>
+Risk: a silent failure. A payload with errors returns HTTP `200` with `"valid": false` and an `errors` list. Check `valid` after every push.
+</Warning>
+
+See [Push](/api-reference/endpoint/push-bluejay-as-code) for the full schema.

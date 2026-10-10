@@ -1,61 +1,74 @@
 ---
-title: 'Bland Observability'
-description: 'Integrating Bland with Bluejay Observability'
+title: "Bland"
+description: 'Connect Bland to Bluejay. Sync Bland pathways, run voice, phone, and chat simulations, and monitor production Bland calls by webhook.'
 icon: '/logo/bland.svg'
+sidebarTitle: "Bland"
 ---
 
+The Bland integration syncs your Bland pathways into Bluejay as agents, runs simulations against them, and sends production Bland calls to Bluejay through a webhook.
 
-This guide walks you through connecting your Bland phone number's inbound calls to Bluejay's observability software. Bland agents connect through their phone number: Bluejay matches each webhook event to the agent whose number it belongs to.
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/bland-walkthrough.mp4"></video>
 
-<video controls className="w-full aspect-video rounded-xl" src="/videos/bland-walkthrough.mp4"></video>
+## Connect
 
+Go to **Settings > Integrations > Bland** in Bluejay.
 
-### Quick Prerequisites
+| Field | Value |
+|---|---|
+| Webhook Secret | The webhook signing secret from the **General** tab of your Bland organization settings. Bluejay uses it to verify webhooks. |
+| API Key | Your Bland API key. Bluejay uses it to pull pathways and push changes back. |
+| Sync Agents from Bland | Imports every pathway as an agent in the **Synced from Bland** folder. Needs the API key. |
+| Autosync from Bland | Syncs pathways again on a schedule. |
 
-- **Bland Phone Number**
-- **Bland Webhook Secret**
-- **A Bluejay Account**
+On each agent, the **Bland** tile has one more field:
 
-### Setting Up the Integration
+| Field | Value |
+|---|---|
+| Call settings (Optional) | JSON with the same call parameters you send to Bland in production. Bluejay sends them with every simulated call. Keys you leave out keep the Bland default. |
 
-### 1. Configure Organization Settings
+## Test
 
-1. Log into your **Bluejay Dashboard**
-2. Click **Settings** in the bottom left corner
-3. Open the **Integrations** tab and select **Bland**
+Sync picks the voice path for each pathway. A pathway with a Bland web agent uses the websocket path. A pathway without one uses the phone path.
 
+<Tabs>
+<Tab title="Websocket">
 
-![Navigate to Integrations](/images/integrations.png)
+Bluejay opens a Bland web-agent session over websocket. No phone number is necessary. The pathway must have a web agent.
 
-### 2. Adding Your Bland Key
+1. Sync your pathways, or choose the **Bland** voice tile on the agent.
+2. Create a simulation on the **Simulations** page and add Digital Humans.
+3. Click **Create New Run**, then **Run N calls**.
 
-1. Generate your Bland webhook signing secret in Bland, under the "General" tab of your organization's settings
-2. Paste it into the **Webhook Secret** field
-3. Click **Save Changes**
+</Tab>
+<Tab title="Phone">
 
-![Save API Key](/images/add-bland-secret.png)
+Bland places a real phone call from the pathway to the Digital Human. Bluejay starts the call through the Bland API and tags it `environment: staging` so it stays out of your production reports.
 
-### 3. Configuring Your Agent in Bland
+1. Set the agent type to **Outbound**.
+2. Give each Digital Human a phone number.
+3. Create and run the simulation.
 
-1. **Copy the Webhook URL given** in the Webhook configuration dropdown 
-2. Navigate to your Bland Phone Numbers configuration screen and scroll down to the **Advanced** dropdown
-3. **Paste the Webhook URL into the Webhook URL field**
-4. Click **Save Inbound Call Changes**
+To have Bluejay dial a Bland number instead, create an agent with the **Phone** connection type and set **Your Agent's Phone Number** in E.164 format.
 
+</Tab>
+<Tab title="Chat">
 
-<video controls className="w-full aspect-video rounded-xl" src="/videos/add-link-bland.mov"></video>
+Bluejay sends text turns to the pathway through the Bland chat API.
 
-### 4. Configuring Your Agent in Bluejay
+1. Set the agent mode to **Text**.
+2. Choose the **Bland** text tile.
+3. Create and run the simulation.
 
-1. Open your agent's settings and go to the **Connection Settings** tab
-2. Choose the **Phone** tile under **Voice connection type**
-3. Paste your Bland phone number into the **Phone Number** field, in full international format (e.g. `+15551234567`)
-4. Click **Save Changes**
+</Tab>
+</Tabs>
 
-<video controls className="w-full aspect-video rounded-xl" src="/videos/bland-bluejay-agent.mov"></video>
+## Monitor
 
+Bland sends production calls to Bluejay through the phone number webhook. Bluejay matches each call to an agent by its phone number or pathway ID.
 
+1. In Bland, open your phone number settings.
+2. In the **Advanced** section, set the webhook URL to `https://api.getbluejay.ai/v1/integrations/bland`.
+3. Save the inbound call changes.
+4. In Bluejay, make sure the agent has the same phone number, or is synced from the same pathway.
 
-
-
-
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/add-link-bland.mov"></video>

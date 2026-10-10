@@ -1,8 +1,10 @@
 ---
 title: "Chat Testing"
-description: "Test text-based chat agents using HTTP webhooks for bidirectional messaging"
+description: "Test a text chat agent over HTTP: Bluejay posts Digital Human messages to your webhook, and your agent replies through the send-http-text-message API."
 icon: webhook
 ---
+
+Bluejay posts each Digital Human message to your webhook URL. Your agent replies with [`/v1/send-http-text-message`](/api-reference/endpoint/send-http-text-message), or in the webhook response body.
 
 <iframe
   src="https://www.loom.com/embed/49ce062677ed44be932c5dd0a89c7269?speed=1.5&captions=true&hideEmbedTopBar=true"
@@ -13,63 +15,20 @@ icon: webhook
   style={{ borderRadius: '0.5rem' }}
 ></iframe>
 
-## How It Works
-
-The HTTP webhook integration allows you to simulate conversations with your text-based agent. Bluejay sends messages to your agent via HTTP, and your agent responds through a configured webhook endpoint.
-
-<Tabs>
-<Tab title="Simple">
-
-```mermaid
-sequenceDiagram
-    participant Your Agent
-    participant Bluejay's Digital Human
-   
-    Your Agent->>Bluejay's Digital Human: Send Message (HTTP)
-    Bluejay's Digital Human->>Your Agent: Response (Webhook)
-```
-
-</Tab>
-
-<Tab title="Technical">
-
-```mermaid
-sequenceDiagram
-    participant Your Agent
-    participant Bluejay's Digital Human
-   
-    Your Agent->>Bluejay's Digital Human: API Call: "queue-http-text-simulation-run"
-    Bluejay's Digital Human-->>Your Agent: Response: "simulation_result_ids"
-    loop Conversation
-        Your Agent->>Bluejay's Digital Human: API Call: "send-http-text-message"
-        Bluejay's Digital Human->>Your Agent: Response sent to configured Webhook
-    end
-    Bluejay's Digital Human->>Bluejay's Digital Human: Evaluate conversation
-```
-
-</Tab>
-</Tabs>
-
-## Tutorial
-
-<Steps>
-<Step title="Create an Agent">
+## Connect
 
 <Tabs>
 <Tab title="Website">
-Go to the "Agents & Simulations" section in the sidebar. Click the "+" button to create a new agent. Choose "Text/Chat" as the agent type and select "HTTP Webhook" as the integration. Make sure to enter your webhook URL in the designated field.
-
-<Frame>
-  <img src="/images/http-1.png" alt="Create Agent" />
-</Frame>
+1. Create an agent with mode **Text** and connection type **HTTP Webhook**.
+2. Enter the **HTTP Webhook URL**.
+3. Save the agent.
+4. Under **Webhook Signing Key**, click **Generate signing key** and copy the key.
 </Tab>
-
 <Tab title="API">
-Use the [Add Agent endpoint](/api-reference/endpoint/add-agent) to create an agent programmatically and save the `agent_id`.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/add-agent \
-  -H "X-API-Key: your-api-key" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Customer Support Bot",
@@ -79,214 +38,114 @@ curl -X POST https://api.getbluejay.ai/v1/add-agent \
     "http_webhook": "https://your-server.com/webhook"
   }'
 ```
+
+Set `http_webhook_sync_reply` to `true` if your endpoint returns the agent reply in the response body. See [Reply in the response body](#reply-in-the-response-body).
 </Tab>
 </Tabs>
-</Step>
 
-<Step title="Create a Simulation">
+## Run a conversation
 
-<Tabs>
-<Tab title="Website">
-Click the "Create new simulation" button.
-
-<Frame>
-  <img src="/images/http-2.png" alt="Create Simulation" />
-</Frame>
-</Tab>
-
-<Tab title="API">
-Use the [Create Simulation endpoint](/api-reference/endpoint/create-simulation) to create a simulation programmatically and save the `simulation_id`.
-
-```bash
-curl -X POST https://api.getbluejay.ai/v1/create-simulation \
-  -H "X-API-Key: your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agent_id": "258",
-    "name": "Customer Support Test",
-    ...
-  }'
-```
-</Tab>
-</Tabs>
-</Step>
-
-<Step title="Create Digital Humans">
-
-<Tabs>
-<Tab title="Website">
-After selecting the number of agents in the "Goal Adherence" section, click "Next".
-
-<Frame>
-  <img src="/images/http-3.png" alt="Create Digital Humans" />
-</Frame>
-</Tab>
-
-<Tab title="API">
-Use the [Create Digital Human endpoint](/api-reference/endpoint/create-digital-human) to create Digital Humans programmatically:
-
-```bash
-curl -X POST https://api.getbluejay.ai/v1/create-digital-human \
-  -H "X-API-Key: your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "simulation_id": "2154",
-    "name": "Frustrated Customer",
-    "scenario": "Customer waiting for refund for 2 weeks",
-    "success_criteria": "Agent provides clear timeline and reference number",
-    ...
-  }'
-```
-
-You can create multiple Digital Humans with different scenarios.
-</Tab>
-</Tabs>
-</Step>
-
-<Step title="Queue a Simulation Run">
-
-<Tabs>
-<Tab title="Website">
-Click "Create and start X chats" to queue a new simulation run. The "#ID" shown is the `simulation_result_id` that you'll need for sending messages.
-
-<Frame>
-  <img src="/images/http-4.png" alt="Queue Simulation Run" />
-</Frame>
-</Tab>
-
-<Tab title="API">
-Use the [Queue HTTP Text Simulation Run endpoint](/api-reference/endpoint/queue-http-text-simulation-run) to start a simulation run. This initializes the simulation and returns the `simulation_result_ids` that you'll need for sending messages. 
-
-```bash
-curl -X POST https://api.getbluejay.ai/v1/queue-http-text-simulation-run \
-  -H "X-API-Key: your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "simulation_id": "2154"
-  }'
-```
-
-**Response:**
+<Steps>
+<Step title="Queue the run">
+In the app, open the simulation and click **Create New Run**. With the API, call [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run) with `simulation_id`.
 
 ```json
-{
-    "simulation_run_id": "4434",
-    "simulation_result_ids": [
-        "13062"
-    ],
-    "agent_id": "258",
-    "status": "success"
-}
+{ "simulation_run_id": "4434", "simulation_result_ids": ["13062"], "agent_id": "258", "status": "success" }
 ```
 
-The response includes:
-- **simulation_run_id**: Unique identifier for this simulation run
-- **simulation_result_ids**: Array of result IDs, one per Digital Human in the simulation
-- **agent_id**: The agent being tested
-</Tab>
-</Tabs>
+You get one `simulation_result_id` per conversation. Optional request fields: `digital_human_ids`, `runs_per_digital_human`, `agent_version_id`.
 </Step>
-
-  <Step title="Send Messages">
-    Use the [Send HTTP Text Message endpoint](/api-reference/endpoint/send-http-text-message) to send messages during the simulation. Each message should include the `simulation_result_id` from the previous step.
+<Step title="Receive the first message">
+For an **Inbound** agent, Bluejay posts the Digital Human first message to your webhook. For an **Outbound** agent, Bluejay posts `"message": null` to tell your agent to start.
+</Step>
+<Step title="Reply">
+Send each agent message to `/v1/send-http-text-message` with the `simulation_result_id`.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
-  -H "X-API-Key: your-api-key" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "simulation_result_id": "13062",
     "message": "What operating system do you have?",
-    "end_conversation": false,
-    "end_turn":false,
     "message_id": "682098ae-2ec1-4d4f-8223-0cdd9580cff3"
-}'
+  }'
+```
+</Step>
+<Step title="End the conversation">
+Send `"end_conversation": true` to end and evaluate the conversation. The Digital Human can also end it.
+</Step>
+</Steps>
+
+## Fields
+
+Request to `/v1/send-http-text-message`:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `simulation_result_id` | string | Yes | The conversation ID. |
+| `type` | string | No | `message` (default) or `tool_call`. |
+| `message` | string | If `type` is `message` | The agent message. |
+| `end_turn` | boolean | No | Default `true`. If `false`, Bluejay holds the message and waits for more. |
+| `end_conversation` | boolean | No | Default `false`. If `true`, Bluejay ends and evaluates the conversation. |
+| `message_id` | string | No | Bluejay drops a second message with the same ID. |
+| `name` | string | If `type` is `tool_call` | The tool name. |
+| `parameters` | object | No | The tool input. |
+| `output` | any | No | The tool output. |
+
+Webhook body that Bluejay sends to your URL:
+
+```json
+{
+  "simulation_result_id": "13062",
+  "message_id": "15a481c1-...",
+  "message": "Hi, I need help with a refund.",
+  "metadata": null,
+  "end_conversation": false,
+  "end_turn": true
+}
 ```
 
-**Request Parameters:**
+Return any `2xx` status. Bluejay sends `Content-Type: application/json`, and `X-Bluejay-Signature` when the agent has a signing key.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `message` | string | Yes (when `type="message"`) | The text message to send |
-| `simulation_result_id` | string | Yes | ID of the simulation result |
-| `type` | string | No | `"message"` (default) for conversation turns; `"tool_call"` to log a tool call |
-| `end_conversation` | boolean | No | If `true`, ends and evaluates the conversation |
-| `end_turn` | boolean | No | If `true` (default), processes the message immediately; if `false`, stacks it for later |
-| `message_id` | string | No | Unique ID for deduplication |
-| `name` | string | Yes (when `type="tool_call"`) | Name of the tool that was called |
-| `parameters` | object | No | Input parameters passed to the tool |
-| `output` | any | No | Return value or result from the tool |
+## Log tool calls
 
-### Logging Tool Calls Live
-
-If your agent invokes tools during the conversation, you can log them in real time by sending a request with `type="tool_call"`. This records the tool call against the simulation result for evaluation — it does **not** append anything to the conversation transcript or trigger a Digital Human response.
+Send one request with `"type": "tool_call"` for each tool your agent runs. Bluejay stores the tool call on the result and computes `start_offset_ms`. A tool call does not add a transcript line and does not start a Digital Human reply.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
-  -H "X-API-Key: your-api-key" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "simulation_result_id": "13062",
     "type": "tool_call",
     "name": "lookup_order",
     "parameters": {"order_id": "ORD-2024-001"},
-    "output": {"status": "shipped", "tracking_number": "1Z999AA1234567890"}
-}'
+    "output": {"status": "shipped"}
+  }'
 ```
 
-Send one request per tool call, as close to when the tool runs as possible. Bluejay will automatically calculate the `start_offset_ms` from the conversation start time.
+## Reply in the response body
 
-<Tip>
-  Tool call logs sent via `type="tool_call"` are available for evaluation immediately. You can mix regular messages and tool call logs freely — send them in whichever order they occur in your agent's execution.
-</Tip>
-  </Step>
+If `http_webhook_sync_reply` is `true`, Bluejay reads the agent reply from your webhook response and you do not call `/v1/send-http-text-message`. Bluejay waits up to 60 seconds for the response.
 
-  <Step title="Receive Webhook Responses">
-    Bluejay sends the Digital Human's responses to your configured webhook URL. Your server should be ready to receive POST requests with the conversation messages.
+The body can be one object, a list of objects, or a string. Bluejay reads the first of these keys: `message`, `reply`, `text`, `content`, `response`. It also reads `end_turn` and `end_conversation`. If Bluejay finds no message, it waits for `/v1/send-http-text-message`.
 
-**Webhook Payload:**
+## Verify the signature
 
-When a Digital Human responds, Bluejay will POST to your webhook URL with the following structure:
-
-```json
-{
-  "simulation_result_id": "13062",
-  "message": "I can help you with that. Can you provide your order number?",
-  "message_id": "15a481c1-asd2-s9322-9bac-788d52effdc8",
-  "end_conversation": false
-}
-```
-
-**Webhook Request Headers:**
-
-| Header | Description |
-|--------|-------------|
-| `Content-Type` | `application/json` |
-| `X-Bluejay-Signature` | HMAC-SHA256 signature for verification |
-| `X-Simulation-Result-Id` | The simulation result ID for this conversation |
-
-Your webhook endpoint should:
-1. Return a `200 OK` status code to acknowledge receipt
-2. Verify the `X-Bluejay-Signature` header (see Verifying Webhook Signatures section below)
-3. Process the message and send follow-up messages using the Send HTTP Text Message endpoint
-  </Step>
-</Steps>
-
-## Verifying Webhook Signatures
-
-To ensure webhook requests are genuinely from Bluejay, verify the signature included in each request. Bluejay signs the raw request body with HMAC-SHA256 using your signing key (generated in the agent's Connection settings) and sends the hex digest in the `X-Bluejay-Signature` header.
-
-The signing key is created the first time an HTTP webhook is saved. Later updates, including ones that send `http_webhook` again, leave that key in place. Generate a new key from the agent's Connection settings when you want to rotate it.
+Bluejay signs the raw body with HMAC-SHA256 and the signing key, and sends the hex digest in `X-Bluejay-Signature`. Compute the digest over the raw bytes before you parse the JSON.
 
 ```python
-import hashlib
-import hmac
+import hashlib, hmac
 
 def verify_signature(raw_body: bytes, signature_header: str, signing_key: str) -> bool:
     expected = hmac.new(signing_key.encode(), raw_body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature_header)
 ```
 
-Compute the digest over the raw bytes of the body (before any JSON parsing) and compare it to the header with a constant-time comparison. Reject the request if they don't match.
+Bluejay creates the key the first time you save an HTTP webhook. Later updates keep the same key. To see it, click **View signing key** in the agent **Connection** settings.
 
+## Limits
 
+- Bluejay waits 10 seconds for your webhook to respond, or 60 seconds with `http_webhook_sync_reply`.
+- By default, if no message arrives for 5 minutes, Bluejay ends the conversation.

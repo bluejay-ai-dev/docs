@@ -1,237 +1,472 @@
 ---
-title: 'Dialogflow CX Simulations'
-description: 'Connect, test, version, and promote your Google Dialogflow CX agents from Bluejay'
+title: "Dialogflow CX"
+description: 'Connect Google Dialogflow CX to Bluejay with keyless access, sync agents, run voice and chat simulations, and push, version, and promote flows.'
 icon: 'google'
+sidebarTitle: "Dialogflow CX"
 ---
 
-Bluejay connects directly to your **Google Dialogflow CX (DFCX)** agents so you can test them
-with Digital Humans, visualize and edit their workflow, and — using the same APIs as the DFCX
-console — **snapshot versions and promote them to your environments**.
+The Dialogflow CX integration connects your Google Cloud project to Bluejay. You can sync Dialogflow CX agents, test them with Digital Humans, and edit, version, and promote their flows.
 
-The integration is **org-level**: you grant Bluejay access to your Google Cloud project once,
-sync your agents, and every DFCX agent in the project becomes available to test.
+## Connect
 
-### Prerequisites
+Go to **Settings > Integrations > Google Agents**. One credential covers Dialogflow CX and [CES](/integrations/google-ces) agents in the project. Choose one method.
 
-- A **Google Cloud project** with the **Dialogflow API enabled**.
-- At least one **Dialogflow CX agent** in that project.
-- Permission to grant a service identity access to the project (to complete the steps below).
+<Tabs>
+<Tab title="Keyless">
 
-Enable the Dialogflow API from **APIs & Services → Library → Dialogflow API** — it should read **API Enabled**:
+Recommended. Bluejay uses Workload Identity Federation to act as a service account in your project. No key exists, so no key can leak. See [Keyless setup](#keyless-setup).
 
-![Dialogflow API enabled in the Google Cloud console](/images/google-dfcx-enable-api.png)
+| Field | Value |
+|---|---|
+| Your Bluejay tenant id | Read only. Copy it into the setup script. |
+| Service account email | Printed by the setup script. |
+| Workload identity provider | Printed by the setup script, for example `projects/123/locations/global/workloadIdentityPools/bluejay/providers/bluejay`. |
+| Project ID | Your Google Cloud project ID. |
+| Project number | Your numeric Google Cloud project number. |
 
-<Note>
-The same credential also discovers **Google Conversational Engine (CES)** agents in the project, so
-both Google agent types are picked up by a single connection.
-</Note>
+</Tab>
+<Tab title="Access token">
 
----
+For a quick trial. The token stops working after about one hour.
 
-## 1. Grant Bluejay access (service account)
+| Field | Value |
+|---|---|
+| Project ID | Your Google Cloud project ID. |
+| Access token | The output of `gcloud auth print-access-token` after `gcloud auth login`. |
 
-Bluejay authenticates to your Google Cloud project with a **service-account key** that you create
-and paste into Bluejay. The key is encrypted at rest and scoped to Dialogflow only — it lets
-Bluejay talk to your agents, nothing else.
+</Tab>
+<Tab title="Service account key">
 
-### Step 1 — Create a service account with the right permissions
-
-In the [Google Cloud Console → IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts):
-
-1. **Create Service Account** → give it a name (e.g. `bluejay-dfcx`).
-
-![Create the service account](/images/google-dfcx-create-sa.png)
-
-2. Decide which capability tier you need, then create a **custom IAM role** (IAM & Admin → Roles →
-   **Create Role**) containing exactly those permissions and grant it to the service account. GCP
-   grants *roles*, not bare permissions — the custom role is how you apply a minimal set. Each tier
-   also lists a predefined-role equivalent if you prefer a quicker (but broader) grant.
-
-#### Tier 1 — Test only (read + run simulations)
-
-Use this tier if Bluejay only needs to sync agent definitions and run live simulations.
-
-**Read / sync permissions**
-
-| Permission | Purpose |
-| --- | --- |
-| `dialogflow.agents.get`, `dialogflow.agents.list` | Discover agents in your project |
-| `dialogflow.flows.get`, `dialogflow.flows.list` | Read flow definitions |
-| `dialogflow.pages.get`, `dialogflow.pages.list` | Read pages within flows |
-| `dialogflow.intents.get`, `dialogflow.intents.list` | Read intent definitions |
-| `dialogflow.transitionRouteGroups.get`, `dialogflow.transitionRouteGroups.list` | Read route groups |
-| `dialogflow.playbooks.get`, `dialogflow.playbooks.list` | Read playbook definitions |
-| `dialogflow.tools.get`, `dialogflow.tools.list` | Read tool definitions |
-| `dialogflow.generators.get`, `dialogflow.generators.list` | Read generator definitions |
-
-**Runtime permissions**
-
-| Permission | Purpose |
-| --- | --- |
-| `dialogflow.sessions.detectIntent` | Send turns to the agent during a simulation |
-| `serviceusage.services.use` | Authorize the quota project header Bluejay sends with every API call |
+A legacy method. Paste a service account key or a federation config JSON into **Credential JSON**.
 
 <Warning>
-`serviceusage.services.use` is the single most-missed permission. Without it, live simulations
-fail immediately with `USER_PROJECT_DENIED`. This happens because the Dialogflow runtime checks a
-Service Usage quota when Bluejay sends an `x-goog-user-project` header on each request — the
-permission must be present even if billing is not your concern.
+Security risk. A JSON key works from anywhere until you delete it. Use keyless access for new integrations. To migrate, set up keyless access, get a green **Test connection**, then delete the key in Google Cloud.
 </Warning>
 
-**Predefined-role equivalent (quicker, broader):** `roles/dialogflow.reader` +
-`roles/dialogflow.client` — grants everything in Tier 1 and a bit more.
+Make a custom role with the permissions you need and grant it to the service account. Then create a JSON key in the **Keys** tab of the service account.
 
-#### Tier 2 — Edit + push (also version & promote workflows)
+| Use | Permissions | Predefined roles |
+|---|---|---|
+| Sync and read | `dialogflow.{agents,flows,pages,intents,transitionRouteGroups,playbooks,tools,generators}.{get,list}` | `roles/dialogflow.reader` |
+| Run simulations | `dialogflow.sessions.detectIntent`, `serviceusage.services.use` | `roles/dialogflow.client`, `roles/serviceusage.serviceUsageConsumer` |
+| Push, version, promote | `dialogflow.flows.update`, `dialogflow.playbooks.update`, `dialogflow.{pages,intents,transitionRouteGroups,tools}.{create,update,delete}`, `dialogflow.versions.create`, `dialogflow.environments.update` | `roles/dialogflow.admin` |
 
-Use this tier if Bluejay also needs to push workflow edits, snapshot versions, and deploy to
-environments. Tier 2 includes all Tier 1 permissions plus the following writes:
+</Tab>
+</Tabs>
 
-| Permission | Purpose |
-| --- | --- |
-| `dialogflow.flows.update` | Push flow edits |
-| `dialogflow.pages.create`, `dialogflow.pages.update`, `dialogflow.pages.delete` | Create, edit, and remove pages |
-| `dialogflow.intents.create`, `dialogflow.intents.update`, `dialogflow.intents.delete` | Create, edit, and remove intents |
-| `dialogflow.transitionRouteGroups.create`, `dialogflow.transitionRouteGroups.update`, `dialogflow.transitionRouteGroups.delete` | Create, edit, and remove route groups |
-| `dialogflow.playbooks.update` | Push playbook edits |
-| `dialogflow.tools.create`, `dialogflow.tools.update`, `dialogflow.tools.delete` | Create, edit, and remove tools |
-| `dialogflow.versions.create` | Snapshot a version on push |
-| `dialogflow.environments.update` | Promote flow versions to an environment (the `deployFlow` API authorizes on `dialogflow.environments.update`) |
+Click **Save & test connection**, then **Sync Agents from Google**. Sync scans all locations and creates one agent for each Dialogflow CX and CES agent. An agent that you delete in Google is flagged in Bluejay. Sync again when you add agents in Google.
 
-**Predefined-role equivalent (quicker, broader):** `roles/dialogflow.admin` — grants the full
-Dialogflow feature set.
+To connect one agent by hand, open its **Connection Settings** and choose the **Dialogflow CX** tile. Set **Dialogflow CX Agent Path** to `projects/<project>/locations/<location>/agents/<agentId>`. You can paste the console URL. Bluejay changes it to the path.
 
-![Grant the custom role to the service account](/images/google-dfcx-sa-role.png)
+### Keyless setup
 
-### Step 2 — Create a JSON key
+You need the **Owner** role on the project, or Workload Identity Pool Admin, Service Account Admin, and Project IAM Admin.
 
-On that service account, open the **Keys** tab → **Add Key → Create new key → JSON** → **Create**.
-A `.json` key file downloads to your machine.
+<Steps>
+<Step title="Copy your tenant id">
+In **Settings > Integrations > Google Agents > Keyless**, copy **Your Bluejay tenant id**.
+</Step>
+<Step title="Write the script in Cloud Shell">
+Open [Cloud Shell](https://shell.cloud.google.com) with an account that can access the project. Paste this block. It only writes `bluejay-wif.sh`, so you can read the file before you run it.
+
+```bash
+cat > bluejay-wif.sh <<'BLUEJAY'
+#!/bin/bash
+# Bluejay keyless access (Workload Identity Federation) for your Google Cloud project.
+#
+#   bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]
+#
+# Creates, in YOUR project: a workload identity pool + OIDC provider that trust
+# Bluejay's token issuer and are pinned to YOUR Bluejay tenant id, a dedicated
+# service account with no keys, permission for that one tenant to impersonate it,
+# and read + run roles for Dialogflow CX (add --ces to also cover CES agents).
+# Safe to re-run. Nothing secret is created or printed.
+set -euo pipefail
+
+run() { local out; if ! out=$("$@" 2>&1); then echo "$out" >&2; return 1; fi; }
+
+TENANT_ID="${1:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
+PROJECT_ID="${2:?usage: bash bluejay-wif.sh <BLUEJAY_TENANT_ID> <GCP_PROJECT_ID> [--ces]}"
+WITH_CES=0; [[ "${3:-}" == "--ces" ]] && WITH_CES=1
+
+# The tenant id is pasted by hand and ends up inside the provider's CEL
+# condition, so a stray space or quote would produce a provider that rejects
+# every exchange. Fail here instead, with the value in front of you.
+[[ $TENANT_ID =~ ^[A-Za-z0-9_-]+$ ]] || {
+  echo "tenant id looks wrong: '$TENANT_ID'. Copy it from the Google Agents tab in Bluejay." >&2; exit 1; }
+
+POOL=bluejay
+PROVIDER=bluejay
+SA_ID=bluejay-integration
+ISSUER="https://api.getbluejay.ai"
+
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+SA="${SA_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
+PROVIDER_PATH="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}/providers/${PROVIDER}"
+AUDIENCE="//iam.googleapis.com/${PROVIDER_PATH}"
+# The security boundary. Google checks this before issuing any credential: only
+# Bluejay tokens that carry YOUR tenant id (and come from production) are accepted.
+CONDITION="assertion.tenant_id == '${TENANT_ID}' && assertion.environment == 'production'"
+MAPPING="google.subject=assertion.sub,attribute.tenant_id=assertion.tenant_id,attribute.integration_id=assertion.integration_id,attribute.environment=assertion.environment"
+MEMBER="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL}/attribute.tenant_id/${TENANT_ID}"
+
+echo "==> Enabling APIs"
+APIS="iamcredentials.googleapis.com sts.googleapis.com dialogflow.googleapis.com"
+[[ $WITH_CES == 1 ]] && APIS="$APIS ces.googleapis.com"
+gcloud services enable $APIS --project="$PROJECT_ID"
+
+echo "==> Workload identity pool: $POOL"
+STATE=$(gcloud iam workload-identity-pools describe "$POOL" --location=global --project="$PROJECT_ID" --format='value(state)' 2>/dev/null || true)
+case "$STATE" in
+  ACTIVE)  ;;
+  DELETED) run gcloud iam workload-identity-pools undelete "$POOL" --location=global --project="$PROJECT_ID" ;;
+  *)       run gcloud iam workload-identity-pools create "$POOL" --location=global --project="$PROJECT_ID" --display-name="Bluejay" ;;
+esac
+
+echo "==> OIDC provider: $PROVIDER (trusts $ISSUER, pinned to tenant $TENANT_ID)"
+STATE=$(gcloud iam workload-identity-pools providers describe "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" --format='value(state)' 2>/dev/null || true)
+if [[ "$STATE" == "DELETED" ]]; then
+  run gcloud iam workload-identity-pools providers undelete "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID"
+  STATE=ACTIVE
+fi
+if [[ "$STATE" == "ACTIVE" ]]; then
+  run gcloud iam workload-identity-pools providers update-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
+    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION"
+else
+  run gcloud iam workload-identity-pools providers create-oidc "$PROVIDER" --workload-identity-pool="$POOL" --location=global --project="$PROJECT_ID" \
+    --display-name="Bluejay OIDC" \
+    --issuer-uri="$ISSUER" --allowed-audiences="$AUDIENCE" --attribute-mapping="$MAPPING" --attribute-condition="$CONDITION"
+fi
+
+echo "==> Service account: $SA (no keys)"
+gcloud iam service-accounts describe "$SA" --project="$PROJECT_ID" >/dev/null 2>&1 \
+  || run gcloud iam service-accounts create "$SA_ID" --project="$PROJECT_ID" --display-name="Bluejay Integration" \
+       --description="Impersonated by Bluejay via Workload Identity Federation. No keys are issued for this account."
+
+echo "==> Allowing your Bluejay tenant (and only it) to impersonate the service account"
+for i in 1 2 3 4 5 6; do   # a brand-new service account takes a few seconds to become bindable
+  ADD_ERR=$(gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+    --role=roles/iam.workloadIdentityUser --member="$MEMBER" --condition=None --quiet 2>&1) && break
+  [[ $i == 6 ]] && { echo "$ADD_ERR" >&2; echo "could not add the impersonation binding, re-run this script" >&2; exit 1; }
+  sleep 10
+done
+
+echo "==> Roles (read + run only, never admin)"
+ROLES="roles/dialogflow.reader roles/dialogflow.client roles/serviceusage.serviceUsageConsumer"
+[[ $WITH_CES == 1 ]] && ROLES="$ROLES roles/ces.viewer roles/ces.client"
+for ROLE in $ROLES; do
+  run gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${SA}" --role="$ROLE" --condition=None --quiet
+  echo "    $ROLE"
+done
+
+echo "==> Verifying, as the service account, that Google is enforcing the new roles (usually 1 to 3 minutes)"
+# Google applies IAM changes over a few minutes. Rather than leave you to find out
+# in Bluejay, this waits until the service account can really list your agents.
+# To test as the service account, your own account is temporarily allowed to
+# impersonate it; that grant is removed again below.
+# Scope: this checks the roles only. It calls Google directly with your own
+# credentials, so it says nothing about the token exchange (issuer, audience,
+# tenant pin). Test connection in Bluejay is what exercises that path.
+ME=$(gcloud config get-value account 2>/dev/null)
+case "$ME" in *.gserviceaccount.com) ME_MEMBER="serviceAccount:${ME}" ;; *) ME_MEMBER="user:${ME}" ;; esac
+if run gcloud iam service-accounts add-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+     --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet; then
+  # Hand the grant back even if you Ctrl-C during the wait below.
+  DROPPED=0
+  drop_grant() {
+    if [[ $DROPPED == 0 ]]; then
+      DROPPED=1
+      run gcloud iam service-accounts remove-iam-policy-binding "$SA" --project="$PROJECT_ID" \
+        --role=roles/iam.serviceAccountTokenCreator --member="$ME_MEMBER" --condition=None --quiet || true
+    fi
+  }
+  trap drop_grant EXIT
+  trap 'drop_grant; exit 130' INT TERM
+  CHECK_URLS="https://dialogflow.googleapis.com/v3/projects/${PROJECT_ID}/locations/global/agents"
+  [[ $WITH_CES == 1 ]] && CHECK_URLS="$CHECK_URLS https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/us/apps https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/eu/apps"
+  VERIFIED=0
+  for attempt in $(seq 1 30); do   # up to ~5 minutes
+    TOKEN=$(gcloud auth print-access-token --impersonate-service-account="$SA" 2>/dev/null || true)
+    if [[ -n "$TOKEN" ]]; then
+      ALL_OK=1
+      for URL in $CHECK_URLS; do
+        CODE=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer ${TOKEN}" "$URL")
+        [[ "$CODE" == 200 ]] || ALL_OK=0
+      done
+      [[ $ALL_OK == 1 ]] && { VERIFIED=1; break; }
+    fi
+    printf '.'; sleep 10
+  done
+  echo
+  drop_grant
+  trap - EXIT INT TERM
+  if [[ $VERIFIED == 1 ]]; then
+    echo "    roles are live: the service account can list your agents"
+  else
+    echo "    roles still not enforced after 5 minutes. Paste the values anyway; if Test connection or Sync complains, wait a minute and try again."
+  fi
+else
+  echo "    (your account cannot impersonate the service account here, skipping the role check; give Google a minute or two before Test connection)"
+fi
+
+cat <<EOF
+
+Done. Paste these into Bluejay (Settings > Integrations > Google Agents), click Save, then Test connection:
+
+  Service account email      : $SA
+  Workload identity provider : $PROVIDER_PATH
+  Project ID                 : $PROJECT_ID
+  Project number             : $PROJECT_NUMBER
+EOF
+BLUEJAY
+```
+</Step>
+<Step title="Run the script">
+Run it with your tenant id and project ID. Add `--ces` if you also use CES agents.
+
+```bash
+bash bluejay-wif.sh PASTE_YOUR_BLUEJAY_TENANT_ID your-project-id
+```
+
+The script waits until Google applies the roles, usually 1 to 3 minutes. Then it prints four values.
 
 <Warning>
-Treat the key file like a password — it grants the role above on your project until you rotate or
-delete it. You can revoke it anytime from the same **Keys** tab.
+Access risk. If the tenant id has a typo, the provider rejects every token exchange. **Test connection** then shows unreachable.
 </Warning>
+</Step>
+<Step title="Paste the values">
+Paste the four values into the **Keyless** fields. Click **Save & test connection**. A green result means the token exchange, the impersonation, and the read roles all work.
+</Step>
+</Steps>
 
-### Step 3 — Add it to Bluejay
+The script creates these resources in your project. Bluejay stores only the four values, which are not secret.
 
-1. Log into your **Bluejay Dashboard**.
-2. Click your **Organization** menu (bottom-left) → **Integrations** → **Google Agents**.
-3. Paste the contents of the JSON key file into **Service Account Key (JSON)**.
-4. Click **Save**.
+| Resource | Purpose |
+|---|---|
+| Pool `bluejay` and OIDC provider `bluejay` | Trusts `https://api.getbluejay.ai`. Accepts only tokens with your `tenant_id` and `environment == production`. The allowed audience is the provider itself. |
+| Service account `bluejay-integration@<project>.iam.gserviceaccount.com` | The identity Bluejay uses. It has no keys. |
+| `roles/iam.workloadIdentityUser` binding | Lets only `attribute.tenant_id/<your tenant id>` impersonate the service account. |
+| Project roles | `roles/dialogflow.reader`, `roles/dialogflow.client`, and `roles/serviceusage.serviceUsageConsumer`. With `--ces`, also `roles/ces.viewer` and `roles/ces.client`. |
 
-![Paste the service-account key in the Google Agents integration](/images/google-dfcx-integrations-tab.png)
+The script does not grant write roles. To use **Push to DFCX**, **Version on push**, or **Promote**, add the write permissions from the **Service account key** tab to the service account.
 
-The key is **encrypted at rest** and only ever used to call the Dialogflow APIs for your agents.
+To revoke access, remove the impersonation binding. Tokens that Bluejay already has expire within one hour.
 
----
+```bash
+gcloud iam service-accounts remove-iam-policy-binding \
+  bluejay-integration@PROJECT_ID.iam.gserviceaccount.com --project=PROJECT_ID \
+  --role=roles/iam.workloadIdentityUser \
+  --member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/bluejay/attribute.tenant_id/BLUEJAY_TENANT_ID"
+```
 
-## 2. Sync your Google agents
+To delete all of it, delete the service account and the pool with `gcloud iam workload-identity-pools delete bluejay --location=global`. For an audit trail, turn on IAM and STS Data Access audit logs in your project.
 
-Once the credential is saved, discover your agents:
+<Accordion title="Terraform">
+Apply these files in your own repository. They create the same resources as the script. Bluejay never runs Terraform for you.
 
-1. In **Settings → Integrations → Google Agents**, click **Sync**.
-2. Bluejay scans your project across all Dialogflow locations and creates an agent in Bluejay for
-   every DFCX (and CES) agent it finds.
+<CodeGroup>
 
-The sync result reports how many agents were **created**, **updated**, or **removed** (an agent
-deleted in Google is flagged in Bluejay rather than dropped). Re-run Sync any time you add agents
-in Google.
+```hcl main.tf
+terraform {
+  required_version = ">= 1.5"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 5.0"
+    }
+  }
+}
 
----
+provider "google" {
+  project = var.project_id
+}
 
-## 3. Connect an agent
+locals {
+  pool_id     = "bluejay"
+  provider_id = "bluejay"
 
-Most agents are wired up automatically by Sync. To connect or adjust one manually:
+  # Paste this path into Bluejay as the workload identity provider.
+  provider_path          = "projects/${var.project_number}/locations/global/workloadIdentityPools/${local.pool_id}/providers/${local.provider_id}"
+  provider_resource_name = "//iam.googleapis.com/${local.provider_path}"
 
-1. Open the agent's **Connection** settings.
-2. Choose the **Google Dialogflow CX** connection type — **Voice** or **Chat**.
-3. Paste the agent's resource path. You can paste either the full DFCX console URL or the path
-   directly — Bluejay normalizes it to:
+  service_roles = {
+    dialogflow = ["roles/dialogflow.reader", "roles/dialogflow.client"]
+    ces        = ["roles/ces.viewer", "roles/ces.client"]
+    logging    = ["roles/logging.viewer"]
+    storage    = ["roles/storage.objectViewer"]
+    bigquery   = ["roles/bigquery.jobUser", "roles/bigquery.dataViewer"]
+    vertex     = ["roles/aiplatform.user"]
+  }
 
-   ```
-   projects/{PROJECT_ID}/locations/{LOCATION}/agents/{AGENT_ID}
-   ```
+  role_grants = flatten([
+    for svc in var.enabled_services : [
+      for role in lookup(local.service_roles, svc, []) : {
+        key  = "${svc}:${role}"
+        role = role
+      }
+    ]
+  ])
+}
 
-That's all that's needed — the org-level credential from Step 1 handles authentication.
+resource "google_iam_workload_identity_pool" "bluejay" {
+  project                   = var.project_id
+  workload_identity_pool_id = local.pool_id
+  display_name              = "Bluejay"
+}
 
----
+resource "google_iam_workload_identity_pool_provider" "bluejay" {
+  project                            = var.project_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.bluejay.workload_identity_pool_id
+  workload_identity_pool_provider_id = local.provider_id
+  display_name                       = "Bluejay OIDC"
 
-## 4. Test your agent
+  attribute_mapping = {
+    "google.subject"           = "assertion.sub"
+    "attribute.tenant_id"      = "assertion.tenant_id"
+    "attribute.integration_id" = "assertion.integration_id"
+    "attribute.environment"    = "assertion.environment"
+  }
 
-With an agent connected you can run simulations against it like any other Bluejay agent. In
-**Simulations → Create Simulation**, pick a simulation type — **Generate From Workflow** is the one
-that reads your DFCX agent directly:
+  # The security boundary: only tokens for your tenant id are accepted.
+  attribute_condition = "assertion.tenant_id == \"${var.bluejay_tenant_id}\" && assertion.environment == \"production\""
 
-![Create Simulation — pick a type](/images/google-dfcx-sim-types.png)
+  oidc {
+    issuer_uri        = "https://api.getbluejay.ai"
+    allowed_audiences = [local.provider_resource_name]
+  }
+}
 
-- **Voice** simulations bridge audio between a Bluejay Digital Human (the caller) and your DFCX
-  agent in real time.
-- **Chat** simulations drive a turn-by-turn text conversation.
+resource "google_service_account" "bluejay_integration" {
+  project      = var.project_id
+  account_id   = "bluejay-integration"
+  display_name = "Bluejay Integration"
+}
 
-**Generate From Workflow** reads your synced agent and proposes test cases drawn from *all* of its
-authored logic — flow intents and event handlers, and each playbook's goal, instruction steps,
-tool calls, and handoffs. Multi-step handoffs are composed into **end-to-end journeys** (for
-example, *Default Start Flow → Billing Disputes Flow → Billing Specialist Playbook*), so you can
-test realistic paths, not just isolated steps. Pick how many Digital Humans to generate per
-scenario and hit **Generate**.
+resource "google_service_account_iam_member" "workload_identity_user" {
+  service_account_id = google_service_account.bluejay_integration.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.bluejay.name}/attribute.tenant_id/${var.bluejay_tenant_id}"
+}
 
-![Test cases generated from your workflow](/images/google-dfcx-generate.png)
+resource "google_project_iam_member" "service_roles" {
+  for_each = { for g in local.role_grants : g.key => g }
+  project  = var.project_id
+  role     = each.value.role
+  member   = "serviceAccount:${google_service_account.bluejay_integration.email}"
+}
 
----
+# Without this role, every voice simulation fails with USER_PROJECT_DENIED.
+resource "google_project_iam_member" "service_usage_consumer" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${google_service_account.bluejay_integration.email}"
+}
+```
 
-## 5. Edit the workflow
+```hcl variables.tf
+variable "bluejay_tenant_id" {
+  type        = string
+  description = "Your Bluejay tenant id from Settings > Integrations > Google Agents."
+  validation {
+    condition     = length(var.bluejay_tenant_id) > 0
+    error_message = "bluejay_tenant_id must be the non empty value shown in Bluejay."
+  }
+}
 
-Open the agent's **Workflow** tab to see its flows, pages, routes, event handlers, and playbooks on
-an interactive canvas.
+variable "project_id" {
+  type = string
+}
 
-- **Pull** refreshes Bluejay's copy from the live DFCX agent.
-- Edit nodes, routes, and handlers directly on the canvas.
-- **Push to DFCX** sends your local edits back to the agent's **draft**. A diff preview shows
-  exactly what will change, and conflicts are surfaced if the agent drifted on Google's side since
-  your last sync.
+variable "project_number" {
+  type        = string
+  description = "gcloud projects describe <project_id> --format='value(projectNumber)'"
+}
+
+variable "enabled_services" {
+  type        = set(string)
+  description = "Any of: dialogflow, ces, logging, storage, bigquery, vertex."
+  default     = ["dialogflow"]
+  validation {
+    condition = alltrue([
+      for s in var.enabled_services :
+      contains(["dialogflow", "ces", "logging", "storage", "bigquery", "vertex"], s)
+    ])
+    error_message = "enabled_services entries must be one of: dialogflow, ces, logging, storage, bigquery, vertex."
+  }
+}
+```
+
+```hcl outputs.tf
+output "workload_identity_provider" {
+  value = local.provider_path
+}
+
+output "service_account_email" {
+  value = google_service_account.bluejay_integration.email
+}
+
+output "project_number" {
+  value = var.project_number
+}
+```
+
+</CodeGroup>
+
+```bash
+cat > terraform.tfvars <<'EOF'
+bluejay_tenant_id = "PASTE_YOUR_BLUEJAY_TENANT_ID"
+project_id        = "acme-voice-prod"
+project_number    = "123456789012"
+enabled_services  = ["dialogflow"]        # add "ces" for CES agents
+EOF
+
+terraform init && terraform apply
+```
+
+Paste the three outputs and your project ID into Bluejay. Terraform does not wait for role changes, so **Test connection** can fail for a few minutes. The `storage` and `bigquery` options grant project-wide read access.
+</Accordion>
+
+## Test
+
+The connection type decides the path. Bluejay replies `{"status": "ok"}` to each client-side tool call so the conversation continues, and records the call. Tools that Google runs on its side run as usual.
+
+<Tabs>
+<Tab title="Voice">
+
+Bluejay streams audio between the Digital Human and the agent in real time. No phone number is necessary. This is inbound only.
+
+1. Choose the **Dialogflow CX** voice tile.
+2. Create a simulation and add Digital Humans. **Generate From Workflow** makes Digital Humans from the flows, event handlers, and playbooks, including paths across handoffs.
+3. Click **Create New Run**, then **Run N calls**.
+
+![Digital Humans generated from your workflow](/images/google-dfcx-generate.png)
+
+</Tab>
+<Tab title="Chat">
+
+Bluejay sends text turns to the agent through `detectIntent`.
+
+1. Set the agent mode to **Text** and choose the **Dialogflow CX** text tile.
+2. Create and run a simulation.
+
+</Tab>
+</Tabs>
+
+### Edit, version, and promote
+
+The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks on a canvas. Versions and deployments that you make here are real Dialogflow CX versions and deployments.
+
+- **Pull** shows a diff from the live agent, then replaces the local copy.
+- **Push to DFCX** shows a diff, then writes your edits to the agent draft. Bluejay shows conflicts if the agent changed in Google after your last sync.
+- **Version on push** saves a new Dialogflow CX version of each flow and playbook that the push changed. Dialogflow CX limits the number of versions for each flow.
+- **Promote** deploys the flow versions you select to an environment, with the same `deployFlow` operation as the console.
 
 ![The DFCX workflow canvas in Bluejay](/images/google-dfcx-workflow-canvas.png)
 
----
+## Limits
 
-## 6. Versioning & promotion
-
-Bluejay is a thin, governed front door to DFCX's own versioning and environments — a version or
-deployment you make here is a **real DFCX version/deployment** and shows up in the DFCX console.
-
-### Version on push
-
-When pushing, enable **Version on push** to snapshot the flows and playbooks your push changed into
-new immutable DFCX versions — automatically, and only for what actually changed. The result tells
-you which versions were created.
-
-<Note>
-Snapshotting is safe: versions are immutable copies in your draft project. DFCX caps the number of
-versions per flow, so versioning is opt-in per push rather than automatic on every save.
-</Note>
-
-### Promote to an environment
-
-Use **Promote** to deploy flow versions into one of your DFCX **environments** (e.g. Staging,
-Production):
-
-1. Click **Promote** on the workflow.
-2. Choose the **target environment**.
-3. For each flow, pick the **version** to deploy (or leave it unchanged).
-4. Confirm.
-
-This calls the same `deployFlow` operation as the DFCX console — the environment immediately serves
-the deployed versions, and the deployment appears in your DFCX deployment history.
-
----
-
-## Summary
-
-| Step | Where | What it does |
-| --- | --- | --- |
-| Grant access | Org → Integrations → Google Agents | Paste a Dialogflow-scoped service-account key JSON |
-| Sync | Settings → Integrations → Google Agents | Discover all DFCX + CES agents in the project |
-| Connect | Agent → Connection | Paste the `projects/.../agents/...` path; pick Voice or Chat |
-| Test | Simulations | Generate Digital Humans from the workflow and run them |
-| Edit | Agent → Workflow | Pull, edit on canvas, Push to DFCX (with diff + conflict checks) |
-| Version & promote | Agent → Workflow | Version-on-push; Promote flow versions to an environment |
+| Result | Cause |
+|---|---|
+| **Test connection** shows unreachable | Google rejected the token exchange. Check the tenant id, the provider path, and the project number. Make sure `iamcredentials` and `sts` APIs are on. After a manual or Terraform setup, wait a few minutes. |
+| **Test connection** shows no permission | The exchange worked, but a role or an API is missing. Run the script again. Add `--ces` for CES agents. |
+| Voice fails with `USER_PROJECT_DENIED` | The service account does not have `serviceusage.services.use`. Chat can still work, so a green **Test connection** does not prove voice works. |
