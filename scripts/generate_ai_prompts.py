@@ -2,8 +2,10 @@
 """
 Generate 'Copy AI Integration Prompt' Accordion dropdowns for every API endpoint MDX file.
 
-Reads openapi.json, resolves $ref schemas, generates filled prompt templates,
-and inserts <Accordion> blocks into each endpoint/webhook MDX file.
+Reads the OpenAPI spec (live URL by default, or a path or URL passed as the first
+argument), resolves $ref schemas, and inserts the prompt box into each endpoint/webhook MDX file.
+
+Usage: python3 scripts/generate_ai_prompts.py [spec_path_or_url]
 """
 
 import copy
@@ -12,9 +14,10 @@ import json
 import os
 import re
 import sys
+import urllib.request
 
 DOCS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OPENAPI_PATH = os.path.join(DOCS_DIR, "api-reference", "openapi.json")
+SPEC_URL = "https://api.getbluejay.ai/openapi.json"
 ENDPOINT_DIR = os.path.join(DOCS_DIR, "api-reference", "endpoint")
 WEBHOOK_DIR = os.path.join(DOCS_DIR, "api-reference", "webhook")
 
@@ -23,8 +26,11 @@ BASE_URL = "https://api.getbluejay.ai"
 SKIP_FILES = {"create.mdx", "get.mdx", "delete.mdx", "queue-simulation.mdx"}
 
 
-def load_spec():
-    with open(OPENAPI_PATH, "r") as f:
+def load_spec(source=SPEC_URL):
+    if source.startswith("http"):
+        with urllib.request.urlopen(source, timeout=60) as r:
+            return json.load(r)
+    with open(source, "r") as f:
         return json.load(f)
 
 
@@ -391,6 +397,17 @@ def generate_endpoint_prompt(spec, title, method, path, operation, docs_slug="")
     body_schema = extract_body_schema(spec, operation)
     error_codes = extract_error_codes(operation)
 
+    variant_note = ""
+    variants = (body_schema or {}).get("anyOf") or (body_schema or {}).get("oneOf")
+    if variants and "properties" not in body_schema:
+        variants = [v for v in variants if v.get("type") != "null"]
+        names = [v.get("title", f"variant {i + 1}") for i, v in enumerate(variants)]
+        variant_note = (
+            f"\n\nThe body is one of: {', '.join(names)}. "
+            f"The table and example below use {names[0]}."
+        )
+        body_schema = variants[0]
+
     params_table = build_required_params_table(params, body_schema)
     optional_names = get_optional_param_names(params, body_schema)
 
@@ -442,21 +459,22 @@ def generate_endpoint_prompt(spec, title, method, path, operation, docs_slug="")
     desc_line = f"\n\n> **What this endpoint does:** {desc_clean}" if desc_clean else ""
 
     prompt = (
-        f"# Bluejay \u2014 Testing & Monitoring Platform for Conversational AI Agents\n\n"
+        f"# Bluejay: Testing & Monitoring Platform for Conversational AI Agents\n\n"
         f"You are a senior backend engineer integrating the Bluejay API. "
         f"Think step-by-step: first understand the endpoint, then plan the "
         f"integration, then implement with minimal changes.\n\n"
-        f"## {title} \u2014 {method} {path}"
+        f"## {title}: {method} {path}"
         f"{desc_line}\n\n"
         f"**Endpoint:** {method} `{BASE_URL}{path}`\n"
         f"**Auth:** `X-API-Key` header{ct_line}\n\n"
         f"### Required Parameters\n"
         f"{params_table}"
+        f"{variant_note}"
         f"{optional_directive}"
         f"{body_section}\n\n"
         f"### Example\n{few_shot}\n\n"
         f"### Constraints\n"
-        f"- Minimal changes \u2014 only add/change files needed for this integration.\n"
+        f"- Minimal changes: only add/change files needed for this integration.\n"
         f"- Match existing codebase patterns (naming, file structure, error handling).\n"
     )
     if error_line:
@@ -535,11 +553,11 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
     desc_line = f"\n\n> **What this webhook does:** {desc_clean}" if desc_clean else ""
 
     prompt = (
-        f"# Bluejay \u2014 Testing & Monitoring Platform for Conversational AI Agents\n\n"
+        f"# Bluejay: Testing & Monitoring Platform for Conversational AI Agents\n\n"
         f"You are a senior backend engineer integrating the Bluejay API. "
         f"Think step-by-step: first understand the webhook payload, then plan "
         f"the handler, then implement with minimal changes.\n\n"
-        f"## Handle {title} \u2014 WEBHOOK"
+        f"## Handle {title}: WEBHOOK"
         f"{desc_line}\n\n"
         f"**Type:** Incoming Webhook (JSON POST)\n"
         f"\n### Required Payload Fields\n"
@@ -558,7 +576,7 @@ def generate_webhook_prompt(spec, title, webhook_id, operation):
         f'    return {{"status": "received"}}\n'
         f"```\n\n"
         f"### Constraints\n"
-        f"- Minimal changes \u2014 only add/change files needed for this integration.\n"
+        f"- Minimal changes: only add/change files needed for this integration.\n"
         f"- Match existing codebase patterns (naming, file structure, error handling).\n"
         f"- Return a 200 OK response to acknowledge receipt.\n\n"
         f"### Integration Checklist\n"
@@ -633,14 +651,14 @@ def process_file(filepath, spec):
         op = spec.get("webhooks", {}).get(webhook_id, {}).get("post", {})
         if not op:
             prompt = (
-                f"# Bluejay \u2014 Testing & Monitoring Platform for Conversational AI Agents\n\n"
-                f"## Handle {title} \u2014 WEBHOOK\n\n"
+                f"# Bluejay: Testing & Monitoring Platform for Conversational AI Agents\n\n"
+                f"## Handle {title}: WEBHOOK\n\n"
                 f"Set up a handler to receive and process this webhook payload.\n\n"
                 f"### Webhook Details\n"
                 f"- **Type:** Incoming Webhook\n"
                 f"- **Payload Format:** JSON (POST)\n\n"
                 f"### Constraints\n"
-                f"- Minimal changes \u2014 only add/change files needed for this integration.\n"
+                f"- Minimal changes: only add/change files needed for this integration.\n"
                 f"- Match existing codebase patterns.\n"
                 f"- Return a 200 OK response to acknowledge receipt."
             )
@@ -655,6 +673,8 @@ def process_file(filepath, spec):
         if not op:
             return "warn"
         prompt = generate_endpoint_prompt(spec, title, method, path, op, docs_slug=slug)
+
+    prompt = prompt.replace(" — ", ": ").replace("—", "-")
 
     accordion = (
         f'\n<div className="ai-prompt-box">\n'
@@ -678,8 +698,9 @@ def process_file(filepath, spec):
 # ---------------------------------------------------------------------------
 
 def main():
-    print("Loading OpenAPI spec...")
-    spec = load_spec()
+    source = sys.argv[1] if len(sys.argv) > 1 else SPEC_URL
+    print(f"Loading OpenAPI spec from {source}...")
+    spec = load_spec(source)
     print(f"  Paths: {len(spec.get('paths', {}))}")
     print(f"  Webhooks: {len(spec.get('webhooks', {}))}")
     print(f"  Schemas: {len(spec.get('components', {}).get('schemas', {}))}")

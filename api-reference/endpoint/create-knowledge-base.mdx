@@ -1,53 +1,67 @@
 ---
-title: 'Create Knowledge Base'
-description: 'Create a knowledge base for your organization'
-openapi: 'POST /v1/knowledge-base'
+title: "Create Knowledge Base"
+description: "Create an empty Bluejay knowledge base. Add documents to it, then attach it to one or more agents to ground their answers."
+openapi: "POST /v1/knowledge-base"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Knowledge Base — POST /v1/knowledge-base
-
-> **What this endpoint does:** Create a knowledge base for your organization.
+## Create Knowledge Base: POST /v1/knowledge-base
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/knowledge-base`
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
-### Parameters
+### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| name | string | **Required.** Name of the knowledge base. |
-| description | string | Optional description. |
+| name | string |  |
 
-### Request Body
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-knowledge-base and include any optional parameters (e.g., `X-Organization-Id`, `description`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
-  "name": "Support FAQs",
-  "description": "Grounding content for the support agent"
+  "name": "example_name"
 }
 ```
 
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-knowledge-base. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
 ### Example
+**POST with body:**
 ```python
 import requests
 
 def create_knowledge_base(payload: dict, api_key: str) -> dict:
-    r = requests.post("https://api.getbluejay.ai/v1/knowledge-base", headers={"X-API-Key": api_key}, json=payload)
-    r.raise_for_status()
-    return r.json()
+    url = "https://api.getbluejay.ai/v1/knowledge-base"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Handle 404 (not found / not in your organization) and 422 (validation error).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-Creates an empty knowledge base. Add documents to it, then attach it to one or more agents to ground their answers.
+
+Creates an empty knowledge base. Add documents, then [attach it to an agent](/api-reference/endpoint/attach-agent-to-knowledge-base).
+
+Rate limit: 60 requests per minute.

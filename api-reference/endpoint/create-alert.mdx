@@ -1,5 +1,79 @@
 ---
-title: 'Create Alert'
-description: 'Create an observability or simulation alert for your organization.'
-openapi: 'POST /v1/create-alert'
+title: "Create Alert"
+description: "Create a Bluejay alert that sends a notification when a metric or field crosses a threshold in production calls or simulation runs."
+openapi: "POST /v1/create-alert"
 ---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Create Alert: POST /v1/create-alert
+
+> **What this endpoint does:** Create a new alert with optional agent associations
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/create-alert`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| name | string | Name of the alert |
+| entity_type | string (enum: standard_metric, custom_goal, custom_metric, metadata_field, system_failure) | Enum representing the entity types for alerts. |
+| entity_field | string | The specific field/metric being monitored |
+| operator | string (enum: equals, not_equals, greater_than, less_than, greater_than_or_equal, less_than_or_equal, contains, not_contains) | Enum representing the comparison operators for alerts. |
+| comparison_value | string | Value to compare against |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-alert and include any optional parameters (e.g., `X-Organization-Id`, `sample_size`, `description`, `is_enabled`, `notification_channels`, `applies_to_all_agents`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "name": "example_name",
+  "entity_type": "standard_metric",
+  "entity_field": "string",
+  "operator": "equals",
+  "comparison_value": "string"
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-alert. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def create_alert(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/create-alert"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Creates an alert. `source_scope` selects the data: `observability`, `simulation`, or `all`.
+
+- For `observability`, `threshold_time_interval` is a window in seconds. The default is 600. `min_events` defaults to 10.
+- For `simulation`, `threshold_time_interval` is the number of recent completed runs. The default is 1. `min_events` is not used.
+- `sample_size` evaluates the last N conversations instead of a time window. The minimum is 30. The alert does not fire with fewer than N conversations.

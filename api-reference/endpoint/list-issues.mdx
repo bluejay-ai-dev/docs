@@ -1,20 +1,18 @@
 ---
-title: 'List Issues'
-description: ''
-openapi: 'GET /v1/issues'
+title: "List Issues"
+description: "List the issues that Bluejay finds across your production calls. Filter by status, priority, type, or assignee, newest activity first."
+openapi: "GET /v1/observability/issues"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## List Issues — GET /v1/issues
+## List Issues: GET /v1/observability/issues
 
-> **What this endpoint does:** list the problems Bluejay found on your calls, most recently seen first.
-
-**Endpoint:** GET `https://api.getbluejay.ai/v1/issues`
+**Endpoint:** GET `https://api.getbluejay.ai/v1/observability/issues`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
@@ -22,23 +20,23 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-issues and include any optional parameters (e.g., `status`, `priority`, `type`, `assignee_id`, `limit`, `offset`) that serve your integration's use case.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-issues and include any optional parameters (e.g., `status`, `priority`, `type`, `assignee_id`, `limit`, `offset`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **Simple GET:**
 ```python
 import requests
 
-def list_open_issues(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/issues"
+def list_issues(api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/observability/issues"
     headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers, params={"status": "open"})
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     return response.json()
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -53,8 +51,11 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-An issue is a problem found across your calls, such as the agent ending a call without confirming the outcome. One-off failures that have not yet grouped are not included.
+An issue is a problem that Bluejay finds across your calls. A single failure that does not repeat is not an issue.
 
-Bluejay finds issues two ways. A `non_deterministic` issue (Pattern in the dashboard) is grouped from similar failures. It appears once the same problem recurs across calls. A `deterministic` issue (Error in the dashboard) comes from an error the platform recognizes outright, such as a tool call returning a 500, and appears as soon as that error is found.
+- `non_deterministic` (Pattern in the dashboard): Bluejay groups similar failures. It shows when the same problem occurs again across calls.
+- `deterministic` (Error in the dashboard): an error that Bluejay recognizes at once, such as a tool call that returns 500.
 
-Filter by `status`, `priority`, `type` or `assignee_id`. Results are ordered by when the issue was last seen, newest first. Pass `limit` (1 to 200, default 50) and `offset` to walk the list. The dashboard Issues page is not paginated. This list is.
+Results are newest first by last seen. `limit` is 50 by default and 200 at most. Use `offset` for the next page.
+
+`GET /v1/issues` is the deprecated path of this endpoint.

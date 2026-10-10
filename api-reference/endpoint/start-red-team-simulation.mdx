@@ -1,0 +1,92 @@
+---
+title: "Start Red Team Simulation"
+description: "Start a Bluejay red team test against an agent. Call once to get a preview, then call again with confirmed set to true to start."
+openapi: "POST /v1/red-team-simulations"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Start Red Team Simulation: POST /v1/red-team-simulations
+
+> **What this endpoint does:** Start a red-team test. Confirm-gated: call once to preview, then again with confirmed=true.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/red-team-simulations`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| agent_id | integer | Target agent to red-team. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/start-red-team-simulation and include any optional parameters (e.g., `X-Organization-Id`, `config`, `confirmed`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "agent_id": 123
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/start-red-team-simulation. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def start_red_team_simulation(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/red-team-simulations"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Starts a red team test against an agent. Each attack is a real voice call.
+
+## Confirm the test
+
+1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
+2. Send the same request with `confirmed: true`. The response has `test_id`, `simulation_id`, and `simulation_run_id`.
+
+## Limits
+
+| Setting | Default | Maximum |
+|---|---|---|
+| `max_levels` | 5 | 5 (24 with `attack_quotas`) |
+| `max_branches_per_node` | 3 | 3 (20 with `attack_quotas`) |
+| `max_total_dhs` | 16 | 16 (83 with `attack_quotas`) |
+| `max_call_duration_minutes` | 10 | 10 |
+| `recon_count` | 3 | `max_total_dhs` |
+
+Send these settings inside `config`. Values above the maximum are lowered to the maximum. Each family in `attack_quotas` allows 20 attempts at most.
+
+## Errors
+
+- 400: the agent uses SMS.
+- 402 with code `RED_TEAMING_PAYMENT_METHOD_REQUIRED`: the organization has no payment method.
+- 403 with code `red_team_custom_matrix_not_allowed`: `attack_quotas` needs a Growth plan or higher. Check with [Get Red Team Entitlements](/api-reference/endpoint/get-red-team-entitlements).
+
+Rate limit: 30 requests per minute.

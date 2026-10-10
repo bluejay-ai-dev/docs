@@ -1,20 +1,20 @@
 ---
-title: 'Create Custom Metrics'
-description: "Create multiple custom metrics synchronously using a single bulk insert."
-openapi: 'POST /v1/create-custom-metrics'
+title: "Create Custom Metrics"
+description: "Create many Bluejay custom metrics in one request with a single bulk insert. Each item takes the same fields as Create Custom Metric."
+openapi: "POST /v1/create-metrics"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Create Custom Metrics — POST /v1/create-custom-metrics
+## Create Custom Metrics: POST /v1/create-metrics
 
 > **What this endpoint does:** Create multiple custom metrics synchronously using a single bulk insert.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/create-custom-metrics`
+**Endpoint:** POST `https://api.getbluejay.ai/v1/create-metrics`
 **Auth:** `X-API-Key` header
 **Content-Type:** application/json
 
@@ -24,17 +24,27 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | X-API-Key | string | API key required to authenticate requests. |
 | metrics | array[object] | List of custom metrics to create |
 
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-custom-metrics and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
 ### Request Body (required fields)
 ```json
 {
   "metrics": [
     {
+      "bluejay_as_code_id": "string",
       "agent_id": 123,
       "agent_ids": [
         123
       ],
       "name": "example_name",
-      "description": "string",
+      "prompt": "string",
+      "summary": "string",
+      "metric_type": "llm_judge",
+      "settings": {
+        "key": "value"
+      },
+      "eval_segment": "agent",
+      "scope": "observability",
       "response_type": "pass_fail",
       "min_value": 1.0,
       "max_value": 1.0,
@@ -43,13 +53,21 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
         "string"
       ],
       "scoring_guidance": "string",
-      "eval_route": "AUDIO",
+      "eval_modality": "AUDIO",
       "model": "string",
+      "audio_model": "string",
       "temperature": 1.0,
       "enum_options": [
         "string"
       ],
-      "allow_not_applicable": false
+      "tool_names": [
+        "string"
+      ],
+      "json_schema": {
+        "key": "value"
+      },
+      "allow_not_applicable": false,
+      "template_id": "string"
     }
   ]
 }
@@ -63,7 +81,7 @@ Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/cr
 import requests
 
 def create_custom_metrics(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/create-custom-metrics"
+    url = "https://api.getbluejay.ai/v1/create-metrics"
     headers = {"X-API-Key": api_key}
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()
@@ -71,7 +89,7 @@ def create_custom_metrics(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -86,5 +104,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Create multiple custom metrics synchronously using a single bulk insert.
+Creates many custom metrics in one request. Each item takes the fields of [Create Custom Metric](/api-reference/endpoint/create-custom-metric).
 
+`POST /v1/create-custom-metrics` is the deprecated path of this endpoint.

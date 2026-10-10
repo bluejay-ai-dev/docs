@@ -1,18 +1,18 @@
 ---
-title: 'Generate intent summary'
-description: 'Generate an intent summary for a test case when intent exceeds a character limit.'
-openapi: 'POST /v1/generate-intent-summary'
+title: "Generate Intent Summary"
+description: "Generate a short summary of a long Digital Human intent. Bluejay writes a summary only when the intent is longer than 500 characters."
+openapi: "POST /v1/generate-intent-summary"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Generate intent summary — POST /v1/generate-intent-summary
+## Generate Intent Summary: POST /v1/generate-intent-summary
 
-> **What this endpoint does:** Generate intent summary for a test case (only if intent exceeds character limit). **400** if the test case tags indicate workflow playback (tag lowercased contains `workflow`): workflow-tagged Digital Humans use enriched playback on the agent; intent summary is not applicable.
+> **What this endpoint does:** Generate intent summary for a test case (only if intent exceeds character limit).
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/generate-intent-summary`
 **Auth:** `X-API-Key` header
@@ -23,6 +23,8 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
 | test_case_id | integer | ID of the test case |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/generate-intent-summary and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
@@ -47,9 +49,9 @@ def generate_intent_summary(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 400: Workflow-tagged test case: intent summary not applicable; 422: Validation Error.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -62,4 +64,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-For some workflow-driven Digital Humans this route returns **400**; see the constraints above and the OpenAPI description.
+Writes `intent_summary` on a Digital Human. If the intent is 500 characters or shorter, Bluejay clears `intent_summary` and the response has `skipped: true`.
+
+The response is 400 if the Digital Human has a workflow or voicemail tag, or has no intent.

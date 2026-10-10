@@ -1,16 +1,16 @@
 ---
-title: 'Queue SMS Simulation Run'
-description: ''
-openapi: 'POST /v1/queue-sms-simulation-run'
+title: "Queue SMS Simulation Run"
+description: "Queue a Bluejay simulation run over SMS for a text agent. Each Digital Human sends text messages to the phone number of the agent."
+openapi: "POST /v1/queue-sms-simulation-run"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Queue SMS Simulation Run — POST /v1/queue-sms-simulation-run
+## Queue SMS Simulation Run: POST /v1/queue-sms-simulation-run
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/queue-sms-simulation-run`
 **Auth:** `X-API-Key` header
@@ -22,7 +22,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | X-API-Key | string | API key required to authenticate requests. |
 | simulation_id | string | ID of the simulation to be run |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-sms-simulation-run and include any optional parameters (e.g., `agent_version_id`, `knowledge_base_id`, `digital_human_ids`, `terminate_overlapping_simulations`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-sms-simulation-run and include any optional parameters (e.g., `X-Organization-Id`, `prompt_id`, `agent_version_id`, `knowledge_base_id`, `digital_human_ids`, `terminate_overlapping_simulations`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
@@ -47,7 +47,7 @@ def queue_sms_simulation_run(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -61,8 +61,9 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-<Note>
-  **New:** `agent_version_id`
 
-  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
-</Note>
+Queues an SMS run of a simulation.
+
+- If `terminate_overlapping_simulations` is `true`, Bluejay ends running conversations that use the same pair of phone numbers.
+- `runs_per_digital_human` overrides the simulation setting for this run. The default is 1.
+- `prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.

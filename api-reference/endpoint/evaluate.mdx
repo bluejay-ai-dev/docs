@@ -1,18 +1,18 @@
 ---
-title: 'Evaluate'
-description: "Submit a call or chat for evaluation. Returns an eval ID that can be used to track evaluation status."
-openapi: 'POST /v1/evaluate'
+title: "Evaluate"
+description: "Send a production call or chat to Bluejay for evaluation with a recording or transcript. Bluejay scores it against the metrics of the agent."
+openapi: "POST /v1/evaluate"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Evaluate — POST /v1/evaluate
+## Evaluate: POST /v1/evaluate
 
-> **What this endpoint does:** Submit a call or chat for evaluation. Returns an eval ID that can be used to track evaluation status.
+> **What this endpoint does:** Submit a call or chat for evaluation.
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/evaluate`
 **Auth:** `X-API-Key` header
@@ -22,80 +22,31 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
+| agent_id | string | ID of the agent associated with the call |
+| start_time_utc | string | When the call started, in UTC ([python] log: datetime.now(timezone.utc) at call start) |
+| participants | array[object] | List of call participants |
 
-### Request Body
+The body is one of: Call Request Using Bluejay Agent ID, Call Request Using External Agent ID. The table and example below use Call Request Using Bluejay Agent ID.
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/evaluate and include any optional parameters (e.g., `X-Organization-Id`, `recording_url`, `recording_base64`, `call_direction`, `interface`, `transcript_url`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
   "agent_id": "string",
-  "recording_url": "string",
-  "recording_base64": "string",
   "start_time_utc": "2024-01-01T00:00:00Z",
   "participants": [
     {
       "role": "AGENT",
-      "spoke_first": true,
       "name": "string",
+      "spoke_first": false,
       "phone_number": "string"
     }
-  ],
-  "call_direction": "INBOUND",
-  "interface": "PHONE",
-  "transcript_url": "string",
-  "transcript": [
-    {
-      "start_offset_ms": 123,
-      "end_offset_ms": 123,
-      "speaker": "AGENT",
-      "utterance": "string",
-      "filler_utterance": true
-    }
-  ],
-  "tool_calls": [
-    {
-      "name": "example_name",
-      "start_offset_ms": 123,
-      "description": "string",
-      "parameters": {
-        "key": "value"
-      }
-    }
-  ],
-  "events": [
-    {
-      "title": "string",
-      "start_offset_ms": 123,
-      "description": "string",
-      "end_offset_ms": 123,
-      "tags": [
-        "string"
-      ],
-      "metadata": {
-        "key": "value"
-      }
-    }
-  ],
-  "tags": [
-    "string"
-  ],
-  "trace_id": "string",
-  "created_at": "string",
-  "metadata": {
-    "key": "value"
-  },
-  "webhook_tag": "string",
-  "custom_metrics": [
-    "string"
-  ],
-  "custom_metric_tags": [
-    "string"
-  ],
-  "label": "string",
-  "version": 1,
-  "enable_phrase_latencies": true,
-  "conversation_ended_by": "AGENT",
-  "multichannel": true
+  ]
 }
 ```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/evaluate. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
 ### Example
 **POST with body:**
@@ -111,7 +62,7 @@ def evaluate(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -124,13 +75,13 @@ Before writing code, verify:
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
-<Tip>
-  Any key-value pairs passed in the `metadata` field can be referenced as [dynamic variables](/key-concepts/custom-metrics/dynamic-variables) in the custom metrics that run on this call.
-</Tip>
 
-<Note>
-  **Same as before:** `POST /v1/evaluate` and `POST /v1/evaluate-call`.
 
-  **New:** optional integer `version`. `label` still works. If you omit `version`, we use the version that currently has the `production` label. An unknown version uses the production version and returns a `warning`. An unknown label is created and attached to the production version. When both are sent, `version` is the one stored on the call if it exists; otherwise production is used. Omit `label` on the `agent_id` path to leave it unset. The `external_agent_id` path defaults `label` to `production`. If the agent has no production version either, the request still succeeds, `agent_version_id` can stay unset, and `warning` says so.
-</Note>
+Sends one production conversation for evaluation. Identify the agent with `agent_id` or `external_agent_id`. `POST /v1/evaluate-call` is the same endpoint.
 
+- Key-value pairs in `metadata` are available as [dynamic variables](/key-concepts/custom-metrics/prompting-guide) in custom metrics.
+- If you omit `version`, Bluejay uses the version with the `production` label. An unknown `version` uses the production version and returns a `warning`.
+- An unknown `label` is created and attached to the production version. With `external_agent_id`, `label` defaults to `production`.
+- If the agent has no production version, the request succeeds and `warning` says so.
+
+Rate limit: 100 requests per minute for each organization, or 500 for enterprise accounts.

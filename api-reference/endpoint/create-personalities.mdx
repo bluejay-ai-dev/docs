@@ -1,0 +1,89 @@
+---
+title: "Create Personalities"
+description: "Create one or more Bluejay personalities in one request. Each personality needs a name and can set voice, accent, noise, and speed."
+openapi: "POST /v1/personalities"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Create Personalities: POST /v1/personalities
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/personalities`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| personalities | array[object] |  |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-personalities and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "personalities": [
+    {
+      "language": "string",
+      "accent": "string",
+      "gender": "string",
+      "background_noise": "none",
+      "background_noise_volume": 1.0,
+      "custom_background_noise_url": "string",
+      "voice_speed": "slowest",
+      "audio_quality": "horrible",
+      "connection_quality": "none",
+      "fluency": "beginner",
+      "verbosity": "low",
+      "endpointing_delay": 1.0,
+      "silence_timeout": 123,
+      "temperature": 1.0,
+      "interruption_configs": {
+        "key": "value"
+      },
+      "role_description": "string",
+      "name": "example_name"
+    }
+  ]
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-personalities. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def create_personalities(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/personalities"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Creates one or more personalities. Each item needs `name`. All other fields are optional. `role_description` replaces the role description of the Digital Human when the personality runs.
+
+Rate limit: 60 requests per minute.

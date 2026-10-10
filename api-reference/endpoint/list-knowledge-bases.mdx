@@ -1,42 +1,54 @@
 ---
-title: 'List Knowledge Bases'
-description: "List your organization's knowledge bases with document counts"
-openapi: 'GET /v1/knowledge-base'
+title: "List Knowledge Bases"
+description: "List the knowledge bases in your Bluejay organization. Each knowledge base in the response has a document_count field with its document total."
+openapi: "GET /v1/knowledge-base"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## List Knowledge Bases — GET /v1/knowledge-base
-
-> **What this endpoint does:** List your organization's knowledge bases with document counts.
+## List Knowledge Bases: GET /v1/knowledge-base
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/knowledge-base`
 **Auth:** `X-API-Key` header
 
-### Parameters
+### Required Parameters
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
 
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-knowledge-bases and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
 ### Example
+**Simple GET:**
 ```python
 import requests
 
-def list_knowledge_bases(api_key: str) -> list:
-    r = requests.get("https://api.getbluejay.ai/v1/knowledge-base", headers={"X-API-Key": api_key})
-    r.raise_for_status()
-    return r.json()
+def list_knowledge_bases(api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/knowledge-base"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Handle 404 (not found / not in your organization) and 422 (validation error).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-Returns every knowledge base in your organization, each with a `document_count`.
+
+Returns the knowledge bases in your organization, each with `document_count`.

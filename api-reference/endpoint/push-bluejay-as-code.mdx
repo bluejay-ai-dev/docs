@@ -1,18 +1,16 @@
 ---
 title: "Push Bluejay as Code"
-description: "Apply a Bluejay as Code payload to Bluejay."
+description: "Apply a Bluejay as Code bundle. Bluejay matches each item by bluejay_as_code_id, then creates it, updates it, or leaves it unchanged."
 openapi: "POST /v1/bluejay-as-code"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Push Bluejay as Code — POST /v1/bluejay-as-code
-
-> **What this endpoint does:** Apply a Bluejay as Code payload to Bluejay. Each entity in the payload is matched by its `bluejay_as_code_id` — created if not found, updated if fields changed, left untouched if identical. Returns a list of actions taken (as human-readable strings), any validation errors, and the resolved `simulation_id` of the simulation in the bundle.
+## Push Bluejay as Code: POST /v1/bluejay-as-code
 
 **Endpoint:** POST `https://api.getbluejay.ai/v1/bluejay-as-code`
 **Auth:** `X-API-Key` header
@@ -22,40 +20,58 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
-| agents | array | Agent objects in the bundle (typically one for a simulation push). |
-| simulations | array | Simulation objects in the bundle (typically one for a simulation push). |
-| digital_humans | array | Digital Human objects (can be empty). |
-| custom_metrics | array | Custom metric objects (can be empty). |
+| agents | array[object] |  |
+| simulations | array[object] |  |
+| digital_humans | array[object] |  |
+| custom_metrics | array[object] |  |
 
-Review the full schema at https://docs.getbluejay.ai/api-reference/endpoint/push-bluejay-as-code.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/push-bluejay-as-code and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Request Body (required fields)
 ```json
 {
-  "agents": [ { "bluejay_as_code_id": "...", ... } ],
-  "simulations": [ { "bluejay_as_code_id": "...", ... } ],
-  "digital_humans": [ { "bluejay_as_code_id": "...", ... } ],
-  "custom_metrics": [ { "bluejay_as_code_id": "...", ... } ]
+  "agents": [
+    {
+      "key": "value"
+    }
+  ],
+  "simulations": [
+    {
+      "key": "value"
+    }
+  ],
+  "digital_humans": [
+    {
+      "key": "value"
+    }
+  ],
+  "custom_metrics": [
+    {
+      "key": "value"
+    }
+  ]
 }
 ```
 
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/push-bluejay-as-code. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
 ### Example
+**POST with body:**
 ```python
 import requests
 
 def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
     url = "https://api.getbluejay.ai/v1/bluejay-as-code"
-    headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
+    headers = {"X-API-Key": api_key}
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()
     return response.json()
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- `bluejay_as_code_id` values must be stable UUIDs hardcoded in your config — never generate them dynamically at push time.
-- Include error handling for 422: Validation Error and check `result["valid"]` before proceeding.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -66,3 +82,16 @@ Before writing code, verify:
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
+
+
+Applies a bundle. Bluejay matches each item by `bluejay_as_code_id`:
+
+- No match: Bluejay creates the item.
+- Match with changed fields: Bluejay updates the item.
+- Match with the same fields: no change.
+
+Digital Humans that are not in the bundle are unlinked from the simulation. Custom metrics that are not in the bundle are unlinked from the agent. The response lists each action as text.
+
+<Warning>
+  If you generate new `bluejay_as_code_id` values for each push, Bluejay creates duplicate items. Keep the values stable in your config.
+</Warning>

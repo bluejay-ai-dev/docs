@@ -1,0 +1,80 @@
+---
+title: "Evaluate Lab Conversation"
+description: "Queue one conversation in a Bluejay Metrics Lab lab for evaluation. The evaluation runs later. Poll Get Lab to read the result."
+openapi: "POST /v1/metrics-lab/evaluate-conversation"
+---
+<div className="ai-prompt-box">
+<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Evaluate Lab Conversation: POST /v1/metrics-lab/evaluate-conversation
+
+> **What this endpoint does:** Queue a conversation (call or test_result) for evaluation in the metrics lab.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/metrics-lab/evaluate-conversation`
+**Auth:** `X-API-Key` header
+**Content-Type:** application/json
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| X-API-Key | string | API key required to authenticate requests. |
+| lab_id | string | Lab ID (UUID) for the evaluation |
+| conversation | object | Pydantic model for conversation in evaluate-conversation request |
+| metrics | object | Pydantic model for metrics in evaluate-conversation request |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/evaluate-lab-conversation and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
+```json
+{
+  "lab_id": "string",
+  "conversation": {
+    "type": "obs_conversation",
+    "id": "string"
+  },
+  "metrics": {
+    "type": "custom_metric",
+    "custom_metric_ids": [
+      "string"
+    ],
+    "custom_metric_revision_id": "string"
+  }
+}
+```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/evaluate-lab-conversation. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def evaluate_lab_conversation(payload: dict, api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/metrics-lab/evaluate-conversation"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+</div>
+
+
+Queues an evaluation of one conversation with the metrics you send. The conversation is a production call or a simulation result. Read the result with [Get Lab](/api-reference/endpoint/get-lab).

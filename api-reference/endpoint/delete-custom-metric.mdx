@@ -1,20 +1,20 @@
 ---
-title: 'Delete Custom Metric'
-description: "Delete a specific custom metric by ID."
-openapi: 'DELETE /v1/custom-metric/{metric_id}'
+title: "Delete Custom Metric"
+description: "Delete a Bluejay custom metric by metric_id. The metric moves to Recently Deleted and stops scoring new conversations after the delete."
+openapi: "DELETE /v1/metric/{metric_id}"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Delete Custom Metric — DELETE /v1/custom-metric/{metric_id}
+## Delete Custom Metric: DELETE /v1/metric/{metric_id}
 
 > **What this endpoint does:** Delete a specific custom metric by ID.
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/custom-metric/{metric_id}`
+**Endpoint:** DELETE `https://api.getbluejay.ai/v1/metric/{metric_id}`
 **Auth:** `X-API-Key` header
 
 ### Required Parameters
@@ -23,13 +23,15 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | metric_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-custom-metric and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
 ### Example
 **DELETE request:**
 ```python
 import requests
 
 def delete_custom_metric(metric_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/custom-metric/{metric_id}"
+    url = f"https://api.getbluejay.ai/v1/metric/{metric_id}"
     headers = {"X-API-Key": api_key}
     response = requests.delete(url, headers=headers)
     response.raise_for_status()
@@ -37,7 +39,7 @@ def delete_custom_metric(metric_id: str, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -52,4 +54,6 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-This endpoint allows you to delete a custom metric from your agent. Provide the metric ID in the path to permanently remove the custom metric.
+Deletes one custom metric. The metric moves to Recently Deleted.
+
+`DELETE /v1/custom-metric/{metric_id}` is the deprecated path of this endpoint.

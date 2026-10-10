@@ -1,16 +1,16 @@
 ---
-title: 'Translate Transcript'
-description: "Translates all utterances in a simulation or production conversation transcript to the specified target language using Google Translate API."
-openapi: 'POST /v1/translate-transcript'
+title: "Translate Transcript"
+description: "Translate each utterance in a Bluejay simulation or production transcript to a target language with Google Translate. The default is English."
+openapi: "POST /v1/translate-transcript"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Translate Transcript — POST /v1/translate-transcript
+## Translate Transcript: POST /v1/translate-transcript
 
 > **What this endpoint does:** Translates all utterances in a simulation or production conversation transcript to the specified target language using Google Translate API.
 
@@ -22,14 +22,20 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | Name | Type | Description |
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
+| simulation_result_id | integer | ID of the simulation result (test_result) to translate |
 
-### Request Body
+The body is one of: Translate Simulation Transcript, Translate Observability Transcript. The table and example below use Translate Simulation Transcript.
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/translate-transcript and include any optional parameters (e.g., `X-Organization-Id`, `target_language`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Request Body (required fields)
 ```json
 {
-  "simulation_result_id": 123,
-  "target_language": "en"
+  "simulation_result_id": 123
 }
 ```
+
+Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/translate-transcript. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
 
 ### Example
 **POST with body:**
@@ -45,7 +51,7 @@ def translate_transcript(payload: dict, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -59,4 +65,5 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-This endpoint allows you to translate all utterances in a simulation or production conversation transcript to a specified target language using Google Translate API.
+
+Translates a transcript. Send `simulation_result_id` for a simulation, or `conversation_id` for a production call. `target_language` is a language code such as `es`. The default is `en`.

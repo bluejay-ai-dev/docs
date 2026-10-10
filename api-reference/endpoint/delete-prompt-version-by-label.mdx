@@ -1,18 +1,18 @@
 ---
-title: 'Delete Agent Version By Label'
-description: "Delete an agent version by label."
-openapi: 'DELETE /v1/agents/{agent_id}/versions'
+title: "Delete Agent Version by Label"
+description: "Delete one agent version of a Bluejay agent by label. The label must point to exactly one version that is not the production version."
+openapi: "DELETE /v1/agents/{agent_id}/versions"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## Delete Agent Version By Label — DELETE /v1/agents/{agent_id}/versions
+## Delete Agent Version by Label: DELETE /v1/agents/{agent_id}/versions
 
-> **What this endpoint does:** delete an agent version by label. - if label is production -> 400 (must move production first) - if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique) - if deleting latest, reassign latest to highest remaining version - cannot delete if it is the only version
+> **What this endpoint does:** delete a prompt version by label. - if label is production -> 400 (must move production first) - if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique) - if deleting latest, reassign latest to highest remaining version - cannot delete if it is the only version
 
 **Endpoint:** DELETE `https://api.getbluejay.ai/v1/agents/{agent_id}/versions`
 **Auth:** `X-API-Key` header
@@ -23,14 +23,14 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | agent_id | integer |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-prompt-version-by-label and include any optional parameters (e.g., `label`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-prompt-version-by-label and include any optional parameters (e.g., `label`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **DELETE request:**
 ```python
 import requests
 
-def delete_prompt_version_by_label(agent_id: int, api_key: str) -> dict:
+def delete_agent_version_by_label(agent_id: int, api_key: str) -> dict:
     url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
     headers = {"X-API-Key": api_key}
     response = requests.delete(url, headers=headers)
@@ -39,7 +39,7 @@ def delete_prompt_version_by_label(agent_id: int, api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
 - Include error handling for 422: Validation Error.
 
@@ -53,15 +53,12 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
-<Note>
-  **New:** `DELETE /v1/agents/{agent_id}/versions`
 
-  **Deprecated:** `DELETE /v1/agents/{agent_id}/prompts/versions`. Old path, still works.
-</Note>
+Deletes the version that has the `label` you send.
 
-Deletes an agent version by label.
+- `production` returns 400. Move the label first.
+- A label with no version returns 404. A label on more than one version returns 400.
+- You cannot delete the only version.
+- If you delete the `latest` version, the label moves to the highest remaining version.
 
-- if label is production -> 400 (must move production first)
-- if label resolves to 0 -> 404; >1 -> 400 ambiguous (except latest which should be unique)
-- if deleting latest, reassign latest to highest remaining version
-- cannot delete if it is the only version
+`DELETE /v1/agents/{agent_id}/prompts/versions` is the deprecated path of this endpoint.

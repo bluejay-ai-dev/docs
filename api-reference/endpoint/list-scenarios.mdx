@@ -1,18 +1,18 @@
 ---
-title: 'List scenarios'
-description: 'List scenarios for your org; each item includes a typed React Flow definition (discriminated nodes and data).'
-openapi: 'GET /v1/scenario'
+title: "List Scenarios"
+description: "List the Bluejay Scenario Builder scenarios in your organization. Each item has its typed React Flow definition. Filter by agent."
+openapi: "GET /v1/scenario"
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
 ````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
 You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
 
-## List scenarios — GET /v1/scenario
+## List Scenarios: GET /v1/scenario
 
-> **What this endpoint does:** Lists scenarios for the authenticated user's organization. Optional agent_id filters to scenarios linked to that agent (agent must be in your org). Each item includes a `definition` graph; node and `data` types are the same as in **GET**/**POST** `/v1/scenario` (see **components**).
+> **What this endpoint does:** List all workflows_v2 for the authenticated user's organization.
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/scenario`
 **Auth:** `X-API-Key` header
@@ -22,7 +22,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 |------|------|-------------|
 | X-API-Key | string | API key required to authenticate requests. |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-scenarios and include any optional parameters (e.g., `agent_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-scenarios and include any optional parameters (e.g., `agent_id`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
 
 ### Example
 **Simple GET:**
@@ -38,9 +38,9 @@ def list_scenarios(api_key: str) -> dict:
 ```
 
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes: only add/change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 401: Unauthorized; 422: Invalid query parameters; 500: Server error.
+- Include error handling for 422: Validation Error.
 
 ### Integration Checklist
 Before writing code, verify:
@@ -53,4 +53,4 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Returns `workflows` (the list of scenarios — the JSON key is `workflows` for backward compatibility) and `total_count`. Every element’s `definition.nodes` / `definition.edges` follow the discriminated schemas in the OpenAPI components (not a loose blob). The agent filter only applies when the agent belongs to your organization.
+Returns `workflows` and `total_count`. The key `workflows` holds the scenarios. The name stays for backward compatibility. The agent filter applies only to agents in your organization.
