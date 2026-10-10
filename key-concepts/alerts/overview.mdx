@@ -1,82 +1,78 @@
 ---
-title: "Alerts Overview"
-sidebarTitle: "Overview"
-description: Understand how Alerts are configured and used in Bluejay
+title: "Alerts"
+description: "Create alerts that notify Slack, email, PagerDuty, or Better Stack when a metric on simulation runs or production conversations crosses a threshold."
 icon: bell
+sidebarTitle: "Alerts"
 ---
 
-Alerts notify your team when monitored conversations or metrics cross a threshold that needs attention. They help you move from passive reporting to active operational response.
+An alert compares a metric to a value and sends a notification when the condition is true. Simulation alerts and production alerts use different windows.
 
-## What You'll Learn
+## Create an alert
 
-- What Alerts are and how they fit into monitoring workflows
-- How to configure threshold-based notifications
-- How Alerts connect to Slack and other integrations
+<Tabs>
+  <Tab title="Simulations">
+    1. Open Simulations → Alerts and create an alert.
+    2. Select **All simulations** or **Specific simulation**.
+    3. Select a metric from **Pass Rate**, **Metrics**, **Standard**, or **System Failures**.
+    4. Set the condition.
+    5. Select the agents.
+    6. Select the notification channels.
 
-## How Alerts Work
+    The condition reads: **Alert me when** the [average | lowest result | highest result] of the metric **across a simulation run** or **across the last N conversations** is [operator] [value].
 
-Bluejay uses threshold alerts that count how many times a metric crosses a boundary within a rolling time window. The alert only fires when the violation count reaches the required number of occurrences — filtering out noise while catching sustained problems.
+    - **Across a simulation run** checks each run when it completes.
+    - **Across the last N conversations** uses the agent's most recent N conversations, across runs. N is 30, 50, 100, 250, or 500.
+    - For a pass/fail metric, the value is the percentage of conversations that passed (0 to 100).
+    - A **System Failures** alert fires at once when one conversation in a run ends with the selected failure status.
 
-```mermaid
-flowchart LR
-    Eval[Call or Simulation Evaluated] --> Score[Metric Scored]
-    Score --> Cross{Score Crosses Boundary?}
-    Cross -->|No| OK[No Violation]
-    Cross -->|Yes| Count[Violation Counted]
-    Count --> Window{"Enough Violations\nin Time Window?"}
-    Window -->|No| Wait[Continue Monitoring]
-    Window -->|Yes| Fire[Alert Triggered]
-    Fire --> Notify[Slack / Email / Webhook]
-    Fire --> Badge[Alert Badge on Dashboard]
-```
+    Example: alert when the average of **Goal Completion** across a simulation run is less than 85.
+  </Tab>
+  <Tab title="Production">
+    1. Open Observability → Alerts and create an alert.
+    2. Under **Trigger**, select a metric or a metadata field.
+    3. Set the operator and the value.
+    4. Set **for at least** N events in a window.
+    5. Under **Scope**, select the agents.
+    6. Select the notification channels.
 
-### Threshold Alert Configuration
+    The alert enters alarm when at least N conversations match the condition in the window. It recovers when the count drops below 80% of N (minimum 1).
 
-When creating a threshold alert, you configure the metric to watch, the boundary condition, and the sensitivity of the trigger:
+    - The window is a time interval (5, 10, 15, or 30 minutes, or 1, 2, 4, or 24 hours) or the last 30, 50, 100, 250, or 500 conversations.
+    - With the last N conversations, the alert does not fire until N conversations exist.
+    - The API defaults are 10 events in 10 minutes.
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Metric** | The Custom Metric or built-in metric to monitor | Average Agent Latency |
-| **Condition** | Whether to alert when the score is _above_ or _below_ the boundary | Above |
-| **Threshold** | The numeric boundary that counts as a violation | 3 seconds |
-| **Occurrences** | How many violations must occur before the alert fires | 5 |
-| **Time Window** | The rolling interval over which violations are counted | 10 minutes |
+    Example: alert when **Average Agent Latency** is greater than 3 seconds for at least 5 events in a 10 minute interval. One slow call does not fire it. Five slow calls in 10 minutes do.
 
-For example, an alert on "Average Agent Latency > 3 seconds" with 5 occurrences in a 10-minute window will only fire when 5 calls exceed 3-second latency within that window. A single slow call won't trigger a notification — but a sustained regression will.
+    For a metric where one failure is too many, for example hallucination, set N to 1.
+  </Tab>
+</Tabs>
 
-For critical metrics like hallucination detection, set occurrences to 1 so the alert fires on the very first violation.
+## Notification channels
 
-## Key Capabilities
+| Channel | Target |
+|---------|--------|
+| Email | All team members, or specific email addresses. |
+| Slack | A channel. Connect Slack first in [Notifications](/integrations/notifications). |
+| PagerDuty | A routing key. |
+| Better Stack | Uses your organization's Better Stack token. |
 
-- **Threshold-based triggers** -- fire alerts when a metric crosses a boundary a configured number of times within a time window
-- **Configurable sensitivity** -- tune the number of occurrences and the time window to match the severity of each metric
-- **Channel routing** -- send alerts to specific Slack channels so the right team gets the right signal, or subscribe a URL under Settings → Webhooks to kick off an automated flow when an observability or simulation alert fires
-- **Dashboard integration** -- alert badges appear on agent dashboards for at-a-glance health monitoring
-- **Works for both observability and simulations** -- monitor production calls and test runs with the same alert model
+To start an automated flow when an alert fires, subscribe a URL to **Observability alert triggered** or **Simulation alert triggered** in Settings → [Webhooks](/key-concepts/webhooks/overview).
 
-## Common Use Cases
+## Alert fields (API)
 
-- Alert engineering when average latency exceeds 3 seconds across 5 calls in 10 minutes
-- Notify the support team the moment any production call is flagged for hallucination (occurrences set to 1)
-- Alert QA when simulation goal completion drops below 85% across 3 conversations in a run
-- Route compliance violations to a dedicated Slack channel with zero-tolerance thresholds
+| Field | Description |
+|-------|-------------|
+| `source_scope` | `observability`, `simulation`, or `all`. |
+| `entity_type` | `custom_metric`, `standard_metric`, `custom_goal`, `metadata_field`, or `system_failure`. |
+| `entity_field` | The metric or field to watch. |
+| `operator` | `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, `not_contains`. |
+| `comparison_value` | The value to compare against, as a string. |
+| `min_events` | Production only. The number of matching events. Default 10. |
+| `threshold_time_interval` | Production: the window in seconds (default 600). Simulations: the number of recent completed runs (default 1). |
+| `sample_size` | The last N conversations in place of a time window. Minimum 30. |
+| `aggregation` | Simulations only. `avg`, `min`, `max`, `count`, or `none`. |
+| `simulation_id` | Simulations only. Limits the alert to one simulation. |
+| `agent_ids`, `applies_to_all_agents` | The agents the alert watches. |
+| `notification_channels` | A list of `{ type, target }`. `type` is `email`, `slack`, `pagerduty`, or `betterstack`. |
 
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Observability Alerts" icon="eye" href="/monitor/observability/alerts">
-    Configure threshold alerts for production monitoring.
-  </Card>
-  <Card title="Simulation Alerts" icon="flask-vial" href="/test/simulations/alerts">
-    Configure threshold alerts for simulation testing.
-  </Card>
-  <Card title="Slack Integration" icon="/logo/slack-blue.svg" href="/integrations/slack">
-    Connect Bluejay to Slack for real-time alert delivery.
-  </Card>
-  <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
-    Define the metrics that power your alert thresholds.
-  </Card>
-  <Card title="Issues" icon="triangle-exclamation" href="/key-concepts/issues/overview">
-    Recurring failures grouped for triage, not threshold notifications.
-  </Card>
-</CardGroup>
+See [Create Alert](/api-reference/endpoint/create-alert). For recurring failures grouped for triage, see [Issues](/key-concepts/issues/overview).

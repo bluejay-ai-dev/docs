@@ -1,32 +1,43 @@
 ---
-title: Overview
-description: Own a production problem, see how often it happens, and triage it
+title: "Issues"
+description: "Triage Issues, the failures Bluejay groups from evaluated simulation and production conversations, by status, priority, assignee, and due date."
 icon: triangle-exclamation
+sidebarTitle: "Issues"
 ---
 
-Open **Monitor → Issues** to own a production problem, see how often it happens, and triage it.
+An Issue is a failure that Bluejay finds in evaluated conversations and groups with the conversations it affects. Bluejay writes the title, description, and conversation list. You cannot edit them.
 
-Failures on evaluated production calls become Issues. Each issue has a title and the calls it covers. Bluejay produces those. You cannot edit them.
+<Tabs>
+  <Tab title="Simulations">
+    Open Simulations → Issues. Issues come from evaluated simulation results. The API is under `/v1/simulations/issues`.
+  </Tab>
+  <Tab title="Production">
+    Open Observability → Issues. Issues come from evaluated production Conversations. The API is under `/v1/observability/issues`.
+  </Tab>
+</Tabs>
 
-The list tags each issue as a **Pattern** (a recurring problem) or an **Error** (a known failure).
+## Issue types
 
-## What you can change
+| UI label | API `type` | Meaning |
+|----------|------------|---------|
+| Agent Failure | `non_deterministic` | Bluejay grouped similar failures into one Issue. |
+| System Error | `deterministic` | Bluejay matched a known error. |
 
-Set assignee, priority, due date, and status. Status is Open, In Progress, Resolved, or Ignored. Priority stays empty until someone sets it.
+## Triage an Issue
 
-## Resources
+The list groups Issues under Open, In Progress, Resolved, and Ignored. Each header shows the count for the current filters.
 
-<CardGroup cols={2}>
-  <Card title="Using Issues" icon="list" href="/monitor/observability/issues">
-    The Monitor → Issues list, filters, and triage.
-  </Card>
-  <Card title="Observability" icon="eye" href="/monitor/observability/overview">
-    How production calls get into Bluejay.
-  </Card>
-  <Card title="List Issues API" icon="code" href="/api-reference/endpoint/list-issues">
-    List, filter, and page issues. Newest last-seen first.
-  </Card>
-  <Card title="Update Issue API" icon="pen" href="/api-reference/endpoint/update-issue">
-    Set status, priority, assignee, or due date.
-  </Card>
-</CardGroup>
+You can change these fields from the list or the Issue page:
+
+| Field | Values |
+|-------|--------|
+| Status | Open, In Progress, Resolved, Ignored. |
+| Priority | Urgent, High, Medium, Low. Empty until someone sets it. |
+| Assignee | A member of your organization. |
+| Due date | A date, or empty. |
+
+Filter the list by search text, agent, type, status, source, assignee, priority, or percent of conversations.
+
+## API
+
+[List Issues](/api-reference/endpoint/list-issues) returns Issues by most recent `last_seen_at` first, 50 per page by default, 200 maximum. Filter by `status`, `priority`, `type`, or `assignee_id`. [Get Issue](/api-reference/endpoint/get-issue) returns one Issue. [Update Issue](/api-reference/endpoint/update-issue) sets `status`, `priority`, `assignee_id`, or `due_date`.
