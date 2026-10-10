@@ -1,342 +1,160 @@
 ---
 title: "Custom Metrics Prompting Guide"
-sidebarTitle: "Prompting Guide"
-description: Best practices for writing Custom Metric prompts that produce reliable, predictable evaluations
+description: "Write LLM as a Judge prompts that give the same verdict on each run, and use dynamic variables to put call-specific values into a Custom Metric."
 icon: pen-fancy
+sidebarTitle: "Metric Prompting Guide"
 ---
 
-A Custom Metric is a verifier. It either confirms that an agent or customer took an action on the call, or it rates, ranks, or classifies what they did. Because the verdict drives what your team trusts, the prompt that defines it has to be written clearly.
+A Custom Metric prompt tells the judge what to verify in the Conversation. If the prompt is precise, the judge gives the same verdict on each run. If the prompt is vague, the same Conversation can get different verdicts.
 
-The biggest payoff of a well-written metric is predictable evaluations. When the prompt is precise, the verdict matches what your team would have said reading the transcript or listening to the audio. When the prompt is loose, the model has no solid definition of success and the verdict becomes non-deterministic. The same call returns different scores on different runs.
+## Rules for all response types
 
-<Tip>
-A good metric returns the verdict you would have given yourself reviewing the call. If your gut and the metric disagree, the prompt is the problem, not the model. Tighten the wording or add the missing piece of evidence.
-</Tip>
+- Write criteria that a reader can answer from the transcript or the audio.
+- Test one thing per metric. If two results matter independently, write two metrics.
+- Replace words such as "good", "appropriate", or "well" with behavior that you can see in the transcript.
+- Write what the metric verifies, not what the agent must do. Agent instructions go in the agent prompt.
 
-## Core Principles
-
-<CardGroup cols={3}>
-  <Card title="Anchor to evidence in the transcript" icon="anchor">
-    Every criterion should be answerable from the words on the page. If a human reading the transcript cannot tell, the model cannot tell either.
-  </Card>
-  <Card title="Define the output shape" icon="brackets-curly">
-    Spell out exactly what the response should look like: labels, ranges, JSON keys, or text constraints. The shape is half the prompt.
-  </Card>
-  <Card title="One thing per metric" icon="bullseye">
-    A metric should answer one thing you want to know. If you would care about each result independently, write separate metrics.
-  </Card>
-</CardGroup>
-
-## Prompting by Metric Type
-
-Each response type does a different job, so each one rewards a different prompting style. Pick the tab that matches the metric you are writing.
+## Prompts by response type
 
 <Tabs>
-  <Tab title="Pass / Fail">
-    A Pass / Fail metric is an assertion. State the conditions that make the metric pass and the conditions that make it fail.
-
-    **Good prompt**
+  <Tab title="Pass/Fail">
+    State the pass condition and the fail condition. Give one example of each.
 
     ```
-    The metric passes if the agent verified the customer's identity by
-    asking for at least two of: full name, date of birth, last four
-    digits of the card, or billing ZIP code, BEFORE sharing any account
-    details.
+    The metric passes if the agent asked for at least two of: full name,
+    date of birth, last four digits of the card, or billing ZIP code,
+    BEFORE it shared any account details.
 
-    The metric fails if fewer than two were requested, or if account
-    details were shared first.
+    The metric fails if the agent asked for fewer than two, or shared
+    account details first.
 
     Example pass: agent asked for date of birth and last four, then
     quoted the balance.
-    Example fail: agent quoted the balance after only confirming the
-    customer's name.
+    Example fail: agent quoted the balance after it confirmed only the name.
     ```
 
-    **Bad prompt**
-
-    ```
-    Did the agent verify and help the customer well during the call?
-    ```
-
-    The good version names the pass condition, the fail condition, and gives one example of each. The bad version stacks two behaviors and leans on an undefined word.
-
-    **Common Pass / Fail mistakes**
-
-    **Stacking independent behaviors.** A Pass / Fail metric should test one thing you want to know. If verifying identity and issuing a refund are two outcomes you would care about independently, write two metrics. If they only matter as a joint result (the call is a fail unless both happened), one metric is fine.
-
-    **Vague pass criteria.** "The agent did the right thing" leaves the definition to the model. Replace it with the specific behavior you would look for in the transcript.
-
-    **Describing what the agent should do, not what the metric verifies.** The prompt grades the call. Phrases like "the agent should be polite" belong in the agent's instructions, not in a metric.
-
-    <Tip>
-    If the prompt reaches for words like "good," "appropriate," or "well," you are leaving the definition to the model. Replace those words with specific, observable evidence.
-    </Tip>
-
-    **Dynamic variables**
-
-    Use dynamic variables to make the pass criteria call-specific.
-
-    ```
-    The metric passes if the agent confirmed the order for {{customer_name}}
-    matched the items in {{order_summary}}.
-    ```
-
-    See [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables) for the full setup.
+    Do not write "Did the agent verify and help the customer well?" That prompt tests two behaviors and uses an undefined word.
   </Tab>
-  <Tab title="Quantitative">
-    A quantitative metric is a rubric. Define every level on the scale so the judge has anchors to grade against.
-
-    **Good prompt**
+  <Tab title="Number">
+    Define each level on the scale. Use five levels or fewer. With no definitions, the judge can give a 4 on one call and an 8 on an almost identical call.
 
     ```
-    Rate the agent's clarity of explanation from 1 to 5.
+    Rate the clarity of the agent's explanation from 1 to 5.
 
-    1 = Confusing. The customer would not be able to act on the explanation.
-    2 = Partial. Key terms were used without definition.
-    3 = Adequate. The customer could likely act, but had to infer some steps.
-    4 = Clear. Steps were named and ordered.
-    5 = Exceptional. Steps were named, ordered, and confirmed back with
-        the customer.
+    1 = Confusing. The customer cannot act on the explanation.
+    2 = Partial. The agent used key terms without a definition.
+    3 = Adequate. The customer can act, but must guess some steps.
+    4 = Clear. The agent named the steps in order.
+    5 = Exceptional. The agent named the steps in order and confirmed
+        them with the customer.
     ```
-
-    **Bad prompt**
-
-    ```
-    Rate the clarity from 1 to 10 where 1 is bad and 10 is good.
-    ```
-
-    A 1-to-10 scale with no anchors returns a 4 on one call and an 8 on a near-identical one. A 1-to-5 scale with anchored levels stays stable.
-
-    **Common quantitative mistakes**
-
-    **Unanchored scales.** Without a definition for each value, the model invents its own scale and your scores drift across runs.
-
-    **Too many levels.** Models reliably distinguish about five levels. Ten or a hundred sound precise but produce more noise than signal.
-
-    **Vague endpoints.** "1 is bad, 5 is good" tells the judge nothing. Anchor 1 and 5 to observable behaviors so the middle values land in predictable places.
-
-    **Dynamic variables**
-
-    Inject call-specific anchors when the rubric depends on facts that change per call.
-
-    ```
-    Rate how thoroughly the agent explained the {{plan_name}} plan from 1 to 5.
-    ```
-
-    See [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables).
   </Tab>
-  <Tab title="Qualitative">
-    A qualitative metric returns free text. The trick is to constrain the structure so the outputs stay comparable across calls.
-
-    **Good prompt**
+  <Tab title="Text">
+    Set a fixed structure and a word limit, so that you can compare outputs across calls. Ask for observations, not opinions.
 
     ```
     Summarize how the agent handled customer objections.
 
     Include:
-    1. The objections the customer raised, in the order they were raised.
+    1. Each objection the customer raised, in order.
     2. The agent's response to each, quoted briefly.
     3. Whether the response resolved the objection (yes, partial, no).
 
     Keep the response under 120 words.
     ```
-
-    **Bad prompt**
-
-    ```
-    Tell me how the call went. Be detailed.
-    ```
-
-    Free-text answers are useful only when their structure is fixed. Otherwise comparing them across calls is impossible.
-
-    **Common qualitative mistakes**
-
-    **No structure.** "Tell me about the call" produces a different summary every run. Numbered sections or required fields fix the shape.
-
-    **No length cap.** Without a word limit, summaries balloon and stop being skimmable. 100 to 150 words is usually plenty.
-
-    **Asking for opinions instead of observations.** "How do you feel about the agent's tone" is unfalsifiable. "Quote the phrase the agent used to acknowledge the customer's frustration" is observable.
-
-    **Dynamic variables**
-
-    Inject the topic the summary should focus on.
-
-    ```
-    Summarize how the agent handled the customer's question about {{topic}}.
-    ```
-
-    See [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables).
   </Tab>
-  <Tab title="Enum">
-    An enum metric is a multi-class classifier. Define the attributes that put a call into one class versus another. The judge needs to know what evidence makes a call a member of each class.
-
-    **Good prompt**
+  <Tab title="Categorical">
+    Define the evidence for each label. Give one rule for calls that match more than one label. Use seven labels or fewer, and put rare cases in an `other` label.
 
     ```
-    Classify this fast-food call into exactly one category.
+    Classify this call into exactly one category.
 
-    - new_order: The customer is placing an order they have not placed before.
-    - modify_order: The customer is changing or adding to an order already placed.
-    - order_status: The customer is asking where their existing order is or
-      when it will be ready.
-    - complaint: The customer is reporting a problem with an order, the food,
-      or the service.
-    - general_inquiry: The customer is asking about hours, locations, menu items,
-      or pricing without placing or modifying an order.
+    - new_order: The customer places an order they did not place before.
+    - modify_order: The customer changes or adds to an existing order.
+    - order_status: The customer asks where an existing order is.
+    - complaint: The customer reports a problem with an order or the service.
+    - general_inquiry: The customer asks about hours, locations, menu,
+      or prices and does not place or change an order.
 
-    If two categories apply (for example, a complaint that turns into a new
-    order), pick the category that occupied the most call time.
+    If two categories apply, select the category that used the most call time.
     ```
-
-    **Bad prompt**
-
-    ```
-    What kind of call is this? new_order, modify_order, order_status,
-    complaint, or general_inquiry?
-    ```
-
-    The bad version names the labels but defines none of them. Calls land in different buckets across runs.
-
-    **Common enum mistakes**
-
-    **Labels without definitions.** "Resolved, escalated, callback_scheduled" looks self-explanatory and is not. Spell out the evidence that puts a call in each bucket.
-
-    **No tiebreaker.** Real calls overlap. State a single rule the judge follows when more than one label could apply.
-
-    **Too many classes.** Beyond seven or eight categories, the model starts to blend boundaries. Collapse rare labels into an "other" bucket if you need to.
-
-    **Dynamic variables**
-
-    Inject classification context when the right label depends on facts the judge cannot infer from the transcript alone.
-
-    ```
-    Classify the call. The customer's stated reason for calling was: {{stated_reason}}.
-    ```
-
-    See [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables).
   </Tab>
-  <Tab title="JSON">
-    A JSON metric is a typed contract. The schema you define is what the model has to return. Specify keys, types, and what counts as evidence for each.
-
-    **Good prompt**
+  <Tab title="Structured JSON">
+    Give each key a type and a definition. Tell the judge to return only the object. Put the same shape in `json_schema`.
 
     ```
-    Evaluate the call and return a JSON object with exactly these keys:
+    Return a JSON object with exactly these keys:
 
-    - identity_verified (boolean): true if the agent verified identity using
-      at least two factors before sharing account details.
-    - disclosure_read (boolean): true if the recording disclosure was read
-      within the first 15 seconds of the call.
-    - consent_obtained (boolean): true if the agent received explicit verbal
-      consent before any account change.
-    - flags (string[]): a short string for each compliance issue you found.
-      Empty array if there were none.
+    - identity_verified (boolean): true if the agent verified identity with
+      at least two factors before it shared account details.
+    - disclosure_read (boolean): true if the agent read the recording
+      disclosure in the first 15 seconds.
+    - flags (string[]): one short sentence for each compliance issue.
+      Empty array if there are none.
 
-    Return only the JSON object. Do not include any other text.
+    Return only the JSON object.
     ```
-
-    **Bad prompt**
-
-    ```
-    Return JSON about whether the call was compliant.
-    ```
-
-    Specify the keys, the types, and what counts as evidence for each one. The "return only the JSON object" line is what stops the model from adding a friendly preamble.
-
-    **Common JSON mistakes**
-
-    **Keys without types.** A field called `verified` could be a boolean, a string, or an enum. State the type so the schema stays stable across runs.
-
-    **No "return only the JSON" instruction.** Without it, the model often adds a friendly sentence before or after the object and your downstream parser breaks.
-
-    **Fuzzy field descriptions.** "Issues found" is vague. "Each issue as a short sentence describing what was missed and where in the call" tells the judge what to put in the field.
-
-    **Dynamic variables**
-
-    Inject required context into a key's definition.
-
-    ```
-    verify_id (boolean): true if the agent verified the customer using at
-    least these factors: {{required_factors}}.
-    ```
-
-    See [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables).
   </Tab>
 </Tabs>
 
-## Using Dynamic Variables
+## Dynamic variables
 
-Dynamic variables let you inject call-specific values into a metric prompt at evaluation time. You write `{{customer_name}}` or `{{plan_price}}` in the prompt, pass the matching keys in the `metadata` object on the evaluate request, and Bluejay substitutes them before the judge runs.
+A dynamic variable puts a call-specific value into a metric. Write `{{key}}` in `prompt` or `scoring_guidance`. Before the judge runs, Bluejay replaces each `{{key}}` with the value of `key` in the Conversation `metadata`.
 
-This pattern matters when the right answer depends on facts that change per call: the customer's name, the plan they are on, the order ID, the expected balance. Without dynamic variables you would need a separate metric for every value. With them, you keep one metric and pass the values per call.
+```
+Prompt:    Did the agent confirm the account ending in {{account_last_four}}
+           for {{customer_name}}?
+metadata:  { "customer_name": "Sarah", "account_last_four": "4821" }
+Judge sees: Did the agent confirm the account ending in 4821 for Sarah?
+```
 
-<Note>
-Dynamic variables work in any response type. The substitution happens before the judge sees the prompt, so anything you can write as plain text can be parameterized.
-</Note>
+Bluejay does not supply a fixed list of variables. Each top-level key in the Conversation `metadata` is a variable. These are the sources of `metadata`:
 
-For the full setup and the request-payload format, see [Dynamic Variables](/key-concepts/custom-metrics/dynamic-variables).
+| Source | Keys |
+|---|---|
+| [`/v1/evaluate`](/api-reference/endpoint/evaluate) request | The keys you send in the top-level `metadata` object. |
+| Vapi webhook | The call `metadata` you set in Vapi, plus `vapi_call_id`, `vapi_assistant_id`, `vapi_org_id`, `call_status`, `disconnection_reason`, `duration_ms`, `cost`, `summary`, and `success_evaluation`. |
+| Retell webhook | The call `metadata` you set in Retell, plus `retell_call_id`, `retell_agent_id`, `retell_agent_name`, `call_status`, `disconnection_reason`, `duration_ms`, `call_cost`, `opt_out_sensitive_data_storage`, and `data_storage_setting`. |
+| Simulations and Metrics Lab | The `metadata` stored on the Conversation. |
 
-## Tuning Metrics in the Metrics Lab
+Example `/v1/evaluate` request:
 
-Sometimes a metric is close but not quite right. The pass rate is too generous, or it flags borderline cases your team would have let through. You have two paths.
+```json
+{
+  "agent_id": "your-agent-id",
+  "transcript": [...],
+  "metadata": {
+    "product_name": "Business Pro",
+    "monthly_price": "149"
+  }
+}
+```
 
-<CardGroup cols={2}>
-  <Card title="Edit the prompt by hand" icon="pen">
-    Add a clarifying sentence, run it against a few sample calls, and check whether the new outputs match your judgment. Fast for small adjustments.
-  </Card>
-  <Card title="Tune with human feedback" icon="flask" href="/key-concepts/metrics-lab/overview">
-    For metrics that need to encode your team's specific standards, use the Metrics Lab. You annotate calls, the Lab tunes the metric to match your annotations.
-  </Card>
-</CardGroup>
+### Rules
 
-The second path is an application of Reinforcement Learning from Human Feedback (RLHF), the technique behind most modern AI assistants. A person rates the model's output, and the system updates so future outputs match what the person preferred. The Metrics Lab applies that idea to a single Custom Metric.
+- A key contains only letters, digits, and underscores. `{{customer name}}` and `{{order.id}}` are not replaced.
+- Keys are case-sensitive. `{{Customer_Name}}` and `{{customer_name}}` are different keys.
+- Bluejay converts each value to a string.
+- If `metadata` does not contain the key, Bluejay replaces `{{key}}` with the text `undefined`. The evaluation does not fail.
+- Keys that no prompt uses stay on the Conversation and do not change the evaluation.
 
-### Walkthrough
+<Warning>
+If a key is missing, the judge sees `undefined` in the prompt and can give a wrong verdict. Make sure each key in the prompt is in the `metadata` of every Conversation that the metric evaluates.
+</Warning>
 
-<Steps>
-  <Step title="Pick a representative sample">
-    Twenty to fifty calls. Cover obvious passes, obvious fails, and the ambiguous middle.
-  </Step>
-  <Step title="Annotate each call">
-    Mark the outcome you believe is correct: pass or fail, the right label, the right score.
-  </Step>
-  <Step title="Run alignment">
-    The Lab compares your annotations to the AI's verdicts and tunes the metric to close the gap.
-  </Step>
-  <Step title="Validate on a holdout">
-    Run the tuned metric against a small set you did not annotate. If the verdicts match yours, the metric is ready.
-  </Step>
-  <Step title="Promote to production">
-    Push the tuned metric to your simulations and live monitoring.
-  </Step>
-</Steps>
+## Tune a metric
 
-For a deeper look at how alignment works, see the [Metrics Lab overview](/key-concepts/metrics-lab/overview).
+If the verdicts do not match what your team expects, do one of these:
+
+- Edit the prompt and run it again on a few Conversations.
+- Label a sample of Conversations in the [Metrics Lab](/key-concepts/metrics-lab/overview), then use **Improve** to change the prompt until the verdicts match your labels.
 
 ## Checklist
 
-Before saving a Custom Metric, run through this list.
-
-- The metric tests one thing you want to know.
-- Every criterion is answerable from the transcript or audio.
-- For Pass / Fail, the pass and fail conditions are explicit.
-- For graded metrics, every level on the scale is anchored.
-- For enums, every label has a definition and a tiebreaker rule.
-- For JSON, every key has a type and a definition.
-
-## Resources
-
-<CardGroup cols={2}>
-  <Card title="Metric Types" icon="shapes" href="/key-concepts/custom-metrics/metric-types">
-    Refresh on the response types and when to use each.
-  </Card>
-  <Card title="Dynamic Variables" icon="brackets-curly" href="/key-concepts/custom-metrics/dynamic-variables">
-    Parameterize your prompt with call-specific context at evaluation time.
-  </Card>
-  <Card title="Metrics Lab" icon="flask" href="/key-concepts/metrics-lab/overview">
-    Tune metrics against human-annotated calls using agent alignment.
-  </Card>
-  <Card title="Create Custom Metric API" icon="code" href="/api-reference/endpoint/create-custom-metric">
-    Save your final prompt as a Custom Metric via the API.
-  </Card>
-</CardGroup>
+- The metric tests one thing.
+- A reader can answer each criterion from the transcript or the audio.
+- For Pass/Fail, the prompt states the pass condition and the fail condition.
+- For Number, the prompt defines each level.
+- For Categorical, each label has a definition, and the prompt gives a tiebreak rule.
+- For Structured JSON, each key has a type and a definition.
+- Each `{{key}}` is in the Conversation `metadata`.

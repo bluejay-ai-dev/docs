@@ -1,117 +1,140 @@
 ---
-title: "Agents Overview"
-sidebarTitle: "Overview"
-description: How Bluejay models Agents and connects them to simulations, observability, custom metrics, and workflows
+title: "Agents"
+description: An Agent is the voice, text, or email system you test and monitor in Bluejay. Create one, connect it, and sync its provider workflow.
 icon: robot
+sidebarTitle: "Agents"
 ---
 
-In Bluejay, an **Agent** is the voice or chat system you are evaluating. Every simulation, observability run, custom metric, and workflow attaches to a specific Agent, which gives Bluejay the context it needs to generate realistic conversations and score the agent against the behaviors you care about.
+Simulations, Conversations, Custom Metrics, and Workflows all attach to one Agent.
 
-## What Is an Agent?
+## Create an Agent
 
-An **Agent** is the canonical object that represents a single voice or chat system under evaluation. Once you create an Agent, every downstream feature in Bluejay is scoped to that Agent.
+<Steps>
+  <Step title="Open the dialog">
+    On the **Agents** view, click **+**. The **Connect Your Agent** dialog opens.
+  </Step>
+  <Step title="Describe the agent">
+    Enter a **Name**. In **Agent Description / System Prompt**, describe the agent or paste its system prompt.
+  </Step>
+  <Step title="Set the type and mode">
+    Set **Agent type** to **Inbound** or **Outbound**. Set **Mode** to **Voice**, **Text**, or **Email**.
+  </Step>
+  <Step title="Connect">
+    Select the connection type and enter its details. Click **Create**.
+  </Step>
+</Steps>
 
-```mermaid
-flowchart LR
-    Agent[Agent] --> Sims[Simulations]
-    Agent --> Obs[Observability]
-    Agent --> Metrics[Custom Metrics]
-    Agent --> Wf[Workflows]
-    Sims --> Results[Results & Traces]
-    Obs --> Results
-```
+An Inbound agent receives calls or messages. An Outbound agent starts them. With the API, use [Add Agent](/api-reference/endpoint/add-agent) or the `add_agent` MCP tool. The `name`, `system_prompt`, `knowledge_base`, and `goals` fields are required.
 
-You can have many **Agents** in one Bluejay account, typically one per system you want to test or monitor. Each Agent carries its own configuration, knowledge base, and evaluation history.
+## Modes and connections
 
-## Anatomy of an Agent
+<Tabs>
+  <Tab title="Voice">
+    A Digital Human holds a spoken phone call with the agent. Bluejay records the call, transcribes it, and grades it. Set `mode="VOICE"`.
 
-An **Agent** is made up of a small set of structured fields:
+    | Connection type | You provide |
+    |---|---|
+    | Phone | A phone number |
+    | SIP | A SIP URI, or a `dynamic_sip_webhook_url` that returns the URI for each call |
+    | Websocket | A websocket URL, with an optional username and password |
+    | LiveKit | API key, API secret, host URL, and agent name |
+    | Pipecat | API key and agent name |
+    | ElevenLabs, Retell, VAPI, Bland | The provider API key and the agent, assistant, or pathway ID |
+    | Amelia, Google CES, Dialogflow CX, Sierra | The provider connection fields |
 
-| Field | Description |
-|-------|-------------|
-| **Name** | A unique, easily identifiable name for the agent. |
-| **Description** | A brief explanation of the agent's role, capabilities, and context. |
-| **Goals** | Clear objectives the agent should achieve during a conversation. Bluejay scores simulations against these goals. |
-| **Knowledge Base** | Structured data, scripts, FAQs, and guidelines the agent is expected to know. Used by both simulations and metrics. |
-| **Phone Number** | The phone number associated with the agent for inbound or outbound calls. Production calls placed to or from this number are tied back to the right Agent. |
-| **Connection** | How Bluejay reaches the agent: a connection type (Phone, SIP, LiveKit, Websocket, ElevenLabs, Retell, VAPI, Google CES, Dialogflow CX, and more) plus its details, like a phone number or provider agent ID. Required for simulations to connect and for observability webhooks to be matched correctly. |
+    A voice run reports built-in audio metrics next to your Custom Metrics. Examples are **Agent Latency**, **Agent Interruption Count**, **Avg Agent WPM**, **Agent Speaking %**, and **Agent Audio Clarity**. To start a run, use `queue_simulation_run` with `channel="voice"`.
 
-## Creating an Agent
+    For provider setup, see [Retell](/integrations/retell), [ElevenLabs](/integrations/eleven-labs), [Vapi](/integrations/vapi), and [Bland](/integrations/bland).
+  </Tab>
+  <Tab title="Text">
+    A Digital Human exchanges messages with the agent. There is no audio. Bluejay grades the run from the transcript. Set `mode="TEXT"`.
 
-You can create an **Agent** from the Bluejay dashboard or from the API.
+    | Connection type | How it works |
+    |---|---|
+    | SMS | The Digital Human texts the agent's phone number. |
+    | HTTP Webhook | Bluejay sends a POST with each Digital Human message to your webhook URL. Your endpoint replies through the send-http-text-message endpoint. |
+    | OpenAI-compatible | Bluejay calls your API base URL with an optional API key and model. |
+    | Kore.ai, Amelia, Google CES, Dialogflow CX, Bland | The provider chat connection fields. |
 
-- **Dashboard.** Click **Create Agent**, pick the agent type (Inbound or Outbound), mode (Voice or Text), and connection type, then fill in the connection details.
-- **API.** Send a `POST` to the [Add Agent](/api-reference/endpoint/add-agent) endpoint with the same fields in a JSON body.
+    For the HTTP Webhook, send the same `simulation_result_id` on each reply. See [Chat Testing](/simulation-integrations/http-webhooks). To start a run, use `queue_simulation_run` with `channel="sms"` or `channel="http_text"`.
+  </Tab>
+  <Tab title="Email">
+    A Digital Human sends a real email to the agent inbox. The agent replies, and Bluejay grades the thread. Set `mode="EMAIL"`, `connection_type="EMAIL"`, and `email_address`. If the agent replies from other addresses, list them in `email_reply_addresses`.
 
-## Connecting an Agent to a Provider
+    <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-create-agent.mp4"></video>
 
-To finish wiring an **Agent** up for live testing or observability, follow the provider-specific setup guide:
+    Each Digital Human sends from its own address on `mail.bluejaysims.com`. Email turns take minutes, so runs stay open longer than voice or SMS. To start a run, use `queue_email_simulation_run`.
 
-- [Retell Observability](/integrations/retell)
-- [ElevenLabs Observability](/integrations/eleven-labs)
-- [Vapi Observability](/integrations/vapi)
-- [Bland Observability](/integrations/bland)
+    <Warning>
+      Corporate mail (Google Workspace, Microsoft 365) quarantines mail from unknown senders. If you do not allowlist `mail.bluejaysims.com` in the agent inbox, the agent never receives the test and every check fails.
+    </Warning>
 
-Each guide walks through configuring the provider webhook, saving credentials inside Bluejay, and binding a Bluejay Agent to the provider Agent ID.
+    <AccordionGroup>
+      <Accordion title="Google Workspace">
+        1. In the Admin console, open **Apps > Google Workspace > Gmail > Spam, phishing, and malware**.
+        2. Under **Email allowlist**, add a rule that bypasses spam for `mail.bluejaysims.com`.
+        3. Save.
+      </Accordion>
+      <Accordion title="Microsoft 365">
+        1. In Microsoft 365 Defender, open **Policies & rules > Threat policies > Anti-spam**.
+        2. Add `mail.bluejaysims.com` to the allowed domains, or add a mail flow rule that bypasses spam filtering for that domain.
+        3. Save.
+      </Accordion>
+    </AccordionGroup>
 
-## How Agents Connect to the Rest of Bluejay
+    If a test email does not arrive, look in the admin quarantine first.
 
-- **Simulations** dial out (or send chat messages) to the Agent through its provider connection, then score the resulting conversation against your custom metrics and goals.
-- **Observability** receives webhook events from production calls and matches them to the Agent. Each call is stored as a run you can review, score, and aggregate.
-- **Custom metrics** are defined per Agent and execute against every simulation result and every observability event.
-- **Workflows** (for ElevenLabs, Vapi, Retell, and Google Dialogflow CX agents) sync into Bluejay and render as an editable graph on the Agent's Workflow tab.
+    <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-run-sim.mp4"></video>
 
-## Typical Agent Lifecycle
+    Bluejay writes these metrics on each agent reply:
 
-1. **Create** the Agent in Bluejay (in the dashboard or through the [Add Agent API](/api-reference/endpoint/add-agent)).
-2. **Configure** the Agent by setting goals and attaching a knowledge base.
-3. **Connect** the Agent to its production system by choosing the connection type and entering the phone number or provider agent ID.
-4. **Test** by running simulations against the Agent to verify behavior before changes ship.
-5. **Monitor** by turning on observability so production calls flow into Bluejay for ongoing scoring and alerting.
-6. **Iterate** by updating goals, knowledge base content, or provider configuration as the agent evolves.
+    | Metric | Type | Measures |
+    |---|---|---|
+    | SPF | Pass/fail | The sender is authorized for the domain. |
+    | DKIM | Pass/fail | The message is signed and not changed. |
+    | DMARC | Pass/fail | Authentication aligns with the From address. |
+    | Bounced | Pass/fail | The reply was delivered. |
+    | Spam | Score out of 10 | The spam score of the reply. |
 
-## Best Practices
+    <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-metrics.mp4"></video>
 
-- **Be specific.** Clear, detailed descriptions and goals make simulations and analytics highly relevant and actionable. Vague goals lead to vague scoring.
-- **Keep the knowledge base current.** Update FAQs, scripts, and guidelines whenever the agent's intent or content changes, so simulations continue to reflect production behavior.
-- **Use distinct names.** Intuitive, descriptive names make it easier to identify the right Agent in the dashboard, in API responses, and in webhook payloads.
-- **Bind the right phone number.** Ensure the phone number on the Agent matches the production number, so observability events flow to the correct Agent and metrics aggregate correctly.
+    For an Outbound email agent, your system sends the first email:
 
-## Example Agent Definition
+    1. Set `agent_type="OUTBOUND"` and `outbound_trigger_webhook_url`.
+    2. In `outbound_trigger_payload_template`, include `{{digital_human.email}}`.
+    3. When a run starts, Bluejay sends a POST to your webhook with the filled template.
+    4. Your system emails the Digital Human at that address.
 
-```md
-Name: "Customer Support Bot"
+    Other template tokens are `{{digital_human.intent}}`, `{{digital_human.name}}`, and `{{sim_conversation_id}}`.
 
-Description: "An AI-powered assistant handling common customer support queries."
+    An email uptime monitor checks Agent Responds, Agent Malfunction, Authentication, SPF, DKIM, DMARC, Spam, Bounced, and Latency. Latency is reported, not graded. The minimum interval is 30 minutes. See [Uptime Monitoring](/monitor/uptime/overview).
 
-Goals:
-- Resolve common customer issues quickly
-- Provide accurate product information
-- Escalate complex queries to human operators
+    <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-uptime.mp4"></video>
+  </Tab>
+</Tabs>
 
-Knowledge Base:
-- Product FAQs
-- Troubleshooting guides
-- Company policies
+## Workflow
 
-Phone Number: "+1 (123) 456-7890"
+A Workflow is the multi-agent graph of a provider agent, for example a root agent that hands off to sub-agents. Bluejay syncs it from the provider and shows it on the **Workflow** tab of Agent Settings. A Vapi Squad shows the tab as **Squad**.
 
-Connection: Retell (synced agent)
-```
+<Note>
+  A Workflow is different from a [Scenario](/key-concepts/scenario-builder/overview). You build a Scenario in Bluejay. A Workflow comes from your provider.
+</Note>
 
-## Resources
+On the Workflow tab you can edit nodes, prompts, and edge conditions, add or delete nodes and edges, and send the change back. The Start node is protected. Sync and Push each replace the full destination graph. The MCP tools are `sync_agent_workflow` and `push_agent_workflow`.
 
-<CardGroup cols={2}>
-  <Card title="Workflows" icon="diagram-project" href="/key-concepts/agents/workflow">
-    Sync multi-agent flows from your provider and use them to drive simulations.
-  </Card>
-  <Card title="Add Agent API" icon="code" href="/api-reference/endpoint/add-agent">
-    Create an Agent programmatically.
-  </Card>
-  <Card title="Simulations Overview" icon="flask-vial" href="/test/simulations/overview">
-    How simulations work in Bluejay, from setup to scoring.
-  </Card>
-  <Card title="Custom Metrics" icon="gauge-high" href="/key-concepts/custom-metrics/overview">
-    Define scoring rules that apply to every simulation and every production call for an Agent.
-  </Card>
-</CardGroup>
+<Warning>
+  Push makes the change live for real callers of the agent. Sync deletes Bluejay edits that you did not push.
+</Warning>
+
+| Provider | Sync | Edit and push | Notes |
+|---|---|---|---|
+| ElevenLabs | Yes | Yes | Branches. You can merge a branch into Main. Simulations run against Main. |
+| Vapi | Yes | Yes | Single assistants and Squads. |
+| Retell | Yes | Yes | Conversation-flow agents. |
+| Dialogflow CX | Yes | Yes | Pull and Push in the editor. Push can create a version and promote it to an environment. |
+| Amelia | Yes | Yes | One flow for each agent, selected by name. See [Amelia](/integrations/amelia). |
+| Bland | Yes | Yes | Pathways. Prompt edits go to the live draft. Edge changes go to a new pathway version. |
+| Imported | No | Edit only | A graph imported from a document. It opens read-only until you click Edit. |
+
+The **Generate From Workflow** simulation type lists each path through the Workflow. It creates Digital Humans that drive the agent down each path. You set how many Digital Humans to create for each path. See [ElevenLabs](/integrations/eleven-labs) for a full example.

@@ -1,77 +1,77 @@
 ---
-title: "Custom Metrics Overview"
-sidebarTitle: "Overview"
-description: Understand how Custom Metrics are defined and used in Bluejay
+title: "Custom Metrics"
+description: "Custom Metrics score each conversation on criteria you define. Learn the metric types, response types, and fields Bluejay supports."
 icon: gauge-high
+sidebarTitle: "Custom Metrics"
 ---
 
-Custom Metrics let you define the exact quality signals that matter for your use case. They turn abstract product goals into measurable outcomes that Bluejay can evaluate repeatedly.
+import { Transcript } from "/snippets/transcript.jsx";
 
-## What You'll Learn
+A Custom Metric scores each Conversation from a simulation or from production on one criterion that you define. In the UI, Custom Metrics are on the **Metrics** page.
 
-- What Custom Metrics are and why they matter
-- How to define evaluation criteria for your specific use case
-- How Custom Metrics integrate with simulations and observability
+<Transcript
+  turns={[
+    { role: "agent", t: "00:01", text: "Thanks for calling Acme. Can I have your date of birth and the last four of your card?" },
+    { role: "human", t: "00:06", text: "March 3, 1985, and 4821." },
+    { role: "agent", t: "00:11", text: "Thank you. Your balance is $312.40." }
+  ]}
+  verdict={{ metric: "Identity Verified Before Disclosure", pass: true, reason: "Agent confirmed two factors before it gave the balance." }}
+/>
 
-## How Custom Metrics Work
+## Create a Custom Metric
 
-You create Custom Metrics to score conversations on domain-specific behavior such as compliance, resolution quality, empathy, or escalation accuracy. Those metrics can then be reused across simulations and production evaluations.
+1. Open the **Metrics** page.
+2. Click **Create**, then select **Create manually**, **Create automatically**, or **Add from library**.
+3. In the **Create Metric** dialog, select the metric type. For **LLM as a Judge**, select the response type and write the prompt.
+4. Connect the metric to one or more agents.
 
-```mermaid
-flowchart LR
-    Define[Define Metric] --> Attach[Attach to Agent]
-    Attach --> SimEval[Simulation Evaluation]
-    Attach --> ProdEval[Production Evaluation]
-    SimEval --> Scores[Scores & Trends]
-    ProdEval --> Scores
-```
+To create a metric with the API, use [Create Custom Metric](/api-reference/endpoint/create-custom-metric). To test a metric against labeled Conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
 
-Custom Metrics support two evaluation modes: LLM-as-a-Judges that use a prompt to score conversations, and formula-based definitions that compute composite scores from other metrics. You can prototype and refine metrics in Metrics Lab before deploying them.
+## Metric types
 
-## Key Capabilities
+The `metric_type` field sets how Bluejay gets the result.
 
-Click each capability to see what it gives you.
+| Type (UI label) | `metric_type` | How it scores | Required `settings` |
+|---|---|---|---|
+| LLM as a Judge | `llm_judge` | An LLM scores the Conversation against your `prompt`. You select the response type. | None |
+| Composite | `composite` | Combines the results of other metrics on the agent into one score or label. No LLM. | `composite` |
+| Tool Call | `tool_call` | Passes when the agent called the tools you name. No LLM. | `tool_names` |
+| Phrase Match | `transcript_regex` | Checks whether specific words were said. No LLM. | `phrases` (or `pattern`). Optional: `pass_on_match`, `case_sensitive` |
+| Transfer Landed | `transfer_landed` | Passes when the agent transferred the call to one of your Digital Humans, and that Digital Human answered. | `receiver_test_case_id`. Optional: `window_seconds` (default 180) |
 
-<AccordionGroup>
-  <Accordion title="LLM-as-a-Judge" icon="gavel">
-    Write a natural-language prompt that scores conversations on any criteria you define. The judge runs against the call transcript and returns a verdict shaped by your prompt and the metric's response type.
-  </Accordion>
-  <Accordion title="Formula metrics" icon="calculator">
-    Combine existing metric scores using arithmetic expressions to create composite indicators. Useful for "call quality" scores that weight several signals together.
-  </Accordion>
-  <Accordion title="Cross-workflow reuse" icon="arrows-rotate">
-    The same metric works in both simulation and observability evaluations. Define it once and apply it to test runs and production calls.
-  </Accordion>
-  <Accordion title="Metrics Lab integration" icon="flask">
-    Test scoring logic against sample transcripts in Metrics Lab before pointing the metric at production. Iterate on the prompt until the judge agrees with your spot-checks.
-  </Accordion>
-</AccordionGroup>
+Tool Call, Phrase Match, and Transfer Landed always return `pass_fail`. A Composite formula refers to a metric by its ID in double quotes, for example `round(100 * ("<metric_id>" / 5))`. Formulas allow arithmetic and `min`, `max`, `abs`, `round`, `floor`, and `ceil`.
 
-## Common Use Cases
+## Response types
 
-- Score whether an agent correctly verified a customer's identity before sharing account details
-- Track empathy and de-escalation quality across production calls
-- Create a composite "call quality" score that weights resolution, tone, and compliance together
+The `response_type` field sets the shape of an LLM as a Judge result.
 
-## Resources
+| Response type (UI label) | `response_type` | Output | Example | Extra fields |
+|---|---|---|---|---|
+| Pass/Fail | `pass_fail` | `pass` or `fail` | Did the agent verify identity before it shared account details? | None |
+| Yes/No | `yes_no` | `yes` or `no` | Did the customer ask for a human? | None |
+| Number | `quantitative` | A number from `min_value` to `max_value` | Rate the clarity of the explanation from 1 to 5. | `min_value`, `max_value` (required, `min_value` less than `max_value`) |
+| Text | `qualitative` | Free text | Summarize the objections the customer raised. | None |
+| Categorical | `enum` | One label from `enum_options` | Classify the call as `resolved`, `escalated`, or `unresolved`. | `enum_options` |
+| Structured JSON | `json` | A JSON object | Return `identity_verified` (boolean) and `flags` (string array). | `json_schema` (required) |
 
-<CardGroup cols={2}>
-  <Card title="Metric Types" icon="shapes" href="/key-concepts/custom-metrics/metric-types">
-    Pick the right response type for each measurement goal.
-  </Card>
-  <Card title="Prompting Guide" icon="pen-fancy" href="/key-concepts/custom-metrics/prompting-guide">
-    Write LLM-as-a-Judge prompts that score consistently across runs.
-  </Card>
-  <Card title="Dynamic Variables" icon="brackets-curly" href="/key-concepts/custom-metrics/dynamic-variables">
-    Inject call-specific context into metric definitions at evaluation time.
-  </Card>
-  <Card title="Metrics Lab" icon="flask" href="/key-concepts/metrics-lab/overview">
-    Prototype and test metrics against sample transcripts before deployment.
-  </Card>
-  <Card title="Create Custom Metric API" icon="code" href="/api-reference/endpoint/create-custom-metric">
-    Define a new Custom Metric programmatically.
-  </Card>
-  <Card title="Evaluate Endpoint" icon="play" href="/api-reference/endpoint/evaluate">
-    Submit calls for evaluation and pass metadata for dynamic variable substitution.
-  </Card>
-</CardGroup>
+Pass/Fail results roll up into pass rates. Text results do not roll up into a number. If you need a trend, add a Pass/Fail or Number metric next to the Text metric.
+
+<Note>
+The API does not accept `tool_call` as a `response_type`. Set `metric_type` to `tool_call` and put the tool names in `settings.tool_names` or `tool_names`.
+</Note>
+
+## Fields
+
+| Field | Description |
+|---|---|
+| `prompt` | The judge prompt. Required for `llm_judge`. The API also accepts `description`. |
+| `scoring_guidance` | Extra grading rules for the judge. |
+| `eval_segment` | The side of the Conversation to evaluate: `agent`, `user`, or `all` (default). |
+| `scope` | The pipeline that runs the metric: `observability`, `simulations`, or `all` (default). |
+| `eval_modality` | `AUTO` (default), `TEXT`, or `AUDIO`. |
+| `model`, `audio_model`, `temperature` | Judge model settings. |
+| `allow_not_applicable` | If `true`, the judge can return `Not Applicable` when the criterion does not apply to the Conversation. Default `false`. |
+| `category`, `tags` | Labels for filters on the **Metrics** page. |
+| `settings.use_knowledge_base` | If `true`, the judge can search the agent's [Knowledge Base](/key-concepts/knowledge-base/overview). Default `false`. |
+
+To put call-specific values into `prompt` or `scoring_guidance`, use [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).

@@ -1,52 +1,42 @@
 ---
-title: "Customer Traits Overview"
-sidebarTitle: "Overview"
-description: Understand how Customer Traits are modeled and used in Bluejay
+title: "Customer Traits"
+description: Customer Traits are case facts a Digital Human can say, like a member ID or date of birth. Define them once and keep values the same each run.
 icon: id-card
+sidebarTitle: "Customer Traits"
 ---
 
-Customer Traits capture the characteristics that shape how a customer sounds, behaves, and responds during evaluation. They make your testing more representative of real-world conversations.
+A Customer Trait is a case fact that a Digital Human knows and can say when the agent asks. Examples are a member ID, a date of birth, or an order number.
 
-## What You'll Learn
+A fixed trait value makes the call repeatable. If you write the value in `intent`, the model can say a different value on each run.
 
-- What Customer Traits are and how they shape simulations
-- How to use traits to create diverse, realistic test populations
-- How traits connect to Digital Humans and Customer Personas
+## Create a Customer Trait
 
-## How Customer Traits Work
+1. Open the **Customer Traits** page.
+2. Select the agent.
+3. Click **Create**.
+4. Enter the name, the data type, and an optional default value.
 
-You use Customer Traits to encode tone, urgency, language, demographic signals, and scenario-specific behavior so Bluejay can simulate or analyze customers in a more structured way across runs.
+With the API, send `POST /v1/create-customer-trait` with `agent_id`, `name`, `data_type`, and `default_value`.
 
-```mermaid
-flowchart LR
-    Traits["Customer Traits"] -- "assigned to" --> DH["Digital Human"]
-    Agent["AI Agent"] -- "asks for trait" --> DH
-    DH -- "responds with trait" --> Agent
-    Agent -- "acts on trait" --> Action["Context Retrieved"]
-```
+## Fields
 
-Traits are the building blocks of realistic customer behavior. They define how a simulated customer sounds, what they care about, and how they react during a conversation. Bluejay's generation engine uses traits to produce diverse populations that reflect real-world customer demographics.
+| Field | Values |
+|---|---|
+| Name | The name the agent asks for, for example `member_id`. Use the same name across the test suite. |
+| Data type | `BOOLEAN`, `STRING`, `DATE` (ISO 8601), or `NUMBER` |
+| Default value | The value that new Digital Humans get |
 
-## Key Capabilities
+## Set a value on a Digital Human
 
-- **Behavioral encoding** -- define tone, urgency, patience, and communication style
-- **Language and demographic signals** -- specify language preferences, technical proficiency, and contextual background
-- **Scenario-aware generation** -- traits adapt based on the simulation scenario context
-- **Full Customization** -- create any trait with any data type: Numbers, Strings, Dates, and more.
+On the **Traits** tab of a Digital Human, set a value for each trait. With the API, set `traits` on the Digital Human. Each item has `trait_name`, `trait_data_type`, and `value`. If `is_sip_header` is `true`, Bluejay sends the trait as a SIP header and the caller does not say it.
 
-## Common Use Cases
+Do not put agent-side data in a trait, for example CRM contents, expected tool arguments, or notes for the grader. Use `expected_tool_calls`, `success_criteria`, or a Custom Metric for those.
 
-- Create member IDs, birthdays, and other simulated PII data to enable testing of flows gated by verification
-- Define a max budget that a customer has to spend for outbound lead qualification flows
-- Define credit card numbers, CVC codes, and expiry dates for testing purchase flows
+## Change a Customer Trait
 
-## Next Steps
+When you save a change, select one option:
 
-<CardGroup cols={2}>
-  <Card title="Create Customer Persona API" icon="code" href="/api-reference/endpoint/create-customer-persona">
-    Define customer personas with traits via the API.
-  </Card>
-  <Card title="Digital Humans" icon="users" href="/key-concepts/digital-humans/overview">
-    Learn how traits feed into Digital Human behavior.
-  </Card>
-</CardGroup>
+- **Future Digital Humans**: only new Digital Humans get the change.
+- **Update Existing Digital Humans**: all Digital Humans of the agent get the new name, type, and value.
+
+With the API, `PUT /v1/update-customer-trait/{trait_id}` with `sync_existing: true` updates existing Digital Humans.
