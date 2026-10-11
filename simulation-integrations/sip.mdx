@@ -1,11 +1,11 @@
 ---
 title: "Phone and SIP Simulations"
 sidebarTitle: "Phone and SIP"
-description: "Test a voice agent over SIP using a phone number, a SIP URI, or a dynamic SIP webhook."
+description: "Test your voice agent over SIP or a phone number, the same phone path your customers use."
 icon: phone-volume
 ---
 
-Bluejay calls your agent at a phone number or SIP URI, or a Digital Human answers when your agent calls out. Over SIP, Bluejay adds headers that link each call to its result.
+Bluejay calls your agent, or a Digital Human answers when your agent calls out.
 
 ## Connect
 
@@ -19,8 +19,6 @@ Create an agent with type **Inbound**, mode **Voice**, and connection type **Pho
 Enter the number in E.164 format, for example `+15551234567`.
 </Step>
 </Steps>
-
-This works with any phone system: VoIP, contact center, PBX, toll-free, or mobile.
 
 ### SIP URI
 
@@ -108,7 +106,7 @@ Bluejay adds these headers to every SIP INVITE:
 | `X-Call-Type` | `SIP` |
 | `X-Custom-Headers` | Your custom headers as one JSON string. |
 
-Read `X-Simulation-Result-Id` when the call arrives. After the call, send tool calls, metadata, or [trace IDs](/key-concepts/traces/overview#linking-traces-to-simulation-results) to `/v1/update-simulation-result`. See [Tool Calls](/test/simulations/tool-calls#3-send-data-to-bluejay).
+Read `X-Simulation-Result-Id` when the call arrives. After the call, send tool calls, metadata, or [trace IDs](/key-concepts/traces/overview#link-a-trace) to `/v1/update-simulation-result`. See [Tool Calls](/monitor/observability/tool-calls).
 
 ## Twilio SIP domain
 
@@ -166,14 +164,12 @@ app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
 
 ## Test
 
-Create a simulation for the agent and click **Create New Run**. Open a result to see the transcript, recording, and metric scores. With a dynamic SIP webhook, each call gets its destination from the webhook.
+Create a simulation for the agent and click **Create New Run**.
 
 ## Limits
 
 - A plain phone call cannot carry the result ID. To link tool calls and traces, use SIP or a provider integration.
 - If the dynamic SIP webhook fails 3 times, the call ends with status `NO_CONNECTION` and error `DYNAMIC_ENDPOINT_FAILED`. Bluejay does not fall back to the SIP URI.
-- Bluejay applies the dynamic SIP webhook only when Bluejay places the call.
-- Direction comes from the agent type. An **Outbound** agent must place the calls itself.
 
 ## Related
 

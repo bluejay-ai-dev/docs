@@ -1,17 +1,10 @@
 ---
 title: "GitHub Actions"
-description: "Run a Bluejay simulation in GitHub Actions and fail the build when the pass rate drops."
+description: "Fail the CI build when a change to your agent lowers the Bluejay simulation pass rate."
 icon: code-branch
 ---
 
-The step fails if the pass rate is below `min_score`.
-
-## How the action works
-
-1. It queues a run for the simulation (`POST /v1/queue-simulation-run`).
-2. It polls until the run ends (`GET /v1/retrieve-simulation-results/{run_id}`).
-3. It computes the score as the pass rate: `tests_passed / total_tests × 100`.
-4. The step fails if the run does not complete, or if the score is below `min_score`.
+The step fails if the run does not complete, or if the pass rate is below `min_score`.
 
 ## Prerequisites
 
@@ -19,11 +12,11 @@ The step fails if the pass rate is below `min_score`.
 2. An agent connected to your assistant.
 3. A simulation on that agent, with the Digital Humans you want to run.
 
-The agent in Bluejay holds the connection to your assistant. The CI workflow needs only `api_key` and `simulation_id`, for all connection types.
+The CI workflow needs only `api_key` and `simulation_id`, for all connection types.
 
 ## Option 1: Test an existing agent
 
-Use this option unless you have a preview deployment for each PR. You set up the agent and simulation one time, and CI refers to the simulation. All runs stay on one simulation, so you can compare them.
+Use this option unless you have a preview deployment for each PR. All runs stay on one simulation, so you can compare them.
 
 <Steps>
   <Step title="Add your API key and variables">
@@ -103,7 +96,7 @@ jobs:
 
 Use this option if CI makes a preview deployment for each PR. The workflow creates an agent and a simulation, runs the test, and deletes them. Your Digital Humans stay, because they are your test suite.
 
-In the `add-agent` payload, include the connection field for your preview deployment. See [Add Agent](/api-reference/endpoint/add-agent) for the fields. Bluejay sets the connection type from the field you send.
+In the `add-agent` payload, include the connection field for your preview deployment. See [Add Agent](/api-reference/endpoint/add-agent) for the fields.
 
 For this option, `BLUEJAY_DIGITAL_HUMAN_IDS` is required, for example `101,102`. A new simulation has no Digital Humans, and the run fails without them.
 
@@ -189,22 +182,20 @@ jobs:
 
 ## Pin to a commit SHA
 
-If your organization requires a full-length commit SHA for third-party actions, the error is *"all actions must be pinned to a full-length commit SHA"*. A tag such as `v1` can move. A commit SHA cannot. To find the commit for `v1`, run:
+If your organization requires a full-length commit SHA for third-party actions, the error is *"all actions must be pinned to a full-length commit SHA"*. To find the commit for `v1`, run:
 
 ```bash
 git ls-remote https://github.com/bluejay-ai-dev/bluejay-github-actions 'refs/tags/v1^{}'
 ```
 
-You can also open the [repository](https://github.com/bluejay-ai-dev/bluejay-github-actions), click **Tags**, and copy the commit for `v1`. Then use the SHA:
+Then use the SHA:
 
 ```yaml
 uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7bdd7 # v1
 ```
 
-The SHA above is what `v1` resolves to as of July 2026.
-
 <Note>
-  A SHA pin does not follow updates to `v1`. To get fixes, run the command again and update the pin. [Dependabot](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot) with `package-ecosystem: github-actions` can update it for you.
+  A SHA pin does not follow updates to `v1`. To get fixes, run the command again and update the pin.
 </Note>
 
 ## Inputs

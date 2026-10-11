@@ -1,9 +1,11 @@
 ---
 title: "Upload Digital Humans with CSV"
 sidebarTitle: "CSV Upload"
-description: "Create many Digital Humans at once from a CSV file, with one row for each Digital Human."
+description: "Upload a CSV to create many Digital Humans at once from test cases you keep in a spreadsheet."
 icon: "file-csv"
 ---
+
+Each row becomes one Digital Human.
 
 ![Upload Custom Digital Humans card on the Create Simulation modal](/images/upload-dh-card.png)
 
@@ -24,32 +26,25 @@ icon: "file-csv"
 
 ![CSV upload area with the Sample CSV button](/images/upload-dh-dropzone.png)
 
-The first row that is not empty is the header. Header matching ignores case. Bluejay ignores columns that it does not know and skips blank rows.
+## Columns
 
-| Column | Sets | Values |
-|---|---|---|
-| `Name` | `name` | If blank, Bluejay generates a name. |
-| `Intent` | `intent` | Text |
-| `Success Criteria` | `success_criteria` | Text |
-| `Role Description` | `role_description` | Text |
-| `Phone Number` or `Caller Number` | `phone_number` | A number your organization owns. Otherwise Bluejay skips the row. |
-| `Scripted Responses` | `scripted_responses` | A JSON object or array |
-| `Scripted Responses In Order` | `scripted_responses_ordered` | `true` or `false` |
-| `Creativity` | `creativity` | 0 to 1 |
-| `Patience` | `endpointing_delay` | Seconds, 0 or more |
-| `No Response Timeout` | `silence_timeout` | Seconds, 0 or more |
-| `Voice` | Voice | A voice key, for example `en_british_feminine` |
-| `Voice Speed` | `voice_speed` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
-| `Background Noise` | `background_noise` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
-| `Background Noise Volume` | `background_noise_volume` | 0 to 1 |
-| `Audio Quality` | `audio_quality` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
-| `Dropouts` | `connection_quality` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
-| `Verbosity` | `verbosity` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
-| `Fluency` | `fluency` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
-| `Interruptions` | `interruptions` | JSON, see below |
-| `Speaks First` | `speaks_first_config` | JSON, for example `{"speaks_first": true, "mode": "custom", "message": "Hi, I am calling about my bill."}` |
-| `TC_<tool>` | An expected tool call | A string is the expected output. A JSON object can have `output` and `parameters`. |
-| `CT_<trait>` | A [trait](/key-concepts/digital-humans/overview#traits) | The trait value |
+Header matching ignores case. Bluejay ignores columns that it does not know.
+
+| Column | Values |
+|---|---|
+| `Name` | If blank, Bluejay generates a name. |
+| `Intent`, `Success Criteria`, `Role Description` | Text |
+| `Phone Number` | A number your organization owns. Otherwise Bluejay skips the row. |
+| `Scripted Responses` | A JSON object or array |
+| `Scripted Responses In Order` | `true` or `false` |
+| `Creativity` | 0 to 1 |
+| `Patience`, `No Response Timeout` | Seconds |
+| `Voice` | A voice key, for example `en_british_feminine` |
+| `Voice Speed`, `Background Noise`, `Background Noise Volume`, `Audio Quality`, `Dropouts`, `Verbosity`, `Fluency` | As in [Behavior](/key-concepts/digital-humans/overview#behavior) |
+| `Interruptions` | JSON, see below |
+| `Speaks First` | JSON, for example `{"speaks_first": true, "mode": "custom", "message": "Hi, I am calling about my bill."}` |
+| `TC_<tool>` | An expected tool call. A string is the expected output. |
+| `CT_<trait>` | The value of a [trait](/key-concepts/digital-humans/overview#traits) |
 
 The `Interruptions` cell is a JSON object with `interruptions_type`:
 
@@ -60,10 +55,10 @@ The `Interruptions` cell is a JSON object with `interruptions_type`:
 
 You cannot add `audio` scripted responses with a CSV. Add them in the editor after the upload.
 
-Bluejay reports row errors and imports the rows that are valid. If a JSON cell does not parse, Bluejay tries to repair quotes and line breaks.
+Bluejay imports the valid rows and reports errors for the other rows.
 
 <Warning>
-  A repaired JSON cell can have the wrong value. If Bluejay shows a "verify these rows" warning, check those Digital Humans before you run the simulation.
+  Bluejay tries to repair a JSON cell that does not parse. A repaired cell can have the wrong value. If Bluejay shows a "verify these rows" warning, check those Digital Humans before you run the simulation.
 </Warning>
 
 ## Related

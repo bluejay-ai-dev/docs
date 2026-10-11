@@ -1,11 +1,9 @@
 ---
 title: "Dialogflow CX"
-description: "Connect Google Dialogflow CX to Bluejay, test your agents, and push flow changes back."
+description: "Test your Dialogflow CX agents with simulated calls and chats, and push flow edits back to Google."
 icon: 'google'
 sidebarTitle: "Dialogflow CX"
 ---
-
-Bluejay connects to your Google Cloud project and syncs its Dialogflow CX agents. You can edit, version, and promote their flows.
 
 ## Connect
 
@@ -14,7 +12,7 @@ Go to **Settings > Integrations > Google Agents**. One credential covers Dialogf
 <Tabs>
 <Tab title="Keyless">
 
-Recommended. Bluejay uses Workload Identity Federation to act as a service account in your project. No key exists, so no key can leak. See [Keyless setup](#keyless-setup).
+Recommended. No key exists, so no key can leak. See [Keyless setup](#keyless-setup).
 
 | Field | Value |
 |---|---|
@@ -54,9 +52,9 @@ Make a custom role with the permissions you need and grant it to the service acc
 </Tab>
 </Tabs>
 
-Click **Save & test connection**, then **Sync Agents from Google**. Sync scans all locations and creates one agent for each Dialogflow CX and CES agent. An agent that you delete in Google is flagged in Bluejay. Sync again when you add agents in Google.
+Click **Save & test connection**, then **Sync Agents from Google**. Sync creates one agent for each Dialogflow CX and CES agent. Sync again when you add agents in Google.
 
-To connect one agent by hand, open its **Connection Settings** and choose the **Dialogflow CX** tile. Set **Dialogflow CX Agent Path** to `projects/<project>/locations/<location>/agents/<agentId>`. You can paste the console URL. Bluejay changes it to the path.
+To connect one agent by hand, open its **Connection Settings** and choose the **Dialogflow CX** tile. Set **Dialogflow CX Agent Path** to `projects/<project>/locations/<location>/agents/<agentId>`.
 
 ### Keyless setup
 
@@ -239,14 +237,7 @@ Paste the four values into the **Keyless** fields. Click **Save & test connectio
 </Step>
 </Steps>
 
-The script creates these resources in your project. Bluejay stores only the four values, which are not secret.
-
-| Resource | Purpose |
-|---|---|
-| Pool `bluejay` and OIDC provider `bluejay` | Trusts `https://api.getbluejay.ai`. Accepts only tokens with your `tenant_id` and `environment == production`. The allowed audience is the provider itself. |
-| Service account `bluejay-integration@<project>.iam.gserviceaccount.com` | The identity Bluejay uses. It has no keys. |
-| `roles/iam.workloadIdentityUser` binding | Lets only `attribute.tenant_id/<your tenant id>` impersonate the service account. |
-| Project roles | `roles/dialogflow.reader`, `roles/dialogflow.client`, and `roles/serviceusage.serviceUsageConsumer`. With `--ces`, also `roles/ces.viewer` and `roles/ces.client`. |
+Bluejay stores only the four values, which are not secret.
 
 The script does not grant write roles. To use **Push to DFCX**, **Version on push**, or **Promote**, add the write permissions from the **Service account key** tab to the service account.
 
@@ -259,7 +250,7 @@ gcloud iam service-accounts remove-iam-policy-binding \
   --member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/bluejay/attribute.tenant_id/BLUEJAY_TENANT_ID"
 ```
 
-To delete all of it, delete the service account and the pool with `gcloud iam workload-identity-pools delete bluejay --location=global`. For an audit trail, turn on IAM and STS Data Access audit logs in your project.
+To delete all of it, delete the service account and the pool with `gcloud iam workload-identity-pools delete bluejay --location=global`.
 
 <Accordion title="Terraform">
 Apply these files in your own repository. They create the same resources as the script. Bluejay never runs Terraform for you.
@@ -428,12 +419,12 @@ Paste the three outputs and your project ID into Bluejay. Terraform does not wai
 
 ## Test
 
-The connection type decides the path. Bluejay replies `{"status": "ok"}` to each client-side tool call so the conversation continues, and records the call. Tools that Google runs on its side run as usual.
+The connection type decides the path. Bluejay replies `{"status": "ok"}` to each client-side tool call.
 
 <Tabs>
 <Tab title="Voice">
 
-Bluejay streams audio between the Digital Human and the agent in real time. No phone number is necessary. This is inbound only.
+No phone number is necessary. This is inbound only.
 
 1. Choose the **Dialogflow CX** voice tile.
 2. Create a simulation and add Digital Humans. **Generate From Workflow** makes Digital Humans from the flows, event handlers, and playbooks, including paths across handoffs.
@@ -443,8 +434,6 @@ Bluejay streams audio between the Digital Human and the agent in real time. No p
 
 </Tab>
 <Tab title="Chat">
-
-Bluejay sends text turns to the agent through `detectIntent`.
 
 1. Set the agent mode to **Text** and choose the **Dialogflow CX** text tile.
 2. Create and run a simulation.
@@ -459,7 +448,7 @@ The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks o
 - **Pull** shows a diff from the live agent, then replaces the local copy.
 - **Push to DFCX** shows a diff, then writes your edits to the agent draft. Bluejay shows conflicts if the agent changed in Google after your last sync.
 - **Version on push** saves a new Dialogflow CX version of each flow and playbook that the push changed. Dialogflow CX limits the number of versions for each flow.
-- **Promote** deploys the flow versions you select to an environment, with the same `deployFlow` operation as the console.
+- **Promote** deploys the flow versions you select to an environment,.
 
 ![The DFCX workflow canvas in Bluejay](/images/google-dfcx-workflow-canvas.png)
 

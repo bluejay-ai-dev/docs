@@ -1,9 +1,11 @@
 ---
 title: "Custom Metrics Prompting Guide"
-description: "Write LLM as a Judge prompts for Custom Metrics that give consistent verdicts on each run."
+description: "Write LLM as a Judge prompts for Custom Metrics that give the same verdict on similar calls."
 icon: pen-fancy
 sidebarTitle: "Prompting Guide"
 ---
+
+A vague prompt can pass one call and fail an almost identical call.
 
 ## Rules for all response types
 
@@ -106,14 +108,7 @@ metadata:  { "customer_name": "Sarah", "account_last_four": "4821" }
 Judge sees: Did the agent confirm the account ending in 4821 for Sarah?
 ```
 
-Bluejay does not supply a fixed list of variables. Each top-level key in the Conversation `metadata` is a variable. These are the sources of `metadata`:
-
-| Source | Keys |
-|---|---|
-| [`/v1/evaluate`](/api-reference/endpoint/evaluate) request | The keys you send in the top-level `metadata` object. |
-| Vapi webhook | The call `metadata` you set in Vapi, plus `vapi_call_id`, `vapi_assistant_id`, `vapi_org_id`, `call_status`, `disconnection_reason`, `duration_ms`, `cost`, `summary`, and `success_evaluation`. |
-| Retell webhook | The call `metadata` you set in Retell, plus `retell_call_id`, `retell_agent_id`, `retell_agent_name`, `call_status`, `disconnection_reason`, `duration_ms`, `call_cost`, `opt_out_sensitive_data_storage`, and `data_storage_setting`. |
-| Simulations and Metrics Lab | The `metadata` stored on the Conversation. |
+Each top-level key in the Conversation `metadata` is a variable. With [`/v1/evaluate`](/api-reference/endpoint/evaluate), send the keys in the `metadata` object. With Vapi or Retell, the call metadata that you set in the provider is included.
 
 Example `/v1/evaluate` request:
 
@@ -131,10 +126,7 @@ Example `/v1/evaluate` request:
 ### Rules
 
 - A key contains only letters, digits, and underscores. `{{customer name}}` and `{{order.id}}` are not replaced.
-- Keys are case-sensitive. `{{Customer_Name}}` and `{{customer_name}}` are different keys.
-- Bluejay converts each value to a string.
-- If `metadata` does not contain the key, Bluejay replaces `{{key}}` with the text `undefined`. The evaluation does not fail.
-- Keys that no prompt uses stay on the Conversation and do not change the evaluation.
+- Keys are case-sensitive.
 
 <Warning>
 If a key is missing, the judge sees `undefined` in the prompt and can give a wrong verdict. Make sure each key in the prompt is in the `metadata` of every Conversation that the metric evaluates.
@@ -142,20 +134,7 @@ If a key is missing, the judge sees `undefined` in the prompt and can give a wro
 
 ## Tune a metric
 
-If the verdicts do not match what your team expects, do one of these:
-
-- Edit the prompt and run it again on a few Conversations.
-- Label a sample of Conversations in the [Metrics Lab](/key-concepts/metrics-lab/overview), then use **Improve** to change the prompt until the verdicts match your labels.
-
-## Checklist
-
-- The metric tests one thing.
-- A reader can answer each criterion from the transcript or the audio.
-- For Pass/Fail, the prompt states the pass condition and the fail condition.
-- For Number, the prompt defines each level.
-- For Categorical, each label has a definition, and the prompt gives a tiebreak rule.
-- For Structured JSON, each key has a type and a definition.
-- Each `{{key}}` is in the Conversation `metadata`.
+If the verdicts do not match what your team expects, label a sample of Conversations in the [Metrics Lab](/key-concepts/metrics-lab/overview). Then use **Improve** to change the prompt until the verdicts match your labels.
 
 ## Related
 

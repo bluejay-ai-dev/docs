@@ -1,11 +1,11 @@
 ---
 title: "Websocket Simulations"
-description: "Connect a voice agent to Bluejay over WebSocket using the CHIRP audio protocol."
+description: "Test a voice agent on your own server over WebSocket, with no phone number or voice platform."
 icon: tower-broadcast
 sidebarTitle: "WebSocket"
 ---
 
-Bluejay opens a WebSocket to your server and exchanges raw audio with it. The protocol is CHIRP: binary frames carry audio, and optional text frames carry events.
+Bluejay opens a WebSocket to your server and exchanges raw audio with it over the CHIRP protocol.
 
 ## Connect
 
@@ -137,9 +137,7 @@ Text frames are UTF-8 JSON with one envelope. If you omit `id`, `ts_ms`, or `dat
 | `session.error` | `code`, `message` | Your frame is not valid. Bluejay drops the frame and the session continues. | Bluejay logs it in the result metadata under `customer_session_errors`. |
 | `mark` | `name` | Only as an echo of your `mark`. | Bluejay echoes the same `name` after all audio you sent before it has played to the Digital Human. |
 
-Bluejay derives `speech.started` and `speech.completed` from speaker detection. Some audio frames of an utterance can arrive before `speech.started` or after `speech.completed`. Do not stop playback on `speech.completed`.
-
-To interrupt the Digital Human (barge-in), send `speech.started`. There is no separate interrupt event.
+Some audio frames can arrive after `speech.completed`. Do not stop playback on `speech.completed`.
 
 To match a `mark` echo, use `data.name`. The echo has a new `id` and `ts_ms`.
 
@@ -151,9 +149,11 @@ To match a `mark` echo, use `data.name`. The echo has a new `id` and `ts_ms`.
 | `MISSING_FIELD` | `type`, `utterance_id`, or `name` is missing. |
 | `INVALID_AUDIO_FRAME` | The binary frame is empty or has an odd byte length. |
 
+To interrupt the Digital Human (barge-in), send `speech.started`. There is no separate interrupt event.
+
 ## Test
 
-Create a simulation for the agent and run it. To end a call, close the WebSocket with code `1000`. Bluejay also closes the WebSocket when the call ends.
+Create a simulation for the agent and run it. To end a call, close the WebSocket with code `1000`.
 
 ## Limits
 

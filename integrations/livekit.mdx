@@ -1,9 +1,11 @@
 ---
 title: "LiveKit"
-description: "Connect LiveKit to Bluejay to simulate calls against your agent and monitor live calls."
+description: "Test your LiveKit agent with simulated callers and score your live LiveKit calls."
 icon: '/logo/livekit.svg'
 sidebarTitle: "LiveKit"
 ---
+
+Bluejay joins a Digital Human to a room with your agent, so you need no phone number.
 
 ## Connect
 
@@ -31,7 +33,7 @@ On each agent, choose the **LiveKit** tile in **Connection Settings**.
 <Tabs>
 <Tab title="Direct">
 
-Bluejay creates a room in your LiveKit project, dispatches your agent into it, and joins the Digital Human to the room. There is no SIP or trunk. This is for inbound agents. The **Outbound** option is disabled on LiveKit agents.
+Bluejay creates a room in your LiveKit project and dispatches your agent into it. This is for inbound agents only.
 
 1. Save your LiveKit keys, or set a token webhook.
 2. Set **LiveKit Agent Name** on the agent.
@@ -43,7 +45,7 @@ Bluejay creates a room in your LiveKit project, dispatches your agent into it, a
 </Tab>
 <Tab title="SIP">
 
-Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. An inbound trunk and a dispatch rule in your LiveKit project route the call to your agent. The number is a routing key. It does not need to be a purchased number.
+Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. The number does not need to be a purchased number.
 
 1. Create an inbound trunk in the project that owns the SIP host.
 
@@ -96,7 +98,7 @@ To get `X-Simulation-Result-Id` as a participant attribute, add it to the trunk 
 { "headers_to_attributes": { "X-Simulation-Result-Id": "X-Simulation-Result-Id" } }
 ```
 
-The ID then shows in `participant.attributes`. Use it to call [Update Simulation Result](/api-reference/endpoint/update-simulation-result). To map every `X-*` header to a `sip.h.*` attribute, set `include_headers` to `SIP_X_HEADERS` on the trunk. LiveKit sets these attributes asynchronously, so they can be missing when the SIP participant joins.
+The ID then shows in `participant.attributes`. Use it to call [Update Simulation Result](/api-reference/endpoint/update-simulation-result). LiveKit sets the attribute asynchronously, so it can be missing when the SIP participant joins.
 
 | SIP error | Cause |
 |---|---|
@@ -132,8 +134,6 @@ Your agent dials the Digital Humans. Use the **Phone** connection type, because 
 }
 ```
 
-The Digital Humans wait on their lines until the run times out. You can also dial the numbers by hand.
-
 </Tab>
 </Tabs>
 
@@ -159,7 +159,7 @@ Before each call, Bluejay sends a POST to the **Token Webhook URL**:
 
 Your endpoint must dispatch your agent. Put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
 
-If your endpoint returns `401` or `403`, the run fails at once with `NO_CONNECTION` and `LIVEKIT_SESSION_SETUP_FAILED`. For timeouts, `408`, `429`, and `5xx` responses, Bluejay tries again, with a maximum of 3 attempts in total.
+If your endpoint returns `401` or `403`, the run fails at once with `NO_CONNECTION` and `LIVEKIT_SESSION_SETUP_FAILED`.
 
 ### Tool calls
 

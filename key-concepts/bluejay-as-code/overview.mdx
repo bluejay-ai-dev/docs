@@ -1,11 +1,11 @@
 ---
 title: "Bluejay as Code"
 sidebarTitle: "Overview"
-description: "Manage Bluejay agents, simulations, and metrics as JSON files you pull, edit, and push."
+description: "Use Bluejay as Code to keep agents, simulations, and metrics in your repository and review changes in PRs."
 icon: code-branch
 ---
 
-All entities, including Digital Humans, are in one JSON payload in your repository. When you push, Bluejay creates or updates each entity.
+You pull, edit, and push JSON files, for example from CI, in place of edits in the UI.
 
 <iframe
   src="https://www.youtube.com/embed/MnFCBV9PwMA"
@@ -24,7 +24,7 @@ curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID \
   -o simulation.json
 ```
 
-The root type is `simulation`, `agent`, `digital-human`, or `custom-metric`. Each root returns the same payload shape with the related entities. See [Pull](/api-reference/endpoint/pull-bluejay-as-code).
+The root type is `simulation`, `agent`, `digital-human`, or `custom-metric`. The payload includes the related entities.
 
 ```json simulation.json
 {
@@ -101,17 +101,15 @@ Bluejay matches each entity by `bluejay_as_code_id`:
 | Digital Human missing from a simulation's links | Bluejay removes it from the simulation. The Digital Human stays. |
 | Custom metric missing from an agent's links | Bluejay detaches it from the agent. The metric stays. |
 
-The links are desired state. A simulation's `digital_humans`, an agent's `custom_metrics`, and a custom metric's `agents` replace the current links on push. A Digital Human's `simulations` list sets the same links from the other side.
+Each link list in the payload replaces the current links on push.
 
 <Warning>
 Risk: a silent failure. A payload with errors returns HTTP `200` with `"valid": false` and an `errors` list. Check `valid` after every push.
 </Warning>
 
-See [Push](/api-reference/endpoint/push-bluejay-as-code) for the full schema.
-
 ## Claude Code skill
 
-The Bluejay as Code skill is a plain-text prompt file. It gives Claude Code the payload shape, the pull and push endpoints, and the integration rules before Claude writes code.
+The skill file gives Claude Code the payload shape and the rules for pull and push.
 
 <Card title="Download skill" icon="download" href="https://raw.githubusercontent.com/bluejay-ai-dev/docs/main/key-concepts/bluejay-as-code/skill.txt">
   `skill.txt`
@@ -120,8 +118,6 @@ The Bluejay as Code skill is a plain-text prompt file. It gives Claude Code the 
 1. Download the file.
 2. Save it in your repository, for example as `bluejay-as-code.skill.txt`.
 3. In Claude Code, mention the file with `@bluejay-as-code.skill.txt` in your request.
-
-The skill tells Claude to keep `bluejay_as_code_id` values fixed in the config file, to check `valid` after each push, and to handle HTTP `422`.
 
 ## Related
 

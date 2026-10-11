@@ -1,67 +1,33 @@
 ---
 title: "Simulation Results"
-description: "Read your simulation results, understand call statuses and errors, and fix failed calls."
+description: "Read your simulation results to see which calls failed and why, so you know what to fix."
 icon: chart-mixed
 ---
 
-A simulation run is one execution of a simulation. It has one Conversation for each Digital Human. The run page shows a summary, a table with one row for each call, and the detail for each call.
-
-## Start a run
-
-- Dashboard: open the simulation and run it. On a run page, use **Rerun** with **Rerun failed** or **Rerun selected** to run calls again.
-- API: [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run) for voice, [Queue SMS Simulation Run](/api-reference/endpoint/queue-sms-simulation-run) for SMS, or [Queue HTTP Text Simulation Run](/api-reference/endpoint/queue-http-text-simulation-run) for HTTP text agents. Read results with [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results).
-
 ## Read the results
 
-The **Run Summary** shows the pass rate and the aggregate values across the run. The table has one row for each call. You can show these columns:
+The **Run Summary** shows the pass rate across the run. The table has one row for each call, with columns for status, latency, speech, and each [Custom Metric](/key-concepts/custom-metrics/overview).
 
-| Group | Columns |
-|---|---|
-| Call | Start time, Digital Human, status, outcome, duration, turns |
-| Latency | Answer latency, average agent latency, p50, p90, p95, and p99 agent latency, average punctuation latency |
-| Speech | Agent speaking percentage, interruption count, average agent turn duration, average agent words per turn, agent words per minute |
-| Digital Human | Goal, success criteria, phone number, voice or language, audio quality |
-| Custom Metrics | One column for each [Custom Metric](/key-concepts/custom-metrics/overview) on the agent |
+Click a row to open the call. The call shows the transcript, the recording, tool calls, and each metric result with its reasoning.
 
-Click a row to open the call. The call shows the transcript, the recording, tool calls, events, metadata, and each metric result with its reasoning. If your organization turns them on, the run also has redundancy and hallucination checks. The hallucination check runs only if the agent has a [Knowledge Base](/key-concepts/knowledge-base/overview).
+If the run has [Personalities](/key-concepts/digital-humans/personalities), the calls of one Digital Human group into one row. Expand the row to compare them.
 
-If the run has [Personalities](/key-concepts/digital-humans/personalities), each Digital Human calls once as itself and once for each Personality. These calls group into one row with a count badge. Expand the row to compare them. The **Digital Human** tab in the call panel shows the Personality of that call.
-
-To see a trend, run the same simulation again after each change to the agent, and compare the runs.
-
-## Run statuses
-
-| Status | Meaning |
-|---|---|
-| `RUNNING` | At least one call is still in progress. |
-| `COMPLETED` | Every call reached a final status. This includes runs where every call failed or was cancelled. |
-
-The pass, fail, and cancel counts show next to the run status.
+To run calls again, open the run and click **Rerun**, then select **Rerun failed** or **Rerun selected**.
 
 ## Call statuses
 
-Each call moves through in-progress statuses, then stops at one final status.
+| Status (UI label) | Meaning |
+|---|---|
+| Completed | The call ran and was scored. Pass or fail shows separately. |
+| No Connection | Bluejay could not reach your agent. |
+| No Answer | Bluejay reached the line, but nobody engaged. |
+| Call Dropped | The call started, then the line dropped. Bluejay scores the transcript up to the drop. |
+| Out of Funds | Your Bluejay balance ran out. |
+| System Error | A Bluejay service failed. |
+| Custom Error | The transcript matched the custom error prompt in the simulation settings. |
+| Cancelled | The call was stopped before it ran. |
 
-| Status (UI label) | Code | Group | Meaning |
-|---|---|---|---|
-| Initializing | `INITIALIZING` | In progress | Bluejay created the call and prepares it. A Customer Journeys step waits here until the step before it ends. |
-| Queued | `QUEUED` | In progress | The call waits for a worker. |
-| Ready | `READY` | In progress | Inbound Digital Humans only. The Digital Human is online and waits for your agent to call. |
-| Dispatched | `DISPATCHED` | In progress | The worker starts the call. The call is not connected yet. |
-| Running | `RUNNING` | In progress | The call is connected. |
-| Evaluation Pending | `CONVERSATION_ENDED` | In progress | The call ended and waits for evaluation. |
-| Evaluating | `EVALUATING` | In progress | Bluejay scores the transcript. |
-| Completed | `COMPLETED` | Final | The call ran and was scored. Pass or fail shows separately. |
-| Not Evaluated | `NOT_EVALUATED` | Final | Production Conversations only. Bluejay stored the Conversation but did not score it. |
-| No Connection | `NO_CONNECTION` | Failure | Bluejay could not reach your agent. |
-| No Answer | `NO_ANSWER` | Failure | Bluejay reached the line, but nobody engaged. |
-| Call Dropped | `CALL_DROPPED` | Failure | The call started, then the line dropped. Bluejay scores the transcript up to the drop. |
-| Out of Funds | `OUT_OF_FUNDS` | Failure | Your Bluejay balance ran out. |
-| System Error | `SYSTEM_ERROR` | Failure | A Bluejay service failed. |
-| Custom Error | `CUSTOM_ERROR` | Failure | The transcript matched the custom error prompt in the simulation settings. You can set the simulation to run these calls again. |
-| Cancelled | `CANCELLED` | Final | The call was stopped before it ran. |
-
-You can cancel a call only while it is `INITIALIZING`, `QUEUED`, `READY`, or `DISPATCHED`. When a call is `RUNNING`, it completes or drops.
+Other statuses, such as **Queued** and **Evaluating**, mean the call is still in progress. You can cancel a call only before it connects.
 
 ## Error codes
 
@@ -76,12 +42,10 @@ Usually a problem in your configuration or your provider plan.
 | `ELEVEN_LABS_AUTH_FAILED`, `RETELL_AUTH_FAILED`, `VAPI_AUTH_FAILED`, `WEBSOCKET_AUTH_FAILED` | Your provider rejected the API key that Bluejay has. | Update the key in the integration settings. |
 | `MISSING_ELEVEN_LABS_INTEGRATION`, `MISSING_RETELL_INTEGRATION`, `MISSING_VAPI_INTEGRATION`, `MISSING_PIPECAT_INTEGRATION`, `NO_PIPECAT_AGENT_NAME` | The provider integration is not connected or not complete. | Connect the integration. |
 | `MISSING_ELEVEN_LABS_AGENT_ID`, `MISSING_RETELL_AGENT_ID`, `MISSING_VAPI_ASSISTANT_ID` | The agent or assistant ID is empty. | Set the ID on the agent. |
-| `ELEVEN_LABS_INTEGRATION_DECRYPT_FAILED`, `RETELL_INTEGRATION_DECRYPT_FAILED`, `VAPI_INTEGRATION_DECRYPT_FAILED` | Bluejay could not decrypt the stored credentials. | Connect the integration again. |
 | `ELEVEN_LABS_BRIDGE_CONNECT_FAILED`, `RETELL_BRIDGE_CONNECT_FAILED`, `VAPI_BRIDGE_CONNECT_FAILED`, `ELEVEN_LABS_SESSION_SETUP_FAILED`, `RETELL_SESSION_SETUP_FAILED`, `VAPI_SESSION_SETUP_FAILED` | The provider accepted the connection but did not start a session. Often temporary. | Run the call again. |
-| `LIVEKIT_SESSION_SETUP_FAILED` | Bluejay could not join your LiveKit room. The token webhook rejected the request or returned a bad token, or the room join failed. | See [LiveKit](/integrations/livekit). |
+| `LIVEKIT_SESSION_SETUP_FAILED` | Bluejay could not join your LiveKit room. | See [LiveKit](/integrations/livekit). |
 | `UNUSABLE_CALLER_ID`, `INVALID_PHONE_NUMBER`, `INVALID_SIP_DESTINATION`, `SIP_DIAL_FAILED` | The caller ID is not verified, the destination is not valid, or the SIP dial failed. | Check the number or SIP destination. |
 | `CUSTOMER_CONCURRENCY_LIMIT` | Your provider's concurrent-call limit was reached. | Raise the limit or run fewer calls at once. |
-| `BRIDGE_PRE_START_FAILED` | The bridge setup before the call failed. | Run the call again. |
 | `NO_CONNECTION_TYPE` | The agent has no connection type. | Set a connection type. |
 
 ### No Answer
@@ -115,7 +79,7 @@ Usually a problem with your agent or your provider. Check your provider status p
 
 ### System Error
 
-The problem is in Bluejay. Codes: `HYDRATION_FAILED`, `EVAL_HYDRATION_FAILED`, `EVAL_NO_TRANSCRIPT`, `EVAL_AUDIO_CONVERSION_FAILED`, `EVAL_PIPELINE_FAILED`, `RECORDING_URL_FAILED`, `EVAL_QUEUE_FAILED`, `END_SIGNAL_TIMEOUT`, `AGENT_WORKER_LOST`, `SIP_TRUNK_RECYCLED`, `DB_WRITE_FAILED`, `EMAIL_SENDER_MISMATCH`, `UNKNOWN`, `UNKNOWN_LEGACY`. Ask in the [Slack community](https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA).
+The problem is in Bluejay. Run the call again. If the error repeats, ask in the [Slack community](https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA).
 
 ### Custom Error and Cancelled
 

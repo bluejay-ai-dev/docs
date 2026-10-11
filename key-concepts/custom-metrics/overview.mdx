@@ -1,13 +1,13 @@
 ---
 title: "Custom Metrics"
-description: "Define Custom Metrics to score each conversation on the criteria that matter to you."
+description: "Use Custom Metrics to grade each Conversation on the rules that matter to your business."
 icon: gauge-high
 sidebarTitle: "Overview"
 ---
 
 import { Transcript } from "/snippets/transcript.jsx";
 
-Each Custom Metric checks one criterion, on simulation and production Conversations. In the UI, Custom Metrics are on the **Metrics** page.
+Each metric checks one rule, for example that the agent verified identity before it shared account data. Metrics run on simulation and production Conversations.
 
 <Transcript
   turns={[
@@ -25,53 +25,44 @@ Each Custom Metric checks one criterion, on simulation and production Conversati
 3. In the **Create Metric** dialog, select the metric type. For **LLM as a Judge**, select the response type and write the prompt.
 4. Connect the metric to one or more agents.
 
-To create a metric with the API, use [Create Custom Metric](/api-reference/endpoint/create-custom-metric). To test a metric against labeled Conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
+To test a metric against labeled Conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
 
 ## Metric types
 
-The `metric_type` field sets how Bluejay gets the result.
+| Type (UI label) | `metric_type` | How it scores |
+|---|---|---|
+| LLM as a Judge | `llm_judge` | An LLM scores the Conversation against your prompt. |
+| Composite | `composite` | Combines the results of other metrics into one score or label. |
+| Tool Call | `tool_call` | Passes when the agent called the tools you name. |
+| Phrase Match | `transcript_regex` | Checks whether specific words were said. |
+| Transfer Landed | `transfer_landed` | Passes when the agent transferred the call to one of your Digital Humans, and that Digital Human answered. |
 
-| Type (UI label) | `metric_type` | How it scores | Required `settings` |
-|---|---|---|---|
-| LLM as a Judge | `llm_judge` | An LLM scores the Conversation against your `prompt`. You select the response type. | None |
-| Composite | `composite` | Combines the results of other metrics on the agent into one score or label. No LLM. | `composite` |
-| Tool Call | `tool_call` | Passes when the agent called the tools you name. No LLM. | `tool_names` |
-| Phrase Match | `transcript_regex` | Checks whether specific words were said. No LLM. | `phrases` (or `pattern`). Optional: `pass_on_match`, `case_sensitive` |
-| Transfer Landed | `transfer_landed` | Passes when the agent transferred the call to one of your Digital Humans, and that Digital Human answered. | `receiver_test_case_id`. Optional: `window_seconds` (default 180) |
-
-Tool Call, Phrase Match, and Transfer Landed always return `pass_fail`. A Composite formula refers to a metric by its ID in double quotes, for example `round(100 * ("<metric_id>" / 5))`. Formulas allow arithmetic and `min`, `max`, `abs`, `round`, `floor`, and `ceil`.
+Tool Call, Phrase Match, and Transfer Landed always return Pass/Fail. A Composite formula refers to a metric by its ID in double quotes, for example `round(100 * ("<metric_id>" / 5))`.
 
 ## Response types
 
-The `response_type` field sets the shape of an LLM as a Judge result.
+The response type sets the shape of an LLM as a Judge result.
 
-| Response type (UI label) | `response_type` | Output | Example | Extra fields |
-|---|---|---|---|---|
-| Pass/Fail | `pass_fail` | `pass` or `fail` | Did the agent verify identity before it shared account details? | None |
-| Yes/No | `yes_no` | `yes` or `no` | Did the customer ask for a human? | None |
-| Number | `quantitative` | A number from `min_value` to `max_value` | Rate the clarity of the explanation from 1 to 5. | `min_value`, `max_value` (required, `min_value` less than `max_value`) |
-| Text | `qualitative` | Free text | Summarize the objections the customer raised. | None |
-| Categorical | `enum` | One label from `enum_options` | Classify the call as `resolved`, `escalated`, or `unresolved`. | `enum_options` |
-| Structured JSON | `json` | A JSON object | Return `identity_verified` (boolean) and `flags` (string array). | `json_schema` (required) |
+| Response type (UI label) | `response_type` | Example |
+|---|---|---|
+| Pass/Fail | `pass_fail` | Did the agent verify identity before it shared account details? |
+| Yes/No | `yes_no` | Did the customer ask for a human? |
+| Number | `quantitative` | Rate the clarity of the explanation from 1 to 5. |
+| Text | `qualitative` | Summarize the objections the customer raised. |
+| Categorical | `enum` | Classify the call as `resolved`, `escalated`, or `unresolved`. |
+| Structured JSON | `json` | Return `identity_verified` (boolean) and `flags` (string array). |
 
-Pass/Fail results roll up into pass rates. Text results do not roll up into a number. If you need a trend, add a Pass/Fail or Number metric next to the Text metric.
-
-<Note>
-The API does not accept `tool_call` as a `response_type`. Set `metric_type` to `tool_call` and put the tool names in `settings.tool_names` or `tool_names`.
-</Note>
+Text results do not roll up into a number. If you need a trend, add a Pass/Fail or Number metric next to the Text metric.
 
 ## Fields
 
 | Field | Description |
 |---|---|
-| `prompt` | The judge prompt. Required for `llm_judge`. The API also accepts `description`. |
+| `prompt` | The judge prompt. Required for `llm_judge`. |
 | `scoring_guidance` | Extra grading rules for the judge. |
 | `eval_segment` | The side of the Conversation to evaluate: `agent`, `user`, or `all` (default). |
-| `scope` | The pipeline that runs the metric: `observability`, `simulations`, or `all` (default). |
-| `eval_modality` | `AUTO` (default), `TEXT`, or `AUDIO`. |
-| `model`, `audio_model`, `temperature` | Judge model settings. |
+| `scope` | Where the metric runs: `observability`, `simulations`, or `all` (default). |
 | `allow_not_applicable` | If `true`, the judge can return `Not Applicable` when the criterion does not apply to the Conversation. Default `false`. |
-| `category`, `tags` | Labels for filters on the **Metrics** page. |
 | `settings.use_knowledge_base` | If `true`, the judge can search the agent's [Knowledge Base](/key-concepts/knowledge-base/overview). Default `false`. |
 
 To put call-specific values into `prompt` or `scoring_guidance`, use [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).

@@ -1,11 +1,11 @@
 ---
 title: "Uptime Monitoring"
-description: "Set up uptime monitoring to check your live agent on a schedule and get notified when it goes down."
+description: "Use uptime monitoring to learn that your live agent is down before your customers tell you."
 icon: heart-pulse
 sidebarTitle: "Uptime"
 ---
 
-Each check gets a verdict of UP, DOWN, or UNKNOWN. Bluejay sends a notification when the verdict changes between UP and DOWN. It works for voice, SMS, and email agents, inbound and outbound.
+Bluejay runs a test conversation with your agent on a schedule and notifies you when it stops working. It works for voice, SMS, and email agents.
 
 ## Checks
 
@@ -40,11 +40,11 @@ Email monitors use different checks:
 | **DOWN** | At least one check failed. |
 | **UNKNOWN** | Nothing could be measured. |
 
-Uptime percentage is UP divided by (UP + DOWN). UNKNOWN does not count. Notifications fire only on a change between UP and DOWN. UNKNOWN never sends a notification.
+Bluejay sends a notification only when the verdict changes between UP and DOWN. UNKNOWN does not send a notification and does not count toward the uptime percentage.
 
 ## Latency
 
-Latency is the time from the end of the caller's turn to the start of the agent's reply, averaged across the conversation. The agent's greeting is not included. Agent Responds covers the greeting.
+Latency is the average time from the end of the caller's turn to the start of the agent's reply. The greeting is not included.
 
 | Channel | Default `latency_threshold_ms` |
 |---------|--------------------------------|
@@ -54,7 +54,7 @@ Latency is the time from the end of the caller's turn to the start of the agent'
 
 ## Alert after repeated failures
 
-One slow conversation or one Agent Malfunction verdict can be noise. Set `alert_after_failures` on a check so it counts toward DOWN only after that many failures in a row. One pass resets the count.
+To ignore one-off failures, set `alert_after_failures` on a check. The check counts toward DOWN only after that many failures in a row.
 
 ```json
 {
@@ -93,7 +93,7 @@ To make the probe use one of your Digital Humans, add this entry to the monitor'
 }
 ```
 
-A Digital Human only selects the caller. It grades nothing, so keep at least one enabled check with a `checkType` or `customMetricId`. Updates from the API or MCP are partial, so send only the fields you change. `checks` replaces the full array. To go back to the default caller, send the checks without the `digitalHumanId` entry.
+A Digital Human only selects the caller. It grades nothing, so keep at least one enabled check with a `checkType` or `customMetricId`. An update to `checks` replaces the full array.
 
 ## Outbound agents
 

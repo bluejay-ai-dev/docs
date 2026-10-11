@@ -1,10 +1,10 @@
 ---
 title: "Webhooks"
-description: "Receive signed webhooks when Bluejay evaluates a conversation, ends a simulation, or fires an alert."
+description: "Use webhooks to post results to CI or open a ticket when Bluejay finishes work or an alert fires."
 icon: bolt
 ---
 
-A webhook sends a `POST` request with a JSON body to your URL when a subscribed event occurs. The [Events Webhook reference](/api-reference/webhook/events-webhook) has the full payload schemas.
+Bluejay sends a signed `POST` request with a JSON body to your URL when it evaluates a conversation, ends a simulation, or fires an alert. The [Events Webhook reference](/api-reference/webhook/events-webhook) has the payload schemas.
 
 ## Create a webhook
 
@@ -14,7 +14,7 @@ A webhook sends a `POST` request with a JSON body to your URL when a subscribed 
 4. If you want only some agents, select agents or folders. A folder includes every agent in it.
 5. Generate the signing key and copy it to your receiver.
 
-If you select no agents and no folders, the webhook fires for all agents in the workspace. If you select no events, the default is **Observability log evaluated**. You can disable a webhook without deleting it.
+If you select no agents and no folders, the webhook fires for all agents in the workspace.
 
 ## Events
 
@@ -26,118 +26,6 @@ If you select no agents and no folders, the webhook fires for all agents in the 
 | Observability log evaluated | `observability_call_evaluated` | A production conversation finishes evaluation. |
 | Observability alert triggered | `observability_alert_triggered` | An observability [alert](/key-concepts/alerts/overview) enters or leaves alarm. |
 | Simulation alert triggered | `simulation_alert_triggered` | A simulation alert fires for a run. |
-
-Alert events go to webhooks that subscribe here. You do not add them on the alert.
-
-<Tabs>
-  <Tab title="Simulation evaluated">
-    ```json
-    {
-      "type": "simulation_result_evaluated",
-      "id": 123,
-      "digital_human_id": 456,
-      "status": "COMPLETED",
-      "simulation_run_id": 789,
-      "simulation_id": 12,
-      "agent_id": 34,
-      "folder_id": "d3b1e0f0-1234-5678-9abc-def012345678",
-      "evaluations": [ ... ],
-      "events": [ ... ],
-      "tool_calls": [ ... ],
-      "tags": [],
-      "metadata": {},
-      "created_at": "2026-07-16T18:00:00Z",
-      "start_time": "2026-07-16T18:00:05Z",
-      "end_time": "2026-07-16T18:02:10Z",
-      "duration": 125
-    }
-    ```
-  </Tab>
-  <Tab title="Simulation ended">
-    ```json
-    {
-      "type": "simulation_ended",
-      "id": 123,
-      "digital_human_id": 456,
-      "status": "CONVERSATION_ENDED",
-      "simulation_run_id": 789,
-      "created_at": "2026-07-16T18:00:00Z",
-      "start_time": "2026-07-16T18:00:05Z",
-      "end_time": "2026-07-16T18:02:10Z",
-      "duration": 125
-    }
-    ```
-  </Tab>
-  <Tab title="Outbound simulation started">
-    ```json
-    {
-      "type": "outbound_simulation_started",
-      "agent_id": 34,
-      "simulation_id": 12,
-      "simulation_run_id": 789,
-      "digital_humans": [
-        {
-          "id": 456,
-          "name": "Maria Gonzalez",
-          "phone_number": "+15551234567",
-          "associated_simulation_result_ids": [123]
-        }
-      ]
-    }
-    ```
-  </Tab>
-  <Tab title="Observability log evaluated">
-    The body is the full Conversation, with `type` added.
-
-    ```json
-    {
-      "type": "observability_call_evaluated",
-      "id": "call_123",
-      "agent_id": 34,
-      "evaluations": [ ... ],
-      "transcript": [ ... ],
-      "metadata": {}
-    }
-    ```
-  </Tab>
-  <Tab title="Observability alert triggered">
-    `subtype` is `triggered` or `recovered`.
-
-    ```json
-    {
-      "type": "observability_alert_triggered",
-      "subtype": "triggered",
-      "alert_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-      "alert_name": "High latency",
-      "display_text": "Threshold: 5 events in 10 min",
-      "organization_id": "org_123",
-      "agent_id": 34,
-      "event_count": 6,
-      "min_events": 5
-    }
-    ```
-  </Tab>
-  <Tab title="Simulation alert triggered">
-    `subtype` is `triggered` or `recovered`.
-
-    ```json
-    {
-      "type": "simulation_alert_triggered",
-      "subtype": "triggered",
-      "alert_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-      "alert_name": "Goal completion drop",
-      "display_text": "Goal completion: avg across simulation run 789 was 0.4 (less_than 0.8)",
-      "organization_id": "org_123",
-      "agent_id": 34,
-      "simulation_id": 12,
-      "simulation_run_id": 789,
-      "actual_value": 0.4,
-      "operator": "less_than",
-      "comparison_value": "0.8"
-    }
-    ```
-  </Tab>
-</Tabs>
 
 ## Verify the signature
 
@@ -159,8 +47,7 @@ def is_valid(body: bytes, signature: str, signing_key: str) -> bool:
 ## Delivery
 
 - Requests come from `api.getbluejay.ai`. If you use an allowlist, allow that host.
-- Bluejay sends each event once and does not retry. A non-2xx response or a network error marks the delivery as failed.
-- The Webhooks table shows the last call time and a failure indicator for the last delivery.
+- Bluejay sends each event once and does not retry.
 
 ## Troubleshooting
 

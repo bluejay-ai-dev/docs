@@ -1,14 +1,14 @@
 ---
 title: "Self-Improve"
-description: "Use Self-Improve to have Bluejay rewrite your agent prompt until it hits a target pass rate."
+description: "Use Self-Improve to fix a failing agent prompt without manual trial and error."
 icon: wand-magic-sparkles
 ---
 
-Self-Improve runs a simulation against your agent, finds a failure pattern, rewrites the agent prompt in your provider, and runs the simulation again. It keeps a change only if the pass rate goes up.
+Bluejay finds why calls fail, rewrites the prompt, and keeps a change only if the pass rate goes up.
 
 ## Supported providers
 
-Self-Improve supports Vapi, ElevenLabs, and Retell agents with the native connection type for that provider. A synced agent qualifies. Bland agents are not supported.
+Self-Improve supports Vapi, ElevenLabs, and Retell agents with the native connection type for that provider.
 
 ## Start a run
 
@@ -25,11 +25,11 @@ Bluejay AI shows a preview of the agent, simulation, target, and rounds. Confirm
 | Minimum improvement to keep a fix | 0.02 | 0 to 1 |
 | Number of generated metrics | 5 | 1 to 20 |
 
-To use your own metrics, name them. Bluejay AI passes them as `success_metric_ids`.
+To use your own metrics, name them.
 
 ## Each round
 
-1. Metrics: Bluejay generates Pass/Fail metrics from the agent goals and tools, or uses the metrics you named. It locks the metrics on the simulation, so each round uses the same scoring.
+1. Metrics: Bluejay generates Pass/Fail metrics from the agent goals and tools, or uses the metrics you named.
 2. Baseline: the current prompt runs the full simulation. If the pass rate already meets the target, the run ends with no change.
 3. Diagnose: Bluejay reads the failed calls and finds one failure pattern.
 4. Fix: Bluejay writes a new prompt for that pattern and pushes it to your provider.
@@ -39,9 +39,9 @@ The run stops when the pass rate meets the target, the round limit is reached, o
 
 ## Result
 
-If the run beats the baseline, Bluejay saves the best prompt as a new Agent Version on the agent with the `latest` label. The commit message has the format `self-improve run <id>: 60% -> 90% (target reached)`. Your previous version stays. Bluejay never moves the `production` label. You decide when to promote the new version.
+If the run beats the baseline, Bluejay saves the best prompt as a new Agent Version on the agent with the `latest` label. Your previous version stays. Bluejay never moves the `production` label. You decide when to promote the new version.
 
-To see progress, ask Bluejay AI for the run status. It shows the baseline pass rate, the current round, and what each round tried.
+To see progress, ask Bluejay AI for the run status.
 
 ## Limits
 

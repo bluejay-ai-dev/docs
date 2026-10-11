@@ -1,11 +1,11 @@
 ---
 title: "Scenario Builder"
-description: "Design a conversation flow in the Scenario Builder and turn each path into a Digital Human."
+description: "Use the Scenario Builder to test that your agent follows a required flow or gets through a phone tree."
 icon: map
 sidebarTitle: "Scenario Builder"
 ---
 
-A scenario is a directed graph of agent turns and user turns. Each path from the start node to a leaf node becomes one Digital Human that follows that path turn by turn.
+You draw the flow, and Bluejay makes one Digital Human for each path through it.
 
 <video
   controls
@@ -24,7 +24,7 @@ The **Scenario Builder** page has two item types:
 | IVR Flow | A phone tree with menus, hold steps, and transfer points. Your agent calls in, and the Digital Human plays the IVR system. |
 
 <Note>
-Scenarios are for voice agents only. If you connect a text or email agent, the API returns a 400 error.
+Scenarios are for voice agents only.
 </Note>
 
 ## Create a scenario
@@ -43,7 +43,7 @@ Scenarios are for voice agents only. If you connect a text or email agent, the A
 
 In the **Create Simulation** dialog, select the **Scenario Adherence** type and the scenario. For an IVR Flow, select the **IVR Flow** type. Bluejay creates one Digital Human for each path.
 
-With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) with `workflow_adherence_v2`, a map of scenario ID to the number of Digital Humans. The maximum is 200 for each scenario. If the scenario has more paths than the number, Bluejay uses the first paths up to the number.
+With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) with `workflow_adherence_v2`, a map of scenario ID to the number of Digital Humans. The maximum is 200 for each scenario.
 
 ```json
 {
@@ -92,14 +92,7 @@ If you change a `branch_options[].id`, the edges that use that `sourceHandle` no
 
 ## Validation rules
 
-A graph with no `single` or `options` node is saved as a draft. Bluejay only rejects a draft that has more than one start node. When the graph has a content node, these rules apply:
-
-1. The graph has one start node.
-2. The graph has no directed cycles.
-3. Each `single` and `options` node is reachable from the start node.
-4. Each node follows the `single` and `options` rules above.
-
-If a rule fails, the API returns 400 with the reason.
+A graph must have one start node and no cycles. Each node must be reachable from the start node.
 
 ## Example definition
 
@@ -138,8 +131,6 @@ This create request has one branch.
 ```
 
 This graph has two paths, so it makes two Digital Humans.
-
-An update changes only the fields you send. If you send `agent_ids`, the update replaces all agent links.
 
 ## Related
 

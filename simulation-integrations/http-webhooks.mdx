@@ -1,10 +1,10 @@
 ---
 title: "Chat Testing"
-description: "Test a text chat agent over HTTP webhooks, with replies sent through the Bluejay API."
+description: "Test a text chat agent on your own server with simulated customers over HTTP webhooks."
 icon: webhook
 ---
 
-Bluejay posts each Digital Human message to your webhook URL. Your agent replies with [`/v1/send-http-text-message`](/api-reference/endpoint/send-http-text-message), or in the webhook response body.
+Bluejay posts each Digital Human message to your webhook URL, and your agent sends its reply back through the Bluejay API.
 
 <iframe
   src="https://www.loom.com/embed/49ce062677ed44be932c5dd0a89c7269?speed=1.5&captions=true&hideEmbedTopBar=true"
@@ -53,7 +53,7 @@ In the app, open the simulation and click **Create New Run**. With the API, call
 { "simulation_run_id": "4434", "simulation_result_ids": ["13062"], "agent_id": "258", "status": "success" }
 ```
 
-You get one `simulation_result_id` per conversation. Optional request fields: `digital_human_ids`, `runs_per_digital_human`, `agent_version_id`.
+You get one `simulation_result_id` per conversation.
 </Step>
 <Step title="Receive the first message">
 For an **Inbound** agent, Bluejay posts the Digital Human first message to your webhook. For an **Outbound** agent, Bluejay posts `"message": null` to tell your agent to start.
@@ -110,7 +110,7 @@ Return any `2xx` status. Bluejay sends `Content-Type: application/json`, and `X-
 
 ## Log tool calls
 
-Send one request with `"type": "tool_call"` for each tool your agent runs. Bluejay stores the tool call on the result and computes `start_offset_ms`. A tool call does not add a transcript line and does not start a Digital Human reply.
+Send one request with `"type": "tool_call"` for each tool your agent runs. A tool call does not start a Digital Human reply.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
@@ -143,7 +143,7 @@ def verify_signature(raw_body: bytes, signature_header: str, signing_key: str) -
     return hmac.compare_digest(expected, signature_header)
 ```
 
-Bluejay creates the key the first time you save an HTTP webhook. Later updates keep the same key. To see it, click **View signing key** in the agent **Connection** settings.
+To see the key, click **View signing key** in the agent **Connection** settings.
 
 ## Limits
 
