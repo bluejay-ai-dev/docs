@@ -19,10 +19,7 @@ Bluejay posts each Digital Human message to your webhook URL, and your agent sen
 
 <Tabs>
 <Tab title="Website">
-1. Create an agent with mode **Text** and connection type **HTTP Webhook**.
-2. Enter the **HTTP Webhook URL**.
-3. Save the agent.
-4. Under **Webhook Signing Key**, click **Generate signing key** and copy the key.
+Use a Text agent with the **HTTP Webhook** connection type and your **HTTP Webhook URL**. After you save the agent, generate a **Webhook Signing Key** so your server can [verify each request](#verify-the-signature).
 </Tab>
 <Tab title="API">
 
@@ -47,7 +44,7 @@ Set `http_webhook_sync_reply` to `true` if your endpoint returns the agent reply
 
 <Steps>
 <Step title="Queue the run">
-In the app, open the simulation and click **Create New Run**. With the API, call [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run) with `simulation_id`.
+Start a run in the app, or call [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run) with `simulation_id`.
 
 ```json
 { "simulation_run_id": "4434", "simulation_result_ids": ["13062"], "agent_id": "258", "status": "success" }
@@ -142,8 +139,6 @@ def verify_signature(raw_body: bytes, signature_header: str, signing_key: str) -
     expected = hmac.new(signing_key.encode(), raw_body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature_header)
 ```
-
-To see the key, click **View signing key** in the agent **Connection** settings.
 
 ## Limits
 

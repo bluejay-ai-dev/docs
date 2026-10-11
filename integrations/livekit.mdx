@@ -35,12 +35,7 @@ In [Bluejay as Code](/key-concepts/bluejay-as-code/overview), the Digital Human 
 <Tabs>
 <Tab title="Direct">
 
-Bluejay creates a room in your LiveKit project and dispatches your agent into it. This is for inbound agents only.
-
-1. Save your LiveKit keys, or set a token webhook.
-2. Set **LiveKit Agent Name** on the agent.
-3. Create a simulation on the **Simulations** page and add Digital Humans.
-4. Click **Create New Run**, then **Run N calls**.
+Bluejay creates a room in your LiveKit project and dispatches your agent into it. This is for inbound agents only. It needs saved LiveKit keys or a token webhook, and the **LiveKit Agent Name** that your worker registers with. Use this path to iterate on agent logic without phone audio.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/connection-settings.mp4"></video>
 
@@ -76,7 +71,6 @@ lk sip dispatch create dispatch.json
 
 3. In Bluejay, choose the **SIP** connection type.
 4. Set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. The number must match the trunk `numbers` exactly.
-5. Create and run a simulation.
 
 Custom SIP headers from **Connection Settings** go on the INVITE with the name you enter. Bluejay also sends all of them as JSON in `X-Custom-Headers`. Read them with the `lk.sip.GetRemoteHeaders` RPC:
 
@@ -321,10 +315,9 @@ LiveKit sends every call in the project to Bluejay. This path does not capture t
 Cost risk. The LiveKit webhook streams call data to Bluejay. LiveKit can bill you for the egress.
 </Warning>
 
-1. Save your LiveKit keys in **Settings > Integrations > LiveKit**.
-2. Click **Show configuration** and copy the webhook URL.
-3. In LiveKit Cloud, go to **Settings > Webhooks** and add the URL, signed with your API key.
-4. Make sure your agent has a [dispatch name](https://docs.livekit.io/agents/build/dispatch/) (`agent_name` in `WorkerOptions`).
+1. Save your LiveKit keys in **Settings > Integrations > LiveKit**, then copy the webhook URL from **Show configuration**.
+2. In LiveKit Cloud, go to **Settings > Webhooks** and add the URL, signed with your API key.
+3. Make sure your agent has a [dispatch name](https://docs.livekit.io/agents/build/dispatch/) (`agent_name` in `WorkerOptions`).
 
 On the first call, Bluejay creates an agent with the dispatch name. The refresh icon next to the URL makes a new URL. The old URL then stops working.
 

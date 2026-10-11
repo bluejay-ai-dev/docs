@@ -20,11 +20,7 @@ Each metric checks one rule, for example that the agent verified identity before
 
 ## Create a Custom Metric
 
-1. Open the **Metrics** page and click **Create**. Write the metric yourself, generate it, or add it from the library.
-2. Select the metric type. For **LLM as a Judge**, select the response type and write the prompt.
-3. Connect the metric to one or more agents.
-
-To test a metric against labeled Conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
+A metric runs on the Conversations of the agents you connect it to. A simulation can limit a run to selected metrics. To test a metric against labeled Conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
 
 ## Metric types
 
@@ -62,9 +58,102 @@ Text results do not roll up into a number. If you need a trend, add a Pass/Fail 
 | `eval_segment` | The side of the Conversation to evaluate: `agent`, `user`, or `all` (default). |
 | `scope` | Where the metric runs: `observability`, `simulations`, or `all` (default). |
 | `allow_not_applicable` | If `true`, the judge can return `Not Applicable` when the criterion does not apply to the Conversation. Default `false`. |
-| `settings.use_knowledge_base` | If `true`, the judge can search the agent's [Knowledge Base](/key-concepts/knowledge-base/overview). Default `false`. |
+| `settings.use_knowledge_base` | If `true`, the judge can search the agent's [Knowledge Bases](/key-concepts/knowledge-base/overview). Default `false`. |
 
 To put call-specific values into `prompt` or `scoring_guidance`, use [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
+
+## Tool calls, events, and metadata
+
+Send tool calls, events, and metadata with a Conversation so metrics can check what the agent did, not only what it said. For example, a metric can check that the agent looked up the order before it gave a delivery date.
+
+### Send tool calls
+
+<Tabs>
+  <Tab title="Simulations">
+    Bluejay sends an `X-Simulation-Result-Id` with each simulated call. Your agent reads it, records its tool calls during the call, and sends them after the call ends.
+
+    | Connection | Where the ID arrives |
+    |------------|----------------------|
+    | [SIP](/simulation-integrations/sip) | A custom header on the SIP INVITE. |
+    | [WebSocket](/simulation-integrations/websockets) | A header on the WebSocket upgrade request. |
+
+    A plain phone number connection sends no ID, so it cannot attach tool calls. Use SIP for phone agents. For a voice platform or framework, its integration page says where the ID arrives.
+
+    After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
+
+    ```json
+    {
+      "simulation_result_id": "1234",
+      "tool_calls": [
+        {
+          "name": "transfer_funds",
+          "parameters": { "from": "12345", "to": "67890", "amount": 500 },
+          "output": { "transaction_id": "txn_abc123", "status": "completed" },
+          "start_offset_ms": 120000
+        }
+      ],
+      "events": [
+        { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
+      ],
+      "metadata": { "resolution_status": "resolved" }
+    }
+    ```
+
+    Some integrations collect tool calls without this API call. The integration page for your platform says if it does.
+  </Tab>
+  <Tab title="Production">
+    Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording. You cannot add them later.
+
+    ```json
+    {
+      "agent_id": "123",
+      "start_time_utc": "2026-07-16T18:00:00Z",
+      "participants": [
+        { "role": "AGENT", "spoke_first": true },
+        { "role": "USER", "spoke_first": false }
+      ],
+      "recording_url": "https://storage.example.com/call.mp3",
+      "tool_calls": [
+        {
+          "name": "check_order_status",
+          "start_offset_ms": 2000,
+          "description": "Look up order status by order ID",
+          "parameters": { "order_id": "ORD-2024-001" },
+          "output": { "status": "in_transit" }
+        }
+      ],
+      "metadata": { "customer_tier": "premium" }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Tool call fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | The tool name. |
+| `start_offset_ms` | integer | Yes | Milliseconds from the start of the conversation. |
+| `description` | string | No | What the tool does. Custom Metrics read it. |
+| `parameters` | object | No | The input to the tool. |
+| `output` | any | No | The value the tool returned. |
+
+### Event fields
+
+An event marks a moment in the conversation, for example an escalation or a hold.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | The event name. |
+| `start_offset_ms` | integer | Yes | Milliseconds from the start of the conversation. |
+| `end_offset_ms` | integer | No | When the event ended. |
+| `description` | string | No | Details of the event. |
+| `tags` | string[] | No | Tags for the event. |
+| `metadata` | object | No | Extra data for the event. |
+
+### Metadata
+
+`metadata` is a free-form JSON object for the whole conversation. Bluejay puts each key into the matching `{{placeholder}}` in your Custom Metrics. See [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
 
 ## Related
 
@@ -72,4 +161,4 @@ To put call-specific values into `prompt` or `scoring_guidance`, use [dynamic va
 - [Custom Metrics MCP tools](/mcp/testing-tools#metrics)
 - [Custom Metrics Prompting Guide](/key-concepts/custom-metrics/prompting-guide)
 - [Metrics Lab](/key-concepts/metrics-lab/overview)
-- [Alerts](/key-concepts/alerts/overview)
+- [Observability API](/api-reference/endpoint/evaluate)

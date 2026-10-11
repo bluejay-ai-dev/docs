@@ -11,18 +11,11 @@ Bluejay calls your agent, or a Digital Human answers when your agent calls out.
 
 ### Phone number
 
-<Steps>
-<Step title="Create the agent">
-Create an agent with type **Inbound**, mode **Voice**, and connection type **Phone**.
-</Step>
-<Step title="Enter the number">
-Enter the number in E.164 format, for example `+15551234567`.
-</Step>
-</Steps>
+Use an Inbound Voice agent with the **Phone** connection type. Enter the number in E.164 format, for example `+15551234567`. A phone call tests the real carrier path. It cannot carry the result ID. To link tool calls and traces, use SIP or a provider integration.
 
 ### SIP URI
 
-Create an agent with mode **Voice** and connection type **SIP**, then fill in the fields.
+Use a Voice agent with the **SIP** connection type.
 
 | Field | API field | Description |
 |---|---|---|
@@ -106,7 +99,7 @@ Bluejay adds these headers to every SIP INVITE:
 | `X-Call-Type` | `SIP` |
 | `X-Custom-Headers` | Your custom headers as one JSON string. |
 
-Read `X-Simulation-Result-Id` when the call arrives. After the call, send tool calls, metadata, or [trace IDs](/key-concepts/traces/overview#link-a-trace) to `/v1/update-simulation-result`. See [Tool Calls](/monitor/observability/tool-calls).
+Read `X-Simulation-Result-Id` when the call arrives. After the call, send tool calls, metadata, or [trace IDs](/key-concepts/traces/overview#link-a-trace) to `/v1/update-simulation-result`. See [Tool Calls](/key-concepts/custom-metrics/overview#tool-calls-events-and-metadata).
 
 ## Twilio SIP domain
 
@@ -162,13 +155,8 @@ app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
 
 </Accordion>
 
-## Test
-
-Create a simulation for the agent and click **Create New Run**.
-
 ## Limits
 
-- A plain phone call cannot carry the result ID. To link tool calls and traces, use SIP or a provider integration.
 - If the dynamic SIP webhook fails 3 times, the call ends with status `NO_CONNECTION` and error `DYNAMIC_ENDPOINT_FAILED`. Bluejay does not fall back to the SIP URI.
 
 ## Related
