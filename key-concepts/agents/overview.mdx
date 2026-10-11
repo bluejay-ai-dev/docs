@@ -11,7 +11,7 @@ Simulations, Conversations, and Custom Metrics all attach to an Agent.
 
 <Steps>
   <Step title="Open the dialog">
-    In the sidebar, click **+** (**Add agent**) next to the agent selector. The **Connect Your Agent** dialog opens.
+    In the sidebar, click **+** (**Add agent**).
   </Step>
   <Step title="Describe the agent">
     Enter a **Name**. In **Agent Description / System Prompt**, describe the agent or paste its system prompt.
@@ -24,7 +24,7 @@ Simulations, Conversations, and Custom Metrics all attach to an Agent.
   </Step>
 </Steps>
 
-An Inbound agent receives calls or messages. An Outbound agent starts them. The LiveKit, Pipecat, ElevenLabs, VAPI, Google CES, and Dialogflow CX voice connections support Inbound only.
+An Inbound agent receives calls or messages. An Outbound agent starts them. Some platform connections support Inbound only. The integration page for your platform says which types it supports.
 
 ## Modes and connections
 
@@ -37,14 +37,11 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. The 
     | Phone | A phone number |
     | SIP | A SIP URI, or a `dynamic_sip_webhook_url` that returns the URI for each call |
     | Websocket | A websocket URL, with an optional username and password |
-    | LiveKit | API key, API secret, host URL, and agent name |
-    | Pipecat | API key and agent name |
-    | ElevenLabs, Retell, VAPI, Bland | The provider API key and the agent, assistant, or pathway ID |
-    | Amelia, Google CES, Dialogflow CX, Sierra | The provider connection fields |
+    | A voice platform or framework | The fields on its integration page |
 
     A voice run also reports built-in audio metrics, for example **Agent Latency**.
 
-    For provider setup, see [Retell](/integrations/retell), [ElevenLabs](/integrations/eleven-labs), [Vapi](/integrations/vapi), and [Bland](/integrations/bland).
+    If your agent runs on a supported voice platform, connect the platform once and sync your agents. See your platform page under **Integrations**, for example [Vapi](/integrations/vapi).
   </Tab>
   <Tab title="Text">
     A Digital Human exchanges messages with the agent. Bluejay grades the run from the transcript.
@@ -54,7 +51,7 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. The 
     | SMS | The Digital Human texts the agent's phone number. |
     | HTTP Webhook | Bluejay sends a POST with each Digital Human message to your webhook URL. Your endpoint replies through the send-http-text-message endpoint. |
     | OpenAI-compatible | Bluejay calls your API base URL with an optional API key and model. |
-    | Kore.ai, Amelia, Google CES, Dialogflow CX, Bland | The provider chat connection fields. |
+    | A chat platform | The fields on its integration page. |
 
     For the HTTP Webhook, send the same `simulation_result_id` on each reply. See [Chat Testing](/simulation-integrations/http-webhooks).
   </Tab>
@@ -100,7 +97,7 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. The 
 
 ## Outbound trigger webhook
 
-For an Outbound agent on Phone, SIP, SMS, HTTP Webhook, Retell, or Bland, your system starts each conversation.
+For an Outbound agent, your system starts each conversation. Some voice platforms place the call for Bluejay. Their integration pages say so.
 
 1. Set `outbound_trigger_webhook_url`.
 2. Set `outbound_trigger_payload_template` to a JSON body with tokens.
@@ -117,17 +114,7 @@ A Workflow is the multi-agent graph of a provider agent, for example a root agen
   A Workflow is different from a [Scenario](/key-concepts/scenario-builder/overview). You build a Scenario in Bluejay. A Workflow comes from your provider.
 </Note>
 
-**Pull** (**Sync** for Amelia) copies the graph from your provider into Bluejay. **Push** sends your Bluejay edits to the provider.
-
-| Provider | Workflow tab controls |
-|---|---|
-| ElevenLabs | Branch picker<br />**Pull**<br />**Push**<br />**Merge to Main** |
-| Vapi | **Pull**<br />**Save**<br />**Push** |
-| Retell | **Pull**<br />**Push** |
-| Bland | Version picker<br />**Pull**<br />**Push**<br />**Publish** |
-| [Amelia](/integrations/amelia) | **Sync**<br />**Push** (flows only) |
-| Dialogflow CX | **Pull**<br />**Push to DFCX**<br />**Promote** |
-| Imported from a document | **Edit workflow** |
+**Pull** copies the graph from your provider into Bluejay. **Push** sends your Bluejay edits to the provider.
 
 <Warning>
   Push changes the agent in your provider account. If that version is live, real callers get the change. Pull replaces Bluejay edits that you did not push.
@@ -135,7 +122,7 @@ A Workflow is the multi-agent graph of a provider agent, for example a root agen
 
 To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no Pull or Push. Edit it in Bluejay, or import an updated document.
 
-The **Generate From Workflow** simulation type creates Digital Humans that drive the agent down each path. See [ElevenLabs](/integrations/eleven-labs) for a full example.
+The **Generate From Workflow** simulation type creates Digital Humans that drive the agent down each path.
 
 ## Related
 

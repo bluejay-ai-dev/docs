@@ -17,9 +17,8 @@ For example, a metric can check that the agent looked up the order before it gav
     |------------|----------------------|
     | [SIP](/simulation-integrations/sip) | A custom header on the SIP INVITE. |
     | [WebSocket](/simulation-integrations/websockets) | A header on the WebSocket upgrade request. |
-    | [LiveKit](/integrations/livekit) | A participant attribute. |
 
-    A plain phone number connection sends no ID, so it cannot attach tool calls. Use SIP for phone agents.
+    A plain phone number connection sends no ID, so it cannot attach tool calls. Use SIP for phone agents. For a voice platform or framework, its integration page says where the ID arrives.
 
     After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
 
@@ -41,9 +40,7 @@ For example, a metric can check that the agent looked up the order before it gav
     }
     ```
 
-    <Note>
-      For LiveKit agents, you can skip the API call. Set **LiveKit Customer Tool Topic** in the agent's connection settings. Then publish a JSON data packet to that topic each time your agent calls a tool. Bluejay saves the packets when the call ends.
-    </Note>
+    Some integrations collect tool calls without this API call. The integration page for your platform says if it does.
   </Tab>
   <Tab title="Production">
     Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording. You cannot add them later.

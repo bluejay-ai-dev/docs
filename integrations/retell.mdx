@@ -16,8 +16,8 @@ Create an API key in Retell under **Settings > API Keys**. The key must have the
 | Field | Value |
 |---|---|
 | API Key | Your Retell API key with the **Webhook** badge. |
-| Sync Agents from Retell | Imports every Retell agent as an agent in the **Synced from Retell** folder. |
-| Autosync from Retell | Syncs agents again on a schedule. |
+
+Click **Sync Agents from Retell** to import every Retell agent. Turn on **Autosync from Retell** to sync again on a schedule.
 
 Set the webhook on each agent in Retell:
 
@@ -29,6 +29,8 @@ Set the webhook on each agent in Retell:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/retell-sim-3.mp4"></video>
 
 To connect one agent by hand, open its **Connection Settings**, choose the **Retell** tile, and set **Retell Agent ID**.
+
+In the **Workflow** tab of a synced agent, pull the agent graph from Retell and push your edits back.
 
 ## Test
 
@@ -68,9 +70,13 @@ Bluejay dials the Retell phone number like a real caller. Use this to test carri
 </Tab>
 </Tabs>
 
+[Self-Improve](/key-concepts/self-improve/overview) supports agents that use the **Retell** connection type.
+
 ## Monitor
 
-The same webhook sends each production call to Bluejay. The call shows on the **Logs** page with its metric results.
+The same webhook sends each ended call to Bluejay. The call shows on the **Logs** page with its metric results. The call metadata that you set in Retell becomes Conversation `metadata`, so Custom Metrics can use it as [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
+
+For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent, Bluejay tells Retell to place each check call. You do not need an outbound trigger webhook.
 
 ## Limits
 
@@ -80,6 +86,9 @@ The same webhook sends each production call to Bluejay. The call shows on the **
 | Sync or webhook returns 401 | The key is missing or does not have the **Webhook** badge. |
 | `NO_CONNECTION` with a concurrency error | Retell returned 429 (inbound) or SIP 503 (outbound). Lower the max concurrency in Bluejay. |
 | Tool calls missing | The agent webhook is not set. |
+| **No Connection** with `RETELL_AUTH_FAILED`, `MISSING_RETELL_INTEGRATION`, or `MISSING_RETELL_AGENT_ID` | The key is rejected, no key is saved, or the agent has no **Retell Agent ID**. |
+| **No Connection** with `RETELL_BRIDGE_CONNECT_FAILED` or `RETELL_SESSION_SETUP_FAILED` | Retell accepted the connection but did not start a session. Run the call again. |
+| **Call Dropped** with `RETELL_AGENT_ERROR`, `RETELL_AGENT_START_FAILED`, or `RETELL_MONITORING_ERROR` | The agent reported an error, did not start its turn, or Bluejay lost the monitoring connection. |
 | Older call fails with `SIP_TRUNK_RECYCLED` | Concurrent outbound runs use the same Digital Human number. Give each run different numbers. |
 
 ## Related

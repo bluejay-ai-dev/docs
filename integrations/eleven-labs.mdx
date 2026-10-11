@@ -17,12 +17,12 @@ Get an API key in ElevenLabs under **Developers > API Keys**. Then go to **Setti
 |---|---|
 | Webhook Secret | The HMAC secret of your ElevenLabs post-call webhook. See [Monitor](#monitor). |
 | ElevenLabs API Key | Your ElevenLabs API key. Bluejay uses it to sync agents, open calls, and get tool calls. |
-| Sync Agents from ElevenLabs | Imports every agent with its name, prompt, and workflow into the **Synced from ElevenLabs** folder. |
-| Autosync from ElevenLabs | Syncs agents again on a schedule. |
+
+Click **Sync Agents from ElevenLabs** to import every agent with its prompt and workflow. Turn on **Autosync from ElevenLabs** to sync again on a schedule.
 
 To connect one agent by hand, open its **Connection Settings**, choose the **ElevenLabs** tile, and set **ElevenLabs Agent ID**.
 
-Synced workflows show in the **Workflow** tab of the agent. **Sync** pulls the latest workflow, and **Push** sends your edits back. You can also change the branch or merge a branch to Main.
+Edit a synced workflow in the **Workflow** tab of the agent. Pull changes from ElevenLabs, push your edits back, and merge a branch into Main.
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-workflows-tab.jpg" src="/images/elevenlabs-sim-workflows-tab.mp4" aria-label="The Workflows tab in Bluejay" />
 
@@ -31,7 +31,7 @@ Synced workflows show in the **Workflow** tab of the agent. **Sync** pulls the l
 <Tabs>
 <Tab title="Websocket">
 
-Bluejay opens a live web call to the agent over websocket. No phone number is necessary.
+Bluejay opens a live web call to the agent over websocket. No phone number is necessary. The **ElevenLabs** tile is inbound only.
 
 1. Create a simulation on the **Simulations** page and select the agent.
 2. Add Digital Humans. For a multi-agent workflow, choose **Generate From Workflow** to make Digital Humans for each path.
@@ -52,6 +52,8 @@ Bluejay dials the ElevenLabs phone number like a real caller. Use this to test c
 
 </Tab>
 </Tabs>
+
+[Self-Improve](/key-concepts/self-improve/overview) supports agents that use the **ElevenLabs** connection type.
 
 ## Monitor
 
@@ -94,11 +96,13 @@ Bluejay overwrites these metadata keys: `eleven_labs_conversation_id`, `eleven_l
 | `NO_CONNECTION` with an auth error | The API key is not valid. |
 | `NO_CONNECTION` with a concurrency error | The run is over the concurrency of your ElevenLabs plan. |
 | Edits do not show in the call | The edits are on a branch other than Main. |
+| **No Connection** with `ELEVEN_LABS_AUTH_FAILED`, `MISSING_ELEVEN_LABS_INTEGRATION`, or `MISSING_ELEVEN_LABS_AGENT_ID` | The key is rejected, no key is saved, or the agent has no **ElevenLabs Agent ID**. |
+| **No Connection** with `ELEVEN_LABS_BRIDGE_CONNECT_FAILED` or `ELEVEN_LABS_SESSION_SETUP_FAILED` | ElevenLabs accepted the connection but did not start a session. Run the call again. |
+| **Call Dropped** with `ELEVEN_LABS_AGENT_ERROR`, `ELEVEN_LABS_AGENT_START_FAILED`, or `ELEVEN_LABS_MONITORING_ERROR` | The agent reported an error, did not start its turn, or Bluejay lost the monitoring connection. |
 | Tool calls missing or partial | Bluejay gets them after the call. Long calls can return partial results. |
 
 ## Related
 
 - [Agents API](/api-reference/endpoint/add-agent)
-- [ElevenLabs MCP tools](/mcp/workspace-tools#other)
 - [Agents](/key-concepts/agents/overview)
 - [Logs](/monitor/logs)

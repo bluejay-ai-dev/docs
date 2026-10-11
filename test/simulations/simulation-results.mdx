@@ -6,13 +6,13 @@ icon: chart-mixed
 
 ## Read the results
 
-The **Run Summary** shows the pass rate across the run. The table has one row for each call, with columns for status, latency, speech, and each [Custom Metric](/key-concepts/custom-metrics/overview).
+The run page shows the pass rate and one row for each call, with its status and each [Custom Metric](/key-concepts/custom-metrics/overview) result.
 
 Click a row to open the call. The call shows the transcript, the recording, tool calls, and each metric result with its reasoning.
 
 If the run has [Personalities](/key-concepts/digital-humans/personalities), the calls of one Digital Human group into one row. Expand the row to compare them.
 
-To run calls again, open the run and click **Rerun**, then select **Rerun failed** or **Rerun selected**.
+To run calls again, open the run and click **Rerun** and rerun the failed calls or the selected calls.
 
 ## Call statuses
 
@@ -35,15 +35,15 @@ Each failed call has an `error_code`. To see the code and message, click the row
 
 ### No Connection
 
-Usually a problem in your configuration or your provider plan.
+Usually a problem in your configuration or your provider plan. In a code, `<PROVIDER>` is the name of your voice platform. The Limits section of your platform page under **Integrations** lists its exact codes.
 
 | Codes | Meaning | What to do |
 |---|---|---|
-| `ELEVEN_LABS_AUTH_FAILED`, `RETELL_AUTH_FAILED`, `VAPI_AUTH_FAILED`, `WEBSOCKET_AUTH_FAILED` | Your provider rejected the API key that Bluejay has. | Update the key in the integration settings. |
-| `MISSING_ELEVEN_LABS_INTEGRATION`, `MISSING_RETELL_INTEGRATION`, `MISSING_VAPI_INTEGRATION`, `MISSING_PIPECAT_INTEGRATION`, `NO_PIPECAT_AGENT_NAME` | The provider integration is not connected or not complete. | Connect the integration. |
-| `MISSING_ELEVEN_LABS_AGENT_ID`, `MISSING_RETELL_AGENT_ID`, `MISSING_VAPI_ASSISTANT_ID` | The agent or assistant ID is empty. | Set the ID on the agent. |
-| `ELEVEN_LABS_BRIDGE_CONNECT_FAILED`, `RETELL_BRIDGE_CONNECT_FAILED`, `VAPI_BRIDGE_CONNECT_FAILED`, `ELEVEN_LABS_SESSION_SETUP_FAILED`, `RETELL_SESSION_SETUP_FAILED`, `VAPI_SESSION_SETUP_FAILED` | The provider accepted the connection but did not start a session. Often temporary. | Run the call again. |
-| `LIVEKIT_SESSION_SETUP_FAILED` | Bluejay could not join your LiveKit room. | See [LiveKit](/integrations/livekit). |
+| `WEBSOCKET_AUTH_FAILED` | Your WebSocket endpoint rejected the credentials that Bluejay has. | Update the username and password on the agent. |
+| `<PROVIDER>_AUTH_FAILED` | Your provider rejected the API key that Bluejay has. | Update the key in the integration settings. |
+| `MISSING_<PROVIDER>_INTEGRATION` | The provider integration is not connected or not complete. | Connect the integration. |
+| `MISSING_<PROVIDER>_AGENT_ID`, `MISSING_<PROVIDER>_ASSISTANT_ID` | The agent or assistant ID is empty. | Set the ID on the agent. |
+| `<PROVIDER>_BRIDGE_CONNECT_FAILED`, `<PROVIDER>_SESSION_SETUP_FAILED` | The provider accepted the connection but did not start a session. Often temporary. | Run the call again. |
 | `UNUSABLE_CALLER_ID`, `INVALID_PHONE_NUMBER`, `INVALID_SIP_DESTINATION`, `SIP_DIAL_FAILED` | The caller ID is not verified, the destination is not valid, or the SIP dial failed. | Check the number or SIP destination. |
 | `CUSTOMER_CONCURRENCY_LIMIT` | Your provider's concurrent-call limit was reached. | Raise the limit or run fewer calls at once. |
 | `NO_CONNECTION_TYPE` | The agent has no connection type. | Set a connection type. |
@@ -68,10 +68,10 @@ Usually a problem with your agent or your provider. Check your provider status p
 
 | Codes | Meaning |
 |---|---|
-| `ELEVEN_LABS_AGENT_ERROR`, `RETELL_AGENT_ERROR`, `VAPI_AGENT_ERROR` | Your provider agent reported an error during the call. |
-| `ELEVEN_LABS_AGENT_START_FAILED`, `RETELL_AGENT_START_FAILED`, `VAPI_AGENT_START_FAILED` | Your provider agent did not start its turn. |
-| `ELEVEN_LABS_MONITORING_ERROR`, `RETELL_MONITORING_ERROR`, `VAPI_MONITORING_ERROR` | Bluejay lost the monitoring connection to your provider. |
-| `PIPECAT_CONNECTION_FAILED`, `BRIDGE_DISCONNECTED` | The audio bridge between Bluejay and your provider stopped. |
+| `<PROVIDER>_AGENT_ERROR` | Your provider agent reported an error during the call. |
+| `<PROVIDER>_AGENT_START_FAILED` | Your provider agent did not start its turn. |
+| `<PROVIDER>_MONITORING_ERROR` | Bluejay lost the monitoring connection to your provider. |
+| `<PROVIDER>_CONNECTION_FAILED`, `BRIDGE_DISCONNECTED` | The audio bridge between Bluejay and your provider stopped. |
 
 ### Out of Funds
 
