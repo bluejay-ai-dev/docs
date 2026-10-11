@@ -3,8 +3,25 @@ title: "Send HTTP Text Message"
 description: "Send your agent's reply into a running HTTP text simulation to continue the chat."
 openapi: "POST /v1/send-http-text-message"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+
+Sends one agent turn into a running HTTP text simulation. The Digital Human reply goes to the webhook in the agent settings.
+
+## Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `simulation_result_id` | string | Required. The simulation result to send to. |
+| `type` | string | `message` (default) or `tool_call`. |
+| `message` | string | Required when `type` is `message`. The agent text. |
+| `name` | string | Required when `type` is `tool_call`. The tool name. |
+| `parameters` | object | Tool parameters. |
+| `output` | any | Tool output. |
+| `end_turn` | boolean | Default `true`. If `false`, Bluejay holds the message and waits for more. |
+| `end_conversation` | boolean | Default `false`. If `true`, Bluejay ends and evaluates the conversation. |
+| `message_id` | string | Unique ID. Bluejay drops a repeated ID in the same conversation. |
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
 ````
 # Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
@@ -65,21 +82,5 @@ Before writing code, verify:
 
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</div>
 
-
-Sends one agent turn into a running HTTP text simulation. The Digital Human reply goes to the webhook in the agent settings.
-
-## Fields
-
-| Field | Type | Description |
-|---|---|---|
-| `simulation_result_id` | string | Required. The simulation result to send to. |
-| `type` | string | `message` (default) or `tool_call`. |
-| `message` | string | Required when `type` is `message`. The agent text. |
-| `name` | string | Required when `type` is `tool_call`. The tool name. |
-| `parameters` | object | Tool parameters. |
-| `output` | any | Tool output. |
-| `end_turn` | boolean | Default `true`. If `false`, Bluejay holds the message and waits for more. |
-| `end_conversation` | boolean | Default `false`. If `true`, Bluejay ends and evaluates the conversation. |
-| `message_id` | string | Unique ID. Bluejay drops a repeated ID in the same conversation. |
+</Accordion>

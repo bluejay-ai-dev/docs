@@ -3,8 +3,43 @@ title: "Create Uptime Monitor"
 description: "Create an uptime monitor that checks on a schedule that your voice agent answers calls."
 openapi: "POST /v1/uptime/monitors"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+
+Creates an uptime monitor and the simulation and schedule that run it. `active_window` limits the days and hours. If it is null, the monitor runs at all times.
+
+## Checks
+
+Each item in `checks` is one health check that a run grades:
+
+```json
+{
+  "id": "latency",
+  "label": "Latency",
+  "enabled": true,
+  "isTemplate": true,
+  "checkType": "latency",
+  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
+}
+```
+
+- A template check has `isTemplate: true` and a `checkType` of `connection`, `agent_malfunction`, or `latency`.
+- A custom check has `isTemplate: false` and a `customMetricId` with a `condition` of `data_type`, `operator`, and `comparison_value`.
+- A `digitalHumanId` check changes the caller to that Digital Human. See [Custom caller](/monitor/uptime/overview#custom-caller).
+
+At least one enabled check must have a `checkType` or a `customMetricId`. If not, the response is 400.
+
+## Notifications
+
+```json
+{
+  "slack": { "channel": "C0123456789", "notify_channel": true },
+  "pagerduty": true,
+  "betterstack": true,
+  "email": { "scope": "specific", "addresses": ["oncall@example.com"] }
+}
+```
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
 ````
 # Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
@@ -59,39 +94,5 @@ Before writing code, verify:
 
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</div>
 
-
-Creates an uptime monitor and the simulation and schedule that run it. `active_window` limits the days and hours. If it is null, the monitor runs at all times.
-
-## Checks
-
-Each item in `checks` is one health check that a run grades:
-
-```json
-{
-  "id": "latency",
-  "label": "Latency",
-  "enabled": true,
-  "isTemplate": true,
-  "checkType": "latency",
-  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
-}
-```
-
-- A template check has `isTemplate: true` and a `checkType` of `connection`, `agent_malfunction`, or `latency`.
-- A custom check has `isTemplate: false` and a `customMetricId` with a `condition` of `data_type`, `operator`, and `comparison_value`.
-- A `digitalHumanId` check changes the caller to that Digital Human. See [Custom caller](/monitor/uptime/overview#custom-caller).
-
-At least one enabled check must have a `checkType` or a `customMetricId`. If not, the response is 400.
-
-## Notifications
-
-```json
-{
-  "slack": { "channel": "C0123456789", "notify_channel": true },
-  "pagerduty": true,
-  "betterstack": true,
-  "email": { "scope": "specific", "addresses": ["oncall@example.com"] }
-}
-```
+</Accordion>

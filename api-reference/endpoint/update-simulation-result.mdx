@@ -3,8 +3,30 @@ title: "Update Simulation Result"
 description: "Add tool calls, events, tags, or a transcript to a simulation result."
 openapi: "POST /v1/update-simulation-result"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+
+Adds tool calls, events, tags, metadata, and trace IDs to a simulation result.
+
+## Identify the result
+
+Send one of these:
+
+- `simulation_result_id`. For SIP calls, read it from the `X-Simulation-Result-Id` header of the call.
+- `start_time`, `end_time`, and `duration` in seconds.
+
+With the time window, Bluejay looks for a connected simulation in the workspaces your key can see. A stored call matches when both times are within 90 seconds and the stored duration is within the larger of 5 seconds and 10% of `duration`. Calls with no stored duration always match.
+
+Without `recorded_transcript`, exactly one call must match. With a transcript, Bluejay scores each call that matches:
+
+- One call is kept only when the transcript shares at least 80% of its normalized words.
+- Two or more calls are separated only when the best score leads the next score by at least 0.08.
+
+## Errors
+
+- 404: nothing in your organization matched the time window.
+- 409: the transcript was missing, not stored yet, too close to separate the calls, or not close enough to the only call. Send `simulation_result_id` instead. Nothing is written.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
 ````
 # Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
@@ -101,26 +123,5 @@ Before writing code, verify:
 
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</div>
 
-
-Adds tool calls, events, tags, metadata, and trace IDs to a simulation result.
-
-## Identify the result
-
-Send one of these:
-
-- `simulation_result_id`. For SIP calls, read it from the `X-Simulation-Result-Id` header of the call.
-- `start_time`, `end_time`, and `duration` in seconds.
-
-With the time window, Bluejay looks for a connected simulation in the workspaces your key can see. A stored call matches when both times are within 90 seconds and the stored duration is within the larger of 5 seconds and 10% of `duration`. Calls with no stored duration always match.
-
-Without `recorded_transcript`, exactly one call must match. With a transcript, Bluejay scores each call that matches:
-
-- One call is kept only when the transcript shares at least 80% of its normalized words.
-- Two or more calls are separated only when the best score leads the next score by at least 0.08.
-
-## Errors
-
-- 404: nothing in your organization matched the time window.
-- 409: the transcript was missing, not stored yet, too close to separate the calls, or not close enough to the only call. Send `simulation_result_id` instead. Nothing is written.
+</Accordion>

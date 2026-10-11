@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Generate 'Copy AI Integration Prompt' Accordion dropdowns for every API endpoint MDX file.
+Generate a collapsed 'Prompt for AI agents' Accordion for every API endpoint MDX file.
 
 Reads the OpenAPI spec (live URL by default, or a path or URL passed as the first
-argument), resolves $ref schemas, and inserts the prompt box into each endpoint/webhook MDX file.
+argument), resolves $ref schemas, and appends it to the end of each endpoint/webhook MDX file.
 
 Usage: python3 scripts/generate_ai_prompts.py [spec_path_or_url]
 """
@@ -627,6 +627,7 @@ def process_file(filepath, spec):
 
     # strip old prompt section formats
     for pattern in [
+        r'\n*<Accordion title="Prompt for AI agents" icon="robot">\n\n````\n.*?\n````\n\n</Accordion>\n',
         r'\n<div className="ai-prompt-box">\n<div className="ai-prompt-box-header">.*?````\n</div>\n',
         r'\n<Accordion title="Prompt for AI Agents">\n````\n.*?\n````\n</Accordion>\n',
         r'\n<Accordion title="Integration Prompt for AI Agents">\n````\n.*?\n````\n</Accordion>\n',
@@ -677,15 +678,16 @@ def process_file(filepath, spec):
     prompt = prompt.replace(" — ", ": ").replace("—", "-")
 
     accordion = (
-        f'\n<div className="ai-prompt-box">\n'
-        f'<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>\n'
+        f'<Accordion title="Prompt for AI agents" icon="robot">\n\n'
         f"````\n"
         f"{prompt}\n"
-        f"````\n"
-        f"</div>\n"
+        f"````\n\n"
+        f"</Accordion>\n"
     )
 
-    new_content = frontmatter + accordion + body
+    body = body.strip()
+    body = f"\n\n{body}" if body else ""
+    new_content = frontmatter + body + "\n\n" + accordion
 
     with open(filepath, "w") as f:
         f.write(new_content)

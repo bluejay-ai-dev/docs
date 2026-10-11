@@ -3,8 +3,25 @@ title: "Start Self-Improve Run"
 description: "Start a self-improve run that rewrites your agent prompt and tests each new version."
 openapi: "POST /v1/self-improve/runs"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+
+Starts a loop that changes the agent prompt, pushes it to the provider, and runs the simulation to score it. At the end, Bluejay saves the best prompt as one new `latest` version. The previous version stays. The `production` label does not move.
+
+## Confirm the run
+
+1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
+2. Send the same request with `confirmed: true`. The response has `run_id`.
+
+## Limits
+
+- The agent must be a Vapi, ElevenLabs, or Retell agent with a provider ID. Other agents return 400.
+- `max_iterations` is 5 by default and 20 at most.
+- `metric_count` is 5 by default and 20 at most.
+- One agent can have one active run. A second run returns 409.
+
+Rate limit: 30 requests per minute.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
 ````
 # Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
@@ -63,21 +80,5 @@ Before writing code, verify:
 
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</div>
 
-
-Starts a loop that changes the agent prompt, pushes it to the provider, and runs the simulation to score it. At the end, Bluejay saves the best prompt as one new `latest` version. The previous version stays. The `production` label does not move.
-
-## Confirm the run
-
-1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
-2. Send the same request with `confirmed: true`. The response has `run_id`.
-
-## Limits
-
-- The agent must be a Vapi, ElevenLabs, or Retell agent with a provider ID. Other agents return 400.
-- `max_iterations` is 5 by default and 20 at most.
-- `metric_count` is 5 by default and 20 at most.
-- One agent can have one active run. A second run returns 409.
-
-Rate limit: 30 requests per minute.
+</Accordion>

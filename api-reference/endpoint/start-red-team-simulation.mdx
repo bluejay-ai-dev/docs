@@ -3,8 +3,36 @@ title: "Start Red Team Simulation"
 description: "Start a red team test that attacks your agent to find weak spots."
 openapi: "POST /v1/red-team-simulations"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+
+Starts a red team test against an agent. Each attack is a real voice call.
+
+## Confirm the test
+
+1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
+2. Send the same request with `confirmed: true`. The response has `test_id`, `simulation_id`, and `simulation_run_id`.
+
+## Limits
+
+| Setting | Default | Maximum |
+|---|---|---|
+| `max_levels` | 5 | 5 (24 with `attack_quotas`) |
+| `max_branches_per_node` | 3 | 3 (20 with `attack_quotas`) |
+| `max_total_dhs` | 16 | 16 (83 with `attack_quotas`) |
+| `max_call_duration_minutes` | 10 | 10 |
+| `recon_count` | 3 | `max_total_dhs` |
+
+Send these settings inside `config`. Values above the maximum are lowered to the maximum. Each family in `attack_quotas` allows 20 attempts at most.
+
+## Errors
+
+- 400: the agent uses SMS.
+- 402 with code `RED_TEAMING_PAYMENT_METHOD_REQUIRED`: the organization has no payment method.
+- 403 with code `red_team_custom_matrix_not_allowed`: `attack_quotas` needs a Growth plan or higher. Check with [Get Red Team Entitlements](/api-reference/endpoint/get-red-team-entitlements).
+
+Rate limit: 30 requests per minute.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
 ````
 # Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
@@ -61,32 +89,5 @@ Before writing code, verify:
 
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</div>
 
-
-Starts a red team test against an agent. Each attack is a real voice call.
-
-## Confirm the test
-
-1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
-2. Send the same request with `confirmed: true`. The response has `test_id`, `simulation_id`, and `simulation_run_id`.
-
-## Limits
-
-| Setting | Default | Maximum |
-|---|---|---|
-| `max_levels` | 5 | 5 (24 with `attack_quotas`) |
-| `max_branches_per_node` | 3 | 3 (20 with `attack_quotas`) |
-| `max_total_dhs` | 16 | 16 (83 with `attack_quotas`) |
-| `max_call_duration_minutes` | 10 | 10 |
-| `recon_count` | 3 | `max_total_dhs` |
-
-Send these settings inside `config`. Values above the maximum are lowered to the maximum. Each family in `attack_quotas` allows 20 attempts at most.
-
-## Errors
-
-- 400: the agent uses SMS.
-- 402 with code `RED_TEAMING_PAYMENT_METHOD_REQUIRED`: the organization has no payment method.
-- 403 with code `red_team_custom_matrix_not_allowed`: `attack_quotas` needs a Growth plan or higher. Check with [Get Red Team Entitlements](/api-reference/endpoint/get-red-team-entitlements).
-
-Rate limit: 30 requests per minute.
+</Accordion>

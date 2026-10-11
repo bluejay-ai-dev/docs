@@ -3,8 +3,18 @@ title: "Evaluate"
 description: "Send a production call or chat to Bluejay to score it with your agent's metrics."
 openapi: "POST /v1/evaluate"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
+
+Sends one production conversation for evaluation. Identify the agent with `agent_id` or `external_agent_id`. `POST /v1/evaluate-call` is the same endpoint.
+
+- Key-value pairs in `metadata` are available as [dynamic variables](/key-concepts/custom-metrics/prompting-guide) in custom metrics.
+- If you omit `version`, Bluejay uses the version with the `production` label. An unknown `version` uses the production version and returns a `warning`.
+- An unknown `label` is created and attached to the production version. With `external_agent_id`, `label` defaults to `production`.
+- If the agent has no production version, the request succeeds and `warning` says so.
+
+Rate limit: 100 requests per minute for each organization, or 500 for enterprise accounts.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
 ````
 # Bluejay: Testing & Monitoring Platform for Conversational AI Agents
 
@@ -74,14 +84,5 @@ Before writing code, verify:
 
 Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
-</div>
 
-
-Sends one production conversation for evaluation. Identify the agent with `agent_id` or `external_agent_id`. `POST /v1/evaluate-call` is the same endpoint.
-
-- Key-value pairs in `metadata` are available as [dynamic variables](/key-concepts/custom-metrics/prompting-guide) in custom metrics.
-- If you omit `version`, Bluejay uses the version with the `production` label. An unknown `version` uses the production version and returns a `warning`.
-- An unknown `label` is created and attached to the production version. With `external_agent_id`, `label` defaults to `production`.
-- If the agent has no production version, the request succeeds and `warning` says so.
-
-Rate limit: 100 requests per minute for each organization, or 500 for enterprise accounts.
+</Accordion>

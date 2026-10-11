@@ -53,6 +53,12 @@ html.dark {
   --bj-rule: #2A2A2A;
 }
 
+/* Scale: Mintlify sizes in rem, so a 15px root reads like a 94% browser zoom */
+
+html {
+  font-size: 93.75%;
+}
+
 .nav-logo {
   height: 28px;
   max-width: 220px;
@@ -84,17 +90,17 @@ kbd,
   font-size: 0.875em;
 }
 
-/* Table heads: mono uppercase label */
+/* Table heads: the app's TableHead, Inter medium in the muted text color */
 
 [data-table-wrapper] th {
-  font-family: var(--bj-mono);
+  font-family: var(--bj-sans);
   font-weight: 500;
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: inherit;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
-/* Page header: mono eyebrow, muted lede, baseline rule with a waveform */
+/* Page header: group eyebrow, muted lede, baseline rule with a waveform */
 
 #header {
   position: relative;
@@ -103,17 +109,18 @@ kbd,
 }
 
 #header .eyebrow {
-  font-family: var(--bj-mono);
-  font-size: 0.75rem;
+  font-family: var(--bj-sans);
+  font-size: 0.9375rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 #header .prose {
   margin-top: 0.75rem;
   font-size: 1rem;
   line-height: 1.6;
+  font-style: italic;
   color: var(--bj-text-2);
 }
 
@@ -136,6 +143,63 @@ html.dark #header .prose {
   background-color: var(--bj-blue);
   -webkit-mask: var(--bj-wave-mini) no-repeat left center / contain;
   mask: var(--bj-wave-mini) no-repeat left center / contain;
+}
+
+/* Copy page: compact, on the title row, centered on the first title line */
+
+#page-context-menu-button,
+#page-context-menu > button + button {
+  height: 1.875rem;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#page-context-menu-button {
+  padding-left: 0.625rem !important;
+  padding-right: 0.625rem !important;
+}
+
+#page-context-menu-button > div {
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+}
+
+#page-context-menu-button svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+#header #page-context-menu {
+  min-width: 0;
+}
+
+@container page-header (min-width: 30rem) {
+  #header h1 + #page-context-menu {
+    display: flex !important;
+    flex-direction: row;
+    align-self: flex-start;
+    height: 2.25rem;
+    margin-left: auto;
+    padding-left: 1rem;
+  }
+
+  #header > #page-context-menu {
+    display: none !important;
+  }
+
+  #header h1 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #header div:has(> h1 + #page-context-menu) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+#header > #page-context-menu {
+  margin-top: 1rem;
 }
 
 #header + #content,
@@ -179,91 +243,124 @@ a.card {
   border-bottom-left-radius: 0 !important;
 }
 
-/* Callouts: tinted block, hairline border, mono type label */
+/* Callouts: the app's Alert. Card or tinted fill, 6px radius, 16px icon in the
+   type color, Inter text, no label */
 
 .callout {
-  --bj-c-ink: #055A99;
-  --bj-c-rgb: 6 112 189;
-  border: 1px solid rgb(var(--bj-c-rgb) / 0.28) !important;
+  --bj-c-bg: var(--bj-surface);
+  --bj-c-border: var(--bj-border);
+  --bj-c-icon: var(--bj-blue-ink);
+  --bj-c-text: var(--bj-text);
+  border: 1px solid var(--bj-c-border) !important;
   border-radius: var(--bj-radius) !important;
-  background: rgb(var(--bj-c-rgb) / 0.06) !important;
-  padding: 0.8rem 1rem 0.85rem !important;
-  gap: 0.6rem !important;
+  background: var(--bj-c-bg) !important;
+  padding: 0.75rem 1rem !important;
+  gap: 0.75rem !important;
 }
 
 .callout [data-component-part="callout-icon"] {
-  margin-top: 3px !important;
-  width: 14px !important;
+  margin-top: 0.1875rem !important;
+  width: 1rem !important;
   flex-shrink: 0;
 }
 
 .callout [data-component-part="callout-icon"] svg {
-  width: 14px !important;
-  height: 14px !important;
-  color: var(--bj-c-ink) !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  color: var(--bj-c-icon) !important;
+  background-color: var(--bj-c-icon) !important;
+}
+
+.callout [data-component-part="callout-icon"] svg:not([style*="mask"]) {
   background: none !important;
 }
 
 .callout [data-component-part="callout-content"] {
-  color: var(--bj-text) !important;
-  line-height: 1.6;
+  color: var(--bj-c-text) !important;
+  font-family: var(--bj-sans);
+  font-size: 0.9375rem;
+  line-height: 1.625;
 }
 
-.callout [data-component-part="callout-content"]::before {
-  content: var(--bj-c-label, "Note");
-  display: block;
-  margin-bottom: 0.3rem;
-  color: var(--bj-c-ink);
-  font-family: var(--bj-mono);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  line-height: 1.25rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.callout [data-component-part="callout-content"] :is(p, li, strong) {
+  color: inherit !important;
 }
-
-.callout[data-callout-type="note"] { --bj-c-label: "Note"; }
 
 .callout[data-callout-type="info"] {
-  --bj-c-ink: #5B3CC4;
-  --bj-c-rgb: 109 76 224;
-  --bj-c-label: "Info";
+  --bj-c-bg: #EFF7FF;
+  --bj-c-border: #BFE0FB;
+  --bj-c-icon: #0670BD;
+  --bj-c-text: #0B3F66;
 }
 
 .callout[data-callout-type="tip"] {
-  --bj-c-ink: #0B6B63;
-  --bj-c-rgb: 13 148 136;
-  --bj-c-label: "Tip";
+  --bj-c-bg: #F0FDFA;
+  --bj-c-border: #99F6E4;
+  --bj-c-icon: #0F766E;
+  --bj-c-text: #134E4A;
 }
 
 .callout[data-callout-type="check"] {
-  --bj-c-ink: #146C34;
-  --bj-c-rgb: 22 163 74;
-  --bj-c-label: "Check";
+  --bj-c-bg: #F0FDF4;
+  --bj-c-border: #BBF7D0;
+  --bj-c-icon: #15803D;
+  --bj-c-text: #14532D;
 }
 
 .callout[data-callout-type="warning"] {
-  --bj-c-ink: #9A4A07;
-  --bj-c-rgb: 217 119 6;
-  --bj-c-label: "Warning";
+  --bj-c-bg: #FFFBEB;
+  --bj-c-border: #FDE68A;
+  --bj-c-icon: #B45309;
+  --bj-c-text: #92400E;
 }
 
 .callout[data-callout-type="danger"] {
-  --bj-c-ink: #B42020;
-  --bj-c-rgb: 220 38 38;
-  --bj-c-label: "Danger";
+  --bj-c-bg: #FEF2F2;
+  --bj-c-border: #FECACA;
+  --bj-c-icon: #B91C1C;
+  --bj-c-text: #991B1B;
 }
 
-html.dark .callout { --bj-c-ink: #6CC0FF; --bj-c-rgb: 31 162 255; }
-html.dark .callout[data-callout-type="info"] { --bj-c-ink: #B9A8FF; --bj-c-rgb: 139 112 255; }
-html.dark .callout[data-callout-type="tip"] { --bj-c-ink: #5EDCCB; --bj-c-rgb: 45 212 191; }
-html.dark .callout[data-callout-type="check"] { --bj-c-ink: #6EE7A0; --bj-c-rgb: 34 197 94; }
-html.dark .callout[data-callout-type="warning"] { --bj-c-ink: #F5B544; --bj-c-rgb: 245 158 11; }
-html.dark .callout[data-callout-type="danger"] { --bj-c-ink: #FCA5A5; --bj-c-rgb: 239 68 68; }
-
 html.dark .callout {
-  background: rgb(var(--bj-c-rgb) / 0.07) !important;
-  border-color: rgb(var(--bj-c-rgb) / 0.3) !important;
+  --bj-c-bg: #1E1E1E;
+  --bj-c-border: #2C2C2C;
+  --bj-c-icon: var(--bj-blue);
+  --bj-c-text: var(--bj-text);
+}
+
+html.dark .callout[data-callout-type="info"] {
+  --bj-c-bg: rgb(31 162 255 / 0.1);
+  --bj-c-border: rgb(31 162 255 / 0.35);
+  --bj-c-icon: #6CC0FF;
+  --bj-c-text: #CDE8FF;
+}
+
+html.dark .callout[data-callout-type="tip"] {
+  --bj-c-bg: rgb(4 47 46 / 0.4);
+  --bj-c-border: #115E59;
+  --bj-c-icon: #2DD4BF;
+  --bj-c-text: #CCFBF1;
+}
+
+html.dark .callout[data-callout-type="check"] {
+  --bj-c-bg: rgb(5 46 22 / 0.4);
+  --bj-c-border: #166534;
+  --bj-c-icon: #4ADE80;
+  --bj-c-text: #DCFCE7;
+}
+
+html.dark .callout[data-callout-type="warning"] {
+  --bj-c-bg: rgb(69 26 3 / 0.4);
+  --bj-c-border: #92400E;
+  --bj-c-icon: #FBBF24;
+  --bj-c-text: #FDE68A;
+}
+
+html.dark .callout[data-callout-type="danger"] {
+  --bj-c-bg: rgb(69 10 10 / 0.4);
+  --bj-c-border: #991B1B;
+  --bj-c-icon: #F87171;
+  --bj-c-text: #FECACA;
 }
 
 /* Code blocks */
@@ -276,8 +373,19 @@ html.dark .callout {
 /* Tables */
 
 [data-table-wrapper] table {
-  font-size: 0.875rem;
+  width: 100%;
+  font-size: 0.9375rem;
   border-collapse: collapse;
+}
+
+[data-table-wrapper] th,
+[data-table-wrapper] td {
+  min-width: 0 !important;
+  white-space: normal !important;
+}
+
+[data-table-wrapper] td code {
+  white-space: nowrap;
 }
 
 [data-table-wrapper] th {
@@ -309,10 +417,8 @@ html.dark .callout {
   border-bottom: 1px solid var(--bj-border);
   background: var(--bj-surface-2);
   color: var(--bj-text-2);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .bj-transcript-dot {
@@ -325,9 +431,7 @@ html.dark .callout {
 
 .bj-transcript-count {
   margin-left: auto;
-  font-family: var(--bj-mono);
-  text-transform: none;
-  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .bj-transcript-turns {
@@ -377,7 +481,7 @@ html.dark .bj-turn-agent .bj-turn-role {
 }
 
 .bj-turn-time {
-  font-family: var(--bj-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .bj-turn-text {
@@ -444,20 +548,21 @@ html.dark .bj-turn-agent .bj-turn-role {
   }
 }
 
-/* API pages: prompt box */
-
-.ai-prompt-box-header {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+[id^="prompt-for-ai-agents"] [data-component-part="code-block-root"] {
+  max-height: 360px;
+  overflow: auto;
 }
 
-.ai-prompt-box pre {
-  max-height: 300px;
-  margin: 0;
-  overflow: auto;
-  white-space: pre-wrap;
+[id^="prompt-for-ai-agents"] .font-mono,
+[id^="prompt-for-ai-agents"] pre,
+[id^="prompt-for-ai-agents"] code {
+  white-space: pre-wrap !important;
   overflow-wrap: anywhere;
+}
+
+[id^="prompt-for-ai-agents"] code {
+  width: auto !important;
+  min-width: 0 !important;
 }
 
 /* Footer: one compact row of muted links */
@@ -548,6 +653,258 @@ html.dark .bj-turn-agent .bj-turn-role {
   #footer > div > div:first-child > div:last-child,
   #footer > div > div:first-child {
     margin-left: 0;
+  }
+}
+
+/* Top bar: "Open Platform" from navbar.primary, pinned to the right of the tab row.
+   Maple renders it only in the mobile header, so that header is kept invisible
+   and only the button is shown. */
+
+@media (min-width: 1024px) {
+  div.block:has(> #navbar #topbar-cta-button) {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    z-index: 30;
+    height: 0;
+    overflow: visible;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #topbar-cta-button {
+    position: fixed;
+    top: 0;
+    right: calc(var(--assistant-sheet-width, 0px) + 3rem);
+    z-index: 30;
+    display: flex !important;
+    align-items: center;
+    height: 3rem;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  #topbar-cta-button > a {
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem !important;
+    border: 1px solid var(--bj-border);
+    border-radius: var(--bj-radius);
+    background: var(--bj-surface);
+    font-size: 0.8125rem !important;
+    line-height: 1.25rem;
+    transition: border-color 0.15s ease;
+  }
+
+  #topbar-cta-button > a:hover {
+    border-color: var(--bj-blue);
+  }
+
+  #topbar-cta-button > a > span.absolute,
+  #topbar-cta-button > a svg {
+    display: none !important;
+  }
+
+  #topbar-cta-button > a > div {
+    margin: 0 !important;
+  }
+
+  #topbar-cta-button > a span.z-10 {
+    color: var(--bj-blue-ink) !important;
+  }
+
+  #topbar-cta-button > a::after {
+    content: "";
+    width: 0.625rem;
+    height: 0.625rem;
+    background-color: var(--bj-blue-ink);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 1.5h5.5V7M8.5 1.5 1.5 8.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 1.5h5.5V7M8.5 1.5 1.5 8.5'/%3E%3C/svg%3E") no-repeat center / contain;
+  }
+
+  html.dark #topbar-cta-button > a {
+    background: transparent;
+    border-color: rgb(255 255 255 / 0.14);
+  }
+
+  html.dark #topbar-cta-button > a:hover {
+    border-color: var(--bj-blue);
+  }
+
+  html.dark #topbar-cta-button > a span.z-10 {
+    color: var(--bj-blue) !important;
+  }
+
+  html.dark #topbar-cta-button > a::after {
+    background-color: var(--bj-blue);
+  }
+
+  #sidebar li:has(> a[href="https://app.getbluejay.ai"]) {
+    display: none;
+  }
+}
+
+/* Sidebar: a nested group's header is blue whenever any page inside it is active */
+
+li[data-group-tag][data-active="true"] > button {
+  color: rgb(var(--primary)) !important;
+  border-color: rgb(var(--primary)) !important;
+  text-shadow: -0.2px 0 0 currentColor, 0.2px 0 0 currentColor;
+}
+
+html.dark li[data-group-tag][data-active="true"] > button {
+  color: rgb(var(--primary-light)) !important;
+  border-color: rgb(var(--primary-light)) !important;
+}
+
+li[data-group-tag][data-active="true"] > button > div:first-child > svg {
+  background-color: currentColor !important;
+}
+
+li[data-group-tag][data-active="true"] > button > div:last-child > svg {
+  color: currentColor !important;
+}
+
+/* Pager: plain links under a hairline, label above title */
+
+div#pagination {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.25rem 0 0 !important;
+  border-top: 1px solid var(--bj-rule);
+  border-radius: 0 !important;
+  background: none !important;
+}
+
+div#pagination > a {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+div#pagination > a:not(.w-full) {
+  grid-column: 1;
+  align-items: flex-start;
+  text-align: left;
+}
+
+div#pagination > a.w-full {
+  grid-column: 2;
+  width: auto !important;
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* Previous: [arrow, label] then the title pager-titles.js copies from the sidebar */
+
+div#pagination > a:not(.w-full) {
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  column-gap: 0.375rem;
+}
+
+div#pagination > a:not(.w-full) > * {
+  margin: 0 !important;
+}
+
+div#pagination > a[data-bj-title]:not(.w-full)::after {
+  content: attr(data-bj-title);
+  flex-basis: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Next: unwrap Mintlify's row and put the label first */
+
+div#pagination > a.w-full > div {
+  display: flex !important;
+  flex-direction: column-reverse;
+  align-items: flex-end !important;
+  gap: 0.25rem;
+  width: 100%;
+  height: auto !important;
+  background: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+div#pagination > a.w-full > div > div {
+  padding: 0 !important;
+  max-width: 100%;
+}
+
+div#pagination > a.w-full > div > .w-px,
+div#pagination > a.w-full span.truncate {
+  display: none !important;
+}
+
+/* Shared type */
+
+div#pagination > a svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--bj-text-2);
+}
+
+div#pagination > a > span,
+div#pagination > a.w-full > div > div:last-child > span {
+  color: var(--bj-text-2) !important;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+div#pagination > a:not(.w-full)::after,
+div#pagination > a.w-full span.font-semibold {
+  max-width: 100%;
+  color: var(--bj-text) !important;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: color 0.15s ease;
+}
+
+div#pagination > a.w-full span.font-semibold {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+div#pagination > a:not(.w-full):hover::after,
+div#pagination > a.w-full:hover span.font-semibold {
+  color: var(--bj-blue-ink) !important;
+}
+
+html.dark div#pagination > a:not(.w-full):hover::after,
+html.dark div#pagination > a.w-full:hover span.font-semibold {
+  color: var(--bj-blue) !important;
+}
+
+html.dark div#pagination > a {
+  background: transparent;
+}
+
+@media (max-width: 639px) {
+  div#pagination {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  div#pagination > a:not(.w-full),
+  div#pagination > a.w-full {
+    grid-column: 1;
   }
 }
 
