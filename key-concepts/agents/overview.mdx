@@ -11,7 +11,7 @@ Simulations, Conversations, and Custom Metrics all attach to an Agent.
 
 <Steps>
   <Step title="Open the dialog">
-    On the **Agents** view, click **+**. The **Connect Your Agent** dialog opens.
+    In the sidebar, click **+** (**Add agent**) next to the agent selector. The **Connect Your Agent** dialog opens.
   </Step>
   <Step title="Describe the agent">
     Enter a **Name**. In **Agent Description / System Prompt**, describe the agent or paste its system prompt.
@@ -20,11 +20,11 @@ Simulations, Conversations, and Custom Metrics all attach to an Agent.
     Set **Agent type** to **Inbound** or **Outbound**. Set **Mode** to **Voice**, **Text**, or **Email**.
   </Step>
   <Step title="Connect">
-    Select the connection type and enter its details. Click **Create**.
+    Select the **Voice Connection Type** or **Text Connection Type** and enter its details. Click **Create**.
   </Step>
 </Steps>
 
-An Inbound agent receives calls or messages. An Outbound agent starts them.
+An Inbound agent receives calls or messages. An Outbound agent starts them. The LiveKit, Pipecat, ElevenLabs, VAPI, Google CES, and Dialogflow CX voice connections support Inbound only.
 
 ## Modes and connections
 
@@ -86,24 +86,28 @@ An Inbound agent receives calls or messages. An Outbound agent starts them.
 
     <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-run-sim.mp4"></video>
 
-    Bluejay checks each agent reply for SPF, DKIM, DMARC, bounces, and a spam score out of 10.
+    Bluejay grades each agent reply with the **SPF**, **DKIM**, **DMARC**, **Spam**, and **Bounced** metrics.
 
     <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-metrics.mp4"></video>
 
-    For an Outbound email agent, your system sends the first email:
-
-    1. Set `agent_type="OUTBOUND"` and `outbound_trigger_webhook_url`.
-    2. In `outbound_trigger_payload_template`, include `{{digital_human.email}}`.
-    3. When a run starts, Bluejay sends a POST to your webhook with the filled template.
-    4. Your system emails the Digital Human at that address.
-
-    Other template tokens are `{{digital_human.intent}}`, `{{digital_human.name}}`, and `{{sim_conversation_id}}`.
+    For an Outbound email agent, your agent sends the first email. Each Digital Human waits for an email at its own address, then replies.
 
     To check an email agent on a schedule, use [Uptime Monitoring](/monitor/uptime/overview). The minimum interval for email is 30 minutes.
 
     <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-uptime.mp4"></video>
   </Tab>
 </Tabs>
+
+## Outbound trigger webhook
+
+For an Outbound agent on Phone, SIP, SMS, HTTP Webhook, Retell, or Bland, your system starts each conversation.
+
+1. Set `outbound_trigger_webhook_url`.
+2. Set `outbound_trigger_payload_template` to a JSON body with tokens.
+3. When a run starts, Bluejay sends a POST with the filled template to your webhook.
+4. Your system calls or messages the Digital Human.
+
+Tokens are `{{digital_human.id}}`, `{{digital_human.name}}`, `{{digital_human.phone_number}}`, `{{digital_human.email}}`, `{{digital_human.intent}}`, and `{{sim_conversation_id}}`.
 
 ## Workflow
 
@@ -113,13 +117,23 @@ A Workflow is the multi-agent graph of a provider agent, for example a root agen
   A Workflow is different from a [Scenario](/key-concepts/scenario-builder/overview). You build a Scenario in Bluejay. A Workflow comes from your provider.
 </Note>
 
-**Sync** copies the graph from your provider. **Push** sends your edits back. Each replaces the full destination graph.
+**Pull** (**Sync** for Amelia) copies the graph from your provider into Bluejay. **Push** sends your Bluejay edits to the provider.
+
+| Provider | Workflow tab controls |
+|---|---|
+| ElevenLabs | Branch picker<br />**Pull**<br />**Push**<br />**Merge to Main** |
+| Vapi | **Pull**<br />**Save**<br />**Push** |
+| Retell | **Pull**<br />**Push** |
+| Bland | Version picker<br />**Pull**<br />**Push**<br />**Publish** |
+| [Amelia](/integrations/amelia) | **Sync**<br />**Push** (flows only) |
+| Dialogflow CX | **Pull**<br />**Push to DFCX**<br />**Promote** |
+| Imported from a document | **Edit workflow** |
 
 <Warning>
-  Push makes the change live for real callers of the agent. Sync deletes Bluejay edits that you did not push.
+  Push changes the agent in your provider account. If that version is live, real callers get the change. Pull replaces Bluejay edits that you did not push.
 </Warning>
 
-Supported providers are ElevenLabs, Vapi, Retell, Dialogflow CX, [Amelia](/integrations/amelia), and Bland. You can also import a graph from a document and edit it in Bluejay.
+To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no Pull or Push. Edit it in Bluejay, or import an updated document.
 
 The **Generate From Workflow** simulation type creates Digital Humans that drive the agent down each path. See [ElevenLabs](/integrations/eleven-labs) for a full example.
 
