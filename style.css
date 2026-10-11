@@ -656,9 +656,9 @@ html.dark .bj-turn-agent .bj-turn-role {
   }
 }
 
-/* Top bar: "Open Platform" from navbar.primary, pinned to the right of the tab row.
-   Maple renders it only in the mobile header, so that header is kept invisible
-   and only the button is shown. */
+/* Top bar: "Website" (navbar.links) and "Open Platform" (navbar.primary), pinned to
+   the right of the tab row. Maple renders them only in the mobile header, so that
+   header is kept invisible and only their list is shown. */
 
 @media (min-width: 1024px) {
   div.block:has(> #navbar #topbar-cta-button) {
@@ -674,16 +674,59 @@ html.dark .bj-turn-agent .bj-turn-role {
     pointer-events: none;
   }
 
-  #topbar-cta-button {
+  ul:has(> #topbar-cta-button) {
     position: fixed;
     top: 0;
     right: calc(var(--assistant-sheet-width, 0px) + 3rem);
     z-index: 30;
-    display: flex !important;
+    display: flex;
     align-items: center;
+    gap: 0.5rem;
     height: 3rem;
     visibility: visible;
     pointer-events: auto;
+  }
+
+  ul:has(> #topbar-cta-button) > li {
+    margin: 0 !important;
+  }
+
+  #topbar-cta-button {
+    display: flex !important;
+  }
+
+  ul:has(> #topbar-cta-button) > li.navbar-link > a {
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border: 1px solid var(--bj-border);
+    border-radius: var(--bj-radius);
+    color: var(--bj-text) !important;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  ul:has(> #topbar-cta-button) > li.navbar-link > a:hover {
+    border-color: var(--bj-blue);
+    color: var(--bj-blue-ink) !important;
+  }
+
+  ul:has(> #topbar-cta-button) > li.navbar-link > a::after {
+    content: "";
+    width: 0.625rem;
+    height: 0.625rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 1.5h5.5V7M8.5 1.5 1.5 8.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 1.5h5.5V7M8.5 1.5 1.5 8.5'/%3E%3C/svg%3E") no-repeat center / contain;
+  }
+
+  html.dark ul:has(> #topbar-cta-button) > li.navbar-link > a {
+    border-color: rgb(255 255 255 / 0.14);
+  }
+
+  html.dark ul:has(> #topbar-cta-button) > li.navbar-link > a:hover {
+    border-color: var(--bj-blue);
+    color: var(--bj-blue) !important;
   }
 
   #topbar-cta-button > a {
@@ -740,7 +783,8 @@ html.dark .bj-turn-agent .bj-turn-role {
     background-color: var(--bj-blue);
   }
 
-  #sidebar li:has(> a[href="https://app.getbluejay.ai"]) {
+  /* Both sidebar footer links now live in the top bar; the footer would be empty. */
+  #sidebar ul:has(> li > a[href="https://getbluejay.ai"]) {
     display: none;
   }
 }
