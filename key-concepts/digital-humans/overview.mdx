@@ -2,7 +2,7 @@
 title: "Digital Humans"
 description: A Digital Human is a simulated customer that calls, texts, or emails your agent. Create one, set its fields and behavior, or upload many with a CSV.
 icon: users
-sidebarTitle: "Digital Humans"
+sidebarTitle: "Overview"
 ---
 
 import { Transcript } from "/snippets/transcript.jsx";
@@ -220,14 +220,25 @@ Bluejay links an SMS to a call when all of these are true:
 
 If more than one recent call used that number, Bluejay selects the call that matches the SMS content. Bluejay groups more than one SMS for the same call into one entry. If `follow_up_sms_sender_numbers` is empty, the feature is off.
 
-## Write a Digital Human
+## Best practices
 
-1. Keep `intent` and `success_criteria` to one or two sentences each.
-2. Put grading that applies to every call in a [Custom Metric](/key-concepts/custom-metrics/overview), not in `success_criteria`.
-3. Describe the caller in `intent`. If you write "correctly", "appropriately", or "successfully", move that text to `success_criteria`.
-4. Ground the case in the agent context: the agent description, the synced [Workflow](/key-concepts/agents/overview#workflow), and the knowledge base.
+### Write a Digital Human
 
-## Make runs repeatable
+- Test one goal in each Digital Human. Booking, rescheduling, and cancelling are three Digital Humans.
+- Keep `intent` and `success_criteria` to one or two sentences each.
+- Write `intent` as what the caller wants. If you write "correctly", "appropriately", or "successfully", move that text to `success_criteria`.
+- Do not repeat in `intent` what a field sets. Bluejay already adds `traits`, `verbosity`, `fluency`, and end-of-call behavior to the prompt.
+- Write `success_criteria` as an outcome of the agent that the transcript can show. Do not describe the actions of the Digital Human.
+- Put grading that applies to every call in a [Custom Metric](/key-concepts/custom-metrics/overview), not in `success_criteria`.
+- Set `test_name` to the scenario and use `tags` to group Digital Humans. `name` is the name the caller says.
+- Ground the case in the agent context: the agent description, the synced [Workflow](/key-concepts/agents/overview#workflow), and the knowledge base. To check what Bluejay knows about the agent, ask Jay.
+
+| Field | Do | Do not |
+|---|---|---|
+| `intent` | "You want to move your dentist appointment to next week." | "Make sure the agent correctly reschedules. If it asks for your date of birth, say March 3, 1980." |
+| `success_criteria` | "The agent moved the appointment and confirmed the new date." | "The caller gives the date of birth and stays polite." |
+
+### Make runs repeatable
 
 Each "if the agent says X, the caller does Y" rule in `intent` is only a suggestion to the model. Move it to a field:
 
@@ -235,9 +246,24 @@ Each "if the agent says X, the caller does Y" rule in `intent` is only a suggest
 |---|---|
 | A fixed value, for example a date of birth or order number | `traits` |
 | A fixed line, keypad entry, or pause | `scripted_responses` |
+| A fixed sequence of replies | `scripted_responses` with `scripted_responses_ordered` set to `true` |
 | A fixed opening line | `speaks_first_config` |
 | The same call on each run | `creativity` from 0.0 to 0.3 |
 
 For exploratory and red team cases, keep `creativity` near the default of 0.7.
 
 Before you create a batch, create one Digital Human, run it, and read the transcript. Bluejay accepts a configuration that has no effect, for example a scripted response that never matches.
+
+To find regressions, run the same Digital Humans after each agent change. See [GitHub Actions](/cookbook/github-actions).
+
+### Test patterns
+
+| Test | Set |
+|---|---|
+| A fast caller | `voice_speed` to `fast` or `fastest` |
+| A long pause in the call | A scripted response with `response_type` `silence` and a `silence_duration` |
+| A bad line | `background_noise`, `audio_quality`, or `connection_quality` |
+| A caller who talks over the agent | `interruptions` |
+| Identity check before account data | A member ID in `traits`, and `success_criteria` such as "The agent verified the member ID before it gave the balance." |
+| Each outcome of an outbound call | One Digital Human for each outcome, for example confirms, reschedules, or does not know about the appointment |
+| A phone tree | [Scenario Builder](/key-concepts/scenario-builder/overview) |
