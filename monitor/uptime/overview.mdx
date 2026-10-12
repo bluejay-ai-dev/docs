@@ -13,7 +13,7 @@ A monitor must have at least one check that grades something. If it has none, Bl
 
 | Check | Passes when |
 |-------|-------------|
-| **Agent Responds** | The call connected and the agent spoke. |
+| **Agent Responds** | The call connected and the agent kept answering the caller. On a voice call, a silence of more than 15 seconds after the caller speaks fails the check. |
 | **Agent Malfunction** | The agent did not state an error during the conversation. |
 | **Latency** | The average response time stayed under the threshold. |
 | **Custom metric** | One of your Custom Metrics met its condition. |
@@ -23,10 +23,11 @@ Email monitors use different checks:
 | Check | Passes when |
 |-------|-------------|
 | **Agent Responds** | The agent replied. |
+| **Agent Malfunction** | The reply did not state an error. |
 | **Authentication** | The reply passed SPF, DKIM, and DMARC. |
 | **Spam** | The reply was not marked as spam. |
 | **Bounced** | The probe email was delivered. |
-| **Latency** | The time from send to reply stayed under the threshold. |
+| **Latency** | Never fails. Bluejay reports the time from send to reply. |
 
 <Warning>
   For email monitors, allowlist `mail.bluejaysims.com` in the agent's inbox. If you do not, Google Workspace or Microsoft 365 can quarantine the probe email, and the agent never receives it.
@@ -49,7 +50,7 @@ Latency is the average time from the end of the caller's turn to the start of th
 |---------|--------------------------------|
 | Voice | 3000 |
 | SMS and webchat | 60000 |
-| Email | Measured from send to reply. Set a value for your agent. |
+| Email | No threshold. Bluejay reports the time from send to reply. |
 
 ## Alert after repeated failures
 
@@ -66,7 +67,7 @@ To ignore one-off failures, set `alert_after_failures` on a check. The check cou
 
 Keep Agent Responds at the default of 1. An agent that does not answer must send a notification at once.
 
-## Frequency and timeouts
+## Timeouts
 
 A run fails if it does not finish within its timeout.
 
@@ -96,7 +97,7 @@ A Digital Human only selects the caller. It grades nothing, so keep at least one
 
 ## Outbound agents
 
-Bluejay does not call your outbound agent. Your side must start the conversation. Set an outbound trigger webhook on the agent. Some voice platforms place the call for Bluejay, and their integration pages say so. If an outbound agent has no way to start the call, Bluejay rejects the monitor.
+Bluejay does not call your outbound agent. Your side must start the conversation. Set an outbound trigger webhook on the agent. Some voice platforms place the call for Bluejay, and their integration pages say so. If an outbound agent has no way to start the call, Bluejay rejects the monitor. An outbound email agent needs only its inbox address, because it sends the first email.
 
 ## Related
 

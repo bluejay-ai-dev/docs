@@ -21,7 +21,7 @@ A folder includes every agent in it. If you select no agents and no folders, the
 | Outbound simulation started | `outbound_simulation_started` | An outbound simulation run starts. |
 | Observability log evaluated | `observability_call_evaluated` | A production conversation finishes evaluation. |
 | Observability alert triggered | `observability_alert_triggered` | An observability [alert](/key-concepts/alerts/overview) enters or leaves alarm. |
-| Simulation alert triggered | `simulation_alert_triggered` | A simulation alert fires for a run. |
+| Simulation alert triggered | `simulation_alert_triggered` | A simulation alert fires or recovers for a run. `subtype` is `triggered` or `recovered`. |
 
 ## Verify the signature
 
@@ -53,10 +53,12 @@ If a webhook does not fire, do these checks:
 2. Make sure the event is selected.
 3. Make sure the agent is in the selected agents or folders.
 4. Make sure the agent and the webhook are in the same workspace.
-5. Make sure your URL is reachable from the internet.
+5. Check the tag. If a [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request sets `webhook_tag`, only webhooks with that tag fire. If it does not, webhooks that have a tag do not fire.
+6. Make sure your URL is reachable from the internet.
 
 ## Related
 
+- [Events Webhook reference](/api-reference/webhook/events-webhook)
 - [Simulation Results](/test/simulations/simulation-results)
 - [Alerts](/key-concepts/alerts/overview)
 - [Logs](/monitor/logs)

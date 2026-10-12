@@ -19,13 +19,13 @@ Use a Voice agent with the **SIP** connection type.
 
 | Field | API field | Description |
 |---|---|---|
-| SIP URI | `sip_uri` | `sip:user@host`. Use `sips:` or `;transport=tls`, `tcp`, or `udp` to set the transport. |
+| SIP URI | `sip_uri` | `sip:user@host`. Use `sips:` or `;transport=tls`, `tcp`, or `udp` to set the transport. TLS without a port uses port 5061. |
 | SIP Username | `sip_username` | Optional. Digest auth username. |
 | SIP Password | `sip_password` | Optional. Digest auth password. |
-| SIP Headers | `custom_sip_headers` | Optional. Extra headers. Bluejay adds the `X-` prefix. |
+| SIP Headers | `custom_sip_headers` | Optional. Extra headers, sent with the names you enter. |
 | Dynamic SIP Webhook URL | `dynamic_sip_webhook_url` | Optional. If set, Bluejay uses it in place of the SIP URI. |
 
-Headers after `?` on the SIP URI (`sip:agent@host?X-Tenant=acme`) go into the INVITE. A Digital Human trait marked as a SIP header also goes into the INVITE.
+Headers after `?` on the SIP URI (`sip:agent@host?X-Tenant=acme`) go into the INVITE. A Digital Human trait marked as a SIP header also goes into the INVITE, with an `X-` prefix.
 
 ### Dynamic SIP webhook
 
@@ -53,7 +53,7 @@ Response body:
 | `sip_username` | No | Digest auth username for this call. |
 | `sip_password` | No | Digest auth password for this call. |
 | `custom_headers` | No | Headers that Bluejay merges into the INVITE. |
-| `metadata` | No | Bluejay stores this on the result. |
+| `metadata` | No | Bluejay stores this in the result metadata under `dynamic_sip_endpoint.response_metadata`. |
 
 If the agent has a webhook signing key, Bluejay signs the body with HMAC-SHA256 in the `X-Bluejay-Signature` header. Verify it as shown in [Chat Testing](/simulation-integrations/http-webhooks#verify-the-signature).
 
@@ -65,22 +65,8 @@ Risk: duplicate rooms. Bluejay sends the request up to 3 times, with a 10 second
 
 If your agent places calls, create the agent with type **Outbound** and give each Digital Human a phone number. The Digital Humans wait on their lines until your agent calls or the run times out. Use one of these two triggers to start the calls:
 
-- **Outbound Trigger Webhook URL** on the agent. For each conversation, Bluejay sends a `POST` with the **Trigger Payload Template** to this URL. The default body is `{"phone_number": "{{digital_human.phone_number}}", "sim_conversation_id": "{{sim_conversation_id}}"}`. The `X-Bluejay-Idempotency-Key` header holds the conversation ID. After 3 failed attempts, the conversation ends with `OUTBOUND_TRIGGER_FAILED`.
-- **`outbound_simulation_started` event** on a [webhook](/key-concepts/webhooks/overview). Bluejay sends one event per run with every number to call.
-
-```json
-{
-  "type": "outbound_simulation_started",
-  "agent_id": 123,
-  "simulation_id": 123,
-  "simulation_run_id": 123,
-  "digital_humans": [
-    { "id": 123, "name": "example_name", "phone_number": "+15551234567", "associated_simulation_result_ids": [123] }
-  ]
-}
-```
-
-Template tokens: `digital_human.id`, `digital_human.name`, `digital_human.phone_number`, `digital_human.email`, `digital_human.intent`, `sim_conversation_id`, `simulation.id`, `simulation.name`, `agent.id`, `agent.name`.
+- **Outbound Trigger Webhook URL** on the agent. Bluejay sends one `POST` for each conversation. See [Outbound trigger webhook](/key-concepts/agents/overview#outbound-trigger-webhook) for the body, headers, and retries.
+- **`outbound_simulation_started` event** on a [webhook](/key-concepts/webhooks/overview). Bluejay sends one event per run with every number to call. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
 
 ## SIP headers
 

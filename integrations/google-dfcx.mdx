@@ -7,7 +7,7 @@ sidebarTitle: "Dialogflow CX"
 
 ## Connect
 
-Go to **Settings > Integrations > Google Agents**. One credential covers Dialogflow CX and [CES](/integrations/google-ces) agents in the project. Choose one method.
+Enter the credential on the **Google Agents** tab of the Integrations settings. One credential covers Dialogflow CX and [CES](/integrations/google-ces) agents in the project. Choose one method. If you save more than one, Bluejay uses the access token first, then keyless, then the key.
 
 <Tabs>
 <Tab title="Keyless">
@@ -47,7 +47,7 @@ Make a custom role with the permissions you need and grant it to the service acc
 |---|---|---|
 | Sync and read | `dialogflow.{agents,flows,pages,intents,transitionRouteGroups,playbooks,tools,generators}.{get,list}` | `roles/dialogflow.reader` |
 | Run simulations | `dialogflow.sessions.detectIntent`, `serviceusage.services.use` | `roles/dialogflow.client`, `roles/serviceusage.serviceUsageConsumer` |
-| Push, version, promote | `dialogflow.flows.update`, `dialogflow.playbooks.update`, `dialogflow.{pages,intents,transitionRouteGroups,tools}.{create,update,delete}`, `dialogflow.versions.create`, `dialogflow.environments.update` | `roles/dialogflow.admin` |
+| Push, version, promote | Create, update, and delete flows, playbooks, pages, intents, route groups, and tools. Create flow and playbook versions. Deploy flows to an environment. | `roles/dialogflow.admin` |
 
 </Tab>
 </Tabs>
@@ -233,7 +233,7 @@ Access risk. If the tenant id has a typo, the provider rejects every token excha
 </Warning>
 </Step>
 <Step title="Paste the values">
-Paste the four values into the **Keyless** fields. Click **Save & test connection**. A green result means the token exchange, the impersonation, and the read roles all work.
+Paste the four values into the **Keyless** fields. Click **Save & test connection**. A green result means the token exchange, the impersonation, and the Dialogflow CX read roles all work. Keyless **Test connection** checks Dialogflow CX only, not CES.
 </Step>
 </Steps>
 
@@ -445,7 +445,7 @@ The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks o
 - **Pull** shows a diff from the live agent, then replaces the local copy.
 - **Push to DFCX** shows a diff, then writes your edits to the agent draft. Bluejay shows conflicts if the agent changed in Google after your last sync.
 - **Version on push** saves a new Dialogflow CX version of each flow and playbook that the push changed. Dialogflow CX limits the number of versions for each flow.
-- **Promote** deploys the flow versions you select to an environment.
+- **Promote** deploys the flow versions you select to an environment. Only admins can promote.
 
 ![The DFCX workflow canvas in Bluejay](/images/google-dfcx-workflow-canvas.png)
 
@@ -453,8 +453,10 @@ The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks o
 
 | Result | Cause |
 |---|---|
-| **Test connection** shows unreachable | Google rejected the token exchange. Check the tenant id, the provider path, and the project number. Make sure `iamcredentials` and `sts` APIs are on. After a manual or Terraform setup, wait a few minutes. |
-| **Test connection** shows no permission | The exchange worked, but a role or an API is missing. Run the script again. Add `--ces` for CES agents. |
+| **Test connection** shows `Could not obtain a federated token` | Google rejected the token exchange. Check the tenant id, the provider path, and the project number. Make sure `iamcredentials` and `sts` APIs are on. After a manual or Terraform setup, wait a few minutes. |
+| **Test connection** shows `credential rejected` | Google returned `401`. The credential expired or is not valid. For an access token, paste a new one. |
+| **Test connection** shows `no permission` | The credential works, but a role or an API is missing. Run the script again. |
+| **Test connection** shows `unreachable` | Google returned another error, or the request did not reach Google. |
 | Voice fails with `USER_PROJECT_DENIED` | The service account does not have `serviceusage.services.use`. Chat can still work, so a green **Test connection** does not prove voice works. |
 
 ## Related

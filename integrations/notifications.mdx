@@ -5,11 +5,11 @@ description: "Send Bluejay alerts to Slack, PagerDuty, Better Stack, or email, w
 icon: bell
 ---
 
-## Connect
+## Connect a channel
 
 <Tabs>
 <Tab title="Slack">
-Connect Slack in **Settings**, then **Integrations**, then **Slack**, and approve the permissions in Slack.
+Connect Slack on the **Slack** tab of the Integrations settings and approve the permissions in Slack. Each alert then picks its own Slack channel.
 
 ![Connect to Slack](/images/integrations-slack-connect.png)
 </Tab>
@@ -17,22 +17,26 @@ Connect Slack in **Settings**, then **Integrations**, then **Slack**, and approv
 1. In PagerDuty, open the service that receives Bluejay incidents.
 2. Under **Integrations**, add an **Events API V2** integration.
 3. Copy the **Integration Key**.
-4. In Bluejay, paste the key into **Routing Key** on the **PagerDuty** tab of **Settings**, then **Integrations**.
+4. In Bluejay, paste the key into **Routing Key** on the **PagerDuty** tab of the Integrations settings.
 </Tab>
 <Tab title="Better Stack">
 1. In Better Stack, open **API tokens**, then **Team-based tokens**.
 2. Select the team whose on-call rotation receives Bluejay incidents.
 3. Under **Uptime API tokens**, create a token and copy it.
-4. In Bluejay, paste the token into **API token** on the **Better Stack** tab of **Settings**, then **Integrations**.
+4. In Bluejay, paste the token into **API token** on the **Better Stack** tab of the Integrations settings. Bluejay checks the token with Better Stack when you save it.
 </Tab>
 <Tab title="Email">
-Email needs no connection. Bluejay sends to your team members.
+Email needs no connection. Send to all team members, or to the addresses you enter.
 </Tab>
 </Tabs>
 
-## Turn on notifications
+To send alerts to your own endpoint, subscribe a [webhook](/key-concepts/webhooks/overview) to the alert events.
 
-Each alert and uptime monitor has its own notification settings. Page the on-call team for failures that need action now, for example an uptime monitor that goes DOWN. Send quality drops to Slack or email. A toggle stays off until you connect its destination. Use **Send test notification** on an alert to check the setup before you rely on it.
+## Choose where each alert goes
+
+Each alert and uptime monitor has its own channels. Page the on-call team for failures that need action now, for example an uptime monitor that goes DOWN. Send quality drops to Slack or email. A channel stays off until you connect it. Use **Send test notification** on an observability alert to check the setup before you rely on it.
+
+In the API, each entry in `notification_channels` has a `type` of `email`, `slack`, `webhook`, `pagerduty`, or `betterstack`. Its `target` is the email address, Slack channel ID, webhook URL, or PagerDuty routing key. Bluejay ignores `target` for `betterstack` and uses the connected API token.
 
 ![Slack Notifications in the alert dialog](/images/integrations-slack-alarm-dialog.png)
 
@@ -43,7 +47,7 @@ PagerDuty and Better Stack receive incidents. Your escalation policy in that too
 | Source | Opens an incident | Resolves the incident |
 |---|---|---|
 | Uptime monitor | When the monitor goes DOWN | When the monitor recovers |
-| Observability alert | When the alert triggers | PagerDuty: when the alert recovers |
+| Observability alert | PagerDuty only, when the alert triggers | When the alert recovers |
 | Simulation alert | One incident per run | Never. Resolve it in PagerDuty or Better Stack. |
 
 ## Related

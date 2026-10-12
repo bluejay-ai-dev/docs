@@ -56,15 +56,15 @@ The `tag` field sets the type. A customer journey uses `journey_steps` in place 
   </Accordion>
 
   <Accordion title="Transcript replay">
-    `formatted_transcript` replays a real call in place of `description` and `success_criteria`. `original_transcript` takes raw text, and Bluejay uses one LLM call to extract the turns.
+    `formatted_transcript` replays a real call in place of `description` and `success_criteria`. Each turn has a `role` of `USER` or `AGENT`. `original_transcript` takes raw text, and Bluejay uses an LLM to extract the turns.
 
     ```json
     {
       "bluejay_as_code_id": "6f1a9c3e-7b2d-4e11-9a5f-3c8d2b1e6a90",
       "human_name": "Replayed Caller",
       "formatted_transcript": [
-        { "role": "caller", "utterance": "Hi, I need to reschedule my appointment." },
-        { "role": "agent", "utterance": "Sure, what day works better for you?" }
+        { "role": "USER", "utterance": "Hi, I need to reschedule my appointment." },
+        { "role": "AGENT", "utterance": "Sure, what day works better for you?" }
       ]
     }
     ```
@@ -90,7 +90,7 @@ The `tag` field sets the type. A customer journey uses `journey_steps` in place 
   </Accordion>
 
   <Accordion title="Red teaming">
-    [Red teaming](/key-concepts/red-teaming/overview) generates Digital Humans with `attack_vector`, `attack_type`, and `attack_plan`. Start these from [red teaming](/key-concepts/red-teaming/launching-a-test), not from Bluejay as Code.
+    [Red teaming](/key-concepts/red-teaming/overview) generates Digital Humans with `attack_vector`, `attack_type`, and `attack_plan`. Start these from a [red teaming run](/key-concepts/red-teaming/overview#launch-a-run), not from Bluejay as Code.
   </Accordion>
 </AccordionGroup>
 
@@ -135,11 +135,9 @@ Push cannot move an existing simulation to a different agent.
 }
 ```
 
-`metric_type` sets which fields apply. The `tool_call` and `audio_*` types read `settings` in place of `prompt`.
+`metric_type` sets which fields apply. For the metric types and the rules for conditional and composite metrics, see [Custom Metrics](/key-concepts/custom-metrics/overview#composite-metrics).
 
 ### Conditional metrics
-
-A conditional metric runs only on conversations that match its `settings.fire_conditions`. On other conversations the result is not applicable.
 
 ```json
 {
@@ -158,27 +156,9 @@ A conditional metric runs only on conversations that match its `settings.fire_co
 }
 ```
 
-The conditions in a group use the group `join`. The groups use the outer `join`. Both default to `and`. You can use 10 conditions maximum across all groups.
-
-| `type` | Fires when | Fields |
-|---|---|---|
-| `workflow_node` | The call reached a node in the agent workflow | `node_id` |
-| `tool_call` | The agent called a tool | `tool_name` |
-| `metric` | Another metric on the call has a given score | `metric_id`, `operator`, `value` |
-
-Operators: `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, `not_contains`.
-
-Get node IDs from `GET /v1/agents/{agent_id}/workflow/summary`.
-
 ### Composite metrics
 
-A composite metric reads the scores of other metrics on the same call. It makes no LLM call.
-
-- List the input metrics in `settings.composite.variables`. A metric that is not a number needs a `value_map`.
-- In a formula, name a metric by its ID in double quotes.
-- Formula operators: `+`, `-`, `*`, `/`, `%`, `**`. Functions: `min`, `max`, `abs`, `round`, `floor`, `ceil`.
-
-For a number, set `output_type` to `quantitative` and write a `master_formula`:
+A number:
 
 ```json
 {
@@ -202,7 +182,7 @@ For a number, set `output_type` to `quantitative` and write a `master_formula`:
 }
 ```
 
-For a label, set `output_type` to `categorical`, set `response_type` to `enum`, and write `rules`. Bluejay checks the rules in order and uses the first match. If no rule matches, the result is not applicable. You can use 10 rules maximum, with 10 conditions maximum each.
+A label, with `output_type` set to `categorical` and `response_type` set to `enum`:
 
 ```json
 "rules": [
@@ -221,12 +201,6 @@ For a label, set `output_type` to `categorical`, set `response_type` to `enum`, 
   }
 ]
 ```
-
-A rule can read only a metric that `variables` lists.
-
-<Warning>
-Risk: a rejected push. A fire condition or composite variable that points at a conditional metric returns `422`. A metric that other metrics read cannot become conditional or composite.
-</Warning>
 
 ## Related
 

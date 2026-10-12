@@ -17,7 +17,7 @@ Deploy your agent to Pipecat Cloud. Use the [Pipecat quickstart](https://docs.pi
 In the Pipecat dashboard, open **API Keys**. Create a key on the **Public** tab. The key starts with `pk_`.
 </Step>
 <Step title="Add the key to Bluejay">
-Paste the key on the **Pipecat** tab of **Settings**, then **Integrations**.
+Paste the key on the **Pipecat** tab of the Integrations settings, or on the agent.
 </Step>
 <Step title="Create the agent">
 Use an Inbound Voice agent with the **Pipecat** connection type and the **Pipecat Agent Name**. The **Pipecat** connection supports Inbound only.
@@ -25,7 +25,7 @@ Use an Inbound Voice agent with the **Pipecat** connection type and the **Pipeca
 </Steps>
 
 <Warning>
-A private Pipecat key does not work. Bluejay rejects a key that does not start with `pk_`, and the call fails.
+A private Pipecat key does not work. Bluejay rejects a key that does not start with `pk_`, and the call fails with **No Connection** and `PIPECAT_CONNECTION_FAILED`.
 </Warning>
 
 ## Fields
@@ -36,15 +36,14 @@ A private Pipecat key does not work. Bluejay rejects a key that does not start w
 | Pipecat Agent Configuration | No | JSON that Bluejay sends as `body` to your agent on start. |
 | Pipecat Room Properties | No | JSON that Bluejay merges into the Daily room properties. |
 
-Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and related keys) to the `body` it sends on start. Your bot can read its own result ID from `args.body` and report tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and the other `X-` keys) to the `body` it sends on start. Your bot can read its own result ID from `args.body` and report tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
 
 ## Limits
 
 | Symptom | Cause |
 |---|---|
-| **No Connection** with `MISSING_PIPECAT_INTEGRATION` | No Pipecat key is saved in **Settings > Integrations**. |
-| **No Connection** with `NO_PIPECAT_AGENT_NAME` | The agent has no **Pipecat Agent Name**. |
-| **Call Dropped** with `PIPECAT_CONNECTION_FAILED` | The audio connection to the Pipecat session stopped. |
+| **No Connection** with `PIPECAT_CONNECTION_FAILED` | The Pipecat session stopped before audio started, for example because the key is not a `pk_` key. |
+| Run fails at start | No Pipecat key is saved, or the agent has no **Pipecat Agent Name**. |
 
 ## Related
 

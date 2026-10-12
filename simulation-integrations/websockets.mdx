@@ -153,10 +153,14 @@ To interrupt the Digital Human (barge-in), send `speech.started`. There is no se
 
 ## Limits
 
-- To end a call, close the WebSocket with code `1000`.
-- If your server returns HTTP 401 or 403 on the upgrade, Bluejay does not retry. Check the username and password.
-- If your server returns HTTP 429, Bluejay does not retry. Lower the simulation concurrency.
-- For other connection failures, Bluejay tries 3 times with backoff.
+| Result | Cause |
+|---|---|
+| **No Connection** with `WEBSOCKET_AUTH_FAILED` | Your server returned HTTP 401 or 403 on the upgrade. Bluejay does not retry. Check the username and password. |
+| **No Connection** with `CUSTOMER_CONCURRENCY_LIMIT` | Your server returned HTTP 429. Bluejay does not retry. Lower the simulation concurrency. |
+| **No Connection** with `BRIDGE_PRE_START_FAILED` | The connection failed before the call started. Bluejay tries 3 times, 2 seconds apart. |
+| **Call Dropped** with `BRIDGE_DISCONNECTED` | The connection stopped during the call. |
+
+To end a call, close the WebSocket.
 
 ## Related
 

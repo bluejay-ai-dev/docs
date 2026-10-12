@@ -31,7 +31,7 @@ Scenarios are for voice agents only.
 
 You can also paste a JSON [definition](#example-definition). Each path from the start node to a leaf becomes one Digital Human, so every branch you add adds a test. To run a scenario, use the **Scenario Adherence** simulation type. To run an IVR Flow, use the **IVR Flow** type.
 
-With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) with `workflow_adherence_v2`, a map of scenario ID to the number of Digital Humans. The maximum is 200 for each scenario.
+With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) with `workflow_adherence_v2`, a map of scenario ID to the number of Digital Humans. Bluejay caps each count at 200.
 
 ```json
 {
@@ -53,20 +53,22 @@ With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-di
 |---|---|
 | `start` | The entry point. A graph has exactly one start node. It has no `data`. |
 | `single` | One turn from the agent or the user. `data.speaker` is `agent` (default) or `user`. |
-| `options` | A branch point for the user, for example "press 1 or say billing". User only. |
+| `options` | A branch point for the user, for example "press 1 or say billing". Set `data.speaker` to `user`. |
 
 ### `single` node `data.type`
 
 | `data.type` | Speaker | Required field |
 |---|---|---|
-| `exact` | agent or user | `message`: the exact words. |
-| `contextual` | agent only | `message`: a direction that the agent says in its own words. |
-| `silence` | agent or user | `duration_ms`: 0 to 86,400,000. |
-| `dtmf` | agent or user | `digits`: `0-9`, `*`, `#`, `A-D` (not case-sensitive). |
+| `message` | agent | `criteria`: what the agent must say, in its own words. Or `exact_match_text`: the exact words. If you set both, `exact_match_text` wins. |
+| `message` | user | `intent`: what the Digital Human must say, in its own words. Or `exact_message`: the exact words. |
+| `silence` | user only | `duration_ms`: 0 to 86,400,000. |
+| `dtmf` | agent or user | `digits`: `0-9`, `*`, `#`, `A-D` (not case-sensitive), or a `{{trait}}` token. |
+
+The types `exact` and `contextual`, and the field `message`, are removed. Bluejay rejects a graph that uses them.
 
 ### `options` node
 
-`data.branch_options` has two or more entries. Each entry has a unique `id` and a `type` of `exact`, `silence`, or `dtmf` with the matching field. `contextual` is not allowed. Each edge out of an options node sets `sourceHandle` to the `id` of its branch.
+`data.branch_options` has two or more entries. Each entry has a non-empty `id`, `speaker` set to `user`, and a `type` of `message`, `silence`, or `dtmf` with the matching field. Each edge out of an options node sets `sourceHandle` to the `id` of its branch.
 
 <img
   src="/images/workflows-option-node.png"
@@ -94,19 +96,19 @@ This create request has one branch.
     "nodes": [
       { "id": "start", "type": "start", "data": {} },
       { "id": "agent-menu", "type": "single",
-        "data": { "type": "exact", "speaker": "agent",
-                  "message": "Press 1 for support, or say billing." } },
+        "data": { "type": "message", "speaker": "agent",
+                  "exact_match_text": "Press 1 for support, or say billing." } },
       { "id": "user-choice", "type": "options",
-        "data": { "branch_options": [
-          { "id": "branch-support", "type": "dtmf", "digits": "1" },
-          { "id": "branch-billing", "type": "exact", "message": "Billing" }
+        "data": { "speaker": "user", "branch_options": [
+          { "id": "branch-support", "speaker": "user", "type": "dtmf", "digits": "1" },
+          { "id": "branch-billing", "speaker": "user", "type": "message", "exact_message": "Billing" }
         ] } },
       { "id": "agent-support", "type": "single",
-        "data": { "type": "contextual", "speaker": "agent",
-                  "message": "Start to troubleshoot the support issue." } },
+        "data": { "type": "message", "speaker": "agent",
+                  "criteria": "Start to troubleshoot the support issue." } },
       { "id": "agent-billing", "type": "single",
-        "data": { "type": "contextual", "speaker": "agent",
-                  "message": "Answer the billing question." } }
+        "data": { "type": "message", "speaker": "agent",
+                  "criteria": "Answer the billing question." } }
     ],
     "edges": [
       { "id": "e1", "source": "start", "target": "agent-menu" },

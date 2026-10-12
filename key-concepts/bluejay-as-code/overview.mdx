@@ -24,7 +24,7 @@ curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID \
   -o simulation.json
 ```
 
-The root type is `simulation`, `agent`, `digital-human`, or `custom-metric`. The payload includes the related entities.
+The root type is `simulation`, `agent`, `digital-human`, or `custom-metric`. The root ID is the entity ID or its `bluejay_as_code_id`. The payload includes the related entities.
 
 ```json simulation.json
 {
@@ -107,6 +107,8 @@ Each link list in the payload replaces the current links on push.
 Risk: a silent failure. A payload with errors returns HTTP `200` with `"valid": false` and an `errors` list. Check `valid` after every push.
 </Warning>
 
+A push returns HTTP `400` if a link points to a Digital Human or custom metric that is in neither the payload nor Bluejay, or if a new simulation does not have exactly one agent.
+
 ## Claude Code skill
 
 The skill file gives Claude Code the payload shape and the rules for pull and push.
@@ -124,3 +126,4 @@ The skill file gives Claude Code the payload shape and the rules for pull and pu
 - [Bluejay as Code API](/api-reference/endpoint/pull-bluejay-as-code)
 - [Bluejay as Code Cookbook](/key-concepts/bluejay-as-code/cookbook)
 - [GitHub Actions](/cookbook/github-actions)
+- [Custom Metrics](/key-concepts/custom-metrics/overview)

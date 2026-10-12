@@ -53,7 +53,7 @@ Start a run in the app, or call [`/v1/queue-http-text-simulation-run`](/api-refe
 You get one `simulation_result_id` per conversation.
 </Step>
 <Step title="Receive the first message">
-For an **Inbound** agent, Bluejay posts the Digital Human first message to your webhook. For an **Outbound** agent, Bluejay posts `"message": null` to tell your agent to start.
+For an **Inbound** agent, Bluejay posts the Digital Human first message to your webhook. For an **Outbound** agent, Bluejay posts `"message": null` to tell your agent to start. If the Outbound agent has an [outbound trigger webhook](/key-concepts/agents/overview#outbound-trigger-webhook), Bluejay calls that URL instead.
 </Step>
 <Step title="Reply">
 Send each agent message to `/v1/send-http-text-message` with the `simulation_result_id`.
@@ -70,7 +70,7 @@ curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
 ```
 </Step>
 <Step title="End the conversation">
-Send `"end_conversation": true` to end and evaluate the conversation. The Digital Human can also end it.
+Send `"end_conversation": true` to end and evaluate the conversation. The Digital Human can also end it. When a conversation ends, Bluejay posts a last webhook with `"message": null` and `"end_conversation": true`. A conversation that ends because no message arrived gets no last webhook.
 </Step>
 </Steps>
 
@@ -126,7 +126,7 @@ curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
 
 If `http_webhook_sync_reply` is `true`, Bluejay reads the agent reply from your webhook response and you do not call `/v1/send-http-text-message`. Bluejay waits up to 60 seconds for the response.
 
-The body can be one object, a list of objects, or a string. Bluejay reads the first of these keys: `message`, `reply`, `text`, `content`, `response`. It also reads `end_turn` and `end_conversation`. If Bluejay finds no message, it waits for `/v1/send-http-text-message`.
+The body can be one object, a list of objects, or a string. Bluejay reads the first of these keys: `message`, `reply`, `text`, `content`, `response`. It also reads `end_turn` and `end_conversation`, or `endTurn` and `endConversation`. Keys are not case sensitive. If Bluejay finds no message, it waits for `/v1/send-http-text-message`.
 
 ## Verify the signature
 

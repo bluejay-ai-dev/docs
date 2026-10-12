@@ -4,17 +4,17 @@ description: "Fail the CI build when a change to your agent lowers the Bluejay s
 icon: code-branch
 ---
 
-The step fails if the run does not complete, or if the pass rate is below `min_score`.
+The step fails if the run does not complete, if the pass rate is below `min_score`, or if `timeout_seconds` passes first. If `wait_for_results` is `false`, the step only queues the run and does not check the score.
 
 ## Prerequisites
 
-1. A Bluejay API key from the [developers page](https://app.getbluejay.ai/developers).
+1. A Bluejay [API key](/api-reference/introduction#authentication).
 2. An agent connected to your assistant.
 3. A simulation on that agent, with the Digital Humans you want to run.
 
 The CI workflow needs only `api_key` and `simulation_id`, for all connection types.
 
-## Option 1: Test an existing agent
+## Test an existing agent
 
 Use this option unless you have a preview deployment for each PR. All runs stay on one simulation, so you can compare them.
 
@@ -86,7 +86,7 @@ jobs:
   </Step>
 </Steps>
 
-## Option 2: Create, test, and delete
+## Test a preview deployment
 
 Use this option if CI makes a preview deployment for each PR. The workflow creates an agent and a simulation, runs the test, and deletes them. Your Digital Humans stay, because they are your test suite.
 
@@ -118,7 +118,6 @@ jobs:
             '{
               name: $name,
               system_prompt: "Customer support assistant under test",
-              knowledge_base: "",
               goals: ["Resolve the customer issue"],
               "<your connection field>": $connection
             }')
@@ -171,7 +170,7 @@ jobs:
 ```
 
 <Warning>
-  The cleanup step deletes the agent and the simulation, and the run history with them. To keep results, remove the cleanup step or use Option 1.
+  The cleanup step deletes the agent and the simulation, and the run history with them. To keep results, remove the cleanup step or [test an existing agent](#test-an-existing-agent).
 </Warning>
 
 ## Pin to a commit SHA
@@ -213,9 +212,8 @@ uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7
 | Output | Description |
 |--------|-------------|
 | `simulation-run-id` | The ID of the queued simulation run. |
-| `final-status` | Final run status: `completed`, `failed`, or `cancelled`. |
+| `final-status` | The final run status from the API, for example `completed`. |
 | `score` | Pass rate of the run: `tests_passed / total_tests × 100`. |
-| `report-url` | Link to the run report, if available. |
 
 ## Triggers
 

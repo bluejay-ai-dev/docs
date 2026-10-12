@@ -30,16 +30,12 @@ Save the channel, then publish the bot. The Webhook channel does not send messag
 
 | Bluejay field | Kore.ai value | API field |
 |---|---|---|
-| Kore Host | The platform domain only, for example `https://platform.kore.ai` | `kore_host` |
+| Kore Host | The platform domain, for example `https://platform.kore.ai`. Bluejay adds `/chatbot/v2/webhook/<bot_id>`. | `kore_host` |
 | Bot ID | **Bot Id**, starts with `st-` | `kore_bot_id` |
 | Client ID | The Webhook app **Client ID**, starts with `cs-` | `kore_client_id` |
 | Client Secret | The Webhook app **Client Secret** | `kore_client_secret` |
 
 The Bluejay Webhook URL has this format: `https://api.getbluejay.ai/v1/kore-webhook/<agent_id>`.
-
-<Note>
-Do not put the full Post URL in **Kore Host**. Bluejay adds the `/chatbot/v2/webhook/<bot_id>` path, so a full URL gives a 404.
-</Note>
 
 <Accordion title="Create the agent with the API">
 
@@ -59,7 +55,7 @@ curl -X POST https://api.getbluejay.ai/v1/add-agent \
   }'
 ```
 
-Then send `POST /v1/generate-kore-inbound-token` with the `agent_id`. The response shows the token one time. A second call replaces the token.
+Then send `POST /v1/generate-kore-inbound-token` with the `agent_id`. A second call replaces the token. `POST /v1/get-kore-inbound-token` returns the current token.
 
 </Accordion>
 
@@ -67,11 +63,13 @@ Then send `POST /v1/generate-kore-inbound-token` with the `agent_id`. The respon
 
 With the API, queue a run with [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run).
 
+## Troubleshooting
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | `ConnectTimeout` in the result error | Bluejay cannot reach the Kore.ai host | Use a host that the public internet can reach. |
 | Kore.ai returns 401 | Kore.ai rejects the JWT | Check Client ID and Client Secret, and make sure the app uses HS256. |
-| Kore.ai returns 404 | Wrong Bot ID, bot not published, or full URL in Kore Host | Fix the field, then publish the bot. |
+| Kore.ai returns 404 | Wrong Bot ID, or the bot is not published | Fix the Bot ID, then publish the bot. |
 | `POST /v1/kore-webhook/<agent_id>` returns 401 | The access token in Kore.ai does not match | Copy the token from **View access token** into Kore.ai again. |
 | Replies show in Kore.ai but not in Bluejay | The channel uses Synchronous mode | Set Asynchronous mode and publish again. |
 

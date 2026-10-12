@@ -9,7 +9,7 @@ Simulations, Conversations, and Custom Metrics all attach to an Agent.
 
 ## Create an Agent
 
-Paste the agent's real system prompt into **Agent Description / System Prompt**. Bluejay uses it to generate Digital Humans and metrics, so a vague description gives vague tests.
+An Agent has a name, an **Agent type**, a **Mode**, a connection type, and a system prompt. Paste the agent's real system prompt into **Agent Description / System Prompt**. Bluejay uses it to generate Digital Humans and metrics, so a vague description gives vague tests.
 
 An Inbound agent receives calls or messages. An Outbound agent starts them. Some platform connections support Inbound only. The integration page for your platform says which types it supports.
 
@@ -21,7 +21,7 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. Some
 
     | Connection type | You provide |
     |---|---|
-    | Phone | A phone number |
+    | Phone | **Your Agent's Phone Number**, in E.164 format, for example `+15551234567` |
     | SIP | A SIP URI, or a `dynamic_sip_webhook_url` that returns the URI for each call |
     | Websocket | A websocket URL, with an optional username and password |
     | A voice platform or framework | The fields on its integration page |
@@ -36,11 +36,9 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. Some
     | Connection type | How it works |
     |---|---|
     | SMS | The Digital Human texts the agent's phone number. |
-    | HTTP Webhook | Bluejay sends a POST with each Digital Human message to your webhook URL. Your endpoint replies through the send-http-text-message endpoint. |
+    | HTTP Webhook | Bluejay sends a POST with each Digital Human message to your webhook URL. See [Chat Testing](/simulation-integrations/http-webhooks). |
     | OpenAI-compatible | Bluejay calls your API base URL with an optional API key and model. |
     | A chat platform | The fields on its integration page. |
-
-    For the HTTP Webhook, send the same `simulation_result_id` on each reply. See [Chat Testing](/simulation-integrations/http-webhooks).
   </Tab>
   <Tab title="Email">
     A Digital Human sends a real email to the agent inbox. The agent replies, and Bluejay grades the thread. Enter the agent email address. If the agent replies from other addresses, add them too.
@@ -70,7 +68,7 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. Some
 
     <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-run-sim.mp4"></video>
 
-    Bluejay grades each agent reply with the **SPF**, **DKIM**, **DMARC**, **Spam**, and **Bounced** metrics.
+    Bluejay grades each agent reply with the built-in **SPF Pass Rate**, **DKIM Pass Rate**, **DMARC Pass Rate**, **Delivered Rate**, and **Spam Score** metrics.
 
     <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-metrics.mp4"></video>
 
@@ -88,7 +86,13 @@ For an Outbound agent, your system starts each conversation. Some voice platform
 
 When a run starts, Bluejay sends a POST to `outbound_trigger_webhook_url` with the body from `outbound_trigger_payload_template`, with the tokens filled in. Your system then calls or messages the Digital Human.
 
-Tokens are `{{digital_human.id}}`, `{{digital_human.name}}`, `{{digital_human.phone_number}}`, `{{digital_human.email}}`, `{{digital_human.intent}}`, and `{{sim_conversation_id}}`.
+Tokens are `{{digital_human.id}}`, `{{digital_human.name}}`, `{{digital_human.phone_number}}`, `{{digital_human.email}}`, `{{digital_human.stable_email}}` (the same address as `digital_human.email`), `{{digital_human.intent}}`, `{{sim_conversation_id}}`, `{{simulation.id}}`, `{{simulation.name}}`, `{{agent.id}}`, and `{{agent.name}}`. Bluejay leaves an unknown token as you wrote it. If you set no template, the body has `phone_number` and `sim_conversation_id`.
+
+Return a `2xx` status within 15 seconds. Bluejay tries 3 times. Then the conversation ends as No Connection with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/simulation-results#no-connection). The `X-Bluejay-Idempotency-Key` header holds the conversation ID, so you can ignore a repeated request. If the agent has a webhook signing key, the `X-Bluejay-Signature` header holds the HMAC-SHA256 of the body. [Verify it](/simulation-integrations/http-webhooks#verify-the-signature) before you place the call.
+
+## Agent Versions
+
+An Agent Version is a numbered copy of the agent prompt. Save a new version before you change the prompt, so you can compare runs and go back. Each new version gets the `latest` label. The first version also gets the `production` label, and it keeps it until you promote another version. A new simulation run and a production evaluation use the `production` version unless you select another one.
 
 ## Workflow
 
@@ -106,12 +110,12 @@ A Workflow is the multi-agent graph of a provider agent, for example a root agen
 
 To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no Pull or Push. Edit it in Bluejay, or import an updated document.
 
-The **Generate From Workflow** simulation type creates Digital Humans that drive the agent down each path.
+The **Generate From Workflow** [simulation type](/test/simulations/overview#simulation-types) creates Digital Humans that drive the agent down each path.
 
 ## Related
 
 - [Agents API](/api-reference/endpoint/add-agent)
 - [Agents MCP tools](/mcp/testing-tools#agents)
-- [Digital Humans](/key-concepts/digital-humans/overview)
-- [Simulation](/test/simulations/overview)
+- [Agent Versions API](/api-reference/endpoint/create-prompt-version)
+- [Simulations](/test/simulations/overview)
 - [Knowledge Bases](/key-concepts/knowledge-base/overview)
