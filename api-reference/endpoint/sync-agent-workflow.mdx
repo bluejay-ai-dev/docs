@@ -1,0 +1,58 @@
+---
+title: "Sync Agent Workflow"
+description: "Pull the latest Workflow of an agent from its provider into Bluejay."
+openapi: "POST /v1/agents/{agent_id}/workflow/sync"
+---
+
+Pulls the latest [Workflow](/key-concepts/agents/overview#workflow) of one agent from its provider. This replaces the Bluejay edits that you did not push.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Sync Agent Workflow: POST /v1/agents/{agent_id}/workflow/sync
+
+> **What this endpoint does:** Pull the latest workflow from the agent's source provider into Bluejay. ``branch_id`` is opaque metadata: adapters that don't support branching ignore it.
+
+**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/sync`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| agent_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/sync-agent-workflow and include any optional parameters (e.g., `branch_id`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Example
+**POST with body:**
+```python
+import requests
+
+def sync_agent_workflow(agent_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/sync"
+    headers = {"X-API-Key": api_key}
+    response = requests.post(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+
+</Accordion>

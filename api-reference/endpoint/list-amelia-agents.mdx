@@ -1,0 +1,58 @@
+---
+title: "List Amelia Agents"
+description: "List the Amelia AI agents in one domain, to pick the agent a Bluejay agent syncs from."
+openapi: "GET /v1/integrations/amelia/agents"
+---
+
+Returns the AI agent names in one Amelia domain. Set `domain_code` to the domain code of the bot.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## List Amelia Agents: GET /v1/integrations/amelia/agents
+
+> **What this endpoint does:** Cognitive agent names in one domain, for the picker on the Amelia connection form. `status` is the latest revision's, and is reported only so the form can show it: on a live tenant almost every agent reads UNDEPLOYED while still serving traffic, so it must not be used to filter the list.
+
+**Endpoint:** GET `https://api.getbluejay.ai/v1/integrations/amelia/agents`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| domain_code | string | Amelia domain code the agent points at |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-amelia-agents and include any optional parameters (e.g., `base_url`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Example
+**Simple GET:**
+```python
+import requests
+
+def list_amelia_agents(api_key: str) -> dict:
+    url = "https://api.getbluejay.ai/v1/integrations/amelia/agents"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+
+</Accordion>
