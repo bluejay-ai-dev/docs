@@ -5,24 +5,27 @@ icon: '/logo/elevenlabs.svg'
 sidebarTitle: "ElevenLabs"
 ---
 
-Bluejay syncs your agents and their workflows.
+Connect ElevenLabs to test your agents with simulated callers and to score your live ElevenLabs calls. Bluejay syncs your agents and their workflows.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/elevenlabs-simulations-walkthrough.mp4"></video>
 
 ## Connect
 
-Get an API key in ElevenLabs under **Developers > API Keys**. Enter these fields on the **Eleven Labs** tab of the Integrations settings in Bluejay.
+Bluejay needs two values from ElevenLabs:
 
 | Field | Value |
 |---|---|
 | Webhook Secret | The HMAC secret of your ElevenLabs post-call webhook. See [Monitor](#monitor). |
 | ElevenLabs API Key | Your ElevenLabs API key. Bluejay uses it to sync agents, open calls, and get tool calls. |
 
-**Sync Agents from ElevenLabs** imports every agent with its prompt and workflow. Turn on **Autosync from ElevenLabs** to keep Bluejay current when you change agents in ElevenLabs.
+1. In ElevenLabs, open **Developers > API Keys** and get an API key.
+2. In Bluejay, enter it as **ElevenLabs API Key** on the **Eleven Labs** tab of the Integrations settings.
+3. Click **Sync Agents from ElevenLabs** to import every agent with its prompt and workflow.
+4. To keep Bluejay current when you change agents in ElevenLabs, turn on **Autosync from ElevenLabs**.
 
-To connect one agent by hand, open its **Connection Settings**, choose the **ElevenLabs** tile, and set **ElevenLabs Agent ID**.
+To connect one agent by hand instead of syncing, open its **Connection Settings**, choose the **ElevenLabs** tile, and set **ElevenLabs Agent ID**.
 
-Edit a synced workflow in the **Workflow** tab of the agent. Pull changes from ElevenLabs, push your edits back, and merge a branch into Main.
+To edit a synced workflow, open the **Workflow** tab of the agent, where you can pull changes from ElevenLabs, push your edits back, and merge a branch into Main.
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-workflows-tab.jpg" src="/images/elevenlabs-sim-workflows-tab.mp4" aria-label="The Workflows tab in Bluejay" />
 
@@ -31,18 +34,18 @@ Edit a synced workflow in the **Workflow** tab of the agent. Pull changes from E
 <Tabs>
 <Tab title="Websocket">
 
-Bluejay opens a live web call to the agent over websocket. No phone number is necessary. The **ElevenLabs** tile is inbound only.
+Bluejay opens a live web call to the agent over websocket, so no phone number is necessary. The **ElevenLabs** tile is inbound only.
 
 For a multi-agent workflow, **Generate From Workflow** makes Digital Humans for each path, so every branch of the workflow gets a test.
 
-Simulations always use the Main branch. Merge other branches to Main before you test them.
+Simulations always use the Main branch, so merge other branches to Main before you test them.
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-generate.jpg" src="/images/elevenlabs-sim-generate.mp4" aria-label="Generate Digital Humans from a synced workflow" />
 
 </Tab>
 <Tab title="Phone">
 
-Bluejay dials the ElevenLabs phone number like a real caller. Use this to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result.
+Bluejay dials the ElevenLabs phone number like a real caller. Use this path to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result.
 
 Use an Inbound Voice agent with the [Phone connection type](/key-concepts/agents/overview#modes-and-connections) and the ElevenLabs number.
 
@@ -63,7 +66,7 @@ ElevenLabs sends each production call to Bluejay through a post-call webhook.
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-1-webhook.jpg" src="/images/elevenlabs-1-webhook.mp4" aria-label="Set up the ElevenLabs webhook" />
 
-If you relay the ElevenLabs payload through your own service, send it with a Bluejay API key. A changed payload no longer matches the ElevenLabs signature.
+If your own service relays the ElevenLabs payload to Bluejay, send it with a Bluejay API key instead. A payload that your service changed no longer matches the ElevenLabs signature, so Bluejay cannot verify it with the webhook secret.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
@@ -72,7 +75,7 @@ curl -X POST https://api.getbluejay.ai/v1/integrations/ElevenLabs \
   -d @elevenlabs-post-call-body.json
 ```
 
-Add a top-level `metadata` object to attach your own fields, for example to use as `{{member_id}}` in a [metric prompt](/key-concepts/custom-metrics/prompting-guide).
+To attach your own fields, add a top-level `metadata` object to the payload. You can then use each field in a [metric prompt](/key-concepts/custom-metrics/prompting-guide), for example as `{{member_id}}`.
 
 ```json
 {
@@ -82,7 +85,7 @@ Add a top-level `metadata` object to attach your own fields, for example to use 
 }
 ```
 
-Bluejay overwrites these metadata keys:
+Bluejay sets these metadata keys itself and overwrites any value you send for them:
 
 - `eleven_labs_conversation_id`
 - `eleven_labs_user_id`

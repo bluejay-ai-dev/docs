@@ -24,20 +24,22 @@ Each change then has a history and a reviewer.
 
 ## Pull the payload
 
+To pull, request the type of the entity you start from and its ID. This example pulls a simulation:
+
 ```bash
 curl https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID \
   -H "X-API-Key: $BLUEJAY_API_KEY" \
   -o simulation.json
 ```
 
-Supported root types include:
+To pull a different type, replace `simulation` in the URL. Supported root types include:
 
 - `simulation`
 - `agent`
 - `digital-human`
 - `custom-metric`
 
-The root ID is the entity ID or its `bluejay_as_code_id`. The payload includes the related entities.
+For the ID, use either the entity ID or its `bluejay_as_code_id`. The payload holds that entity and the entities related to it, so pulling a simulation also returns its agent, Digital Humans, and custom metrics:
 
 ```json simulation.json
 {
@@ -79,9 +81,9 @@ The root ID is the entity ID or its `bluejay_as_code_id`. The payload includes t
 - To add an entity, append an object with a new `bluejay_as_code_id`. Generate the UUID one time (for example with `uuidgen`) and commit it.
 - To unlink a Digital Human or custom metric, remove it from the list that links it.
 
-Each entity takes the same fields as its API resource. A few Digital Human fields have different names. See the [Cookbook](/key-concepts/bluejay-as-code/cookbook).
+Each entity takes the same fields as its API resource, except for a few Digital Human fields that have different names. The [Cookbook](/key-concepts/bluejay-as-code/cookbook) lists them, with an example of each entity.
 
-A simulation has no field for its agent. If the payload has one agent, Bluejay links the new simulation to it. If the payload has more agents, list the simulation `bluejay_as_code_id` in the `simulations` array of its agent.
+A simulation has no field for its agent, so Bluejay finds the agent from the payload. If the payload has one agent, Bluejay links the new simulation to it. If the payload has more than one agent, add the simulation's `bluejay_as_code_id` to the `simulations` array of the agent it belongs to.
 
 ## Push the payload
 
@@ -114,17 +116,17 @@ Bluejay matches each entity by `bluejay_as_code_id`:
 | Digital Human missing from a simulation's links | Bluejay removes it from the simulation. The Digital Human stays. |
 | Custom metric missing from an agent's links | Bluejay detaches it from the agent. The metric stays. |
 
-Each link list in the payload replaces the current links on push.
+Each link list in the payload replaces the current links on push, which is why removing an entry from a list unlinks it.
 
 <Warning>
-Risk: a silent failure. A payload with errors returns HTTP `200` with `"valid": false` and an `errors` list. Check `valid` after every push.
+A push with errors still returns HTTP `200`, so it can fail without anything noticing. Check `valid` in the response after every push: when it is `false`, the `errors` list says what went wrong.
 </Warning>
 
 A push returns HTTP `400` if a link points to a Digital Human or custom metric that is in neither the payload nor Bluejay, or if a new simulation does not have exactly one agent.
 
 ## Claude Code skill
 
-The skill file gives Claude Code the payload shape and the rules for pull and push.
+To have Claude Code write and push payloads for you, give it the skill file. The file teaches Claude Code the payload shape and the rules for pull and push.
 
 <Card title="Download skill" icon="download" href="https://raw.githubusercontent.com/bluejay-ai-dev/docs/main/key-concepts/bluejay-as-code/skill.txt">
   `skill.txt`

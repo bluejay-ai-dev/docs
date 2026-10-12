@@ -28,11 +28,11 @@ Define metrics to grade your agent.
 | Phrase Match | Checks whether specific words were said. |
 | Transfer Landed | Passes when the Digital Human you choose answers a transfer from the agent in time. The default limit is 180 seconds, and the maximum is 900. |
 
-Tool Call, Phrase Match, and Transfer Landed always return Pass/Fail. Only LLM as a Judge uses a prompt.
+Only LLM as a Judge uses a prompt, and its response type sets the shape of its result. Tool Call, Phrase Match, and Transfer Landed always return Pass/Fail.
 
 ## Response types
 
-The response type sets the shape of an LLM as a Judge result.
+Choose the response type that matches the question your prompt asks:
 
 | Response type | Example |
 |---|---|
@@ -47,7 +47,7 @@ The response type sets the shape of an LLM as a Judge result.
 
 Use a composite metric to roll several metrics into one score or label. It cannot use another composite or conditional metric. For example, combine a clarity score and a Pass/Fail check into one Scheduling Quality score. A composite metric reads results that the other metrics already produced, so it makes no LLM call.
 
-A composite metric gives a number from a formula, or a label from rules. The [composite metric example](/key-concepts/bluejay-as-code/cookbook#composite-metrics) shows both.
+To get a number, write a formula. To get a label, write rules. The [composite metric example](/key-concepts/bluejay-as-code/cookbook#composite-metrics) shows both.
 
 ## Conditional metrics
 
@@ -61,18 +61,20 @@ Join conditions with "and" or "or". The [conditional metric example](/key-concep
 
 ## Tool calls, events, and metadata
 
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way.
+
 ### Send tool calls
 
 <Tabs>
   <Tab title="Simulations">
-    Bluejay sends an `X-Simulation-Result-Id` with each simulated call. Your agent reads it, records its tool calls during the call, and sends them after the call ends.
+    Bluejay sends an `X-Simulation-Result-Id` with each simulated call, so that your agent can tell Bluejay which call its tool calls belong to. Your agent reads the ID, records its tool calls during the call, and sends them with the ID after the call ends.
 
     | Connection | Where the ID arrives |
     |------------|----------------------|
     | [SIP](/simulation-integrations/sip) | A custom header on the SIP INVITE. |
     | [WebSocket](/simulation-integrations/websockets) | A header on the WebSocket upgrade request. |
 
-    The phone network usually drops custom headers, so a Phone connection cannot pass the ID. Use SIP for phone agents. For a voice platform or framework, its integration page says where the ID arrives.
+    The phone network usually drops custom headers, so a Phone connection cannot pass the ID. Use SIP for phone agents. If you use a voice platform or framework, its integration page says where the ID arrives.
 
     After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
 
@@ -97,7 +99,7 @@ Join conditions with "and" or "or". The [conditional metric example](/key-concep
     Some integrations collect tool calls without this API call. The integration page for your platform says if it does.
   </Tab>
   <Tab title="Production">
-    Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording. You cannot add them later.
+    Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording, because you cannot add them later.
 
     ```json
     {
@@ -148,7 +150,7 @@ An event marks a moment in the conversation, for example an escalation or a hold
 
 ### Metadata
 
-`metadata` is a free-form JSON object for the whole conversation. Bluejay puts each key into the matching `{{placeholder}}` in your custom metrics. See [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
+`metadata` is a free-form JSON object for the whole conversation. Use it to give your custom metrics call-specific values: Bluejay puts each key into the matching `{{placeholder}}` in a metric. See [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
 
 ## Related
 

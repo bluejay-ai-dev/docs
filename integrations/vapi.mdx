@@ -5,7 +5,7 @@ icon: '/logo/vapi.svg'
 sidebarTitle: "Vapi"
 ---
 
-Bluejay syncs your assistants, so you do not set up each one by hand.
+Connect Vapi to test your assistants with simulated callers and to score your live Vapi calls. Bluejay syncs your assistants, so you do not set up each one by hand.
 
 <iframe
   src="https://www.youtube.com/embed/jw_gipBfr3Y"
@@ -18,16 +18,19 @@ Bluejay syncs your assistants, so you do not set up each one by hand.
 
 ## Connect
 
-Get both keys in Vapi under **Settings > API Keys**. Paste them on the **Vapi** tab of the Integrations settings in Bluejay.
+Bluejay uses two Vapi keys:
 
 | Field | Value |
 |---|---|
 | Private API Key | Your Vapi private key. Bluejay uses it to sync assistants and open web calls. |
 | Public API Key | Your Vapi public key. Vapi sends it in the `x-vapi-secret` header so Bluejay can verify the webhook. |
 
-**Sync Agents from Vapi** imports every assistant and squad. Turn on **Autosync from Vapi** to keep Bluejay current when you change assistants in Vapi.
+1. In Vapi, open **Settings > API Keys** and copy both keys.
+2. In Bluejay, paste them on the **Vapi** tab of the Integrations settings.
+3. Click **Sync Agents from Vapi** to import every assistant and squad.
+4. To keep Bluejay current when you change assistants in Vapi, turn on **Autosync from Vapi**.
 
-Set the webhook on each assistant in Vapi:
+Then set the webhook on each assistant in Vapi, so Vapi sends each call to Bluejay when it ends:
 
 1. Open the assistant, then **Advanced > Webhook Server**. On the classic UI, open **Messaging**.
 2. Set **Server URL** to `https://api.getbluejay.ai/v1/integrations/vapi`.
@@ -37,13 +40,9 @@ Set the webhook on each assistant in Vapi:
 
 ![Vapi webhook configuration](/images/vapi-sim-webhook.png)
 
-Bluejay accepts the webhook only for an assistant that is synced or connected to a Bluejay agent.
+Bluejay accepts the webhook only for an assistant that is synced or connected to a Bluejay agent. To connect one agent by hand instead of syncing, open its **Connection Settings**, choose the **VAPI** tile, and set **VAPI Assistant ID**.
 
-An assistant that uses a Vapi workflow syncs with an empty prompt.
-
-To connect one agent by hand, open its **Connection Settings**, choose the **VAPI** tile, and set **VAPI Assistant ID**.
-
-In the **Workflow** tab of a synced agent, pull the graph from Vapi and push your edits back.
+An assistant that uses a Vapi workflow syncs with an empty prompt. To work on its graph, open the **Workflow** tab of the synced agent, where you can pull the graph from Vapi and push your edits back.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/integrations-vapi.mp4"></video>
 
@@ -52,14 +51,14 @@ In the **Workflow** tab of a synced agent, pull the graph from Vapi and push you
 <Tabs>
 <Tab title="Web call">
 
-Bluejay calls the assistant through the Vapi web-call bridge. No phone number is necessary. Tool calls show in the **Tool Adherence** tab.
+Bluejay calls the assistant through the Vapi web-call bridge, so no phone number is necessary. Tool calls show in the **Tool Adherence** tab.
 
-The web-call bridge is inbound only. The **Outbound** option is disabled on VAPI agents.
+The web-call bridge is inbound only, so the **Outbound** option is disabled on VAPI agents.
 
 </Tab>
 <Tab title="Phone">
 
-Bluejay dials the Vapi phone number like a real caller. Use this to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result.
+Bluejay dials the Vapi phone number like a real caller. Use this path to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result; to get them with phone audio, use SIP.
 
 Use an Inbound Voice agent with the [Phone connection type](/key-concepts/agents/overview#modes-and-connections) and the Vapi number.
 
@@ -111,7 +110,9 @@ Your assistant dials the Digital Humans. Tool calls are not linked to the result
 1. Use a synced assistant as an agent with type **Outbound**, and set its phone number to a number in your Vapi account.
 2. Give each Digital Human a phone number.
 
-Bluejay asks Vapi to place each call from that number. To place the calls yourself, set **Outbound Trigger Webhook URL** on the agent, or subscribe a [webhook](/key-concepts/webhooks/overview) to `outbound_simulation_started`. Then call the Vapi outbound call API for each Digital Human, with `customer.number` set to its `phone_number`.
+Bluejay then asks Vapi to place each call from that number.
+
+To place the calls yourself, set **Outbound Trigger Webhook URL** on the agent, or subscribe a [webhook](/key-concepts/webhooks/overview) to `outbound_simulation_started`. When you get the event, call the Vapi outbound call API for each Digital Human, with `customer.number` set to its `phone_number`.
 
 </Tab>
 </Tabs>
@@ -120,7 +121,7 @@ Bluejay asks Vapi to place each call from that number. To place the calls yourse
 
 ## Monitor
 
-The same webhook sends each production call to Bluejay when the call ends. The call shows on the **Logs** page with its metric results. The call metadata that you set in Vapi becomes conversation `metadata`, so custom metrics can use it as [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
+The webhook you set in [Connect](#connect) also sends each production call to Bluejay when the call ends. The call shows on the **Logs** page with its metric results. The call metadata that you set in Vapi becomes conversation `metadata`, so custom metrics can use it as [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
 
 ## Limits
 

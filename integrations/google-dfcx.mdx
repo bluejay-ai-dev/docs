@@ -5,14 +5,22 @@ icon: '/logo/dialogflow.svg'
 sidebarTitle: "Dialogflow CX"
 ---
 
+Connect your Google Cloud project to Bluejay to sync your Dialogflow CX agents, test them with simulated calls and chats, and push flow edits back to Google.
+
 ## Connect
 
-Enter the credential on the **Google Agents** tab of the Integrations settings. One credential covers Dialogflow CX and [CES](/integrations/google-ces) agents in the project. Choose one method. If you save more than one, Bluejay uses the access token first, then keyless, then the key.
+Bluejay reaches your agents with one Google Cloud credential, which you save on the **Google Agents** tab of the Integrations settings. One credential covers every Dialogflow CX and [CES](/integrations/google-ces) agent in the project. Choose one method:
+
+- **Keyless**: recommended. No key exists, so no key can leak.
+- **Access token**: for a quick trial. The token stops working after about one hour.
+- **Service account key**: a legacy method.
+
+If you save more than one, Bluejay uses the access token first, then keyless, then the key.
 
 <Tabs>
 <Tab title="Keyless">
 
-Recommended. No key exists, so no key can leak. See [Keyless setup](#keyless-setup).
+Run the script in [Keyless setup](#keyless-setup), then fill in these fields:
 
 | Field | Value |
 |---|---|
@@ -25,7 +33,7 @@ Recommended. No key exists, so no key can leak. See [Keyless setup](#keyless-set
 </Tab>
 <Tab title="Access token">
 
-For a quick trial. The token stops working after about one hour.
+Fill in these fields. When the token stops working, paste a new one.
 
 | Field | Value |
 |---|---|
@@ -35,13 +43,15 @@ For a quick trial. The token stops working after about one hour.
 </Tab>
 <Tab title="Service account key">
 
-A legacy method. Paste a service account key or a federation config JSON into **Credential JSON**.
-
 <Warning>
 Security risk. A JSON key works from anywhere until you delete it. Use keyless access for new integrations. To migrate, set up keyless access, get a green **Test connection**, then delete the key in Google Cloud.
 </Warning>
 
-Make a custom role with the permissions you need and grant it to the service account. Then create a JSON key in the **Keys** tab of the service account.
+1. Make a custom role with the permissions you need from the table below, and grant it to the service account.
+2. Create a JSON key in the **Keys** tab of the service account.
+3. Paste the key, or a federation config JSON, into **Credential JSON**.
+
+Each use needs these permissions, or the predefined roles that include them:
 
 | Use | Permissions | Predefined roles |
 |---|---|---|
@@ -52,13 +62,13 @@ Make a custom role with the permissions you need and grant it to the service acc
 </Tab>
 </Tabs>
 
-**Sync Agents from Google** creates one agent for each Dialogflow CX and CES agent. Sync again when you add agents in Google.
+After you save the credential, click **Sync Agents from Google**. Bluejay creates one agent for each Dialogflow CX and CES agent. Sync again when you add agents in Google.
 
-To connect one agent by hand, open its **Connection Settings** and choose the **Dialogflow CX** tile. Set **Dialogflow CX Agent Path** to `projects/<project>/locations/<location>/agents/<agentId>`.
+To connect one agent by hand instead, open its **Connection Settings** and choose the **Dialogflow CX** tile. Set **Dialogflow CX Agent Path** to `projects/<project>/locations/<location>/agents/<agentId>`.
 
 ### Keyless setup
 
-You need the **Owner** role on the project, or Workload Identity Pool Admin, Service Account Admin, and Project IAM Admin.
+A setup script creates, in your project, a service account with no keys that only your Bluejay tenant can use. To run it, you need the **Owner** role on the project, or Workload Identity Pool Admin, Service Account Admin, and Project IAM Admin.
 
 <Steps>
 <Step title="Copy your tenant id">
@@ -230,22 +240,22 @@ Run it with your tenant id and project ID. Add `--ces` if you also use CES agent
 bash bluejay-wif.sh PASTE_YOUR_BLUEJAY_TENANT_ID your-project-id
 ```
 
-The script waits until Google applies the roles, usually 1 to 3 minutes. Then it prints four values.
+The script waits until Google applies the roles, usually 1 to 3 minutes, then prints four values.
 
 <Warning>
 Access risk. If the tenant id has a typo, the provider rejects every token exchange. **Test connection** then shows unreachable.
 </Warning>
 </Step>
 <Step title="Paste the values">
-Paste the four values into the **Keyless** fields. Click **Save & test connection**. A green result means the token exchange, the impersonation, and the Dialogflow CX read roles all work. Keyless **Test connection** checks Dialogflow CX only, not CES.
+Paste the four values into the **Keyless** fields and click **Save & test connection**. A green result means the token exchange, the impersonation, and the Dialogflow CX read roles all work. The keyless test checks Dialogflow CX only, not CES.
 </Step>
 </Steps>
 
 Bluejay stores only the four values, which are not secret.
 
-The script does not grant write roles. To use **Push to DFCX**, **Version on push**, or **Promote**, add the write permissions from the **Service account key** tab to the service account.
+The script grants read and run roles only. To use **Push to DFCX**, **Version on push**, or **Promote**, also give the service account the write permissions listed in the **Service account key** tab.
 
-To revoke access, remove the impersonation binding. Tokens that Bluejay already has expire within one hour.
+To revoke Bluejay's access, remove the impersonation binding. Tokens that Bluejay already has expire within one hour.
 
 ```bash
 gcloud iam service-accounts remove-iam-policy-binding \
@@ -257,7 +267,7 @@ gcloud iam service-accounts remove-iam-policy-binding \
 To delete all of it, delete the service account and the pool with `gcloud iam workload-identity-pools delete bluejay --location=global`.
 
 <Accordion title="Terraform">
-Apply these files in your own repository. They create the same resources as the script. Bluejay never runs Terraform for you.
+To manage keyless access in Terraform instead of the script, apply these files in your own repository. They create the same resources as the script. Bluejay never runs Terraform for you.
 
 <CodeGroup>
 
@@ -418,17 +428,17 @@ EOF
 terraform init && terraform apply
 ```
 
-Paste the three outputs and your project ID into Bluejay. Terraform does not wait for role changes, so **Test connection** can fail for a few minutes. The `storage` and `bigquery` options grant project-wide read access.
+Paste the three outputs and your project ID into Bluejay. Unlike the script, Terraform does not wait for Google to apply the roles, so **Test connection** can fail for a few minutes. Note that the `storage` and `bigquery` options grant read access to the whole project.
 </Accordion>
 
 ## Test
 
-The connection type decides the path. Bluejay replies `{"status": "ok"}` to each client-side tool call.
+You can test a Dialogflow CX agent by voice or by chat, and the agent's connection type decides which. In both, Bluejay replies `{"status": "ok"}` to each client-side tool call.
 
 <Tabs>
 <Tab title="Voice">
 
-Choose the **Dialogflow CX** voice tile. No phone number is necessary. This is inbound only.
+Choose the **Dialogflow CX** voice tile. Voice tests need no phone number and work for inbound agents only.
 
 **Generate From Workflow** makes Digital Humans from the flows, event handlers, and playbooks, including paths across handoffs. Use it so that each path in the agent gets a test, not only the main path.
 
@@ -444,7 +454,7 @@ Set the agent mode to **Text** and choose the **Dialogflow CX** text tile. Chat 
 
 ### Edit, version, and promote
 
-The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks on a canvas. Versions and deployments that you make here are real Dialogflow CX versions and deployments.
+The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks on a canvas, where you can edit them and send the changes to Google. Versions and deployments that you make here are real Dialogflow CX versions and deployments.
 
 - **Pull** shows a diff from the live agent, then replaces the local copy.
 - **Push to DFCX** shows a diff, then writes your edits to the agent draft. Bluejay shows conflicts if the agent changed in Google after your last sync.
@@ -454,6 +464,8 @@ The **Workflow** tab shows flows, pages, routes, event handlers, and playbooks o
 ![The DFCX workflow canvas in Bluejay](/images/google-dfcx-workflow-canvas.png)
 
 ## Limits
+
+If **Test connection** or a voice run fails, find the result below:
 
 | Result | Cause |
 |---|---|

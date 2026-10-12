@@ -5,42 +5,54 @@ icon: '/logo/bland.svg'
 sidebarTitle: "Bland"
 ---
 
-Bluejay syncs each pathway as an agent.
+Connect Bland to test your pathways with simulated callers and to score your live Bland calls. Bluejay syncs each pathway as an agent.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/bland-walkthrough.mp4"></video>
 
 ## Connect
 
-Enter these on the **Bland** tab of the Integrations settings in Bluejay.
+Bluejay needs two values from Bland:
 
 | Field | Value |
 |---|---|
 | Webhook Secret | The webhook signing secret from the **General** tab of your Bland organization settings. Bluejay uses it to verify webhooks. |
 | API Key | Your Bland API key. Bluejay uses it to pull pathways and push changes back. |
 
-**Sync Agents from Bland** imports every pathway as an agent. Turn on **Autosync from Bland** to keep Bluejay current when you change pathways in Bland.
+1. In Bluejay, open the **Bland** tab of the Integrations settings.
+2. Enter **Webhook Secret** and **API Key**.
+3. Click **Sync Agents from Bland** to import every pathway as an agent.
+4. To keep Bluejay current when you change pathways in Bland, turn on **Autosync from Bland**.
 
-In the **Workflow** tab of a synced agent, pull a pathway version from Bland, push your edits back, and publish a version.
+To work on a pathway, open the **Workflow** tab of the synced agent, where you can pull a pathway version from Bland, push your edits back, and publish a version.
 
-On each agent, the **Bland** tile has one more field:
+### Call settings
 
-| Field | Value |
-|---|---|
-| Call settings (Optional) | JSON with the same call parameters you send to Bland in production. Bluejay sends them when Bland places a phone call. Websocket and chat runs do not use them. Keys you leave out keep the Bland default. Bluejay rejects unknown keys, and it sets `phone_number`, `pathway_id`, `pathway_version`, `from`, `metadata`, `request_data`, `webhook`, and `webhook_events` itself. |
+To make test phone calls behave like your production calls, paste the call parameters you send to Bland in production as JSON into **Call settings (Optional)** on the agent's **Bland** tile. Bluejay sends them when Bland places a phone call; websocket and chat runs do not use them. Keys you leave out keep the Bland default, and Bluejay rejects unknown keys.
+
+Bluejay sets these keys itself:
+
+- `phone_number`
+- `pathway_id`
+- `pathway_version`
+- `from`
+- `metadata`
+- `request_data`
+- `webhook`
+- `webhook_events`
 
 ## Test
 
-Sync picks the voice path for each pathway. A pathway with a Bland web agent uses the websocket path. A pathway without one uses the phone path.
+When Bluejay syncs a pathway, it picks the voice path for you: a pathway with a Bland web agent uses the websocket path, and a pathway without one uses the phone path.
 
 <Tabs>
 <Tab title="Websocket">
 
-Bluejay opens a Bland web-agent session over websocket. No phone number is necessary. The pathway must have a web agent. Use this path to iterate on pathway logic.
+Bluejay opens a Bland web-agent session over websocket, so no phone number is necessary, but the pathway must have a web agent. Use this path to iterate on pathway logic.
 
 </Tab>
 <Tab title="Phone">
 
-Bland places a real phone call from the pathway to the Digital Human. Bluejay tags it `environment: staging` so it stays out of your production reports. The agent type must be **Outbound**, and each Digital Human needs a phone number.
+Bland places a real phone call from the pathway to the Digital Human. The agent type must be **Outbound**, and each Digital Human needs a phone number. Bluejay tags each call `environment: staging` so it stays out of your production reports.
 
 To have Bluejay dial a Bland number instead, create an agent with the **Phone** connection type and set **Your Agent's Phone Number** in E.164 format.
 

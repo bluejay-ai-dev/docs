@@ -5,17 +5,18 @@ icon: '/logo/retell.svg'
 sidebarTitle: "Retell"
 ---
 
-Bluejay syncs your agents and tests inbound and outbound calls.
+Connect Retell to test your agents with simulated callers and to score your live Retell calls. Bluejay syncs your agents and tests both inbound and outbound calls.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/retell-walk-through.mp4"></video>
 
 ## Connect
 
-Create an API key in Retell under **Settings > API Keys**. The key must have the **Webhook** badge, because Bluejay uses it to verify webhook signatures. Paste it on the **Retell** tab of the Integrations settings in Bluejay.
+1. In Retell, open **Settings > API Keys** and create an API key with the **Webhook** badge. Bluejay uses this key to verify webhook signatures, so a key without the badge does not work.
+2. In Bluejay, paste the key on the **Retell** tab of the Integrations settings.
+3. Click **Sync Agents from Retell** to import every Retell agent.
+4. To keep Bluejay current when you change agents in Retell, turn on **Autosync from Retell**.
 
-**Sync Agents from Retell** imports every Retell agent. Turn on **Autosync from Retell** to keep Bluejay current when you change agents in Retell.
-
-Set the webhook on each agent in Retell:
+Then set the webhook on each agent in Retell, so Retell sends each call to Bluejay:
 
 1. Open the agent and click **Webhook Settings**.
 2. Set **Agent Level Webhook URL** to `https://api.getbluejay.ai/v1/integrations/retell`.
@@ -24,9 +25,9 @@ Set the webhook on each agent in Retell:
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/retell-sim-3.mp4"></video>
 
-To connect one agent by hand, open its **Connection Settings**, choose the **Retell** tile, and set **Retell Agent ID**.
+To connect one agent by hand instead of syncing, open its **Connection Settings**, choose the **Retell** tile, and set **Retell Agent ID**.
 
-In the **Workflow** tab of a synced agent, pull the agent graph from Retell and push your edits back.
+To work on an agent's graph, open the **Workflow** tab of the synced agent, where you can pull the graph from Retell and push your edits back.
 
 ## Test
 
@@ -35,7 +36,7 @@ The agent **type** selects the path. Tool calls show in the **Tool Adherence** t
 <Tabs>
 <Tab title="Inbound">
 
-Bluejay calls the agent through the Retell web-call bridge. No phone number is necessary. Use this path to iterate on agent logic and tool calls.
+Bluejay calls the agent through the Retell web-call bridge, so no phone number is necessary. Use this path to iterate on agent logic and tool calls.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/retell-sim-6.mp4"></video>
 
@@ -46,13 +47,16 @@ Bluejay tells Retell to place the call from the agent's number to each Digital H
 
 1. In Retell, open **Phone Numbers** and select your number.
 2. Set **Inbound Call Agent** and **Outbound Call Agent** to your agent.
+3. Give each Digital Human a phone number.
 
-In Bluejay, the **Phone Number** field of an Outbound agent shows the bound number. Each Digital Human needs a phone number.
+In Bluejay, the **Phone Number** field of an Outbound agent then shows the bound number.
 
 </Tab>
 <Tab title="Phone">
 
-Bluejay dials the Retell phone number like a real caller. Use this to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result. Use an Inbound Voice agent with the [Phone connection type](/key-concepts/agents/overview#modes-and-connections) and the Retell number.
+Bluejay dials the Retell phone number like a real caller. Use this path to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result.
+
+Use an Inbound Voice agent with the [Phone connection type](/key-concepts/agents/overview#modes-and-connections) and the Retell number.
 
 </Tab>
 </Tabs>
@@ -61,7 +65,7 @@ Bluejay dials the Retell phone number like a real caller. Use this to test carri
 
 ## Monitor
 
-The same webhook sends each ended call to Bluejay. The call shows on the **Logs** page with its metric results. The call metadata that you set in Retell becomes conversation `metadata`, so custom metrics can use it as [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
+The webhook you set in [Connect](#connect) also sends each ended call to Bluejay. The call shows on the **Logs** page with its metric results. The call metadata that you set in Retell becomes conversation `metadata`, so custom metrics can use it as [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
 
 For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent, Bluejay tells Retell to place each check call. You do not need an outbound trigger webhook.
 

@@ -4,7 +4,7 @@ description: "Test a text chat agent on your own server with simulated customers
 icon: webhook
 ---
 
-Bluejay posts each Digital Human message to your webhook URL, and your agent sends its reply back through the Bluejay API.
+Use Chat Testing when your text chat agent runs on your own server. You give Bluejay a webhook URL on that server. Bluejay posts each Digital Human message to it, and your agent sends its reply back through the Bluejay API.
 
 <iframe
   src="https://www.loom.com/embed/49ce062677ed44be932c5dd0a89c7269?speed=1.5&captions=true&hideEmbedTopBar=true"
@@ -107,7 +107,7 @@ Return any `2xx` status. Bluejay sends `Content-Type: application/json`, and `X-
 
 ## Log tool calls
 
-Send one request with `"type": "tool_call"` for each tool your agent runs. A tool call does not start a Digital Human reply.
+To record the tools your agent runs, send one request with `"type": "tool_call"` for each tool. A tool call does not start a Digital Human reply.
 
 ```bash
 curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
@@ -124,7 +124,7 @@ curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
 
 ## Reply in the response body
 
-If `http_webhook_sync_reply` is `true`, Bluejay reads the agent reply from your webhook response and you do not call `/v1/send-http-text-message`. Bluejay waits up to 60 seconds for the response.
+If your endpoint can return the agent reply directly, set `http_webhook_sync_reply` to `true`. Bluejay then reads the reply from your webhook response, so you do not call `/v1/send-http-text-message`. Bluejay waits up to 60 seconds for the response.
 
 The body can be one object, a list of objects, or a string. Bluejay reads the first of these keys that it finds:
 
@@ -138,7 +138,7 @@ It also reads `end_turn` and `end_conversation`, or `endTurn` and `endConversati
 
 ## Verify the signature
 
-Bluejay signs the raw body with HMAC-SHA256 and the signing key, and sends the hex digest in `X-Bluejay-Signature`. Compute the digest over the raw bytes before you parse the JSON.
+Bluejay signs the raw body with HMAC-SHA256 and the signing key, and sends the hex digest in `X-Bluejay-Signature`. Compute the digest over the raw bytes before you parse the JSON, because parsing and re-serializing can change the bytes.
 
 ```python
 import hashlib, hmac

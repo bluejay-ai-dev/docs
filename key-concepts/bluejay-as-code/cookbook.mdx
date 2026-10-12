@@ -8,6 +8,8 @@ For the full field lists, see [create-digital-human](/api-reference/endpoint/cre
 
 ## Renamed fields
 
+A few fields have a different name in the payload than in the API:
+
 | Payload field | API field | Entity |
 |---|---|---|
 | `description` | `intent` | Digital Human |
@@ -15,11 +17,11 @@ For the full field lists, see [create-digital-human](/api-reference/endpoint/cre
 | `temperature` | `creativity` | Digital Human |
 | `description` | `prompt` | Custom metric (old files only) |
 
-On push, a Digital Human also accepts `"accent": "en_american_masculine"` in the form `language_accent_gender`. Bluejay splits it into `language`, `accent`, and `gender`. Pull always returns the three fields.
+When you push a Digital Human, you can also set its voice in one field, in the form `language_accent_gender`, for example `"accent": "en_american_masculine"`. Bluejay splits it into `language`, `accent`, and `gender`, and a pull always returns those three fields.
 
 ## Digital Human types
 
-The `tag` field sets the type. A customer journey uses `journey_steps` in place of a tag. The examples omit `simulations`.
+The `tag` field sets the type of a Digital Human, except for a customer journey, which uses `journey_steps` instead. To keep the examples short, they leave out `simulations`.
 
 <AccordionGroup>
   <Accordion title="Base">
@@ -34,7 +36,7 @@ The `tag` field sets the type. A customer journey uses `journey_steps` in place 
   </Accordion>
 
   <Accordion title="Voicemail">
-    Set `tag` to `voicemail-custom` for your own greeting, or `voicemail-ai-generated` for a generated greeting. For `voicemail-ai-generated`, set `speaks_first_config.mode` to `"ai_generated"` and omit `message`. A voicemail Digital Human needs no `description` or `success_criteria`.
+    To write the greeting yourself, set `tag` to `voicemail-custom` and put the greeting in `message`, as in the example. To have Bluejay generate the greeting, set `tag` to `voicemail-ai-generated`, set `speaks_first_config.mode` to `"ai_generated"`, and leave out `message`. A voicemail Digital Human needs no `description` or `success_criteria`.
 
     ```json
     {
@@ -50,12 +52,12 @@ The `tag` field sets the type. A customer journey uses `journey_steps` in place 
     ```
 
     <Note>
-      If `tag` has more than one label, put the voicemail label first. Bluejay checks only the first label.
+      If `tag` has more than one label, put the voicemail label first, because Bluejay checks only the first label.
     </Note>
   </Accordion>
 
   <Accordion title="Transcript replay">
-    `formatted_transcript` replays a real call in place of `description` and `success_criteria`. Each turn has a `role` of `USER` or `AGENT`. `original_transcript` takes raw text, and Bluejay uses an LLM to extract the turns.
+    To replay a real call, use `formatted_transcript` in place of `description` and `success_criteria`. If you have the call only as raw text, put it in `original_transcript` instead, and Bluejay uses an LLM to split it into turns.
 
     ```json
     {
@@ -134,9 +136,11 @@ Push cannot move an existing simulation to a different agent.
 }
 ```
 
-`metric_type` sets which fields apply. For the metric types and the rules for conditional and composite metrics, see [custom metrics](/key-concepts/custom-metrics/overview#composite-metrics).
+`metric_type` decides which other fields the metric uses. For the metric types and the rules for conditional and composite metrics, see [custom metrics](/key-concepts/custom-metrics/overview#composite-metrics).
 
 ### Conditional metrics
+
+This metric checks the copay only on conversations that reach one node of the agent workflow:
 
 ```json
 {
@@ -155,7 +159,9 @@ Push cannot move an existing simulation to a different agent.
 }
 ```
 
-Each group in `groups` holds `conditions`. A group `join` connects its conditions, and the outer `join` connects the groups. A `join` is `and` (default) or `or`. You can use 10 conditions maximum.
+`fire_conditions` holds a list of `groups`, and each group holds a list of `conditions`. The `join` inside a group says how its conditions combine, and the `join` on `fire_conditions` says how the groups combine. Set `join` to `and` (the default) or `or`. A metric can have 10 conditions at most.
+
+Each condition has a `type`, and each type needs its own fields:
 
 | `type` | Fields |
 |---|---|
@@ -176,7 +182,7 @@ Supported values for `operator` include:
 
 ### Composite metrics
 
-A number:
+To give a number, combine the input metrics in `master_formula`:
 
 ```json
 {
@@ -200,7 +206,7 @@ A number:
 }
 ```
 
-A label, with `output_type` set to `categorical` and `response_type` set to `enum`:
+To give a label instead, set `output_type` to `categorical` and `response_type` to `enum`, and write `rules` in place of `master_formula`:
 
 ```json
 "rules": [
@@ -220,8 +226,8 @@ A label, with `output_type` set to `categorical` and `response_type` set to `enu
 ]
 ```
 
-- List the input metrics in `variables`. A metric whose result is not a number needs a `value_map`, for example `{ "pass": 5, "fail": 1 }`.
-- `master_formula` names a metric by its ID in double quotes. Supported operators include:
+- List the input metrics in `variables`. A metric whose result is not a number, such as Pass/Fail, needs a `value_map` that turns each result into a number, for example `{ "pass": 5, "fail": 1 }`.
+- In `master_formula`, refer to a metric by its ID in double quotes. Supported operators include:
   - `+`
   - `-`
   - `*`
@@ -236,7 +242,7 @@ A label, with `output_type` set to `categorical` and `response_type` set to `enu
   - `floor`
   - `ceil`
 - Bluejay checks `rules` in order and uses the first match. If no rule matches, the result is Not Applicable.
-- You can use 10 rules maximum, with 10 conditions maximum each. A rule can read only a metric that `variables` lists. Rule conditions use the same operators as [conditional metrics](#conditional-metrics).
+- A composite metric can have 10 rules at most, each with 10 conditions at most. A rule can read only the metrics listed in `variables`, and its conditions use the same operators as [conditional metrics](#conditional-metrics).
 
 ## Related
 

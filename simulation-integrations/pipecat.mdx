@@ -5,22 +5,22 @@ icon: "/logo/pipecat.svg"
 sidebarTitle: "Pipecat"
 ---
 
-Bluejay starts a session for your agent in a Daily room and joins it as a Digital Human, so you need no phone number.
+To test your Pipecat Cloud agent, Bluejay starts a session for it in a Daily room and joins the room as a Digital Human, so you need no phone number.
 
 ## Connect
 
 <Steps>
 <Step title="Deploy the agent">
-Deploy your agent to Pipecat Cloud. Use the [Pipecat quickstart](https://docs.pipecat.ai/getting-started/quickstart). Record the agent name from `pcc-deploy.toml`.
+Deploy your agent to Pipecat Cloud with the [Pipecat quickstart](https://docs.pipecat.ai/getting-started/quickstart). Note the agent name in `pcc-deploy.toml`, because you enter it in Bluejay later.
 </Step>
 <Step title="Create a public API key">
-In the Pipecat dashboard, open **API Keys**. Create a key on the **Public** tab. The key starts with `pk_`.
+In the Pipecat dashboard, open **API Keys** and create a key on the **Public** tab. The key starts with `pk_`.
 </Step>
 <Step title="Add the key to Bluejay">
 Paste the key on the **Pipecat** tab of the Integrations settings, or on the agent.
 </Step>
 <Step title="Create the agent">
-Use an Inbound Voice agent with the **Pipecat** connection type and the **Pipecat Agent Name**. The **Pipecat** connection supports Inbound only.
+Create an Inbound Voice agent, choose the **Pipecat** connection type, and enter the agent name from the first step as **Pipecat Agent Name**. The **Pipecat** connection supports inbound agents only.
 </Step>
 </Steps>
 
@@ -30,15 +30,19 @@ A private Pipecat key does not work. Bluejay rejects a key that does not start w
 
 ## Fields
 
+Set these fields on the agent:
+
 | Field | Required | Description |
 |---|---|---|
 | Pipecat Agent Name | Yes | The agent name in Pipecat Cloud. |
 | Pipecat Agent Configuration | No | JSON that Bluejay sends as `body` to your agent on start. |
 | Pipecat Room Properties | No | JSON that Bluejay merges into the Daily room properties. |
 
-Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and the other `X-` keys) to the `body` it sends on start. Your bot can read its own result ID from `args.body` and report tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+To report tool calls from a simulation, your bot needs its result ID. Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and the other `X-` keys) to the `body` it sends on start, so your bot can read its own result ID from `args.body` and send its tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
 
 ## Limits
+
+If a run fails, find the symptom below:
 
 | Symptom | Cause |
 |---|---|

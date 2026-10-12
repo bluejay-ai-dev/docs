@@ -5,13 +5,11 @@ icon: robot
 sidebarTitle: "Agents"
 ---
 
-Simulations, conversations, and custom metrics all attach to an Agent.
+An Agent in Bluejay stands for the voice, text, or email agent you want to test. Simulations, conversations, and custom metrics all attach to an Agent, so add yours first.
 
 ## Create an Agent
 
-Set your agent's connection, direction, and system prompt.
-
-Bluejay uses the system prompt to generate Digital Humans and metrics.
+When you create an Agent, set how Bluejay connects to it, its direction (Inbound or Outbound), and its system prompt. Bluejay uses the system prompt to generate Digital Humans and metrics.
 
 ## Modes and connections
 
@@ -41,7 +39,7 @@ Bluejay uses the system prompt to generate Digital Humans and metrics.
     | A chat platform | The fields on its integration page. |
   </Tab>
   <Tab title="Email">
-    A Digital Human sends a real email to the agent inbox. The agent replies, and Bluejay grades the thread. Enter the agent email address. If the agent replies from other addresses, add them too.
+    A Digital Human sends a real email to the agent inbox. The agent replies, and Bluejay grades the thread. To connect, enter the agent email address, and add any other addresses the agent replies from.
 
     <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-create-agent.mp4"></video>
 
@@ -86,7 +84,7 @@ For an Outbound agent, your system starts each conversation. When a run starts, 
 
 By default, the body has `phone_number` and `sim_conversation_id`. To send other fields, set a body template with tokens such as `{{digital_human.phone_number}}`.
 
-Return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/simulation-results#no-connection).
+Your webhook must return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/simulation-results#no-connection).
 
 <Accordion title="Tokens and headers">
 
@@ -103,6 +101,8 @@ Supported tokens include:
 - `{{simulation.name}}`
 - `{{agent.id}}`
 - `{{agent.name}}`
+
+Each request also has these headers:
 
 - `X-Bluejay-Idempotency-Key` holds the conversation ID. Use it to ignore a repeated request.
 - `X-Bluejay-Signature` holds the HMAC-SHA256 of the body, if the agent has a webhook signing key. [Verify it](/simulation-integrations/http-webhooks#verify-the-signature) before you place the call.
@@ -129,7 +129,7 @@ A Workflow is the multi-agent graph of a provider agent, for example a root agen
   Push changes the agent in your provider account. If that version is live, real callers get the change. Pull replaces Bluejay edits that you did not push.
 </Warning>
 
-To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no Pull or Push. Edit it in Bluejay, or import an updated document.
+To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no provider to sync with, so it has no Pull or Push: to change it, edit it in Bluejay or import an updated document.
 
 The **Generate From Workflow** [simulation type](/test/simulations/overview#simulation-types) creates Digital Humans that drive the agent down each path.
 

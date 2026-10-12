@@ -5,30 +5,35 @@ icon: bell
 sidebarTitle: "Alerts"
 ---
 
-An alert notifies your team when a metric crosses a threshold in simulations or in production. Bluejay sends it to the channels that you connect in [Alert Notifications](/integrations/notifications). To start an automated flow when an alert fires, subscribe a URL to the alert events in [Webhooks](/key-concepts/webhooks/overview#events).
+To get notified when a metric crosses a threshold in simulations or in production, create an alert. Bluejay sends the alert to the channels that you connect in [Alert Notifications](/integrations/notifications). To start an automated flow when an alert fires, subscribe a URL to the alert events in [Webhooks](/key-concepts/webhooks/overview#events).
 
-Watch a pass rate over many conversations to catch a slow drop in quality. Watch a single event to catch a failure that must never happen.
+To catch a slow drop in quality, watch a pass rate over many conversations. To catch a failure that must never happen, watch a single event.
 
 ## How alerts evaluate
 
 <Tabs>
   <Tab title="Simulations">
+    A simulation alert checks one of these:
+
     - **Across a simulation run** checks each run when it completes.
     - **Across the last N conversations** uses the agent's most recent N conversations, across runs.
-    - For a pass/fail metric, the value is the percentage of conversations that passed (0 to 100).
-    - A **System Failures** alert fires at once when one conversation in a run ends with the selected failure status.
+
+    For a pass/fail metric, the value is the percentage of conversations that passed (0 to 100).
+
+    A **System Failures** alert fires at once when one conversation in a run ends with the selected failure status.
   </Tab>
   <Tab title="Production">
-    The alert enters alarm when at least N conversations match the condition in the window. It recovers when the count drops below 80% of N (minimum 1).
+    A production alert counts the conversations that match the condition in a window, either a time interval or the last N conversations. The alert enters alarm when at least N conversations match, and recovers when the count drops below 80% of N (minimum 1).
 
-    - The window is a time interval or the last N conversations.
-    - With the last N conversations, the alert does not fire until N conversations exist.
+    With the last N conversations as the window, the alert does not fire until N conversations exist.
 
     For a metric where one failure is too many, for example hallucination, set N to 1.
   </Tab>
 </Tabs>
 
 ## Alert fields
+
+To create an alert with the [Alerts API](/api-reference/endpoint/create-alert) or the MCP tools, set these fields:
 
 | Field | Description |
 |-------|-------------|
