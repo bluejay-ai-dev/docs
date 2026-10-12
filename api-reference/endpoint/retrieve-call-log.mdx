@@ -1,7 +1,7 @@
 ---
 title: 'Retrieve Call Log'
-description: "DEPRECATED. Use GET /v1/observability/conversations/{conversation_id} instead."
-openapi: 'GET /v1/retrieve-call-log/{call_id}'
+description: "Retrieve a single call log by its call ID."
+api: 'GET /v1/retrieve-call-log/{call_id}'
 ---
 <div className="ai-prompt-box">
 <div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Retrieve Call Log — GET /v1/retrieve-call-log/{call_id}
 
-> **What this endpoint does:** **DEPRECATED**. Use GET `/v1/observability/conversations/{conversation_id}` instead, which returns the conversation plus `metric_results`.
+> **What this endpoint does:** Retrieve a single call log by its call ID. Returns the call, including evaluations and `credits_used`.
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/retrieve-call-log/{call_id}`
 **Auth:** `X-API-Key` header
@@ -51,7 +51,32 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 ````
 </div>
 
+Retrieves the call log for the observability conversation identified by `call_id`. The response includes evaluations, hallucinations, redundancy, custom evaluation metrics, and `credits_used`.
 
-**DEPRECATED.** Use `GET /v1/observability/conversations/{conversation_id}` instead. That route returns the conversation plus `metric_results`.
+`credits_used` is the credits burned by this conversation. It is `null` until usage has landed and can be priced.
 
-This endpoint still works for existing integrations. It returns the observability conversation identified by `call_id`, including evaluations.
+## Path
+
+`GET /v1/retrieve-call-log/{call_id}`
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| call_id | path | string | yes | ID of the observability conversation |
+| X-API-Key | header | string | yes | API key |
+| X-Organization-Id | header | string | no | Organization to scope the request |
+
+## Response
+
+```json
+{
+  "call_log": {},
+  "credits_used": 0.018,
+  "status": "200"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| call_log | object | The observability conversation, including evaluations |
+| credits_used | number or null | Credits burned by this call. Null until usage has landed and can be priced. |
+| status | string | `"200"` on success |

@@ -68,10 +68,9 @@ MANUAL = {
 
 
 # The AI prompt box on retrieve-call-log still describes the plural route, so a
-# re-run that finds an empty description would lift the wrong line. This value
-# marks the page deprecated and points at GET /v1/observability/conversations/{conversation_id}.
+# re-run that finds an empty description would lift the wrong line.
 MANUAL_DESC = {
-    "/api-reference/endpoint/retrieve-call-log": "DEPRECATED. Use GET /v1/observability/conversations/{conversation_id} instead.",
+    "/api-reference/endpoint/retrieve-call-log": "Retrieve a single call log by its call ID.",
 }
 
 

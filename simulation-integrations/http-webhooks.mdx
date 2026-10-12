@@ -276,6 +276,8 @@ Your webhook endpoint should:
 
 To ensure webhook requests are genuinely from Bluejay, verify the signature included in each request. Bluejay signs the raw request body with HMAC-SHA256 using your signing key (generated in the agent's Connection settings) and sends the hex digest in the `X-Bluejay-Signature` header.
 
+The signing key is created the first time an HTTP webhook is saved. Later updates, including ones that send `http_webhook` again, leave that key in place. Generate a new key from the agent's Connection settings when you want to rotate it.
+
 ```python
 import hashlib
 import hmac

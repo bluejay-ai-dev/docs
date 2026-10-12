@@ -1,12 +1,12 @@
 ---
 title: "Webhooks"
-description: "Receive real-time notifications for simulation and observability events"
+description: "Receive real-time notifications for simulation, observability, and alert events"
 icon: bolt
 ---
 
 ## Overview
 
-Webhooks let you receive real-time HTTP notifications when events occur in your Bluejay simulations and observability logs. Instead of polling, Bluejay sends a POST request to your endpoint whenever a subscribed event fires. See the [Events Webhook reference](/api-reference/webhook/events-webhook) for the full payload schema.
+Webhooks let you receive real-time HTTP notifications when events occur in your Bluejay simulations, observability logs, and alerts. Instead of polling, Bluejay sends a POST request to your endpoint whenever a subscribed event fires. See the [Events Webhook reference](/api-reference/webhook/events-webhook) for the full payload schema.
 
 ## Security
 
@@ -42,7 +42,7 @@ Reject any request whose signature does not match.
 
 ## Events
 
-You can subscribe to four event types. Select a tab to see its payload.
+You can subscribe to these event types. Select a tab to see its payload.
 
 <Tabs>
   <Tab title="Simulation result evaluated">
@@ -126,6 +126,47 @@ You can subscribe to four event types. Select a tab to see its payload.
           "associated_simulation_result_ids": [123]
         }
       ]
+    }
+    ```
+  </Tab>
+  <Tab title="Observability alert triggered">
+    Fires when an observability alert enters or leaves alarm. Subscribe under Settings → Webhooks — not on the alert itself.
+
+    **Event type:** `observability_alert_triggered`
+
+    ```json
+    {
+      "type": "observability_alert_triggered",
+      "subtype": "triggered",
+      "alert_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "alert_name": "High latency",
+      "display_text": "Threshold: 5 events in 10 min",
+      "organization_id": "org_123",
+      "agent_id": 34,
+      "event_count": 6,
+      "min_events": 5
+    }
+    ```
+  </Tab>
+  <Tab title="Simulation alert triggered">
+    Fires when a simulation alert fires for a run. Subscribe under Settings → Webhooks — not on the alert itself.
+
+    **Event type:** `simulation_alert_triggered`
+
+    ```json
+    {
+      "type": "simulation_alert_triggered",
+      "subtype": "triggered",
+      "alert_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "alert_name": "Goal completion drop",
+      "display_text": "Goal completion: avg across simulation run 789 was 0.4 (less_than 0.8)",
+      "organization_id": "org_123",
+      "agent_id": 34,
+      "simulation_id": 12,
+      "simulation_run_id": 789,
+      "actual_value": 0.4,
+      "operator": "less_than",
+      "comparison_value": "0.8"
     }
     ```
   </Tab>
