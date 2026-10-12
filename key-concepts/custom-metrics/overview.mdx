@@ -53,25 +53,21 @@ Text results do not roll up into a number. If you need a trend, add a Pass/Fail 
 
 ## Composite metrics
 
-A composite or conditional metric can read only plain metrics. It cannot use another composite or conditional metric as an input or a condition.
+Use a composite metric to roll several metrics into one score or label. For example, combine a clarity score and a Pass/Fail check into one Scheduling Quality score. A composite metric reads results that the other metrics already produced, so it makes no LLM call.
 
-A composite metric reads the results of other metrics on the same conversation. It makes no LLM call.
-
-- List the input metrics in `settings.composite.variables`. A metric whose result is not a number needs a `value_map`, for example `{ "pass": 5, "fail": 1 }`.
-- For a number, set `output_type` to `quantitative` and write a `master_formula`. The formula names a metric by its ID in double quotes, for example `round(100 * ("<metric_id>" / 5))`.
-- Formula operators are `+`, `-`, `*`, `/`, `%`, and `**`. Functions are `min`, `max`, `abs`, `round`, `floor`, and `ceil`.
-- For a label, set `output_type` to `categorical`, set `response_type` to `enum`, and write `rules`. Bluejay checks the rules in order and uses the first match. If no rule matches, the result is Not Applicable.
-- You can use 10 rules maximum, with 10 conditions maximum each. A rule can read only a metric that `variables` lists.
+A composite metric gives a number from a formula, or a label from rules. The [composite metric example](/key-concepts/bluejay-as-code/cookbook#composite-metrics) shows both.
 
 ## Conditional metrics
 
-A conditional metric runs only on conversations that match its conditions. On other conversations, its result is Not Applicable. A condition can check that:
+Use a conditional metric when a rule applies only to some conversations. For example, check the refund policy wording only when the agent called the refund tool. On other conversations, the result is Not Applicable. A condition can check that:
 
 - The conversation reached a node of the agent [Workflow](/key-concepts/agents/overview#workflow). To find node IDs, use [Get Workflow Summary](/api-reference/endpoint/get-workflow-summary).
 - The agent called a given tool.
 - Another metric has a given result, for example Fail.
 
-Join conditions with "and" or "or", up to 10 conditions for each metric. The [conditional metric example](/key-concepts/bluejay-as-code/cookbook#conditional-metrics) shows the JSON.
+Join conditions with "and" or "or". The [conditional metric example](/key-concepts/bluejay-as-code/cookbook#conditional-metrics) shows the JSON.
+
+A composite or conditional metric can read only plain metrics, not another composite or conditional metric.
 
 ## Tool calls, events, and metadata
 
