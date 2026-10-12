@@ -69,6 +69,8 @@ To put call-specific values into `prompt` or `scoring_guidance`, use [dynamic va
 
 ## Composite metrics
 
+A composite or conditional metric can read only plain metrics. It cannot use another composite or conditional metric as an input or a condition.
+
 A composite metric reads the results of other metrics on the same conversation. It makes no LLM call.
 
 - List the input metrics in `settings.composite.variables`. A metric whose result is not a number needs a `value_map`, for example `{ "pass": 5, "fail": 1 }`.
@@ -90,10 +92,6 @@ A conditional metric runs only on conversations that match its `settings.fire_co
 | `metric` | Another metric on the conversation has a given result | `metric_id`, `operator`, `value` |
 
 Operators are `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, and `not_contains`. To get node IDs, call `GET /v1/agents/{agent_id}/workflow/summary`.
-
-<Warning>
-Risk: a rejected request. A fire condition or composite variable that points at a conditional or composite metric returns `422`. A metric that other metrics read cannot become conditional or composite.
-</Warning>
 
 ## Tool calls, events, and metadata
 
