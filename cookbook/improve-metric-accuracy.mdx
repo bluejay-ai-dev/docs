@@ -1,0 +1,44 @@
+---
+title: "Improve the Accuracy of a Metric"
+sidebarTitle: "Improve Metric Accuracy"
+description: "Tune a custom metric until its verdicts match your own judgment."
+icon: bullseye
+---
+
+A custom metric is only useful if you trust its verdict. Take a metric that checks whether the agent transfers the call to a human when the caller asks for one: if it passes calls where the agent ignored the request, or fails calls where the caller never asked, the run results mislead you. This recipe uses Metrics Lab to compare the metric with your own verdicts, rewrite its prompt, and publish the version that agrees with you most.
+
+## Before you start
+
+- Create the metric as an LLM as a Judge metric with a Pass/Fail response type. See [Custom Metrics](/test/custom-metrics/overview) and the [Prompting Guide](/test/custom-metrics/prompting-guide).
+- Have 20 to 50 scored conversations to test it on, from production or from a simulation run. Include calls where the caller asked for a human and the agent transferred, calls where the agent did not, and calls where the caller never asked.
+
+## Steps
+
+<Steps>
+  <Step title="Create a lab">
+    Open **Metrics**, go to the **Lab** tab, and click **Create Lab**. Name the lab, select the transfer metric, and select the conversations. See [Build a lab](/test/custom-metrics/metrics-lab#build-a-lab) for how to pick a good sample.
+  </Step>
+  <Step title="Mark the correct answer for each conversation">
+    In the **Annotate** tab, set the **Human** verdict on each conversation to what the metric should have returned, and add your reasoning where the call is borderline. When many conversations share a verdict, select them and click **Annotate** to label them all at once. The alignment score then shows how often the metric agrees with you.
+  </Step>
+  <Step title="Find where the metric disagrees">
+    Read the rows where the **AI** verdict differs from the **Human** verdict, and compare the **AI reasoning** with yours. The difference usually points to a gap in the prompt, for example a metric that fails calls where the caller never asked for a human, when those calls should pass.
+  </Step>
+  <Step title="Create and test a new revision">
+    Open the **Optimize** tab and select the metric. Click **Run** to test the metric on the selected conversations, and **Improve** for Bluejay to create a new prompt revision to test. **Improve** shows the suggested prompt as a set of changes to the current one: click **Apply** to use it, then click **Run** to score the conversations with it. Repeat until the alignment stops improving.
+  </Step>
+  <Step title="Publish the best revision">
+    Use the arrows next to the revision name to move between revisions and the **Published** version. On the revision that agrees with you most, click **Publish**. This updates the custom metric itself, so every simulation and production evaluation uses the new prompt from then on.
+  </Step>
+</Steps>
+
+## Check the result
+
+After you publish, the **Published** version shows the new prompt, and new runs score with it. If the alignment stays low after several revisions, the sample may be too small or one-sided: add conversations that cover the cases the metric gets wrong, label them, and run again. See [Keep the lab current](/test/custom-metrics/metrics-lab#keep-the-lab-current).
+
+## Related
+
+- [Metrics Lab](/test/custom-metrics/metrics-lab)
+- [Custom Metrics](/test/custom-metrics/overview)
+- [Custom Metrics Prompting Guide](/test/custom-metrics/prompting-guide)
+- [Find Which Check a Regression Broke](/cookbook/find-regression-step)
