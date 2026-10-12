@@ -5,13 +5,11 @@ icon: robot
 sidebarTitle: "Agents"
 ---
 
-Simulations, conversations, and Custom Metrics all attach to an Agent.
+Simulations, conversations, and custom metrics all attach to an Agent.
 
 ## Create an Agent
 
-An Agent has a name, an **Agent type**, a **Mode**, a connection type, and a system prompt. Paste the agent's real system prompt into **Agent Description / System Prompt**. Bluejay uses it to generate Digital Humans and metrics, so a vague description gives vague tests.
-
-An Inbound agent receives calls or messages. An Outbound agent starts them. Some platform connections support Inbound only. The integration page for your platform says which types it supports.
+Paste your agent's real system prompt. Bluejay uses it to generate Digital Humans and metrics, so a vague prompt gives vague tests. If your agent places the calls, choose Outbound.
 
 ## Modes and connections
 
@@ -82,17 +80,26 @@ An Inbound agent receives calls or messages. An Outbound agent starts them. Some
 
 ## Outbound trigger webhook
 
-For an Outbound agent, your system starts each conversation. Some voice platforms place the call for Bluejay. Their integration pages say so.
+For an Outbound agent, your system starts each conversation. When a run starts, Bluejay sends a POST to your **Outbound Trigger Webhook URL**. Your system then calls or messages the Digital Human.
 
-When a run starts, Bluejay sends a POST to `outbound_trigger_webhook_url` with the body from `outbound_trigger_payload_template`, with the tokens filled in. Your system then calls or messages the Digital Human.
+By default, the body has `phone_number` and `sim_conversation_id`. To send other fields, set a body template with tokens such as `{{digital_human.phone_number}}`.
 
-Tokens are `{{digital_human.id}}`, `{{digital_human.name}}`, `{{digital_human.phone_number}}`, `{{digital_human.email}}`, `{{digital_human.stable_email}}` (the same address as `digital_human.email`), `{{digital_human.intent}}`, `{{sim_conversation_id}}`, `{{simulation.id}}`, `{{simulation.name}}`, `{{agent.id}}`, and `{{agent.name}}`. Bluejay leaves an unknown token as you wrote it. If you set no template, the body has `phone_number` and `sim_conversation_id`.
+Return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/simulation-results#no-connection).
 
-Return a `2xx` status within 15 seconds. Bluejay tries 3 times. Then the conversation ends as No Connection with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/simulation-results#no-connection). The `X-Bluejay-Idempotency-Key` header holds the conversation ID, so you can ignore a repeated request. If the agent has a webhook signing key, the `X-Bluejay-Signature` header holds the HMAC-SHA256 of the body. [Verify it](/simulation-integrations/http-webhooks#verify-the-signature) before you place the call.
+<Accordion title="Tokens and headers">
+
+Tokens: `{{digital_human.id}}`, `{{digital_human.name}}`, `{{digital_human.phone_number}}`, `{{digital_human.email}}`, `{{digital_human.stable_email}}`, `{{digital_human.intent}}`, `{{sim_conversation_id}}`, `{{simulation.id}}`, `{{simulation.name}}`, `{{agent.id}}`, `{{agent.name}}`.
+
+- `X-Bluejay-Idempotency-Key` holds the conversation ID. Use it to ignore a repeated request.
+- `X-Bluejay-Signature` holds the HMAC-SHA256 of the body, if the agent has a webhook signing key. [Verify it](/simulation-integrations/http-webhooks#verify-the-signature) before you place the call.
+
+</Accordion>
 
 ## Agent Versions
 
-An Agent Version is a numbered copy of the agent prompt. Save a new version before you change the prompt, so you can compare runs and go back. Each new version gets the `latest` label. The first version also gets the `production` label, and it keeps it until you promote another version. A new simulation run and a production evaluation use the `production` version unless you select another one.
+An Agent Version is a numbered copy of the agent prompt. Save a new version before you change the prompt, so you can compare runs and go back.
+
+Each new version gets the `latest` label. The first version also gets the `production` label, and it keeps it until you promote another version. A new simulation run and a production evaluation use the `production` version unless you select another one.
 
 ## Workflow
 
