@@ -1,0 +1,186 @@
+---
+title: "Digital Human Reference"
+description: "Use Digital Humans to test your agent with realistic simulated customers before real customers call."
+icon: users
+sidebarTitle: "Digital Human Reference"
+---
+
+import { Transcript } from "/snippets/transcript.jsx";
+
+A Digital Human is a simulated customer that can call, text, or email your agent. Each one has a goal, and Bluejay grades whether your agent handled it.
+
+This page covers each setting of a Digital Human. You can also create Digital Humans in the app from a CSV upload or from an IVR Flow.
+
+<Transcript
+  turns={[
+    { role: "agent", t: "00:01", text: "Thanks for calling. Can I have your member ID?" },
+    { role: "human", t: "00:04", text: "Sure, it is 4829-3371." },
+    { role: "agent", t: "00:09", text: "Thank you. I booked a callback for tomorrow at 10 AM." }
+  ]}
+  verdict={{ metric: "Success Criteria", pass: true, reason: "The agent verified the member ID and booked a callback." }}
+/>
+
+## Persona
+
+The **Persona** tab says who the caller is, what they want, and what counts as a pass. These settings decide what each conversation is about and how Bluejay grades it.
+
+<ParamField path="intent" type="string">
+  **Description / Intent**: what the caller wants, in one or two sentences. Do not put agent behavior or "if X, do Y" rules here. The model treats them only as suggestions, so see [Make runs repeatable](#make-runs-repeatable) for fields that make them stick.
+</ParamField>
+<ParamField path="success_criteria" type="string">
+  **Success Criteria**: the pass or fail condition, written as one or two agent outcomes that the transcript can show.
+</ParamField>
+<ParamField path="role_description" type="string">
+  **Personality**: who the caller is, in one short line, for example "retiree on a family plan".
+</ParamField>
+<ParamField path="scripted_responses" type="object[]">
+  **Scripted Responses**: fixed replies to specific agent lines. See [Scripted responses](#scripted-responses).
+</ParamField>
+<ParamField path="expected_tool_calls" type="object[]">
+  **Tool Adherence**: the tool calls the agent must make.
+</ParamField>
+<ParamField path="num_runs" type="integer" default="1">
+  How many times this Digital Human runs in each simulation run.
+</ParamField>
+
+## Behavior
+
+The **Behavior** tab sets how the caller sounds and acts: their voice, the line quality, how much they talk, and how long they wait for the agent. Use these settings to test whether your agent copes with harder callers, for example a fast talker on a bad connection.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/dh-behavior-levers.mp4"></video>
+
+| UI label | API field | Values | API default |
+|---|---|---|---|
+| Voice | `language`, `accent`, `gender` | Valid combinations from `get_voice_options` | `en` |
+| Voice Speed | `voice_speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` | `normal` |
+| Background Noise | `background_noise` | `none`, a preset, or `custom`. `custom` needs `custom_background_noise_url`. | `none` |
+| Background Noise Volume | `background_noise_volume` | 0 to 1 | 0.8 |
+| Audio Quality | `audio_quality` | `high`, `medium`, `low`, `horrible` | `high` |
+| Dropouts | `connection_quality` | `none`, `low`, `medium`, `high` | `none` |
+| Verbosity | `verbosity` | `low`, `medium`, `high` | `medium` |
+| Fluency | `fluency` | `beginner`, `intermediate`, `native` | `native` |
+| Creativity | `creativity` | 0 to 2 | 0.7 |
+| Patience (seconds) | `endpointing_delay` | Seconds to wait before a reply | 1.5 |
+| No Response Timeout (seconds) | `silence_timeout` | 15 seconds or more | None |
+| Interruptions | `interruptions` | None, Probabilistic, Keywords, Contextual | None |
+| Speaks First | `speaks_first_config` | Who speaks first, and the opening message | The Digital Human speaks first. Some voice platform connections start with the agent. |
+
+There is no emotion setting. To make the caller angry, rushed, or confused, write that attitude into **Personality** (`role_description`).
+
+## Traits
+
+A trait is a fact that the caller knows and says when the agent asks, for example a member ID or date of birth. Use a trait when the value must be the same on each run. If you write the value in the intent instead, the caller can say a different value on each run.
+
+A trait belongs to one agent. Define it on the **Customer Traits** page, then set its value on each Digital Human.
+
+To also send a trait as a SIP header on the call, set `is_sip_header` to `true`. The header name is the trait name with an `X-` prefix.
+
+When you change a trait, select **Update Existing Digital Humans** to apply the change to all Digital Humans of the agent. Otherwise only new Digital Humans get the change.
+
+## Tools
+
+The **Tools** tab controls what the Digital Human can do besides talk, for example end the call, stay silent, or press keypad keys.
+
+| UI label | API field | API default | Effect |
+|---|---|---|---|
+| Allow End Call Tool | `allow_end_call_tool` | `true` | The Digital Human can end the call. |
+| End Conversation (On Trigger Phrases) | `hangup_phrases` | None | Agent phrases that end the call. |
+| Allow Silence Tool | `allow_silence_tool` | `true` | The Digital Human can stay silent. |
+| Allow DTMF Tool | `allow_dtmf_tool` | `true` | The Digital Human can send keypad tones. |
+| Default Number Submission Mode | `default_dtmf_or_voiced` | `voiced` | Used when the agent does not say how to enter a number. |
+| Follow-up SMS success criteria | `follow_up_sms_success_criteria` | None | See [Follow-up SMS](#follow-up-sms). |
+
+## Connection
+
+The **Connection** tab sets the phone number the Digital Human uses and how it gets through to your agent.
+
+<ParamField path="phone_number" type="string">
+  The number of the Digital Human. It must be a number that your organization owns.
+</ParamField>
+<ParamField path="extension" type="string">
+  Keys to send as DTMF after the call connects to an Inbound agent, for example `1,2`. A comma adds a short pause.
+</ParamField>
+<ParamField path="always_on_mode" type="boolean" default="false">
+  **Always On**: if `true`, the Digital Human answers calls on `phone_number`.
+</ParamField>
+
+## Scripted responses
+
+A scripted response makes a reply the same on each run. Each item pairs an agent line with a response.
+
+| Field | Values | Notes |
+|---|---|---|
+| `match_phrase` | string | A line the agent says, for example "Can I have your account number?". A description of agent behavior never matches. |
+| `match_type` | `exact`, `context` | `context` matches lines with the same meaning. |
+| `response_type` | `phrase`, `dtmf`, `silence`, `audio` | |
+| `response_value` | string | Required for `phrase` and `dtmf`. Do not set it for `audio`. `audio` uses `scripted_response_audio_snippet_url`. |
+| `occurrence_mode` | `always`, `first_n` | `first_n` needs `occurrence_n`. |
+
+If `scripted_responses_ordered` is `true`, the responses run in list order and each fires once.
+
+## Follow-up SMS
+
+Bluejay can grade the SMS that a voice agent sends after a call.
+
+To turn this on, set `follow_up_sms_sender_numbers` on the agent to the E.164 numbers that send the SMS. Bluejay grades the SMS against **Follow-up SMS success criteria** (`follow_up_sms_success_criteria`) on the Digital Human, or against **Success Criteria** if that is empty.
+
+Bluejay links an SMS to a call only if the call ended and the SMS arrives within 30 minutes of the end of the call. If the agent has no sender numbers, Bluejay does not grade follow-up SMS.
+
+## Personalities
+
+A Personality changes how the Digital Humans in a simulation sound and act, for example a fast talker or a caller with a bad connection, so you can test the same goals with different callers. When you select Personalities on a simulation, each Digital Human in the run calls once as itself and once for each Personality. Two Digital Humans and two Personalities give six conversations.
+
+Start from a preset, for example **Fast talker**, and change only the fields you need. A Personality changes only the fields that you set on it, for example the **Personality** text (`role_description`), voice, background noise, or the [behavior fields](#behavior). All other fields come from the Digital Human. A Personality never changes the intent or the success criteria, so each call still tests the same goal.
+
+The simulation saves its Personality selection, so the next run uses the same set.
+
+### Limits
+
+- A [customer journey](/test/simulations/customer-journeys) does not run once for each Personality.
+- A change to a Personality applies to future runs only.
+- If you delete a Personality, Bluejay removes it from each simulation that selects it. Past conversations show "Personality no longer exists".
+
+## Communities
+
+A Community is a saved group of Digital Humans that you can reuse in any simulation, which makes it a test suite for an agent or a flow.
+
+Group the Digital Humans that cover one agent or one flow into a Community. Select the Community when you create a simulation, so each agent version runs against the same callers and the results compare directly.
+
+When an agent fails on a real conversation, create a Digital Human that recreates the failure and add it to the Community. The next run then tests for that failure again.
+
+## Write a good Digital Human
+
+- Test one goal in each Digital Human. Booking, rescheduling, and cancelling are three Digital Humans.
+- Write **Description / Intent** as what the caller wants. If you write "correctly" or "successfully", that text describes the agent, so move it to **Success Criteria**.
+- Write **Success Criteria** as an agent outcome that the transcript can show.
+- Put grading that applies to every call in a [custom metric](/test/custom-metrics/overview), not in **Success Criteria**.
+
+| Setting | Do | Do not |
+|---|---|---|
+| Description / Intent | "You want to move your dentist appointment to next week." | "Make sure the agent correctly reschedules. If it asks for your date of birth, say March 3, 1980." |
+| Success Criteria | "The agent moved the appointment and confirmed the new date." | "The caller gives the date of birth and stays polite." |
+
+### Make runs repeatable
+
+An "if the agent says X, the caller does Y" rule in the intent is only a suggestion to the model, so the caller may not follow it on every run. Move it to the setting that fixes it:
+
+| Need | Setting |
+|---|---|
+| A fixed value, for example a date of birth | **Traits** (`traits`) |
+| A fixed line, keypad entry, or pause | **Scripted Responses** (`scripted_responses`) |
+| A fixed opening line | **Speaks First** (`speaks_first_config`) |
+| The same call on each run | **Creativity** (`creativity`) from 0.0 to 0.3 |
+
+Before you create a batch, create one Digital Human, run it, and read the transcript. Bluejay accepts a configuration that has no effect, for example a scripted response that never matches, so the transcript is where you see whether each setting worked.
+
+To test a phone tree, draw an IVR Flow on the **Scenario Builder** page and run it with the **IVR Flow** [simulation type](/test/simulations/create#simulation-types).
+
+## Related
+
+- [Digital Humans API](/api-reference/endpoint/create-digital-humans)
+- [Digital Humans MCP tools](/mcp/testing-tools#digital-humans)
+- [Personalities API](/api-reference/endpoint/create-personalities)
+- [Communities API](/api-reference/endpoint/create-community)
+- [Communities MCP tools](/mcp/testing-tools#digital-humans)
+- [Create a Simulation](/test/simulations/create)
+- [Customer Journeys](/test/simulations/customer-journeys)

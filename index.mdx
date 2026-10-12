@@ -7,52 +7,106 @@ icon: house
 mode: "wide"
 ---
 
-## Get started
+import { Transcript } from "/snippets/transcript.jsx";
 
 <CardGroup cols={3}>
-  <Card title="Quickstart" horizontal icon="rocket" href="/quickstart">
-    Run your first test call in a few minutes.
+  <Card title="Test" horizontal icon="flask-vial" href="/test/simulations/create">
+    Find where your agent fails before real customers reach it.
   </Card>
-  <Card title="Connect your agent" horizontal icon="plug" href="/key-concepts/agents/overview">
-    Add a voice or chat agent for Bluejay to call.
+  <Card title="Monitor" horizontal icon="chart-line" href="/monitor/logs">
+    Grade your real conversations and get alerted when they fail.
   </Card>
-  <Card title="Run your first simulation" horizontal icon="play" href="/test/simulations/overview">
-    Call your agent with Digital Humans and score each call.
+  <Card title="Improve" horizontal icon="wand-magic-sparkles" href="/improve/bluejay-ai">
+    Find out why conversations fail and what to fix first.
   </Card>
 </CardGroup>
+
+## Get started
+
+A simulation tests your agent before real customers reach it. Bluejay sends Digital Humans to call or message your agent, then scores each conversation with custom metrics, so you can see where the agent fails.
+
+To follow along, you need a Bluejay account at [app.getbluejay.ai](https://app.getbluejay.ai). If you do not have one, [book a demo](https://cal.com/rohanv/15min).
+
+<Steps>
+  <Step title="Connect your agent">
+    Bluejay needs to know how to reach your agent before it can test it. To add the agent, click **+** in the sidebar header, then pick the mode and connection type that match how your customers reach the agent, so the test conversations take the same path as real ones. See [Connect your agent](/test/simulations/create#connect-your-agent) for the connection types.
+  </Step>
+  <Step title="Run a simulation">
+    Create a simulation with the **Generate from Natural Language** type and describe the callers and goals you want to test, and Bluejay generates the Digital Humans from your description. Review them before you start the run, because each Digital Human places a conversation. See [Create a Simulation](/test/simulations/create).
+  </Step>
+  <Step title="Read the results">
+    When the run finishes, the run page shows each conversation with its result and custom metric results. Open the failed conversations first, because they show what to fix. A scored conversation looks like this:
+
+    <Transcript
+      turns={[
+        { role: "agent", t: "00:01", text: "Thanks for calling Northside Dental. How can I help?" },
+        { role: "human", t: "00:04", text: "I need to move my cleaning from Tuesday to Thursday." },
+        { role: "agent", t: "00:09", text: "I can do that. Thursday at 10 AM or 2 PM?" },
+        { role: "human", t: "00:13", text: "2 PM, please." },
+        { role: "agent", t: "00:16", text: "Done. Your cleaning is now Thursday at 2 PM." }
+      ]}
+      verdict={{ metric: "Appointment Rescheduled", pass: true, reason: "Agent moved the appointment and confirmed the new time." }}
+    />
+
+    To learn what each status and error code means, see [Simulation Results](/test/simulations/simulation-results).
+  </Step>
+</Steps>
+
+## Core concepts
+
+### Agents
+
+An Agent in Bluejay stands for the voice, text, or email agent you want to test. Simulations, conversations, and custom metrics all attach to an Agent, so you add yours first.
+
+When you create an Agent, you set how Bluejay connects to it, its direction (Inbound or Outbound), and its system prompt, which Bluejay uses to generate Digital Humans and metrics. See [Connect your agent](/test/simulations/create#connect-your-agent).
+
+### Knowledge Bases
+
+A Knowledge Base holds the facts your agent must know, built from the same files, text, and web pages your agent uses. Connect it to the agents that use it.
+
+Bluejay uses a Knowledge Base to check that your agent states those facts correctly, and it can also generate Digital Humans that ask about them. See [Knowledge Bases](/test/simulations/create#knowledge-bases).
 
 <Columns cols={3}>
   <div>
     ### Test
 
-    - [Simulations](/test/simulations/overview)
-    - [Digital Humans](/key-concepts/digital-humans/overview)
+    - [Create a Simulation](/test/simulations/create)
     - [Simulation Results](/test/simulations/simulation-results)
-    - [Red Teaming](/key-concepts/red-teaming/overview)
-    - [GitHub Actions](/cookbook/github-actions)
+    - [Digital Human Reference](/test/simulations/digital-humans)
+    - [Custom Metrics](/test/custom-metrics/overview)
+    - [Red Teaming](/test/red-teaming/overview)
   </div>
   <div>
     ### Monitor
 
     - [Logs](/monitor/logs)
-    - [Alerts](/key-concepts/alerts/overview)
-    - [Traces](/key-concepts/traces/overview)
     - [Uptime](/monitor/uptime/overview)
-    - [Issues](/key-concepts/issues/overview)
+    - [Issues](/monitor/issues)
+    - [Alerts](/monitor/alerts)
+    - [Traces](/monitor/traces)
   </div>
   <div>
     ### Improve
 
     - [Bluejay AI](/improve/bluejay-ai)
-    - [Self-Improve](/key-concepts/self-improve/overview)
+    - [Self-Improve](/improve/self-improve)
+  </div>
+  <div>
+    ### Integrations
+
+    - [Phone Number](/integrations/phone-number)
+    - [SIP](/integrations/sip)
+    - [WebSocket](/integrations/websockets)
+    - [HTTP Webhook (Chat)](/integrations/http-webhooks)
+    - [Vapi](/integrations/vapi)
   </div>
   <div>
     ### API/MCP
 
     - [Introduction](/api-reference/introduction)
     - [Cheat Sheet](/api-reference/cheat-sheet)
-    - [Add Agent](/api-reference/endpoint/add-agent)
-    - [Create Simulation](/api-reference/endpoint/create-simulation)
+    - [Webhooks](/api-reference/webhooks)
+    - [GitHub Actions](/api-reference/github-actions)
     - [MCP Server](/mcp/overview)
   </div>
   <div>
@@ -61,13 +115,5 @@ mode: "wide"
     - [Bluejay as Code](/key-concepts/bluejay-as-code/overview)
     - [Claude Code skill](/key-concepts/bluejay-as-code/overview#claude-code-skill)
     - [Cookbook](/key-concepts/bluejay-as-code/cookbook)
-  </div>
-  <div>
-    ### Integrations
-
-    - [Voice platforms](/integrations/vapi)
-    - [Phone and SIP](/simulation-integrations/sip)
-    - [WebSocket](/simulation-integrations/websockets)
-    - [Chat over HTTP](/simulation-integrations/http-webhooks)
   </div>
 </Columns>

@@ -1,0 +1,161 @@
+---
+title: "Custom Metrics"
+description: "Use custom metrics to grade each conversation on the rules that matter to your business."
+icon: gauge-high
+sidebarTitle: "Overview"
+---
+
+import { Transcript } from "/snippets/transcript.jsx";
+
+Define metrics to grade your agent.
+
+<Transcript
+  turns={[
+    { role: "agent", t: "00:01", text: "Thanks for calling Acme. Can I have your date of birth and the last four of your card?" },
+    { role: "human", t: "00:06", text: "March 3, 1985, and 4821." },
+    { role: "agent", t: "00:11", text: "Thank you. Your balance is $312.40." }
+  ]}
+  verdict={{ metric: "Identity Verified Before Disclosure", pass: true, reason: "Agent confirmed two factors before it gave the balance." }}
+/>
+
+## Metric types
+
+| Type | How it scores |
+|---|---|
+| LLM as a Judge | An LLM scores the conversation against your prompt. |
+| Composite | Combines the results of other metrics into one score or label. |
+| Tool Call | Passes when the agent called the tools you name. |
+| Phrase Match | Checks whether specific words were said. |
+| Transfer Landed | Passes when the Digital Human you choose answers a transfer from the agent in time. The default limit is 180 seconds, and the maximum is 900. |
+
+Only LLM as a Judge uses a prompt, and its response type sets the shape of its result. Tool Call, Phrase Match, and Transfer Landed always return Pass/Fail.
+
+## Response types
+
+Choose the response type that matches the question your prompt asks:
+
+| Response type | Example |
+|---|---|
+| Pass/Fail | Did the agent verify identity before it shared account details? |
+| Yes/No | Did the customer ask for a human? |
+| Number | Rate the clarity of the explanation from 1 to 5. |
+| Text | Summarize the objections the customer raised. |
+| Categorical | Classify the call as `resolved`, `escalated`, or `unresolved`. |
+| Structured JSON | Return `identity_verified` (boolean) and `flags` (string array). |
+
+## Composite metrics
+
+Use a composite metric to roll several metrics into one score or label. It cannot use another composite or conditional metric. For example, combine a clarity score and a Pass/Fail check into one Scheduling Quality score. A composite metric reads results that the other metrics already produced, so it makes no LLM call.
+
+To get a number, write a formula. To get a label, write rules. The [composite metric example](/key-concepts/bluejay-as-code/cookbook#composite-metrics) shows both.
+
+## Conditional metrics
+
+Use a conditional metric when a rule applies only to some conversations. It cannot use another composite or conditional metric. For example, check the refund policy wording only when the agent called the refund tool. On other conversations, the result is Not Applicable. A condition can check that:
+
+- The conversation reached a node of the agent [Workflow](/test/simulations/create#connect-your-agent). To find node IDs, use [Get Workflow Summary](/api-reference/endpoint/get-workflow-summary).
+- The agent called a given tool.
+- Another metric has a given result, for example Fail.
+
+Join conditions with "and" or "or". The [conditional metric example](/key-concepts/bluejay-as-code/cookbook#conditional-metrics) shows the JSON.
+
+## Tool calls, events, and metadata
+
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way.
+
+### Send tool calls
+
+<Tabs>
+  <Tab title="Simulations">
+    Bluejay sends an `X-Simulation-Result-Id` with each simulated call, so that your agent can tell Bluejay which call its tool calls belong to. Your agent reads the ID, records its tool calls during the call, and sends them with the ID after the call ends.
+
+    | Connection | Where the ID arrives |
+    |------------|----------------------|
+    | [SIP](/integrations/sip) | A custom header on the SIP INVITE. |
+    | [WebSocket](/integrations/websockets) | A header on the WebSocket upgrade request. |
+
+    The phone network usually drops custom headers, so a Phone connection cannot pass the ID. Use SIP for phone agents. If you use a voice platform or framework, its integration page says where the ID arrives.
+
+    After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
+
+    ```json
+    {
+      "simulation_result_id": "1234",
+      "tool_calls": [
+        {
+          "name": "transfer_funds",
+          "parameters": { "from": "12345", "to": "67890", "amount": 500 },
+          "output": { "transaction_id": "txn_abc123", "status": "completed" },
+          "start_offset_ms": 120000
+        }
+      ],
+      "events": [
+        { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
+      ],
+      "metadata": { "resolution_status": "resolved" }
+    }
+    ```
+
+    Some integrations collect tool calls without this API call. The integration page for your platform says if it does.
+  </Tab>
+  <Tab title="Production">
+    Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording, because you cannot add them later.
+
+    ```json
+    {
+      "agent_id": "123",
+      "start_time_utc": "2026-07-16T18:00:00Z",
+      "participants": [
+        { "role": "AGENT", "spoke_first": true },
+        { "role": "USER", "spoke_first": false }
+      ],
+      "recording_url": "https://storage.example.com/call.mp3",
+      "tool_calls": [
+        {
+          "name": "check_order_status",
+          "start_offset_ms": 2000,
+          "description": "Look up order status by order ID",
+          "parameters": { "order_id": "ORD-2024-001" },
+          "output": { "status": "in_transit" }
+        }
+      ],
+      "metadata": { "customer_tier": "premium" }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Tool call fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | The tool name. |
+| `start_offset_ms` | integer | Yes | Milliseconds from the start of the conversation. |
+| `description` | string | No | What the tool does. Custom Metrics read it. |
+| `parameters` | object | No | The input to the tool. |
+| `output` | any | No | The value the tool returned. |
+
+### Event fields
+
+An event marks a moment in the conversation, for example an escalation or a hold.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | The event name. |
+| `start_offset_ms` | integer | Yes | Milliseconds from the start of the conversation. |
+| `end_offset_ms` | integer | No | When the event ended. |
+| `description` | string | No | Details of the event. |
+| `tags` | string[] | No | Tags for the event. |
+| `metadata` | object | No | Extra data for the event. |
+
+### Metadata
+
+`metadata` is a free-form JSON object for the whole conversation. Use it to give your custom metrics call-specific values: Bluejay puts each key into the matching `{{placeholder}}` in a metric. See [dynamic variables](/test/custom-metrics/prompting-guide#dynamic-variables).
+
+## Related
+
+- [Custom Metrics API](/api-reference/endpoint/create-custom-metrics)
+- [Custom Metrics MCP tools](/mcp/testing-tools#metrics)
+- [Custom Metrics Prompting Guide](/test/custom-metrics/prompting-guide)
+- [Metrics Lab](/test/custom-metrics/metrics-lab)
+- [Evaluate API](/api-reference/endpoint/evaluate)
