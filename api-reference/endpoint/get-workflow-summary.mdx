@@ -1,0 +1,58 @@
+---
+title: "Get Workflow Summary"
+description: "Get the nodes and edges of an agent's Workflow, for example to find node IDs."
+openapi: "GET /v1/agents/{agent_id}/workflow/summary"
+---
+
+Returns the [Workflow](/key-concepts/agents/overview#workflow) of one agent as `nodes` and `edges`. Use a node ID in a [conditional metric](/key-concepts/custom-metrics/overview#conditional-metrics). If the agent has no workflow provider, the request returns `400`.
+
+<Accordion title="Prompt for AI agents" icon="robot">
+
+````
+# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+
+You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+
+## Get Workflow Summary: GET /v1/agents/{agent_id}/workflow/summary
+
+> **What this endpoint does:** Flatten the stored workflow into a compact ``{nodes, edges}`` view for inspection.
+
+**Endpoint:** GET `https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/summary`
+**Auth:** `X-API-Key` header
+
+### Required Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| agent_id | string |  |
+| X-API-Key | string | API key required to authenticate requests. |
+
+Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-workflow-summary and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+
+### Example
+**Simple GET:**
+```python
+import requests
+
+def get_workflow_summary(agent_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/summary"
+    headers = {"X-API-Key": api_key}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+```
+
+### Constraints
+- Minimal changes: only add/change files needed for this integration.
+- Match existing codebase patterns (naming, file structure, error handling).
+- Include error handling for 422: Validation Error.
+
+### Integration Checklist
+Before writing code, verify:
+1. Which module/service owns this API domain in the codebase?
+2. What HTTP client and error-handling patterns does the project use?
+3. Are there existing types/interfaces to extend?
+
+Then implement the integration, export it, and confirm it compiles/passes lint.
+````
+
+</Accordion>

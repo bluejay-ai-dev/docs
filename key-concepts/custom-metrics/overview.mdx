@@ -22,6 +22,8 @@ Each metric checks one rule, in simulations and in production.
 
 A metric runs on the conversations of the agents you connect it to. A simulation can limit a run to selected metrics. To test a metric against labeled conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
 
+To put call-specific values into the prompt, use [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
+
 ## Metric types
 
 | Type (UI label) | `metric_type` | How it scores |
@@ -49,24 +51,6 @@ The response type sets the shape of an LLM as a Judge result.
 
 Text results do not roll up into a number. If you need a trend, add a Pass/Fail or Number metric next to the Text metric.
 
-## Fields
-
-| Field | Description |
-|---|---|
-| `prompt` | The judge prompt. Required for `llm_judge`. |
-| `scoring_guidance` | Extra grading rules for the judge. |
-| `agent_ids` | The agents whose conversations the metric runs on. |
-| `min_value`, `max_value` | The range of a Number result. |
-| `enum_options` | The labels of a Categorical result. |
-| `json_schema` | The JSON Schema of a Structured JSON result. Required for `json`. |
-| `eval_modality` | What the judge reads: `AUTO` (default), `TEXT`, or `AUDIO`. |
-| `eval_segment` | The side of the conversation to evaluate: `agent`, `user`, or `all` (default). |
-| `scope` | Where the metric runs: `observability`, `simulations`, or `all` (default). |
-| `allow_not_applicable` | If `true`, the judge can return `Not Applicable` when the criterion does not apply to the conversation. Default `false`. |
-| `settings.use_knowledge_base` | If `true`, the judge can search the agent's [Knowledge Bases](/key-concepts/knowledge-base/overview). Default `false`. |
-
-To put call-specific values into `prompt` or `scoring_guidance`, use [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
-
 ## Composite metrics
 
 A composite or conditional metric can read only plain metrics. It cannot use another composite or conditional metric as an input or a condition.
@@ -81,17 +65,13 @@ A composite metric reads the results of other metrics on the same conversation. 
 
 ## Conditional metrics
 
-A conditional metric runs only on conversations that match its `settings.fire_conditions`. On other conversations the result is Not Applicable.
+A conditional metric runs only on conversations that match its conditions. On other conversations, its result is Not Applicable. A condition can check that:
 
-`fire_conditions` holds `groups`, and each group holds `conditions`. The conditions in a group use the group `join`. The groups use the outer `join`. A `join` is `and` (default) or `or`. You can use 10 conditions maximum across all groups.
+- The conversation reached a node of the agent [Workflow](/key-concepts/agents/overview#workflow). To find node IDs, use [Get Workflow Summary](/api-reference/endpoint/get-workflow-summary).
+- The agent called a given tool.
+- Another metric has a given result, for example Fail.
 
-| `type` | Fires when | Fields |
-|---|---|---|
-| `workflow_node` | The conversation reached a node in the agent [Workflow](/key-concepts/agents/overview#workflow) | `node_id` |
-| `tool_call` | The agent called a tool | `tool_name` |
-| `metric` | Another metric on the conversation has a given result | `metric_id`, `operator`, `value` |
-
-Operators are `equals`, `not_equals`, `greater_than`, `less_than`, `greater_than_or_equal`, `less_than_or_equal`, `contains`, and `not_contains`. To get node IDs, call `GET /v1/agents/{agent_id}/workflow/summary`.
+Join conditions with "and" or "or", up to 10 conditions for each metric. The [conditional metric example](/key-concepts/bluejay-as-code/cookbook#conditional-metrics) shows the JSON.
 
 ## Tool calls, events, and metadata
 
