@@ -7,7 +7,7 @@ sidebarTitle: "Overview"
 
 import { Transcript } from "/snippets/transcript.jsx";
 
-Each metric checks one rule, in simulations and in production.
+Define metrics to grade your agent.
 
 <Transcript
   turns={[
@@ -18,48 +18,40 @@ Each metric checks one rule, in simulations and in production.
   verdict={{ metric: "Identity Verified Before Disclosure", pass: true, reason: "Agent confirmed two factors before it gave the balance." }}
 />
 
-## Create a custom metric
-
-A metric runs on the conversations of the agents you connect it to. A simulation can limit a run to selected metrics. To test a metric against labeled conversations before you use it, use the [Metrics Lab](/key-concepts/metrics-lab/overview).
-
-To put call-specific values into the prompt, use [dynamic variables](/key-concepts/custom-metrics/prompting-guide#dynamic-variables).
-
 ## Metric types
 
-| Type (UI label) | `metric_type` | How it scores |
-|---|---|---|
-| LLM as a Judge | `llm_judge` | An LLM scores the conversation against your prompt. |
-| Composite | `composite` | Combines the results of other metrics into one score or label. |
-| Tool Call | `tool_call` | Passes when the agent called the tools you name. |
-| Phrase Match | `transcript_regex` | Checks whether specific words were said. |
-| Transfer Landed | `transfer_landed` | Passes when the Digital Human in `settings.receiver_test_case_id` answers a transfer from the agent within `settings.window_seconds` (default 180, maximum 900). |
+| Type | How it scores |
+|---|---|
+| LLM as a Judge | An LLM scores the conversation against your prompt. |
+| Composite | Combines the results of other metrics into one score or label. |
+| Tool Call | Passes when the agent called the tools you name. |
+| Phrase Match | Checks whether specific words were said. |
+| Transfer Landed | Passes when the Digital Human you choose answers a transfer from the agent in time. The default limit is 180 seconds, and the maximum is 900. |
 
-Tool Call, Phrase Match, and Transfer Landed always return Pass/Fail. Only `llm_judge` uses `prompt`. The other types read `settings`.
+Tool Call, Phrase Match, and Transfer Landed always return Pass/Fail. Only LLM as a Judge uses a prompt.
 
 ## Response types
 
 The response type sets the shape of an LLM as a Judge result.
 
-| Response type (UI label) | `response_type` | Example |
-|---|---|---|
-| Pass/Fail | `pass_fail` | Did the agent verify identity before it shared account details? |
-| Yes/No | `yes_no` | Did the customer ask for a human? |
-| Number | `quantitative` | Rate the clarity of the explanation from 1 to 5. |
-| Text | `qualitative` | Summarize the objections the customer raised. |
-| Categorical | `enum` | Classify the call as `resolved`, `escalated`, or `unresolved`. |
-| Structured JSON | `json` | Return `identity_verified` (boolean) and `flags` (string array). |
-
-Text results do not roll up into a number. If you need a trend, add a Pass/Fail or Number metric next to the Text metric.
+| Response type | Example |
+|---|---|
+| Pass/Fail | Did the agent verify identity before it shared account details? |
+| Yes/No | Did the customer ask for a human? |
+| Number | Rate the clarity of the explanation from 1 to 5. |
+| Text | Summarize the objections the customer raised. |
+| Categorical | Classify the call as `resolved`, `escalated`, or `unresolved`. |
+| Structured JSON | Return `identity_verified` (boolean) and `flags` (string array). |
 
 ## Composite metrics
 
-Use a composite metric to roll several metrics into one score or label. For example, combine a clarity score and a Pass/Fail check into one Scheduling Quality score. A composite metric reads results that the other metrics already produced, so it makes no LLM call.
+Use a composite metric to roll several metrics into one score or label. It cannot use another composite or conditional metric. For example, combine a clarity score and a Pass/Fail check into one Scheduling Quality score. A composite metric reads results that the other metrics already produced, so it makes no LLM call.
 
 A composite metric gives a number from a formula, or a label from rules. The [composite metric example](/key-concepts/bluejay-as-code/cookbook#composite-metrics) shows both.
 
 ## Conditional metrics
 
-Use a conditional metric when a rule applies only to some conversations. For example, check the refund policy wording only when the agent called the refund tool. On other conversations, the result is Not Applicable. A condition can check that:
+Use a conditional metric when a rule applies only to some conversations. It cannot use another composite or conditional metric. For example, check the refund policy wording only when the agent called the refund tool. On other conversations, the result is Not Applicable. A condition can check that:
 
 - The conversation reached a node of the agent [Workflow](/key-concepts/agents/overview#workflow). To find node IDs, use [Get Workflow Summary](/api-reference/endpoint/get-workflow-summary).
 - The agent called a given tool.
@@ -67,11 +59,7 @@ Use a conditional metric when a rule applies only to some conversations. For exa
 
 Join conditions with "and" or "or". The [conditional metric example](/key-concepts/bluejay-as-code/cookbook#conditional-metrics) shows the JSON.
 
-A composite or conditional metric can read only plain metrics, not another composite or conditional metric.
-
 ## Tool calls, events, and metadata
-
-Send tool calls, events, and metadata with a conversation so metrics can check what the agent did, not only what it said. For example, a metric can check that the agent looked up the order before it gave a delivery date.
 
 ### Send tool calls
 
