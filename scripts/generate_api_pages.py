@@ -464,7 +464,7 @@ def main():
     print(f"pages: {len(pages)}, skipped: {len(problems)}")
     for p in problems:
         print("  " + p)
-    print(f"Try it operations: {write_operations(spec)}")
+    print(f"API Playground operations: {write_operations(spec)}")
 
 
 if __name__ == "__main__":
