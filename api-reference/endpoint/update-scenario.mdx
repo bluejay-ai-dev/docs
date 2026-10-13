@@ -1,76 +1,76 @@
 ---
-title: "Update Scenario"
+title: "PUT /v1/scenario/{workflow_id}"
 description: "Change the steps or other details of a scenario for your Digital Humans."
-openapi: "PUT /v1/scenario/{workflow_id}"
+sidebarTitle: "/\u200bv1/\u200bscenario/\u200b{workflow_id}"
+api: "PUT https://api.getbluejay.ai/v1/scenario/{workflow_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Updates a scenario. Fields you do not send do not change.
 
 - `agent_ids` replaces all agent links. `[]` removes all links.
 - `definition` replaces the full graph. Bluejay validates it the same as [Create Scenario](/api-reference/endpoint/create-scenario).
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "workflow_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Update Scenario: PUT /v1/scenario/{workflow_id}
+## Headers
 
-> **What this endpoint does:** Update name, description, agent links, and/or definition (React Flow graph).
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/scenario/{workflow_id}`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Request body
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| workflow_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "name", "type": "string or null", "required": false, "description": "New name for the workflow"}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "Set owning agents, or null to clear agent links (must belong to your organization when set)."}, {"name": "description", "type": "string or null", "required": false, "description": "New description (set empty string to clear if your client sends it)"}, {"name": "definition", "type": "object or null", "required": false, "description": "Full React Flow definition when replacing the graph. Same shape as create: each node needs a top-level `id`; each edge needs a top-level `id` unique among edges."}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-scenario and include any optional parameters (e.g., `X-Organization-Id`, `name`, `agent_ids`, `description`, `definition`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Request Body
-```json
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Workflow ID"}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Owning organization ID (set by middleware on create)"}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "Linked agent ids when the workflow is agent-scoped"}, {"name": "name", "type": "string", "required": true, "description": "Name of the workflow"}, {"name": "description", "type": "string or null", "required": false, "description": "Description"}, {"name": "definition", "type": "object", "required": true, "description": "Stored React Flow graph (`start` / `single` / `options` nodes). Nodes and edges use top-level string `id` fields; edge `id` values are unique within the graph."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "Creation timestamp"}, {"name": "dh_sync_summary", "type": "object or null", "required": false, "description": "Present on PUT responses when the definition was updated. Keys: updated, created, marked_stale, skipped, errors."}, {"name": "warnings", "type": "string[]", "required": false, "description": "Non-blocking lint warnings emitted at save time (e.g. node text referencing an unknown ``{{trait_name}}``). Empty when the definition is clean or no agents are linked."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/scenario/{workflow_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "agent_ids": [
+      123
+    ],
+    "description": "<string>",
+    "definition": {}
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "string",
-  "agent_ids": [
-    123
-  ],
-  "description": "string",
-  "definition": {
-    "key": "value"
-  }
+  "id": "<string>",
+  "organization_id": "<string>",
+  "agent_ids": [],
+  "name": "<string>",
+  "description": "<string>",
+  "definition": {},
+  "created_at": "2026-01-01T00:00:00Z",
+  "dh_sync_summary": {},
+  "warnings": [
+    "<string>"
+  ]
 }
 ```
 
-### Example
-**PUT with body:**
-```python
-import requests
-
-def update_scenario(workflow_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/scenario/{workflow_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

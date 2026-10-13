@@ -1,8 +1,12 @@
 ---
-title: "Create Uptime Monitor"
+title: "POST /v1/uptime/monitors"
 description: "Create an uptime monitor that checks on a schedule that your voice agent answers calls."
-openapi: "POST /v1/uptime/monitors"
+sidebarTitle: "/\u200bv1/\u200buptime/\u200bmonitors"
+api: "POST https://api.getbluejay.ai/v1/uptime/monitors"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates an uptime monitor and the simulation and schedule that run it. `active_window` limits the days and hours. If it is null, the monitor runs at all times.
 
@@ -38,61 +42,52 @@ At least one enabled check must have a `checkType` or a `customMetricId`. If not
 }
 ```
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Create Uptime Monitor: POST /v1/uptime/monitors
+## Request body
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/uptime/monitors`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "frequency", "type": "string", "required": false, "description": "", "default": "5m"}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days/hours the monitor may run, e.g. {\"days\": [\"monday\"], \"start_time\": \"09:00\", \"end_time\": \"17:00\", \"timezone\": \"America/Los_Angeles\"}. Null runs it around the clock.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]}, {"name": "checks", "type": "object[]", "required": false, "description": ""}, {"name": "notifications", "type": "object", "required": false, "description": ""}, {"name": "enabled", "type": "boolean", "required": false, "description": "", "default": true}, {"name": "start_at", "type": "string or null", "required": false, "description": "ISO 8601 first-check time; defaults to now()."}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| agent_id | integer |  |
+## Response
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-uptime-monitor and include any optional parameters (e.g., `X-Organization-Id`, `frequency`, `active_window`, `checks`, `notifications`, `enabled`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+A `200` response has no body.
 
-### Request Body (required fields)
-```json
-{
-  "agent_id": 123
-}
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/uptime/monitors \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "frequency": "5m",
+    "active_window": {
+      "days": [
+        "monday"
+      ],
+      "start_time": "<string>",
+      "end_time": "<string>",
+      "timezone": "<string>"
+    },
+    "checks": [
+      {}
+    ],
+    "notifications": {},
+    "enabled": true,
+    "start_at": "<string>"
+  }'
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-uptime-monitor. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_uptime_monitor(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/uptime/monitors"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

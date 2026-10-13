@@ -1,8 +1,12 @@
 ---
-title: "Send HTTP Text Message"
+title: "POST /v1/send-http-text-message"
 description: "Send your agent's reply into a running HTTP text simulation to continue the chat."
-openapi: "POST /v1/send-http-text-message"
+sidebarTitle: "/\u200bv1/\u200bsend-http-text-message"
+api: "POST https://api.getbluejay.ai/v1/send-http-text-message"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Sends one agent turn into a running HTTP text simulation. The Digital Human reply goes to the webhook in the agent settings.
 
@@ -20,67 +24,52 @@ Sends one agent turn into a running HTTP text simulation. The Digital Human repl
 | `end_conversation` | boolean | Default `false`. If `true`, Bluejay ends and evaluates the conversation. |
 | `message_id` | string | Unique ID. Bluejay drops a repeated ID in the same conversation. |
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Send HTTP Text Message: POST /v1/send-http-text-message
+## Request body
 
-> **What this endpoint does:** Receive a text message via HTTP, process it through the lambda, and send response to webhook. Uses simulation_result_id (sim_conversation_id) for Redis operations and evaluations.
+<FieldTable rows={[{"name": "body", "type": "object", "required": true, "children": [{"name": "simulation_result_id", "type": "string", "required": true, "description": "ID of the simulation result (test result)"}, {"name": "end_conversation", "type": "boolean or null", "required": false, "description": "If true, skip lambda and end/evaluate the conversation", "default": false}, {"name": "end_turn", "type": "boolean or null", "required": false, "description": "If true, process the message now; if false, stack it for later", "default": true}, {"name": "message_id", "type": "string or null", "required": false, "description": "Unique message ID for deduping within a conversation"}, {"name": "type", "type": "string", "required": false, "description": "Send a message to the user", "default": "message"}, {"name": "message", "type": "string", "required": true, "description": "Text message to send"}, {"name": "simulation_result_id", "type": "string", "required": true, "description": "ID of the simulation result (test result)"}, {"name": "end_conversation", "type": "boolean or null", "required": false, "description": "If true, skip lambda and end/evaluate the conversation", "default": false}, {"name": "end_turn", "type": "boolean or null", "required": false, "description": "If true, process the message now; if false, stack it for later", "default": true}, {"name": "message_id", "type": "string or null", "required": false, "description": "Unique message ID for deduping within a conversation"}, {"name": "type", "type": "string", "required": true, "description": "Log a tool call"}, {"name": "name", "type": "string", "required": true, "description": "Tool name"}, {"name": "parameters", "type": "object or null", "required": false, "description": "Tool parameters"}, {"name": "output", "type": "any or null", "required": false, "description": "Tool output"}]}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/send-http-text-message`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| simulation_result_id | string | ID of the simulation result (test result) |
-| message | string | Text message to send |
+<FieldTable rows={[{"name": "simulation_result_id", "type": "string", "required": true, "description": "Simulation result ID"}, {"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "success"}, {"name": "end_conversation", "type": "boolean", "required": false, "description": "Whether the conversation has ended", "default": false}]} />
 
-The body is one of: HttpTextAgentUserMessageRequest, HttpTextAgentToolCallRequest. The table and example below use HttpTextAgentUserMessageRequest.
+## Status codes
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/send-http-text-message and include any optional parameters (e.g., `X-Organization-Id`, `end_conversation`, `end_turn`, `message_id`, `type`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-### Request Body (required fields)
-```json
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/send-http-text-message \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_result_id": "<string>",
+    "end_conversation": false,
+    "end_turn": true,
+    "message_id": "<string>",
+    "type": "message",
+    "message": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "simulation_result_id": "string",
-  "message": "string"
+  "simulation_result_id": "<string>",
+  "status": "success",
+  "end_conversation": false
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/send-http-text-message. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def send_http_text_message(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/send-http-text-message"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

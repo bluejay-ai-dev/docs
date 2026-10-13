@@ -1,71 +1,63 @@
 ---
-title: "Set Human Evaluation"
+title: "PUT /v1/metrics-lab/lab/{lab_id}/human-evaluation"
 description: "Set your own pass or fail label on a lab metric result to compare with the metric."
-openapi: "PUT /v1/metrics-lab/lab/{lab_id}/human-evaluation"
+sidebarTitle: "/\u200bv1/\u200bmetrics-lab/\u200blab/\u200b{lab_id}/\u200bhuman-evaluation"
+api: "PUT https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/human-evaluation"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates or updates the human label for one metric on one conversation. Send `call_id` for a production call or `test_result_id` for a simulation result.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Set Human Evaluation: PUT /v1/metrics-lab/lab/{lab_id}/human-evaluation
+## Headers
 
-> **What this endpoint does:** Create or update a human evaluation for a lab metric result.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/human-evaluation`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Request body
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| lab_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
-| custom_metric_id | string | Custom metric ID (UUID as string) |
-| human_response_value | string | Human evaluation response value |
+<FieldTable rows={[{"name": "custom_metric_id", "type": "string", "required": true, "description": "Custom metric ID (UUID as string)"}, {"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Test result ID"}, {"name": "human_response_value", "type": "string", "required": true, "description": "Human evaluation response value"}, {"name": "human_reasoning", "type": "string or null", "required": false, "description": "Human evaluator's reasoning for the score"}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/set-human-evaluation and include any optional parameters (e.g., `X-Organization-Id`, `call_id`, `test_result_id`, `human_reasoning`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Request Body (required fields)
-```json
+<FieldTable rows={[{"name": "success", "type": "boolean", "required": true, "description": "Whether the operation was successful"}, {"name": "message", "type": "string", "required": true, "description": "Response message"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/human-evaluation \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "custom_metric_id": "<string>",
+    "call_id": "<string>",
+    "test_result_id": 123,
+    "human_response_value": "<string>",
+    "human_reasoning": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "custom_metric_id": "string",
-  "human_response_value": "string"
+  "success": true,
+  "message": "<string>"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/set-human-evaluation. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**PUT with body:**
-```python
-import requests
-
-def set_human_evaluation(lab_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/human-evaluation"
-    headers = {"X-API-Key": api_key}
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

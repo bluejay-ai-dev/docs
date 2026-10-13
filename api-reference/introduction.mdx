@@ -1,34 +1,32 @@
 ---
-title: "API Reference Introduction"
-sidebarTitle: "Introduction"
-description: "How to call the Bluejay API: get a key, send requests, and handle errors."
+title: "API Reference"
+sidebarTitle: "API Reference"
+description: "Master your voice agents pragmatically with Bluejay's API."
 icon: code
 ---
 
-The Bluejay REST API takes and returns JSON. This page shows how to make your first request and what to expect back. For a list of all endpoints, see the [cheat sheet](/api-reference/cheat-sheet).
+The Bluejay REST API takes and returns JSON. Follow these steps to make your first request, then use the sidebar or the [cheat sheet](/api-reference/cheat-sheet) to find the endpoint you need.
 
-## Base URL
+## Make your first request
 
-Send every request to this base URL:
+<Steps>
+  <Step title="Get an API key">
+    Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key. An API key belongs to one workspace, so requests with that key read and write only in that workspace. Because the key already decides the workspace, the API ignores the `X-Organization-Id` header.
+  </Step>
+  <Step title="Send a request">
+    Send every request to the base URL `https://api.getbluejay.ai`, with the key in the `X-API-Key` header. All endpoint paths start with `/v1`. This request lists the agents in your workspace:
 
-```bash
-https://api.getbluejay.ai
-```
+    ```bash
+    curl https://api.getbluejay.ai/v1/all-agents \
+      -H "X-API-Key: YOUR_API_KEY"
+    ```
+  </Step>
+  <Step title="Read the response">
+    A successful request returns a `2xx` status and a JSON body. This request returns a list of agents, and each item has the agent's `id`, which other endpoints take as `agent_id`. Each endpoint page shows the fields of its response and an example. If the request fails, read the status code and the `detail` field, as [Errors](#errors) explains.
+  </Step>
+</Steps>
 
-All endpoint paths start with `/v1`.
-
-## Authentication
-
-Each request signs in to Bluejay with an API key. To create a key, open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app.
-
-Then send the key in the `X-API-Key` header of each request:
-
-```bash
-curl https://api.getbluejay.ai/v1/all-agents \
-  -H "X-API-Key: YOUR_API_KEY"
-```
-
-An API key belongs to one workspace, so requests with that key read and write only in that workspace. Because the key already decides the workspace, it ignores the `X-Organization-Id` header.
+To try an endpoint without writing code, use [Try it](/api-reference/try-it).
 
 ## Errors
 

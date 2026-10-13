@@ -1,72 +1,61 @@
 ---
-title: "Bulk Delete Custom Metrics"
+title: "POST /v1/delete-metrics"
 description: "Delete several custom metrics in one request so they stop scoring your calls."
-openapi: "POST /v1/delete-metrics"
+sidebarTitle: "/\u200bv1/\u200bdelete-metrics"
+api: "POST https://api.getbluejay.ai/v1/delete-metrics"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Deletes many custom metrics. Each ID must exist and belong to your organization.
 
 `POST /v1/delete-custom-metrics` is the deprecated path of this endpoint.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Bulk Delete Custom Metrics: POST /v1/delete-metrics
+## Request body
 
-> **What this endpoint does:** Delete multiple custom metrics by ID. All IDs must exist and belong to the caller's organization (same rules as single delete).
+<FieldTable rows={[{"name": "custom_metric_ids", "type": "string[]", "required": true, "description": "UUIDs of custom metrics to delete"}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/delete-metrics`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| custom_metric_ids | array[string] | UUIDs of custom metrics to delete |
+<FieldTable rows={[{"name": "deleted_count", "type": "integer", "required": true, "description": "Number of metrics deleted"}, {"name": "deleted_metric_ids", "type": "string[]", "required": true, "description": "IDs of metrics that were deleted"}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-custom-metrics and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Request Body (required fields)
-```json
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/delete-metrics \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "custom_metric_ids": [
+      "<string>"
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "custom_metric_ids": [
-    "string"
+  "deleted_count": 123,
+  "deleted_metric_ids": [
+    "<string>"
   ]
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/delete-custom-metrics. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def bulk_delete_custom_metrics(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/delete-metrics"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

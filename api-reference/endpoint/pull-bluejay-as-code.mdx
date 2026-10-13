@@ -1,8 +1,12 @@
 ---
-title: "Pull Bluejay as Code"
+title: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
 description: "Export a simulation, agent, or metric setup as JSON to keep in your repo."
-openapi: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
+sidebarTitle: "/\u200bv1/\u200bbluejay-as-code/\u200b{root_type}/\u200b{root_id}"
+api: "GET https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Exports a bundle with these lists:
 
@@ -24,52 +28,52 @@ Supported values for `root_type` include:
 
 Commit the `bluejay_as_code_id` values to your config. Do not create new values for each push.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "root_type", "type": "string", "required": true, "description": "", "values": ["simulation", "agent", "digital-human", "custom-metric"]}, {"name": "root_id", "type": "string", "required": true, "description": ""}]} />
 
-## Pull Bluejay as Code: GET /v1/bluejay-as-code/{root_type}/{root_id}
+## Headers
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}`
-**Auth:** `X-API-Key` header
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| root_type | string (enum: simulation, agent, digital-human, custom-metric) |  |
-| root_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Response
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/pull-bluejay-as-code and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "agents", "type": "object[]", "required": true, "description": ""}, {"name": "simulations", "type": "object[]", "required": true, "description": ""}, {"name": "digital_humans", "type": "object[]", "required": true, "description": ""}, {"name": "custom_metrics", "type": "object[]", "required": true, "description": ""}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Status codes
 
-def pull_bluejay_as_code(root_type: str, root_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "agents": [
+    {}
+  ],
+  "simulations": [
+    {}
+  ],
+  "digital_humans": [
+    {}
+  ],
+  "custom_metrics": [
+    {}
+  ]
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

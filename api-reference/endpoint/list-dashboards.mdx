@@ -1,57 +1,63 @@
 ---
-title: "List Dashboards"
+title: "GET /v1/dashboards"
 description: "List all dashboards in your organization with their names and IDs."
-openapi: "GET /v1/dashboards"
+sidebarTitle: "/\u200bv1/\u200bdashboards"
+api: "GET https://api.getbluejay.ai/v1/dashboards"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns dashboards, newest first. Filter with `data_type`: `observability` or `simulation`.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Query parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "data_type", "type": "string or null", "required": false, "description": "", "values": ["observability", "simulation"]}]} />
 
-## List Dashboards: GET /v1/dashboards
+## Headers
 
-> **What this endpoint does:** List all dashboards in the organization, newest first.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/dashboards`
-**Auth:** `X-API-Key` header
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+The response is a list. Each item has these fields:
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-dashboards and include any optional parameters (e.g., `data_type`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "organization_id", "type": "string or null", "required": false, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "is_curated", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "created_by", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "data_type", "type": "string", "required": true, "description": ""}, {"name": "agent_id", "type": "integer or null", "required": false, "description": ""}, {"name": "url", "type": "string or null", "required": false, "description": "Link to this dashboard in the Bluejay app"}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Status codes
 
-def list_dashboards(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/dashboards"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/dashboards \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+[
+  {
+    "id": "<string>",
+    "organization_id": "<string>",
+    "name": "<string>",
+    "description": "<string>",
+    "is_curated": false,
+    "created_by": "<string>",
+    "created_at": "<string>",
+    "data_type": "<string>",
+    "agent_id": 123,
+    "url": "<string>"
+  }
+]
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

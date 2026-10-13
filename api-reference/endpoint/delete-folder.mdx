@@ -1,58 +1,51 @@
 ---
-title: "Delete Folder"
+title: "DELETE /v1/folder/{folder_id}"
 description: "Delete a folder by its ID when you no longer need it."
-openapi: "DELETE /v1/folder/{folder_id}"
+sidebarTitle: "/\u200bv1/\u200bfolder/\u200b{folder_id}"
+api: "DELETE https://api.getbluejay.ai/v1/folder/{folder_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Deletes a folder. The agents in it stay and have no folder.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "folder_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Delete Folder: DELETE /v1/folder/{folder_id}
+## Headers
 
-> **What this endpoint does:** Delete a folder. Note: This will set the folder_id to NULL for all agents in this folder. Returns the deleted folder ID and status.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/folder/{folder_id}`
-**Auth:** `X-API-Key` header
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| folder_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "folder_id", "type": "string (uuid)", "required": true, "description": "ID of the deleted folder"}, {"name": "status", "type": "string", "required": false, "description": "Status of the deletion", "default": "success"}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-folder and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Example
-**DELETE request:**
-```python
-import requests
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-def delete_folder(folder_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/folder/{folder_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.delete(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Example request
+
+```bash
+curl --request DELETE \
+  --url https://api.getbluejay.ai/v1/folder/{folder_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "folder_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "status": "success"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

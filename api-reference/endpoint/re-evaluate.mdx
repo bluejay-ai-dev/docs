@@ -1,60 +1,54 @@
 ---
-title: "Re-evaluate"
+title: "POST /v1/re-evaluate/{conversation_id}"
 description: "Score a conversation again, for example against another agent version."
-openapi: "POST /v1/re-evaluate/{conversation_id}"
+sidebarTitle: "/\u200bv1/\u200bre-evaluate/\u200b{conversation_id}"
+api: "POST https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates a new evaluation for a conversation.
 
 The JSON body is optional. Send `{"version": 3}` to score against agent version 3. Omit the body, or send `{}`, to keep the version stored on the conversation. An unknown version returns 400.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "conversation_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Re-evaluate: POST /v1/re-evaluate/{conversation_id}
+## Headers
 
-> **What this endpoint does:** Re-evaluate a call. Optional JSON body: ``{"version": int}``. Omit or send ``{}`` to keep the version already stamped on the call.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}`
-**Auth:** `X-API-Key` header
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| conversation_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "status", "type": "string", "required": true, "description": ""}, {"name": "call_id", "type": "string", "required": true, "description": ""}, {"name": "message", "type": "string", "required": true, "description": ""}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/re-evaluate and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Example
-**POST with body:**
-```python
-import requests
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-def re_evaluate(conversation_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/re-evaluate/{conversation_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "status": "<string>",
+  "call_id": "<string>",
+  "message": "<string>"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

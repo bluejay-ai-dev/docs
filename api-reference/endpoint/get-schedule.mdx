@@ -1,56 +1,55 @@
 ---
-title: "Get Schedule"
+title: "GET /v1/schedule/{schedule_id}"
 description: "Get one simulation schedule by its ID, including when it runs."
-openapi: "GET /v1/schedule/{schedule_id}"
+sidebarTitle: "/\u200bv1/\u200bschedule/\u200b{schedule_id}"
+api: "GET https://api.getbluejay.ai/v1/schedule/{schedule_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns one schedule by `schedule_id`.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "schedule_id", "type": "string", "required": true, "description": ""}]} />
 
-## Get Schedule: GET /v1/schedule/{schedule_id}
+## Headers
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/schedule/{schedule_id}`
-**Auth:** `X-API-Key` header
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| schedule_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Response
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-schedule and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The unique identifier for the cron job."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The unique identifier for the associated simulation."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The cron expression defining the job schedule."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "Whether the cron job is enabled."}, {"name": "created_at", "type": "string", "required": true, "description": "The timestamp when the cron job was created."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Status codes
 
-def get_schedule(schedule_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/schedule/{schedule_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/schedule/{schedule_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "id": "<string>",
+  "simulation_id": "<string>",
+  "cron_expression": "<string>",
+  "enabled": true,
+  "created_at": "<string>",
+  "timezone": "<string>"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

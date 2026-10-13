@@ -1,58 +1,88 @@
 ---
-title: "Get Alert Results"
+title: "GET /v1/alerts/{alert_id}/results"
 description: "Get the results of an alert to see when it fired and which calls triggered it."
-openapi: "GET /v1/alerts/{alert_id}/results"
+sidebarTitle: "/\u200bv1/\u200balerts/\u200b{alert_id}/\u200bresults"
+api: "GET https://api.getbluejay.ai/v1/alerts/{alert_id}/results"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns the times an alert fired, newest first. A simulation result links to the simulation and run. An observability result links to the call. Filter with `source`. `page_size` is 20 by default and 100 at most.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "alert_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Get Alert Results: GET /v1/alerts/{alert_id}/results
+## Query parameters
 
-> **What this endpoint does:** Get an alert's fired results (events). Config is read from the unified ``alerts`` table; events are read from ClickHouse (observability_alert_events / simulation_alerts_history) by the alert's source_scope. Each result resolves to the entity that caused it: for simulation, the experiment (simulation) + run; for observability, the call. Newest-first, page-paginated; pass ``source`` to restrict to one data source.
+<FieldTable rows={[{"name": "source", "type": "string or null", "required": false, "description": "Filter results by source: 'simulation' or 'observability'", "values": ["simulation", "observability"]}, {"name": "page_size", "type": "integer", "required": false, "description": "Max results per page", "default": 20}, {"name": "page", "type": "integer", "required": false, "description": "Page number (1-based)", "default": 1}]} />
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/alerts/{alert_id}/results`
-**Auth:** `X-API-Key` header
+## Headers
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| alert_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-alert-results and include any optional parameters (e.g., `source`, `page_size`, `page`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Example
-**Simple GET:**
-```python
-import requests
+<FieldTable rows={[{"name": "alert_id", "type": "string", "required": true, "description": "ID of the alert"}, {"name": "source_scope", "type": "string", "required": true, "description": "Configured source scope of the alert"}, {"name": "results", "type": "object[]", "required": true, "description": "The fired events on this page, newest first", "children": [{"name": "id", "type": "string", "required": true, "description": "Unique identifier for the alert event"}, {"name": "alert_id", "type": "string", "required": true, "description": "ID of the alert that fired"}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": "When the event fired"}, {"name": "triggered_by_entity_type", "type": "string", "required": true, "description": "Type of entity that triggered the event"}, {"name": "triggered_by_entity_id", "type": "string", "required": true, "description": "ID of the entity that triggered the event"}, {"name": "entity_field", "type": "string", "required": true, "description": "The field/metric that breached the threshold"}, {"name": "actual_value", "type": "string", "required": true, "description": "The observed value that triggered the event"}, {"name": "expected_value", "type": "string", "required": true, "description": "The threshold value compared against"}, {"name": "operator_used", "type": "string", "required": true, "description": "The comparison operator applied"}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "Agent associated with the event"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional event context"}, {"name": "source", "type": "string", "required": true, "description": "Data source that caused the event: 'simulation', 'observability', or 'unknown'"}, {"name": "simulation", "type": "object or null", "required": false, "description": "Simulation source details (set when source='simulation')", "children": [{"name": "simulation_id", "type": "integer or null", "required": false, "description": "experiments.id of the simulation the triggering run belongs to"}, {"name": "simulation_name", "type": "string or null", "required": false, "description": "Name of the simulation"}, {"name": "simulation_run_id", "type": "integer or null", "required": false, "description": "experiment_runs.id of the specific run that caused the event"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "test_results.id of the specific test result that caused the event, if any"}, {"name": "run_status", "type": "string or null", "required": false, "description": "Status of the triggering simulation run"}]}, {"name": "observability", "type": "object or null", "required": false, "description": "Observability source details (set when source='observability')", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "conversation id of the call that caused the event"}, {"name": "call_status", "type": "string or null", "required": false, "description": "Status of the triggering call"}, {"name": "started_at", "type": "string (date-time) or null", "required": false, "description": "When the triggering call started"}]}]}, {"name": "total_count", "type": "integer", "required": true, "description": "Total number of events matching the filter across all pages"}, {"name": "page", "type": "integer", "required": true, "description": "Current page (1-based)"}, {"name": "page_size", "type": "integer", "required": true, "description": "Requested number of items per page"}, {"name": "items_in_page", "type": "integer", "required": true, "description": "Actual number of items on this page"}, {"name": "total_pages", "type": "integer", "required": true, "description": "Total number of pages"}]} />
 
-def get_alert_results(alert_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/alerts/{alert_id}/results"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/alerts/{alert_id}/results \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "alert_id": "<string>",
+  "source_scope": "<string>",
+  "results": [
+    {
+      "id": "<string>",
+      "alert_id": "<string>",
+      "created_at": "2026-01-01T00:00:00Z",
+      "triggered_by_entity_type": "<string>",
+      "triggered_by_entity_id": "<string>",
+      "entity_field": "<string>",
+      "actual_value": "<string>",
+      "expected_value": "<string>",
+      "operator_used": "<string>",
+      "agent_id": 123,
+      "metadata": {},
+      "source": "<string>",
+      "simulation": {
+        "simulation_id": 123,
+        "simulation_name": "<string>",
+        "simulation_run_id": 123,
+        "test_result_id": 123,
+        "run_status": "<string>"
+      },
+      "observability": {
+        "call_id": "<string>",
+        "call_status": "<string>",
+        "started_at": "2026-01-01T00:00:00Z"
+      }
+    }
+  ],
+  "total_count": 123,
+  "page": 123,
+  "page_size": 123,
+  "items_in_page": 123,
+  "total_pages": 123
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

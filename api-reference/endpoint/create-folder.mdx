@@ -1,68 +1,57 @@
 ---
-title: "Create Folder"
+title: "POST /v1/create-folder"
 description: "Create a folder to organize the agents in your organization."
-openapi: "POST /v1/create-folder"
+sidebarTitle: "/\u200bv1/\u200bcreate-folder"
+api: "POST https://api.getbluejay.ai/v1/create-folder"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates a folder for agents.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Create Folder: POST /v1/create-folder
+## Request body
 
-> **What this endpoint does:** Create a new folder for organizing agents. Returns the created folder details.
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": "Name of the folder"}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/create-folder`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string | Name of the folder |
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": "ID of the folder"}, {"name": "name", "type": "string", "required": true, "description": "Name of the folder"}, {"name": "organization_id", "type": "string", "required": true, "description": "Organization ID"}, {"name": "created_at", "type": "string", "required": true, "description": "Timestamp when the folder was created"}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-folder and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Request Body (required fields)
-```json
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/create-folder \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "example_name"
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "name": "<string>",
+  "organization_id": "<string>",
+  "created_at": "<string>"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-folder. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_folder(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/create-folder"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

@@ -1,58 +1,65 @@
 ---
-title: "List Labels"
+title: "GET /v1/agents/{agent_id}/labels"
 description: "List the labels of one agent and the versions they point to."
-openapi: "GET /v1/agents/{agent_id}/labels"
+sidebarTitle: "/\u200bv1/\u200bagents/\u200b{agent_id}/\u200blabels"
+api: "GET https://api.getbluejay.ai/v1/agents/{agent_id}/labels"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns the labels of an agent. Filter by substring with `q`.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}]} />
 
-## List Labels: GET /v1/agents/{agent_id}/labels
+## Query parameters
 
-> **What this endpoint does:** list all free-standing labels for an agent; filter by substring with q.
+<FieldTable rows={[{"name": "q", "type": "string or null", "required": false, "description": ""}]} />
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/agents/{agent_id}/labels`
-**Auth:** `X-API-Key` header
+## Headers
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | integer |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-labels and include any optional parameters (e.g., `q`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Example
-**Simple GET:**
-```python
-import requests
+The response is a list. Each item has these fields:
 
-def list_labels(agent_id: int, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/labels"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "label_text", "type": "string", "required": true, "description": ""}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "color", "type": "string or null", "required": false, "description": ""}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Deprecated alias of agent_version_id"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/labels \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+[
+  {
+    "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "created_at": "2026-01-01T00:00:00Z",
+    "agent_id": 123,
+    "label_text": "<string>",
+    "agent_version_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "knowledge_base_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "color": "<string>",
+    "prompt_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+  }
+]
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

@@ -1,8 +1,12 @@
 ---
-title: "Create Custom Background Noise"
+title: "POST /v1/custom-background-noises"
 description: "Register an uploaded audio file as a custom background noise for simulations."
-openapi: "POST /v1/custom-background-noises"
+sidebarTitle: "/\u200bv1/\u200bcustom-background-noises"
+api: "POST https://api.getbluejay.ai/v1/custom-background-noises"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Adds an uploaded file to the background noise library. Get `storage_path` from [Create Background Noise Upload URL](/api-reference/endpoint/create-custom-background-noise-upload-url).
 
@@ -11,65 +15,52 @@ Adds an uploaded file to the background noise library. Get `storage_path` from [
 
 Rate limit: 30 requests per minute.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Create Custom Background Noise: POST /v1/custom-background-noises
+## Request body
 
-> **What this endpoint does:** Register an already-uploaded noise. The path must live under the caller org's upload prefix; the org is capped at MAX_CUSTOM_BACKGROUND_NOISES.
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "storage_path", "type": "string", "required": true, "description": ""}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/custom-background-noises`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string |  |
-| storage_path | string |  |
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "organization_id", "type": "string", "required": true, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "storage_path", "type": "string", "required": true, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "created_by", "type": "string or null", "required": false, "description": ""}, {"name": "usage_count", "type": "integer or null", "required": false, "description": ""}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-custom-background-noise and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Request Body (required fields)
-```json
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/custom-background-noises \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "storage_path": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "example_name",
-  "storage_path": "string"
+  "id": "<string>",
+  "organization_id": "<string>",
+  "name": "<string>",
+  "storage_path": "<string>",
+  "created_at": "<string>",
+  "created_by": "<string>",
+  "usage_count": 123
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-custom-background-noise. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_custom_background_noise(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/custom-background-noises"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

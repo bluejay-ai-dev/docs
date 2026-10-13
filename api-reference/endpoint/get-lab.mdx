@@ -1,58 +1,144 @@
 ---
-title: "Get Lab"
+title: "GET /v1/metrics-lab/lab/{lab_id}"
 description: "Get one Metrics Lab lab with its metrics and conversations."
-openapi: "GET /v1/metrics-lab/lab/{lab_id}"
+sidebarTitle: "/\u200bv1/\u200bmetrics-lab/\u200blab/\u200b{lab_id}"
+api: "GET https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns the full lab. Poll this endpoint after you queue evaluations. Each evaluation has a `status`, such as `QUEUED`, `EVALUATING`, or `COMPLETED`.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Get Lab: GET /v1/metrics-lab/lab/{lab_id}
+## Headers
 
-> **What this endpoint does:** Get a lab's full state: conversations, metrics, AI annotations, human labels, and metric revisions with their AI evaluations. This is the read side of the iterate loop: poll it after queueing evaluations to observe results (each evaluation carries a ``status`` of QUEUED/EVALUATING/COMPLETED/…) and to compare a revision's results against the base metric and human labels.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}`
-**Auth:** `X-API-Key` header
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| lab_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "lab", "type": "object", "required": true, "description": "The lab record itself.", "children": [{"name": "id", "type": "string", "required": true, "description": "Lab ID (UUID as string)"}, {"name": "name", "type": "string", "required": true, "description": "Name of the lab"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the lab"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Tags on the lab"}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": "When the lab was created"}]}, {"name": "conversations", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string", "required": true, "description": "Stable id: call_id for obs_conversations, 'test_<id>' for sim_conversations"}, {"name": "type", "type": "string", "required": true, "description": "Conversation source type", "values": ["obs_conversation", "sim_conversation"]}, {"name": "call_id", "type": "string or null", "required": false, "description": "obs_conversation_id, stored in the call_id column (when type='obs_conversation')"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "sim_conversation_id, stored in the test_result_id column (when type='sim_conversation')"}, {"name": "agent_id", "type": "integer", "required": false, "description": "Agent the conversation belongs to (0 if unresolved)", "default": 0}, {"name": "start_time_utc", "type": "string (date-time) or null", "required": false, "description": "When the conversation started"}, {"name": "duration_ms", "type": "integer or null", "required": false, "description": "Duration in ms (calls)"}, {"name": "duration_s", "type": "integer or null", "required": false, "description": "Duration in seconds (test results)"}, {"name": "status", "type": "string or null", "required": false, "description": "Conversation status"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Tags (calls only)"}]}, {"name": "metrics", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string", "required": true, "description": "Custom metric ID (UUID as string)"}, {"name": "name", "type": "string", "required": true, "description": "Metric name"}, {"name": "prompt", "type": "string or null", "required": false, "description": "Metric LLM-judge prompt (legacy alias: description)"}, {"name": "response_type", "type": "string or null", "required": false, "description": "Metric response type"}, {"name": "category", "type": "string or null", "required": false, "description": "Metric category"}, {"name": "min_value", "type": "number or null", "required": false, "description": "Minimum value (numeric metrics)"}, {"name": "max_value", "type": "number or null", "required": false, "description": "Maximum value (numeric metrics)"}, {"name": "enum_options", "type": "string[] or null", "required": false, "description": "Enum options (enum metrics)"}, {"name": "eval_route", "type": "string or null", "required": false, "description": "Evaluation route (renamed column: eval_modality)"}, {"name": "model", "type": "string or null", "required": false, "description": "Model used for evaluation"}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Audio model used for evaluation"}, {"name": "temperature", "type": "number or null", "required": false, "description": "Evaluation temperature"}, {"name": "allow_not_applicable", "type": "boolean or null", "required": false, "description": "Whether 'not applicable' is allowed"}]}, {"name": "human_evaluations", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "custom_metric_id", "type": "string", "required": true, "description": ""}, {"name": "call_id", "type": "string or null", "required": false, "description": ""}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": ""}, {"name": "human_response_value", "type": "string or null", "required": false, "description": ""}, {"name": "human_reasoning", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}]}, {"name": "ai_evaluations", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "custom_metric_id", "type": "string", "required": true, "description": ""}, {"name": "call_id", "type": "string or null", "required": false, "description": ""}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": ""}, {"name": "response_value", "type": "string or null", "required": false, "description": ""}, {"name": "reasoning", "type": "string or null", "required": false, "description": ""}, {"name": "status", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}]}, {"name": "metric_revisions", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "custom_metric_id", "type": "string", "required": true, "description": ""}, {"name": "lab_id", "type": "string", "required": true, "description": ""}, {"name": "revision_number", "type": "integer", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "eval_route", "type": "string or null", "required": false, "description": ""}, {"name": "model", "type": "string or null", "required": false, "description": ""}, {"name": "audio_model", "type": "string or null", "required": false, "description": ""}, {"name": "temperature", "type": "number or null", "required": false, "description": ""}, {"name": "eval_enabled", "type": "string or null", "required": false, "description": ""}, {"name": "allow_not_applicable", "type": "boolean or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}]}, {"name": "lab_ai_evaluations", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "lab_metric_revision_id", "type": "string", "required": true, "description": ""}, {"name": "call_id", "type": "string or null", "required": false, "description": ""}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": ""}, {"name": "response_value", "type": "string or null", "required": false, "description": ""}, {"name": "reasoning", "type": "string or null", "required": false, "description": ""}, {"name": "status", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}]}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-lab and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Example
-**Simple GET:**
-```python
-import requests
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-def get_lab(lab_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "lab": {
+    "id": "<string>",
+    "name": "<string>",
+    "description": "<string>",
+    "tags": [
+      "<string>"
+    ],
+    "created_at": "2026-01-01T00:00:00Z"
+  },
+  "conversations": [
+    {
+      "id": "<string>",
+      "type": "obs_conversation",
+      "call_id": "<string>",
+      "test_result_id": 123,
+      "agent_id": 0,
+      "start_time_utc": "2026-01-01T00:00:00Z",
+      "duration_ms": 123,
+      "duration_s": 123,
+      "status": "<string>",
+      "tags": [
+        "<string>"
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "id": "<string>",
+      "name": "<string>",
+      "prompt": "<string>",
+      "response_type": "<string>",
+      "category": "<string>",
+      "min_value": 1.5,
+      "max_value": 1.5,
+      "enum_options": [
+        "<string>"
+      ],
+      "eval_route": "<string>",
+      "model": "<string>",
+      "audio_model": "<string>",
+      "temperature": 1.5,
+      "allow_not_applicable": true
+    }
+  ],
+  "human_evaluations": [
+    {
+      "id": "<string>",
+      "custom_metric_id": "<string>",
+      "call_id": "<string>",
+      "test_result_id": 123,
+      "human_response_value": "<string>",
+      "human_reasoning": "<string>",
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "ai_evaluations": [
+    {
+      "id": "<string>",
+      "custom_metric_id": "<string>",
+      "call_id": "<string>",
+      "test_result_id": 123,
+      "response_value": "<string>",
+      "reasoning": "<string>",
+      "status": "<string>",
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "metric_revisions": [
+    {
+      "id": "<string>",
+      "custom_metric_id": "<string>",
+      "lab_id": "<string>",
+      "revision_number": 123,
+      "description": "<string>",
+      "eval_route": "<string>",
+      "model": "<string>",
+      "audio_model": "<string>",
+      "temperature": 1.5,
+      "eval_enabled": "<string>",
+      "allow_not_applicable": true,
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "lab_ai_evaluations": [
+    {
+      "id": "<string>",
+      "lab_metric_revision_id": "<string>",
+      "call_id": "<string>",
+      "test_result_id": 123,
+      "response_value": "<string>",
+      "reasoning": "<string>",
+      "status": "<string>",
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ]
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

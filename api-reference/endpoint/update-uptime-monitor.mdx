@@ -1,86 +1,68 @@
 ---
-title: "Update Uptime Monitor"
+title: "PUT /v1/uptime/monitors/{monitor_id}"
 description: "Change the schedule or settings of an uptime monitor."
-openapi: "PUT /v1/uptime/monitors/{monitor_id}"
+sidebarTitle: "/\u200bv1/\u200buptime/\u200bmonitors/\u200b{monitor_id}"
+api: "PUT https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Updates an uptime monitor. Only the fields you send change.
 
 - `checks` replaces the full list. Send every check you want to keep. For the shapes, see [Create Uptime Monitor](/api-reference/endpoint/create-uptime-monitor).
 - A change to `checks` or `agent_id` rebuilds the simulation of the monitor. Notification, pause, and resume changes do not.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": ""}]} />
 
-## Update Uptime Monitor: PUT /v1/uptime/monitors/{monitor_id}
+## Headers
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| monitor_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Request body
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-uptime-monitor and include any optional parameters (e.g., `X-Organization-Id`, `agent_id`, `frequency`, `active_window`, `checks`, `notifications`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "agent_id", "type": "integer or null", "required": false, "description": ""}, {"name": "frequency", "type": "string or null", "required": false, "description": ""}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days/hours the monitor may run, e.g. {\"days\": [\"monday\"], \"start_time\": \"09:00\", \"end_time\": \"17:00\", \"timezone\": \"America/Los_Angeles\"}. Null runs it around the clock.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]}, {"name": "checks", "type": "object[] or null", "required": false, "description": ""}, {"name": "notifications", "type": "object or null", "required": false, "description": ""}, {"name": "enabled", "type": "boolean or null", "required": false, "description": ""}, {"name": "start_at", "type": "string or null", "required": false, "description": "ISO 8601 first-check time; defaults to now()."}]} />
 
-### Request Body
-```json
-{
-  "agent_id": 123,
-  "frequency": "string",
-  "active_window": {
-    "days": [
-      "monday"
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "frequency": "<string>",
+    "active_window": {
+      "days": [
+        "monday"
+      ],
+      "start_time": "<string>",
+      "end_time": "<string>",
+      "timezone": "<string>"
+    },
+    "checks": [
+      {}
     ],
-    "start_time": "string",
-    "end_time": "string",
-    "timezone": "string"
-  },
-  "checks": [
-    {
-      "key": "value"
-    }
-  ],
-  "notifications": {
-    "key": "value"
-  },
-  "enabled": true,
-  "start_at": "string"
-}
+    "notifications": {},
+    "enabled": true,
+    "start_at": "<string>"
+  }'
 ```
 
-### Example
-**PUT with body:**
-```python
-import requests
-
-def update_uptime_monitor(monitor_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

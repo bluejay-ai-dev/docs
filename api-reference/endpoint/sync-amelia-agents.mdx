@@ -1,57 +1,44 @@
 ---
-title: "Sync Amelia Agents"
+title: "POST /v1/integrations/amelia/sync"
 description: "Import each Amelia AI agent as a Bluejay agent, and refresh the agents you already synced."
-openapi: "POST /v1/integrations/amelia/sync"
+sidebarTitle: "/\u200bv1/\u200bintegrations/\u200bamelia/\u200bsync"
+api: "POST https://api.getbluejay.ai/v1/integrations/amelia/sync"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Imports each Amelia AI agent that the [Amelia integration](/integrations/amelia) account can see. Bluejay makes one agent for each, and refreshes the agents that it already tracks.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Sync Amelia Agents: POST /v1/integrations/amelia/sync
+## Response
 
-> **What this endpoint does:** Import the org's Amelia cognitive agents, then re-pull what Bluejay already tracks. Every cognitive agent the credentials can see becomes a Bluejay agent, deduped on the Amelia agent's uuid. Flows are not a roster: a domain's flows are components of one bot, so a flow is only ever refreshed on an agent that already names one. Agents missing a domain code, or naming neither a flow nor a cognitive agent, are skipped rather than failed, so one unconfigured agent can't block the rest.
+The response is `object`.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/integrations/amelia/sync`
-**Auth:** `X-API-Key` header
+## Status codes
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/sync-amelia-agents and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Example request
 
-### Example
-**POST with body:**
-```python
-import requests
-
-def sync_amelia_agents(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/integrations/amelia/sync"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/integrations/amelia/sync \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

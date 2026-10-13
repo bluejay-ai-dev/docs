@@ -1,69 +1,61 @@
 ---
-title: "Update Folder"
+title: "PUT /v1/update-folder/{folder_id}"
 description: "Rename a folder that groups your agents or change its other details."
-openapi: "PUT /v1/update-folder/{folder_id}"
+sidebarTitle: "/\u200bv1/\u200bupdate-folder/\u200b{folder_id}"
+api: "PUT https://api.getbluejay.ai/v1/update-folder/{folder_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Renames a folder.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "folder_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Update Folder: PUT /v1/update-folder/{folder_id}
+## Headers
 
-> **What this endpoint does:** Update a folder's name. Returns the updated folder details.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/update-folder/{folder_id}`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Request body
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| folder_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string | New name for the folder |
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": "New name for the folder"}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-folder and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Request Body (required fields)
-```json
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": "ID of the folder"}, {"name": "name", "type": "string", "required": true, "description": "Name of the folder"}, {"name": "organization_id", "type": "string", "required": true, "description": "Organization ID"}, {"name": "created_at", "type": "string", "required": true, "description": "Timestamp when the folder was created"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/update-folder/{folder_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "example_name"
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "name": "<string>",
+  "organization_id": "<string>",
+  "created_at": "<string>"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/update-folder. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**PUT with body:**
-```python
-import requests
-
-def update_folder(folder_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/update-folder/{folder_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

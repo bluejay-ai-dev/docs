@@ -1,74 +1,107 @@
 ---
-title: "Create Scenario"
+title: "POST /v1/scenario"
 description: "Create a scenario, a reusable test case that tells a Digital Human what to do on a call."
-openapi: "POST /v1/scenario"
+sidebarTitle: "/\u200bv1/\u200bscenario"
+api: "POST https://api.getbluejay.ai/v1/scenario"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates a scenario. `definition` is a React Flow graph with `nodes`, `edges`, and an optional `viewport`. Each node and its `data` must match the typed schemas in the playground.
 
 To generate Digital Humans from a scenario, see the [Scenario Builder overview](/test/simulations/create#simulation-types).
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Create Scenario: POST /v1/scenario
+## Request body
 
-> **What this endpoint does:** Create a workflows_v2 row with a React Flow graph definition.
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": "Name of the workflow"}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "Owning agents (must belong to your organization). Omit or null for org-only workflow."}, {"name": "description", "type": "string or null", "required": false, "description": "Human-readable description of the workflow"}, {"name": "definition", "type": "object", "required": true, "description": "React Flow graph. Omitted `nodes` / `edges` default to []. Each node must have a non-empty string `id` on the node object (not only inside `data`). Each edge must have a non-empty string `id`, unique across all edges. With no `single` or `options` nodes, the graph is stored as a draft (only multiple-start is rejected). Once there is content, export rules apply (paths, branch_options, etc.)."}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/scenario`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string | Name of the workflow |
-| definition | object | React Flow graph. Omitted `nodes` / `edges` default to []. Each node must have a non-empty string `id` on the node object (not only inside `data`). Each edge must have a non-empty string `id`, unique across all edges. With no `single` or `options` nodes, the graph is stored as a draft (only multiple-start is rejected). Once there is content, export rules apply (paths, branch_options, etc.). |
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Workflow ID"}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Owning organization ID (set by middleware on create)"}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "Linked agent ids when the workflow is agent-scoped"}, {"name": "name", "type": "string", "required": true, "description": "Name of the workflow"}, {"name": "description", "type": "string or null", "required": false, "description": "Description"}, {"name": "definition", "type": "object", "required": true, "description": "Stored React Flow graph (`start` / `single` / `options` nodes). Nodes and edges use top-level string `id` fields; edge `id` values are unique within the graph."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "Creation timestamp"}, {"name": "dh_sync_summary", "type": "object or null", "required": false, "description": "Present on PUT responses when the definition was updated. Keys: updated, created, marked_stale, skipped, errors."}, {"name": "warnings", "type": "string[]", "required": false, "description": "Non-blocking lint warnings emitted at save time (e.g. node text referencing an unknown ``{{trait_name}}``). Empty when the definition is clean or no agents are linked."}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-scenario and include any optional parameters (e.g., `X-Organization-Id`, `agent_ids`, `description`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Request Body (required fields)
-```json
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/scenario \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_ids": [],
+    "definition": {
+      "edges": [
+        {
+          "id": "e-wf-start-n-greet",
+          "source": "wf-start",
+          "target": "n-greet"
+        }
+      ],
+      "nodes": [
+        {
+          "data": {
+            "id": "wf-start"
+          },
+          "deletable": false,
+          "draggable": true,
+          "id": "wf-start",
+          "position": {
+            "x": 100,
+            "y": 50
+          },
+          "type": "start"
+        },
+        {
+          "data": {
+            "criteria": "Greet the caller and offer help",
+            "id": "n-greet",
+            "speaker": "agent",
+            "turn": 0,
+            "type": "message"
+          },
+          "id": "n-greet",
+          "position": {
+            "x": 200,
+            "y": 180
+          },
+          "type": "single"
+        }
+      ]
+    },
+    "description": "Password reset IVR",
+    "name": "Support reset flow"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "example_name",
-  "definition": {
-    "key": "value"
-  }
+  "id": "<string>",
+  "organization_id": "<string>",
+  "agent_ids": [],
+  "name": "<string>",
+  "description": "<string>",
+  "definition": {},
+  "created_at": "2026-01-01T00:00:00Z",
+  "dh_sync_summary": {},
+  "warnings": [
+    "<string>"
+  ]
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-scenario. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_scenario(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/scenario"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

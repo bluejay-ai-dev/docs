@@ -1,68 +1,63 @@
 ---
-title: "Create Knowledge Base"
+title: "POST /v1/knowledge-base"
 description: "Create a knowledge base that holds reference content for your agents."
-openapi: "POST /v1/knowledge-base"
+sidebarTitle: "/\u200bv1/\u200bknowledge-base"
+api: "POST https://api.getbluejay.ai/v1/knowledge-base"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates an empty knowledge base. Add documents, then [attach it to an agent](/api-reference/endpoint/attach-agent-to-knowledge-base).
 
 Rate limit: 60 requests per minute.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Create Knowledge Base: POST /v1/knowledge-base
+## Request body
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/knowledge-base`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string |  |
+## Response
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-knowledge-base and include any optional parameters (e.g., `X-Organization-Id`, `description`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "organization_id", "type": "string", "required": true, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "updated_at", "type": "string or null", "required": false, "description": ""}]} />
 
-### Request Body (required fields)
-```json
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `201` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/knowledge-base \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "description": "<string>"
+  }'
+```
+
+## Example response
+
+```json 201
 {
-  "name": "example_name"
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "organization_id": "<string>",
+  "name": "<string>",
+  "description": "<string>",
+  "folder_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "created_at": "<string>",
+  "updated_at": "<string>"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-knowledge-base. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_knowledge_base(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/knowledge-base"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

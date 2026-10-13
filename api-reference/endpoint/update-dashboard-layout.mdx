@@ -1,79 +1,60 @@
 ---
-title: "Update Dashboard Layout"
+title: "PUT /v1/dashboards/{dashboard_id}/layout"
 description: "Change where each widget sits on a dashboard and how large it is."
-openapi: "PUT /v1/dashboards/{dashboard_id}/layout"
+sidebarTitle: "/\u200bv1/\u200bdashboards/\u200b{dashboard_id}/\u200blayout"
+api: "PUT https://api.getbluejay.ai/v1/dashboards/{dashboard_id}/layout"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Sets the position and size of widgets on a dashboard. Items for widgets that are not on the dashboard are ignored.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "dashboard_id", "type": "string", "required": true, "description": ""}]} />
 
-## Update Dashboard Layout: PUT /v1/dashboards/{dashboard_id}/layout
+## Headers
 
-> **What this endpoint does:** Set widget positions/sizes on a dashboard. Widgets that are not on the dashboard are ignored.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/dashboards/{dashboard_id}/layout`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Request body
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| dashboard_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
-| layouts | array[object] | Layout per widget already on the dashboard |
+<FieldTable rows={[{"name": "layouts", "type": "object[]", "required": true, "description": "Layout per widget already on the dashboard", "children": [{"name": "widget_id", "type": "string", "required": true, "description": ""}, {"name": "layout", "type": "object", "required": true, "description": "Where a widget sits on a dashboard and how big it is. The field names are older than the grid they describe: x is the row and y is the column, both 1-based. The dashboard is six columns wide, and height is counted in 50px steps, so h=6 is the 300px a widget used to be and the range 2..18 is 100px..900px.", "children": [{"name": "x", "type": "integer", "required": true, "description": "Row, 1-based, top to bottom"}, {"name": "y", "type": "integer", "required": true, "description": "Column within the row, 1..6"}, {"name": "w", "type": "integer", "required": true, "description": "Width in columns, 1..6"}, {"name": "h", "type": "integer", "required": true, "description": "Height in 50px steps, 2..18 (100px..900px)"}]}]}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-dashboard-layout and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Request Body (required fields)
-```json
-{
-  "layouts": [
-    {
-      "widget_id": "string",
-      "layout": {
-        "x": 123,
-        "y": 123,
-        "w": 123,
-        "h": 123
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/dashboards/{dashboard_id}/layout \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "layouts": [
+      {
+        "widget_id": "<string>",
+        "layout": {
+          "x": 123,
+          "y": 123,
+          "w": 123,
+          "h": 123
+        }
       }
-    }
-  ]
-}
+    ]
+  }'
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/update-dashboard-layout. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**PUT with body:**
-```python
-import requests
-
-def update_dashboard_layout(dashboard_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/dashboards/{dashboard_id}/layout"
-    headers = {"X-API-Key": api_key}
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

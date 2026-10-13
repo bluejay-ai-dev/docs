@@ -1,67 +1,68 @@
 ---
-title: "Update Dashboard"
+title: "PUT /v1/dashboards/{dashboard_id}"
 description: "Rename a dashboard or change its description and other settings."
-openapi: "PUT /v1/dashboards/{dashboard_id}"
+sidebarTitle: "/\u200bv1/\u200bdashboards/\u200b{dashboard_id}"
+api: "PUT https://api.getbluejay.ai/v1/dashboards/{dashboard_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Updates the name or description of a dashboard. An empty `description` clears it.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "dashboard_id", "type": "string", "required": true, "description": ""}]} />
 
-## Update Dashboard: PUT /v1/dashboards/{dashboard_id}
+## Headers
 
-> **What this endpoint does:** Rename a dashboard or change its description (empty string clears it).
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** PUT `https://api.getbluejay.ai/v1/dashboards/{dashboard_id}`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Request body
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| dashboard_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "name", "type": "string or null", "required": false, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": "Empty string clears the description"}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/update-dashboard and include any optional parameters (e.g., `X-Organization-Id`, `name`, `description`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Request Body
-```json
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "organization_id", "type": "string or null", "required": false, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "is_curated", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "created_by", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "data_type", "type": "string", "required": true, "description": ""}, {"name": "agent_id", "type": "integer or null", "required": false, "description": ""}, {"name": "url", "type": "string or null", "required": false, "description": "Link to this dashboard in the Bluejay app"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/dashboards/{dashboard_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "description": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "string",
-  "description": "string"
+  "id": "<string>",
+  "organization_id": "<string>",
+  "name": "<string>",
+  "description": "<string>",
+  "is_curated": false,
+  "created_by": "<string>",
+  "created_at": "<string>",
+  "data_type": "<string>",
+  "agent_id": 123,
+  "url": "<string>"
 }
 ```
 
-### Example
-**PUT with body:**
-```python
-import requests
-
-def update_dashboard(dashboard_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/dashboards/{dashboard_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

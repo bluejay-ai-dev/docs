@@ -1,8 +1,12 @@
 ---
-title: "Create Alert"
+title: "POST /v1/create-alert"
 description: "Create an alert that notifies you when a metric crosses a threshold in calls or simulations."
-openapi: "POST /v1/create-alert"
+sidebarTitle: "/\u200bv1/\u200bcreate-alert"
+api: "POST https://api.getbluejay.ai/v1/create-alert"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Creates an alert. `source_scope` selects the data: `observability`, `simulation`, or `all`.
 
@@ -10,71 +14,110 @@ Creates an alert. `source_scope` selects the data: `observability`, `simulation`
 - For `simulation`, `threshold_time_interval` is the number of recent completed runs. The default is 1. `min_events` is not used.
 - `sample_size` evaluates the last N conversations instead of a time window. The minimum is 30. The alert does not fire with fewer than N conversations.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+Each entry in `notification_channels` has a `type` and a `target`. The `target` depends on the `type`:
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+- `email`: the email address
+- `slack`: the Slack channel ID
+- `webhook`: the webhook URL
+- `pagerduty`: the PagerDuty routing key
+- `betterstack`: Bluejay ignores `target` and uses the connected API token
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+To connect each channel, see [Alerts](/monitor/alerts#connect-a-channel).
 
-## Create Alert: POST /v1/create-alert
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-> **What this endpoint does:** Create a new alert with optional agent associations
+## Headers
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/create-alert`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string | Name of the alert |
-| entity_type | string (enum: standard_metric, custom_goal, custom_metric, metadata_field, system_failure) | Enum representing the entity types for alerts. |
-| entity_field | string | The specific field/metric being monitored |
-| operator | string (enum: equals, not_equals, greater_than, less_than, greater_than_or_equal, less_than_or_equal, contains, not_contains) | Enum representing the comparison operators for alerts. |
-| comparison_value | string | Value to compare against |
+## Request body
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-alert and include any optional parameters (e.g., `X-Organization-Id`, `sample_size`, `description`, `is_enabled`, `notification_channels`, `applies_to_all_agents`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "sample_size", "type": "integer or null", "required": false, "description": "Evaluate over the most recent N conversations instead of a time window (minimum 30). NULL keeps the time-window behavior; the alert never fires with fewer than N conversations."}, {"name": "name", "type": "string", "required": true, "description": "Name of the alert"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the alert"}, {"name": "is_enabled", "type": "boolean", "required": false, "description": "Whether the alert is enabled", "default": true}, {"name": "entity_type", "type": "string", "required": true, "description": "Type of entity being monitored", "values": ["standard_metric", "custom_goal", "custom_metric", "metadata_field", "system_failure"]}, {"name": "entity_field", "type": "string", "required": true, "description": "The specific field/metric being monitored"}, {"name": "operator", "type": "string", "required": true, "description": "Comparison operator", "values": ["equals", "not_equals", "greater_than", "less_than", "greater_than_or_equal", "less_than_or_equal", "contains", "not_contains"]}, {"name": "comparison_value", "type": "string", "required": true, "description": "Value to compare against"}, {"name": "notification_channels", "type": "object[]", "required": false, "description": "Notification channels configuration", "children": [{"name": "type", "type": "string", "required": true, "description": "Type of notification: 'email', 'slack', 'webhook', 'pagerduty', or 'betterstack'"}, {"name": "target", "type": "string", "required": true, "description": "Target for the notification (email address, slack channel, webhook URL, or PagerDuty routing key; ignored for betterstack, which uses the org's API token)"}]}, {"name": "applies_to_all_agents", "type": "boolean", "required": false, "description": "Whether the alert applies to all agents", "default": true}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "Agent IDs to associate with this alert (only used when applies_to_all_agents=False)"}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "Optional experiments.id (simulation) to scope simulation alerts to. NULL means agent-scoped across all simulations."}, {"name": "evaluation_scope", "type": "string or null", "required": false, "description": "How this alert is evaluated. Only 'per_simulation_run' is supported.", "values": ["per_test_result", "per_simulation_run", "per_simulation_run_window"]}, {"name": "aggregation", "type": "string or null", "required": false, "description": "Aggregation mode used to compute the per-run metric value from test results within the run.", "values": ["none", "avg", "max", "min", "count"]}, {"name": "threshold_time_interval", "type": "integer or null", "required": false, "description": "For observability source_scope: time window in seconds (default 600 if omitted). For simulation source_scope: K = number of recent completed runs (default 1 if omitted)."}, {"name": "min_events", "type": "integer or null", "required": false, "description": "Minimum number of events for the alert. Only meaningful for observability/all source_scope (default 10 if omitted). Forced to NULL for simulation source_scope."}, {"name": "min_events_type", "type": "string", "required": false, "description": "Whether min_events is an absolute count ('events') or a percentage ('percentage')", "default": "events", "values": ["events", "percentage"]}, {"name": "source_scope", "type": "string", "required": false, "description": "Which data source fires this alert: 'all', 'observability', or 'simulation'", "default": "all", "values": ["all", "observability", "simulation"]}]} />
 
-### Request Body (required fields)
-```json
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Unique identifier for the alert"}, {"name": "name", "type": "string", "required": true, "description": "Name of the alert"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the alert"}, {"name": "is_enabled", "type": "boolean", "required": true, "description": "Whether the alert is enabled"}, {"name": "organization_id", "type": "string", "required": true, "description": "Organization ID"}, {"name": "entity_type", "type": "string", "required": true, "description": "Type of entity being monitored", "values": ["standard_metric", "custom_goal", "custom_metric", "metadata_field", "system_failure"]}, {"name": "entity_field", "type": "string", "required": true, "description": "The specific field/metric being monitored"}, {"name": "operator", "type": "string", "required": true, "description": "Comparison operator", "values": ["equals", "not_equals", "greater_than", "less_than", "greater_than_or_equal", "less_than_or_equal", "contains", "not_contains"]}, {"name": "comparison_value", "type": "string", "required": true, "description": "Value to compare against"}, {"name": "notification_channels", "type": "any[]", "required": true, "description": "Notification channels configuration"}, {"name": "last_triggered_at", "type": "string (date-time) or null", "required": false, "description": "When the alert was last triggered"}, {"name": "trigger_count", "type": "integer", "required": true, "description": "Number of times triggered"}, {"name": "created_by", "type": "string or null", "required": false, "description": "User who created the alert"}, {"name": "applies_to_all_agents", "type": "boolean", "required": true, "description": "Whether the alert applies to all agents"}, {"name": "agents", "type": "integer[] or null", "required": false, "description": "Associated agent IDs"}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "Optional experiments.id (simulation) this alert is scoped to"}, {"name": "evaluation_scope", "type": "string or null", "required": false, "description": "How this alert is evaluated. Only 'per_simulation_run' is supported."}, {"name": "aggregation", "type": "string or null", "required": false, "description": "Aggregation mode used to compute the per-run metric value from test results within the run."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the alert was created"}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "When the alert was last updated"}, {"name": "updated_by", "type": "string or null", "required": false, "description": "User who last updated the alert"}, {"name": "threshold_time_interval", "type": "integer or null", "required": true, "description": "For observability source_scope: time window in seconds. For simulation source_scope: K = number of recent completed runs."}, {"name": "min_events", "type": "integer or null", "required": true, "description": "The minimum number of events for the alert. NULL for simulation alerts."}, {"name": "min_events_type", "type": "string", "required": false, "description": "Whether min_events is an absolute count or a percentage", "default": "events"}, {"name": "in_alert", "type": "boolean", "required": true, "description": "Whether the alert is in alert"}, {"name": "source_scope", "type": "string", "required": false, "description": "Which data source fires this alert: 'all', 'observability', or 'simulation'", "default": "all"}, {"name": "simulation_name", "type": "string or null", "required": false, "description": "Name of the simulation (experiment) this alert is scoped to, if any"}, {"name": "sample_size", "type": "integer or null", "required": false, "description": "Most recent N conversations the alert is evaluated over; NULL = time window"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/create-alert \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "sample_size": 123,
+    "name": "<string>",
+    "description": "<string>",
+    "is_enabled": true,
+    "entity_type": "standard_metric",
+    "entity_field": "<string>",
+    "operator": "equals",
+    "comparison_value": "<string>",
+    "notification_channels": [
+      {
+        "type": "<string>",
+        "target": "<string>"
+      }
+    ],
+    "applies_to_all_agents": true,
+    "agent_ids": [
+      123
+    ],
+    "simulation_id": 123,
+    "evaluation_scope": "per_test_result",
+    "aggregation": "none",
+    "threshold_time_interval": 123,
+    "min_events": 123,
+    "min_events_type": "events",
+    "source_scope": "all"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "name": "example_name",
+  "id": "<string>",
+  "name": "<string>",
+  "description": "<string>",
+  "is_enabled": true,
+  "organization_id": "<string>",
   "entity_type": "standard_metric",
-  "entity_field": "string",
+  "entity_field": "<string>",
   "operator": "equals",
-  "comparison_value": "string"
+  "comparison_value": "<string>",
+  "notification_channels": [
+    null
+  ],
+  "last_triggered_at": "2026-01-01T00:00:00Z",
+  "trigger_count": 123,
+  "created_by": "<string>",
+  "applies_to_all_agents": true,
+  "agents": [
+    123
+  ],
+  "simulation_id": 123,
+  "evaluation_scope": "<string>",
+  "aggregation": "<string>",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "updated_by": "<string>",
+  "threshold_time_interval": 123,
+  "min_events": 123,
+  "min_events_type": "events",
+  "in_alert": true,
+  "source_scope": "all",
+  "simulation_name": "<string>",
+  "sample_size": 123
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-alert. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_alert(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/create-alert"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

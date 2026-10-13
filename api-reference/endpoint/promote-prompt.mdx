@@ -1,60 +1,64 @@
 ---
-title: "Promote Agent Version"
+title: "POST /v1/agents/{agent_id}/versions/promote"
 description: "Make an agent version the production version by moving the production label to it."
-openapi: "POST /v1/agents/{agent_id}/versions/promote"
+sidebarTitle: "/\u200bv1/\u200bagents/\u200b{agent_id}/\u200bversions/\u200bpromote"
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Moves the `production` label to the latest version, or to the version in `version`. `prompt_id` is a deprecated alias for the version UUID. It is ignored when `version` is set.
 
 `POST /v1/agents/{agent_id}/prompts/promote` is the deprecated path of this endpoint.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}]} />
 
-## Promote Agent Version: POST /v1/agents/{agent_id}/versions/promote
+## Query parameters
 
-> **What this endpoint does:** Move the production label to the latest version, or to the version identified by version (or prompt_id).
+<FieldTable rows={[{"name": "version", "type": "integer or null", "required": false, "description": "If set, attach the production label to this version number; otherwise attach to the latest version."}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Alias for version: the version's uuid. Ignored when version is set."}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote`
-**Auth:** `X-API-Key` header
+## Headers
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | integer |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/promote-prompt and include any optional parameters (e.g., `version`, `prompt_id`, `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Example
-**POST with body:**
-```python
-import requests
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "the id of the prompt"}, {"name": "prompt_text", "type": "string", "required": true, "description": "the prompt content"}, {"name": "commit_message", "type": "string or null", "required": false, "description": ""}, {"name": "labels", "type": "string[] or null", "required": false, "description": "labels associated with the prompt"}, {"name": "metadata", "type": "object or null", "required": false, "description": "arbitrary JSON metadata"}, {"name": "version", "type": "integer", "required": true, "description": "the version number of the prompt"}, {"name": "agent_id", "type": "integer", "required": true, "description": "id of the agent that owns this prompt"}]} />
 
-def promote_agent_version(agent_id: int, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "prompt_text": "<string>",
+  "commit_message": "<string>",
+  "labels": [
+    "<string>"
+  ],
+  "metadata": {},
+  "version": 123,
+  "agent_id": 123
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

@@ -1,70 +1,57 @@
 ---
-title: "Translate Transcript"
+title: "POST /v1/translate-transcript"
 description: "Translate a call transcript into another language, English by default."
-openapi: "POST /v1/translate-transcript"
+sidebarTitle: "/\u200bv1/\u200btranslate-transcript"
+api: "POST https://api.getbluejay.ai/v1/translate-transcript"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Translates a transcript. Send `simulation_result_id` for a simulation, or `conversation_id` for a production call. `target_language` is a language code such as `es`. The default is `en`.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Translate Transcript: POST /v1/translate-transcript
+## Request body
 
-> **What this endpoint does:** Translates all utterances in a simulation or production conversation transcript to the specified target language using Google Translate API.
+<FieldTable rows={[{"name": "body", "type": "object", "required": true, "children": [{"name": "simulation_result_id", "type": "integer", "required": true, "description": "ID of the simulation result (test_result) to translate"}, {"name": "target_language", "type": "string", "required": false, "description": "Target language code (e.g., 'en', 'es', 'fr', 'de'). Defaults to 'en' (English).", "default": "en"}, {"name": "conversation_id", "type": "string", "required": true, "description": "ID of the production conversation (call_id) to translate"}, {"name": "target_language", "type": "string", "required": false, "description": "Target language code (e.g., 'en', 'es', 'fr', 'de'). Defaults to 'en' (English).", "default": "en"}]}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/translate-transcript`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| simulation_result_id | integer | ID of the simulation result (test_result) to translate |
+<FieldTable rows={[{"name": "translated_transcript_url", "type": "string", "required": true, "description": "URL to the translated transcript file"}, {"name": "target_language", "type": "string", "required": true, "description": "The target language used for translation"}, {"name": "success", "type": "boolean", "required": false, "description": "Whether the translation was successful", "default": true}]} />
 
-The body is one of: Translate Simulation Transcript, Translate Observability Transcript. The table and example below use Translate Simulation Transcript.
+## Status codes
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/translate-transcript and include any optional parameters (e.g., `X-Organization-Id`, `target_language`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-### Request Body (required fields)
-```json
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/translate-transcript \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_result_id": 123,
+    "target_language": "en"
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "simulation_result_id": 123
+  "translated_transcript_url": "<string>",
+  "target_language": "<string>",
+  "success": true
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/translate-transcript. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def translate_transcript(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/translate-transcript"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

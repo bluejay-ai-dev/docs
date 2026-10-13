@@ -1,59 +1,42 @@
 ---
-title: "Get Check Transcript"
+title: "GET /v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript"
 description: "Get the call transcript of one uptime check to see why it passed or failed."
-openapi: "GET /v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript"
+sidebarTitle: "/\u200bv1/\u200buptime/\u200bmonitors/\u200b{monitor_id}/\u200bchecks/\u200b{check_id}/\u200btranscript"
+api: "GET https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns the transcript of one check. Exactly one of `transcript_url` and `transcript` has a value. `transcript_url` is a signed URL that expires soon. Both are null when there is no transcript.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": ""}, {"name": "check_id", "type": "string", "required": true, "description": ""}]} />
 
-## Get Check Transcript: GET /v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript
+## Headers
 
-> **What this endpoint does:** The call transcript for one check run: fetched lazily when a run's sidebar opens. Never streams transcript bytes through the middleware (same as the eval/log transcript flow): - primary runs: return a short-lived signed URL to the backing test_result's storage object, which the browser downloads directly. - fallback runs: the turns already live inline on the check row (small JSONB, no storage object to sign), so return them normalized to the frontend TranscriptSegment shape. Exactly one of `transcript_url` / `transcript` is populated; both null when there's nothing.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript`
-**Auth:** `X-API-Key` header
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| monitor_id | string |  |
-| check_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+A `200` response has no body.
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-uptime-check-transcript and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Example
-**Simple GET:**
-```python
-import requests
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-def get_check_transcript(monitor_id: str, check_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/checks/{check_id}/transcript \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

@@ -1,8 +1,12 @@
 ---
-title: "Start Self-Improve Run"
+title: "POST /v1/self-improve/runs"
 description: "Start a self-improve run that rewrites your agent prompt and tests each new version."
-openapi: "POST /v1/self-improve/runs"
+sidebarTitle: "/\u200bv1/\u200bself-improve/\u200bruns"
+api: "POST https://api.getbluejay.ai/v1/self-improve/runs"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Starts a loop that changes the agent prompt, pushes it to the provider, and runs the simulation to score it. At the end, Bluejay saves the best prompt as one new `latest` version. The previous version stays. The `production` label does not move.
 
@@ -20,65 +24,46 @@ Starts a loop that changes the agent prompt, pushes it to the provider, and runs
 
 Rate limit: 30 requests per minute.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Start Self-Improve Run: POST /v1/self-improve/runs
+## Request body
 
-> **What this endpoint does:** Start a self-improve run. Confirm-gated: call once to preview, then again with confirmed=true.
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "VAPI agent to self-improve in place (prompt iterated; one new 'latest' version written at the end)."}, {"name": "simulation_id", "type": "integer", "required": true, "description": "Simulation (digital humans + metrics) to run each round against the agent."}, {"name": "target_pass_rate", "type": "number", "required": false, "description": "", "default": 0.9}, {"name": "max_iterations", "type": "integer", "required": false, "description": "", "default": 5}, {"name": "min_improvement", "type": "number", "required": false, "description": "Minimum pass-rate gain to keep an iteration; non-negative so worse prompts are never kept.", "default": 0.02}, {"name": "metric_count", "type": "integer", "required": false, "description": "", "default": 5}, {"name": "success_metric_ids", "type": "string[] or null", "required": false, "description": "Reuse these metrics instead of generating new ones."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "", "default": false}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/self-improve/runs`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| agent_id | integer | VAPI agent to self-improve in place (prompt iterated; one new 'latest' version written at the end). |
-| simulation_id | integer | Simulation (digital humans + metrics) to run each round against the agent. |
+A `200` response has no body.
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/start-self-improve-run and include any optional parameters (e.g., `X-Organization-Id`, `target_pass_rate`, `max_iterations`, `min_improvement`, `metric_count`, `success_metric_ids`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Request Body (required fields)
-```json
-{
-  "agent_id": 123,
-  "simulation_id": 123
-}
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/self-improve/runs \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "simulation_id": 123,
+    "target_pass_rate": 0.9,
+    "max_iterations": 5,
+    "min_improvement": 0.02,
+    "metric_count": 5,
+    "success_metric_ids": [
+      "<string>"
+    ],
+    "confirmed": false
+  }'
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/start-self-improve-run. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def start_self_improve_run(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/self-improve/runs"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

@@ -1,76 +1,56 @@
 ---
-title: "Remove Conversations from Lab"
+title: "DELETE /v1/metrics-lab/lab/{lab_id}/conversations"
 description: "Remove conversations from a Metrics Lab lab that you no longer want to test on."
-openapi: "DELETE /v1/metrics-lab/lab/{lab_id}/conversations"
+sidebarTitle: "/\u200bv1/\u200bmetrics-lab/\u200blab/\u200b{lab_id}/\u200bconversations"
+api: "DELETE https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Removes conversations from a lab. The conversations are not deleted.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Remove Conversations from Lab: DELETE /v1/metrics-lab/lab/{lab_id}/conversations
+## Headers
 
-> **What this endpoint does:** Remove one or more conversations from an existing lab.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Request body
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| lab_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
-| lab_id | string | Lab ID (UUID as string) |
-| conversations | array[object] | List of conversations to remove from the lab |
+<FieldTable rows={[{"name": "lab_id", "type": "string", "required": true, "description": "Lab ID (UUID as string)"}, {"name": "conversations", "type": "object[]", "required": true, "description": "List of conversations to remove from the lab", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Test result ID"}]}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/remove-conversations-from-lab and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Response
 
-### Request Body (required fields)
-```json
-{
-  "lab_id": "string",
-  "conversations": [
-    {
-      "call_id": "string",
-      "test_result_id": 123
-    }
-  ]
-}
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request DELETE \
+  --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "lab_id": "<string>",
+    "conversations": [
+      {
+        "call_id": "<string>",
+        "test_result_id": 123
+      }
+    ]
+  }'
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/remove-conversations-from-lab. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**DELETE request:**
-```python
-import requests
-
-def remove_conversations_from_lab(lab_id: str, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations"
-    headers = {"X-API-Key": api_key}
-    response = requests.delete(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

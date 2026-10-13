@@ -1,8 +1,12 @@
 ---
-title: "Create Background Noise Upload URL"
+title: "POST /v1/custom-background-noises/upload-url"
 description: "Get a signed URL to upload an audio file for a custom background noise."
-openapi: "POST /v1/custom-background-noises/upload-url"
+sidebarTitle: "/\u200bv1/\u200bcustom-background-noises/\u200bupload-url"
+api: "POST https://api.getbluejay.ai/v1/custom-background-noises/upload-url"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns `upload_url` and `storage_path`.
 
@@ -13,63 +17,43 @@ The file name must end in `.mp3` or `.wav`. Other types return 400.
 
 Rate limit: 30 requests per minute.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## Create Background Noise Upload URL: POST /v1/custom-background-noises/upload-url
+## Request body
 
-> **What this endpoint does:** Mint a one-time signed PUT URL for uploading a noise file directly to the skywatch bucket (org-scoped path). Upload the raw bytes to upload_url with HTTP PUT, then register storage_path via POST /custom-background-noises.
+<FieldTable rows={[{"name": "filename", "type": "string", "required": true, "description": ""}]} />
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/custom-background-noises/upload-url`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| filename | string |  |
+The response is `object`.
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-custom-background-noise-upload-url and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Request Body (required fields)
-```json
-{
-  "filename": "example_name"
-}
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/custom-background-noises/upload-url \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "filename": "<string>"
+  }'
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-custom-background-noise-upload-url. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+## Example response
 
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_background_noise_upload_url(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/custom-background-noises/upload-url"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
+```json 200
+{}
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

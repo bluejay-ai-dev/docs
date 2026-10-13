@@ -1,60 +1,85 @@
 ---
-title: "Delete Custom Metric"
+title: "DELETE /v1/metric/{metric_id}"
 description: "Delete one custom metric by its ID so it no longer scores calls."
-openapi: "DELETE /v1/metric/{metric_id}"
+sidebarTitle: "/\u200bv1/\u200bmetric/\u200b{metric_id}"
+api: "DELETE https://api.getbluejay.ai/v1/metric/{metric_id}"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Deletes one custom metric. The metric moves to Recently Deleted.
 
 `DELETE /v1/custom-metric/{metric_id}` is the deprecated path of this endpoint.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Path parameters
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "metric_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-## Delete Custom Metric: DELETE /v1/metric/{metric_id}
+## Headers
 
-> **What this endpoint does:** Delete a specific custom metric by ID.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/metric/{metric_id}`
-**Auth:** `X-API-Key` header
+## Response
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| metric_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "prompt", "type": "string or null", "required": false, "description": ""}, {"name": "summary", "type": "string or null", "required": false, "description": ""}, {"name": "metric_type", "type": "string", "required": false, "description": "", "default": "llm_judge"}, {"name": "eval_method", "type": "string", "required": false, "description": "", "default": "llm_judge"}, {"name": "settings", "type": "object", "required": false, "description": ""}, {"name": "source", "type": "string", "required": false, "description": "", "default": "custom"}, {"name": "eval_segment", "type": "string", "required": false, "description": "", "default": "all"}, {"name": "scope", "type": "string", "required": false, "description": "", "default": "all"}, {"name": "response_type", "type": "string", "required": true, "description": "Enum representing the possible response types for custom metrics.", "values": ["pass_fail", "yes_no", "qualitative", "quantitative", "json", "enum", "int", "float", "boolean", "tool_call"]}, {"name": "min_value", "type": "number or null", "required": false, "description": ""}, {"name": "max_value", "type": "number or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "updated_by", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "created_by", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "id", "type": "string (uuid) or null", "required": false, "description": "Unique identifier for the metric"}, {"name": "category", "type": "string or null", "required": false, "description": ""}, {"name": "tags", "type": "string[]", "required": false, "description": ""}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": ""}, {"name": "eval_modality", "type": "string or null", "required": false, "description": "Enum representing the evaluation route of a call.", "default": "AUTO", "values": ["AUDIO", "TEXT", "AUTO"]}, {"name": "model", "type": "string or null", "required": false, "description": ""}, {"name": "audio_model", "type": "string or null", "required": false, "description": ""}, {"name": "temperature", "type": "number or null", "required": false, "description": ""}, {"name": "enum_options", "type": "string[] or null", "required": false, "description": ""}, {"name": "json_schema", "type": "object or null", "required": false, "description": ""}, {"name": "organization_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "workspace_id", "type": "string or null", "required": false, "description": ""}, {"name": "allow_not_applicable", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "template_id", "type": "string (uuid) or null", "required": false, "description": ""}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-custom-metric and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Status codes
 
-### Example
-**DELETE request:**
-```python
-import requests
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-def delete_custom_metric(metric_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/metric/{metric_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.delete(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Example request
+
+```bash
+curl --request DELETE \
+  --url https://api.getbluejay.ai/v1/metric/{metric_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "name": "<string>",
+  "prompt": "<string>",
+  "summary": "<string>",
+  "metric_type": "llm_judge",
+  "eval_method": "llm_judge",
+  "settings": {},
+  "source": "custom",
+  "eval_segment": "all",
+  "scope": "all",
+  "response_type": "pass_fail",
+  "min_value": 1.5,
+  "max_value": 1.5,
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "updated_by": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "created_by": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "category": "<string>",
+  "tags": [
+    "<string>"
+  ],
+  "scoring_guidance": "<string>",
+  "eval_modality": "AUDIO",
+  "model": "<string>",
+  "audio_model": "<string>",
+  "temperature": 1.5,
+  "enum_options": [
+    "<string>"
+  ],
+  "json_schema": {},
+  "organization_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "workspace_id": "<string>",
+  "allow_not_applicable": false,
+  "template_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}

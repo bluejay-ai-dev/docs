@@ -1,59 +1,58 @@
 ---
-title: "List Custom Background Noises"
+title: "GET /v1/custom-background-noises"
 description: "List the custom background noises in your organization."
-openapi: "GET /v1/custom-background-noises"
+sidebarTitle: "/\u200bv1/\u200bcustom-background-noises"
+api: "GET https://api.getbluejay.ai/v1/custom-background-noises"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
 
 Returns the custom background noises in your organization, oldest first. `usage_count` is the number of Digital Humans that use each noise.
 
 Rate limit: 60 requests per minute.
 
-<Accordion title="Prompt for AI agents" icon="robot">
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-````
-# Bluejay: Testing & Monitoring Platform for Conversational AI Agents
+## Headers
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-## List Custom Background Noises: GET /v1/custom-background-noises
+## Response
 
-> **What this endpoint does:** List the caller org's custom background noises, oldest first. Each row carries usage_count (referencing digital humans) so the UI can warn before delete; the DELETE endpoint stays the authoritative guard.
+The response is a list. Each item has these fields:
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/custom-background-noises`
-**Auth:** `X-API-Key` header
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "organization_id", "type": "string", "required": true, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "storage_path", "type": "string", "required": true, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "created_by", "type": "string or null", "required": false, "description": ""}, {"name": "usage_count", "type": "integer or null", "required": false, "description": ""}]} />
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+## Status codes
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-custom-background-noises and include any optional parameters (e.g., `X-Organization-Id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Example request
 
-def list_custom_background_noises(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/custom-background-noises"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/custom-background-noises \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes: only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+[
+  {
+    "id": "<string>",
+    "organization_id": "<string>",
+    "name": "<string>",
+    "storage_path": "<string>",
+    "created_at": "<string>",
+    "created_by": "<string>",
+    "usage_count": 123
+  }
+]
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-
-</Accordion>
+{/* END GENERATED */}
