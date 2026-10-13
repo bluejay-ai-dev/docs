@@ -83,7 +83,7 @@ To set up and run a simulation from code instead, see the [Simulation API](/api-
 | Goal Adherence | Tests how well the agent reaches the goals you set. |
 | Replay From Transcript | Makes Digital Humans from existing conversations. |
 | Generate From Workflow | Makes Digital Humans from the [Workflow](#workflow) that the agent syncs from its voice platform. |
-| Customer Journeys | One Digital Human calls the agent several times in sequence. See [Customer Journeys](#customer-journeys). |
+| Customer Journeys | One Digital Human contacts the agent several times in a fixed order, each step with its own intent, and the calls group into one row on the run page. If a step ends with an error status, Bluejay cancels the later steps with `STEP_SKIPPED`. |
 | Upload Digital Humans | Makes Digital Humans from a CSV file. |
 | Use Previous Digital Humans | Uses existing Digital Humans or communities. |
 | Load Testing | Tests performance, latency, and throughput under load. |
@@ -105,41 +105,6 @@ Start with the status, because it tells you how to read the row:
 - Any other final status means the call did not end as a normal scored call. The call's error code says why. Look it up in [Error codes](#error-codes) to see whether the problem is in your setup, your agent, or Bluejay, and what to do.
 
 After you fix the problem, click **Rerun** and choose **Rerun failed**. Bluejay reruns only the calls that failed or ended with an error status, so you can check the fix without paying for the full run.
-
-## Customer Journeys
-
-In a Customer Journeys simulation, the same Digital Human contacts your agent several times in a fixed order. Use it to test how your agent treats a customer who comes back.
-
-<iframe
-  src="https://www.youtube.com/embed/MywLdzH9J3g"
-  width="100%"
-  height="450"
-  frameBorder="0"
-  allowFullScreen
-  style={{ borderRadius: '0.5rem' }}
-></iframe>
-
-### Build a journey
-
-A journey is an ordered list of steps. Each step is one conversation (a call or a text thread) with its own intent, for example "Book appointment" followed by "Reschedule". To test a customer who comes back later, set a step to wait before it starts. The Digital Human keeps the same identity across the steps.
-
-![Customer Journeys card on the Create Simulation dialog](/images/journey-card.png)
-
-![Customer Journeys configuration: steps on the left, preview on the right](/images/journey-config-panel.png)
-
-If a step ends with one of these statuses, Bluejay cancels the later steps of that journey with the code `STEP_SKIPPED`:
-
-- No Connection
-- No Answer
-- Call Dropped
-- Out of Funds
-- System Error
-
-### Journey results
-
-The calls of one journey group into one row on the run page.
-
-![Journey rows grouped on the run page](/images/journey-runs-grouped.png)
 
 ## Call statuses
 
