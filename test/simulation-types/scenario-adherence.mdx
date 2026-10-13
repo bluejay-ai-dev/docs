@@ -1,0 +1,66 @@
+---
+title: "Scenario Adherence"
+description: "Test that your voice agent follows a required flow, turn by turn."
+icon: map
+---
+
+Use this type when your agent must follow a fixed flow, for example a compliance script or an identity check. You draw the flow as a scenario on the **Scenario Builder** page, and Bluejay makes one Digital Human for each path through it. Each Digital Human follows its path turn by turn, so you can see where your agent leaves the flow.
+
+## Build a scenario
+
+On the **Scenario Builder** page, click **Create**, then **Create Scenario**. Enter a **Scenario name**, select the **Agents** that it applies to, and choose a **Creation method**:
+
+- **Blank template**: draw the flow yourself.
+- **Auto-generate from prompt**: describe the flow, and Bluejay draws a draft.
+- **Import from JSON**: paste a scenario definition. The [Scenario API](/api-reference/endpoint/create-scenario) shows the format.
+
+Add nodes from the toolbox. The **Your Agent** section has what your agent must do:
+
+- **Message**
+- **DTMF**
+
+The **User / Digital Human** section has what the Digital Human does:
+
+- **Message**
+- **DTMF**
+- **Silence**
+
+Each path from the start to an end becomes one Digital Human, so each branch you add adds a test. Click **Save** when the flow is complete.
+
+![Scenario graph with a start node, agent and user turns, a branch, and end nodes](/images/workflows.png)
+
+## Run it
+
+<Steps>
+  <Step title="Choose the type">
+    Click **Test** in the Scenario Builder toolbar. Or [create a simulation](/test/simulations/create#create-a-simulation) and click the **Scenario Adherence** card.
+  </Step>
+  <Step title="Select the scenarios">
+    Select one or more scenarios in the list. Each row shows how many paths the scenario has.
+  </Step>
+  <Step title="Generate">
+    Click **Save**, then click **Generate Digital Humans**.
+  </Step>
+</Steps>
+
+With the API, call [Generate Digital Humans](/api-reference/endpoint/generate-digital-humans) with `workflow_adherence_v2`, a map of scenario ID to the number of Digital Humans:
+
+```json
+{
+  "agent_id": 123,
+  "simulation_id": 456,
+  "workflow_adherence_v2": { "scenario-uuid-1": 20, "scenario-uuid-2": 50 }
+}
+```
+
+## Limits
+
+- Voice agents only. For a chat, SMS, or email agent, the card is disabled.
+- Bluejay makes a maximum of 200 Digital Humans for each scenario.
+- A scenario with no paths cannot be selected.
+
+## Related
+
+- [IVR Flow](/test/simulation-types/ivr-flow)
+- [Scenario API](/api-reference/endpoint/create-scenario)
+- [Scenario MCP tools](/mcp/testing-tools#scenarios)

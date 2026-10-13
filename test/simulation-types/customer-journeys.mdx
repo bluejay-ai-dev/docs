@@ -1,0 +1,71 @@
+---
+title: "Customer Journeys"
+description: "Test how your agent treats a returning customer who contacts it more than once."
+icon: route
+---
+
+In a Customer Journeys simulation, the same Digital Human contacts your agent several times in a fixed order, for example "Book appointment" and then "Reschedule". The Digital Human keeps the same identity across the steps, so the later conversations test how your agent treats a customer who comes back.
+
+<iframe
+  src="https://www.youtube.com/embed/MywLdzH9J3g"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+## Set it up
+
+<Steps>
+  <Step title="Choose the type">
+    [Create a simulation](/test/simulations/create#create-a-simulation) and click the **Customer Journeys** card.
+  </Step>
+  <Step title="Add the steps">
+    Click **Add step** for each conversation, and write its intent, for example "Book appointment". Drag the steps to change their order. To let Bluejay write the steps, click **Generate** and set a number of steps from 1 to 10.
+  </Step>
+  <Step title="Set each step">
+    For each step, choose **Call** or **SMS** and **Inbound** or **Outbound**. Add **Success criteria**, or leave it blank and Bluejay writes it when it makes the Digital Humans.
+  </Step>
+  <Step title="Add timing, if needed">
+    Click **+** on a step to add one of these options:
+
+    - **Delay before this step**, to test a customer who comes back later
+    - **Response timeout**
+    - **Different phone number**
+    - **Digital Human stays silent**
+  </Step>
+  <Step title="Set the number of journeys">
+    Set **Journeys** from 1 to 200. Each journey is one Digital Human that does all the steps.
+  </Step>
+  <Step title="Generate">
+    Click **Save**, then click **Generate Digital Humans**.
+  </Step>
+</Steps>
+
+![Customer Journeys configuration: steps on the left, preview on the right](/images/journey-config-panel.png)
+
+## Results
+
+The conversations of one journey show as one row on the run page.
+
+![Journey rows grouped on the run page](/images/journey-runs-grouped.png)
+
+If a step ends with one of these statuses, Bluejay cancels the later steps of that journey with the code `STEP_SKIPPED`:
+
+- No Connection
+- No Answer
+- Call Dropped
+- Out of Funds
+- System Error
+
+## Limits
+
+- An **SMS** step needs an agent that can send text messages.
+- An **Outbound** SMS step cannot come directly after another SMS step.
+- A journey does not run once for each [Personality](/test/simulations/digital-humans#personalities).
+
+## Related
+
+- [Error codes](/test/simulations/create#error-codes)
+- [Simulation API](/api-reference/endpoint/create-simulation)
