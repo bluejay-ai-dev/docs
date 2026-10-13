@@ -5,47 +5,22 @@ icon: flask-vial
 sidebarTitle: "Create a Simulation"
 ---
 
-A simulation tests one of your agents with a set of Digital Humans, which are realistic test customers. Each run places one conversation for each Digital Human and scores it against its success criteria and your custom metrics, so you can see where your agent fails before real customers reach it.
+A simulation calls your agent with Digital Humans, which are realistic test customers, and scores each conversation. Run one before you ship a change, so you find where your agent fails before real customers do.
 
 ## Connect your agent
 
-Every simulation belongs to one agent, so add the agent you want to test before you create a simulation. Click **+** in the sidebar header to open **Connect Your Agent**, then set the agent's connection type, its direction (Inbound or Outbound), and its system prompt. Bluejay uses the system prompt to generate Digital Humans and metrics. If the agent has no connection type, the **Create** button on the **Simulations** page stays disabled until you set one in **Connection Settings**.
+Every simulation tests one agent. To add yours, click **+** in the sidebar header and set its connection type, its direction (Inbound or Outbound), and its system prompt. Pick the connection type that matches how your customers reach the agent, so the test takes the same path as a real conversation.
 
-Pick the connection type that matches how your customers reach the agent, so the test conversations take the same path as real ones.
+Each connection type has its own setup page:
 
-<Tabs>
-  <Tab title="Voice">
-    A Digital Human holds a spoken call with the agent. Bluejay records the call, transcribes it, and grades it. A voice run also reports built-in audio metrics, for example **Agent Latency**.
+- [Phone Number](/integrations/phone-number), for voice calls and SMS
+- [SIP](/integrations/sip)
+- [WebSocket](/integrations/websockets)
+- [HTTP Webhook (Chat)](/integrations/http-webhooks)
+- OpenAI-compatible: enter your API base URL, and an optional API key and model
+- Your voice or chat platform, for example [Vapi](/integrations/vapi), [Retell](/integrations/retell), or [Dialogflow CX](/integrations/google-dfcx)
 
-    | Connection type | You provide |
-    |---|---|
-    | [Phone](/integrations/phone-number) | **Your Agent's Phone Number**, in E.164 format, for example `+15551234567` |
-    | [SIP](/integrations/sip) | A SIP URI, or a `dynamic_sip_webhook_url` that returns the URI for each call |
-    | [Websocket](/integrations/websockets) | A websocket URL, with an optional username and password |
-
-    If your agent runs on a supported voice platform, connect the platform once and sync your agents. If the connection shows **Save & Sync**, Bluejay imports your agents from the platform when you save. See your platform page under **Integrations**, for example [Vapi](/integrations/vapi), [Retell](/integrations/retell), [LiveKit](/integrations/livekit), or [Sierra](/integrations/sierra).
-  </Tab>
-  <Tab title="Text">
-    A Digital Human exchanges messages with the agent. Bluejay grades the run from the transcript.
-
-    | Connection type | How it works |
-    |---|---|
-    | SMS | The Digital Human texts the agent's phone number. |
-    | [HTTP Webhook](/integrations/http-webhooks) | Bluejay sends a POST with each Digital Human message to your webhook URL. |
-    | OpenAI-compatible | Bluejay calls your API base URL with an optional API key and model. |
-
-    If your agent runs on a supported chat platform, see its page under **Integrations**, for example [Kore.ai](/integrations/kore) or [Dialogflow CX](/integrations/google-dfcx).
-  </Tab>
-  <Tab title="Email">
-    A Digital Human sends a real email to the agent inbox. The agent replies, and Bluejay grades the thread. To connect, enter the agent email address, and add any other addresses the agent replies from.
-
-    <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-create-agent.mp4"></video>
-
-    Before your first run, allowlist `mail.bluejaysims.com` in the agent inbox, because corporate mail quarantines the test emails otherwise. See [Email agents](#email-agents) for the steps.
-  </Tab>
-</Tabs>
-
-For an Outbound agent, your system starts each conversation, so also set the [outbound trigger webhook](#outbound-trigger-webhook) that Bluejay calls when a run starts.
+An Outbound agent also needs an [outbound trigger webhook](#outbound-trigger-webhook), and an email agent needs one allowlist change in its inbox, as [Email agents](#email-agents) explains.
 
 ## Create a simulation
 
@@ -54,26 +29,22 @@ For an Outbound agent, your system starts each conversation, so also set the [ou
     Open **Simulations** in the sidebar and click **Create**.
   </Step>
   <Step title="Name it and pick the agent">
-    Enter a **Simulation Name** and choose the agent under **Agent**. The simulation types become available once you pick an agent, because some types depend on how the agent connects.
+    Enter a **Simulation Name** and choose the agent under **Agent**.
   </Step>
   <Step title="Choose a simulation type">
-    Under **Simulation Type**, click a card, fill in its settings, and click **Save**. You can set up more than one type, and each adds its own Digital Humans. The [Simulation types](#simulation-types) table below describes each card.
+    Under **Simulation Type**, click a card, fill in its settings, and click **Save**. Each type makes Digital Humans in a different way, as the [table below](#simulation-types) shows.
   </Step>
   <Step title="Generate the Digital Humans">
-    Click **Generate Digital Humans**. Review the list before you run, because each Digital Human places a conversation. Click **Add more** to add Digital Humans from another type.
+    Click **Generate Digital Humans** and review the list, because each Digital Human places one conversation.
   </Step>
   <Step title="Run it">
-    Click **Run** to start the run now, and Bluejay opens the run page. You can instead click **Schedule** to run it on a schedule, or **Save for later** to keep the simulation without running it.
+    Click **Run**. Bluejay starts the calls and opens the run page.
   </Step>
 </Steps>
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/create-simulation-dialog.mp4"></video>
 
-The other tabs of the dialog hold optional settings, such as the custom metrics to score under **Custom Metric Settings** and the [Agent Version](#agent-versions) to test under **Version Settings**. You can leave them as they are for a first run.
-
-To run the same simulation again later, open it and click **Create New Run**. Each run calls every Digital Human again, so keep one simulation for each flow you want to track, and compare its runs to see how the flow changes across agent versions.
-
-To set up and run a simulation from code instead, see the [Simulation API](/api-reference/endpoint/create-simulation).
+To test the same callers again after you change the agent, open the simulation and click **Create New Run**.
 
 ## Simulation types
 
@@ -82,35 +53,42 @@ To set up and run a simulation from code instead, see the [Simulation API](/api-
 | Generate from Natural Language | Makes Digital Humans from a plain-language description. |
 | Goal Adherence | Tests how well the agent reaches the goals you set. |
 | Replay From Transcript | Makes Digital Humans from existing conversations. |
-| Generate From Workflow | Makes Digital Humans from the [Workflow](#workflow) that the agent syncs from its voice platform. |
-| Customer Journeys | One Digital Human contacts the agent several times in a fixed order, each step with its own intent, and the calls group into one row on the run page. If a step ends with an error status, Bluejay cancels the later steps with `STEP_SKIPPED`. |
+| Generate From Workflow | Makes Digital Humans that follow each path of the agent's [Workflow](#workflow). |
+| Customer Journeys | One Digital Human contacts the agent several times in a fixed order, to test a returning customer. |
 | Upload Digital Humans | Makes Digital Humans from a CSV file. |
-| Use Previous Digital Humans | Uses existing Digital Humans or communities. |
+| Use Previous Digital Humans | Reuses Digital Humans or communities you already have. |
 | Load Testing | Tests performance, latency, and throughput under load. |
-| Voicemail | Acts as a voicemail machine: plays a greeting, then records the message. Outbound agents only. |
-| IVR Flow | Plays an IVR Flow that you build on the **Scenario Builder** page in the app. Your agent is the caller. Outbound voice agents only. |
-| Scenario Adherence | Makes one Digital Human for each path through a scenario that you build on the **Scenario Builder** page in the app. Voice agents only. |
-| Generate from Knowledge Base | Makes Digital Humans across the topics in a [Knowledge Base](#knowledge-bases). |
-| Generate from System Prompt | Finds each rule in the agent prompt and makes Digital Humans to test them. |
-
-To run a Red Teaming test, start from the **Red Teaming** page. See [Red Teaming](/test/red-teaming/overview).
+| Voicemail | Acts as a voicemail machine. Outbound agents only. |
+| IVR Flow | Plays a phone menu that you build on the **Scenario Builder** page. Outbound voice agents only. |
+| Scenario Adherence | Makes one Digital Human for each path through a scenario that you build on the **Scenario Builder** page. Voice agents only. |
+| Generate from Knowledge Base | Makes Digital Humans that ask about the topics in a [Knowledge Base](#knowledge-bases). |
+| Generate from System Prompt | Makes Digital Humans that test each rule in the agent's prompt. |
 
 ## Read the results
 
-The run page shows the run's pass rate and one row for each call. Each row shows the call's status and the result of each [custom metric](/test/custom-metrics/overview). If a Digital Human has more than one call in the run, for example with [Personalities](/test/simulations/digital-humans#personalities), its calls group into one row.
+The run page shows the pass rate and one row for each conversation. Open a failed row to see which metric failed and where in the conversation it went wrong.
 
-Start with the status, because it tells you how to read the row:
+If a row did not finish as **Completed**, its error code says why. Look the code up in [Error codes](#error-codes). After you fix the problem, click **Rerun** and choose **Rerun failed** to rerun only those conversations.
 
-- **Completed** means the call ran and was scored, so its metric results show whether your agent did its job. Click the row to open the call and see where a failing metric went wrong.
-- Any other final status means the call did not end as a normal scored call. The call's error code says why. Look it up in [Error codes](#error-codes) to see whether the problem is in your setup, your agent, or Bluejay, and what to do.
+## Let Bluejay AI do it
 
-After you fix the problem, click **Rerun** and choose **Rerun failed**. Bluejay reruns only the calls that failed or ended with an error status, so you can check the fix without paying for the full run.
+You can also ask [Bluejay AI](/improve/bluejay-ai) to create and run the simulation for you. For example:
 
-## Call statuses
+- "Run a simulation on my agent."
+- "Create a simulation with 10 frustrated customers who want to cancel their subscription."
+
+Bluejay AI shows you the Digital Humans it made and asks before it starts the run. If you have test cases in a spreadsheet, attach the `.csv` or `.xlsx` file and ask it to turn them into a simulation.
+
+## Reference
+
+Open a section when you need it.
+
+<div id="call-statuses"></div>
+<Accordion title="Call statuses">
 
 The API returns the status value in capitals, for example `NO_CONNECTION`.
 
-### Final statuses
+**Final statuses**
 
 | Status | Value | Meaning |
 |---|---|---|
@@ -124,7 +102,7 @@ The API returns the status value in capitals, for example `NO_CONNECTION`.
 | <span className="bj-status bj-status-custom-error"><Icon icon="circle-exclamation" size={12} />Custom Error</span> | `CUSTOM_ERROR` | The transcript matched the custom error prompt in the simulation settings. |
 | <span className="bj-status bj-status-cancelled"><Icon icon="ban" size={12} />Cancelled</span> | `CANCELLED` | You stopped the call before it ran or before anything was recorded. |
 
-### In-progress statuses
+**In-progress statuses**
 
 | Status | Value | Meaning |
 |---|---|---|
@@ -145,11 +123,13 @@ You can cancel a call while its status is one of these:
 
 You can end a `RUNNING` call. If nothing was recorded when it ends, its status is `CANCELLED`.
 
-## Error codes
+</Accordion>
+<div id="error-codes"></div>
+<Accordion title="Error codes">
 
-Each failed call has an `error_code` and a message that say what went wrong. The codes are grouped below by the call's status.
+Each failed call has an `error_code` and a message that say what went wrong. The codes are grouped by the call's status. In a Customer Journeys run, a step that ends with an error status cancels the later steps with `STEP_SKIPPED`.
 
-### No Connection
+**No Connection**
 
 Usually a problem in your configuration or your provider plan. In a code, `<PROVIDER>` is the name of your voice platform. The Limits section of your platform page under **Integrations** lists its exact codes.
 
@@ -167,7 +147,7 @@ Usually a problem in your configuration or your provider plan. In a code, `<PROV
 | `CUSTOMER_CONCURRENCY_LIMIT` | Your provider's concurrent-call limit was reached. | Raise the limit or run fewer calls at once. |
 | `NO_CONNECTION_TYPE` | The agent has no connection type. | Set a connection type. |
 
-### No Answer
+**No Answer**
 
 The problem is on your side: your agent or your line.
 
@@ -182,7 +162,7 @@ The problem is on your side: your agent or your line.
 
 Make sure your agent is online, accepts calls from the Bluejay caller ID, and routes Bluejay traffic correctly.
 
-### Call Dropped
+**Call Dropped**
 
 Usually a problem with your agent or your provider. Check your provider status page and your recent agent changes.
 
@@ -193,11 +173,11 @@ Usually a problem with your agent or your provider. Check your provider status p
 | `<PROVIDER>_MONITORING_ERROR` | Bluejay lost the monitoring connection to your provider. |
 | `<PROVIDER>_CONNECTION_FAILED`, `BRIDGE_DISCONNECTED` | The audio bridge between Bluejay and your provider stopped. |
 
-### Out of Funds
+**Out of Funds**
 
 `INSUFFICIENT_BALANCE`: your balance reached zero. Add funds in **Settings** > **Billing**, then run the calls again.
 
-### System Error
+**System Error**
 
 The problem is in Bluejay, not in your agent. Run the call again. If the error repeats, ask in the [Slack community](https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA).
 
@@ -220,19 +200,17 @@ The problem is in Bluejay, not in your agent. Run the call again. If the error r
 
 If the code is `EVAL_HYDRATION_FAILED`, `EVAL_PIPELINE_FAILED`, or `EVAL_QUEUE_FAILED`, you can retry only the scoring from the call panel.
 
-## Agent settings
-
-These settings live on the agent rather than the simulation, and you need them only for some agents.
-
-### Outbound trigger webhook
+</Accordion>
+<div id="outbound-trigger-webhook"></div>
+<Accordion title="Outbound trigger webhook">
 
 For an Outbound agent, your system starts each conversation. When a run starts, Bluejay sends a POST to your **Outbound Trigger Webhook URL**, and your system then calls or messages the Digital Human.
 
 By default, the body has `phone_number` and `sim_conversation_id`. To send other fields, set a body template with tokens such as `{{digital_human.phone_number}}`.
 
-Your webhook must return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](#no-connection).
+Your webhook must return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](#error-codes).
 
-<Accordion title="Tokens and headers">
+**Tokens and headers**
 
 Supported tokens include:
 
@@ -254,14 +232,16 @@ Each request also has these headers:
 - `X-Bluejay-Signature` holds the HMAC-SHA256 of the body, if the agent has a webhook signing key. [Verify it](/integrations/http-webhooks#verify-the-signature) before you place the call.
 
 </Accordion>
-
-### Agent Versions
+<div id="agent-versions"></div>
+<Accordion title="Agent Versions">
 
 An Agent Version is a numbered copy of the agent prompt. Save a new version before you change the prompt, so you can compare runs and go back.
 
 Each new version gets the `latest` label. The first version also gets the `production` label, and it keeps it until you promote another version. A new simulation run and a production evaluation use the `production` version unless you select another one.
 
-### Workflow
+</Accordion>
+<div id="workflow"></div>
+<Accordion title="Workflow">
 
 A Workflow is the multi-agent graph of a provider agent, for example a root agent that hands off to sub-agents. It comes from your provider. Use the **Workflow** tab of Agent Settings to see and edit that graph, and to test each path through it with the **Generate From Workflow** [simulation type](#simulation-types).
 
@@ -273,7 +253,9 @@ A Workflow is the multi-agent graph of a provider agent, for example a root agen
 
 To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no provider to sync with, so it has no Pull or Push: to change it, edit it in Bluejay or import an updated document.
 
-### Email agents
+</Accordion>
+<div id="email-agents"></div>
+<Accordion title="Email agents">
 
 Each Digital Human sends from its own address on `mail.bluejaysims.com`. Email runs take longer than voice or SMS runs.
 
@@ -281,18 +263,17 @@ Each Digital Human sends from its own address on `mail.bluejaysims.com`. Email r
   Corporate mail (Google Workspace, Microsoft 365) quarantines mail from unknown senders. If you do not allowlist `mail.bluejaysims.com` in the agent inbox, the agent never receives the test and every check fails.
 </Warning>
 
-<AccordionGroup>
-  <Accordion title="Google Workspace">
-    1. In the Admin console, open **Apps > Google Workspace > Gmail > Spam, phishing, and malware**.
-    2. Under **Email allowlist**, add a rule that bypasses spam for `mail.bluejaysims.com`.
-    3. Save.
-  </Accordion>
-  <Accordion title="Microsoft 365">
-    1. In Microsoft 365 Defender, open **Policies & rules > Threat policies > Anti-spam**.
-    2. Add `mail.bluejaysims.com` to the allowed domains, or add a mail flow rule that bypasses spam filtering for that domain.
-    3. Save.
-  </Accordion>
-</AccordionGroup>
+**Google Workspace**
+
+1. In the Admin console, open **Apps > Google Workspace > Gmail > Spam, phishing, and malware**.
+2. Under **Email allowlist**, add a rule that bypasses spam for `mail.bluejaysims.com`.
+3. Save.
+
+**Microsoft 365**
+
+1. In Microsoft 365 Defender, open **Policies & rules > Threat policies > Anti-spam**.
+2. Add `mail.bluejaysims.com` to the allowed domains, or add a mail flow rule that bypasses spam filtering for that domain.
+3. Save.
 
 If a test email does not arrive, look in the admin quarantine first.
 
@@ -314,11 +295,13 @@ To check an email agent on a schedule, use [Uptime Monitoring](/monitor/uptime/o
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-uptime.mp4"></video>
 
-## Knowledge Bases
+</Accordion>
+<div id="knowledge-bases"></div>
+<Accordion title="Knowledge Bases">
 
 A Knowledge Base holds the facts your agent must know. Bluejay uses it to check that your agent states those facts correctly, and it can also generate Digital Humans that ask about them.
 
-### Add documents
+**Add documents**
 
 Connect a Knowledge Base to the agents that use it. Add the same sources your agent uses:
 
@@ -330,7 +313,7 @@ A new document shows **Processing** while Bluejay reads it, and Bluejay uses it 
 
 ![A Knowledge Base with one Processing document and one Ready document](/images/knowledge-base-documents.png)
 
-### Supported file types
+**Supported file types**
 
 | Source | Supported types | Maximum size |
 |---|---|---|
@@ -339,7 +322,7 @@ A new document shows **Processing** while Bluejay reads it, and Bluejay uses it 
 | Text | Typed or pasted text | 1 MB. For more, upload a file. |
 | URL | One web page | None |
 
-### How Bluejay uses a Knowledge Base
+**How Bluejay uses a Knowledge Base**
 
 | Feature | Use |
 |---|---|
@@ -348,26 +331,12 @@ A new document shows **Processing** while Bluejay reads it, and Bluejay uses it 
 | Custom Metrics | If a metric has `settings.use_knowledge_base` set to `true`, the judge can search the Knowledge Base. |
 | Simulations | The **Generate from Knowledge Base** [simulation type](#simulation-types) makes Digital Humans across the topics in a Knowledge Base. |
 
-## Let Bluejay AI create it for you
-
-Instead of filling in the dialog, you can ask [Bluejay AI](/improve/bluejay-ai) to set up and run a simulation. Describe the agent and the customers you want to test, for example:
-
-- "Run a simulation on my agent."
-- "Create a simulation with 10 frustrated customers who want to cancel their subscription."
-
-Bluejay AI generates the Digital Humans from your description, shows you what it created, and offers to start a run. It asks before it creates a large set. For a simulation that already has Digital Humans, it starts the run and links you to the run page.
-
-If you already have a list of test cases in a spreadsheet, attach the `.csv` or `.xlsx` file in the chat and ask Bluejay AI to turn it into a simulation. Bluejay AI shows the test cases as a draft for you to review and creates the simulation and its Digital Humans only after you approve. Creating them does not call anyone; you start the run as a separate step.
+</Accordion>
 
 ## Related
 
 - [Digital Human Reference](/test/simulations/digital-humans)
-- [Personalities](/test/simulations/digital-humans#personalities)
+- [Custom Metrics](/test/custom-metrics/overview)
 - [Bluejay AI](/improve/bluejay-ai)
-- [Agents API](/api-reference/endpoint/add-agent)
-- [Agent Versions API](/api-reference/endpoint/create-prompt-version)
-- [Knowledge Base API](/api-reference/endpoint/create-knowledge-base)
 - [Simulation API](/api-reference/endpoint/create-simulation)
-- [Simulation Results API](/api-reference/endpoint/retrieve-simulation-results)
 - [Simulation MCP tools](/mcp/testing-tools#simulations)
-- [Webhooks](/api-reference/webhooks)
