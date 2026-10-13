@@ -96,7 +96,7 @@ For an Outbound agent, your system starts each conversation. When a run starts, 
 
 By default, the body has `phone_number` and `sim_conversation_id`. To send other fields, set a body template with tokens such as `{{digital_human.phone_number}}`.
 
-Your webhook must return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/simulation-results#no-connection).
+Your webhook must return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](/test/simulations/create#no-connection).
 
 <Accordion title="Tokens and headers">
 
@@ -141,41 +141,6 @@ To import a graph from a document, attach the document in a **Bluejay AI** chat 
 
 The **Generate From Workflow** [simulation type](#simulation-types) creates Digital Humans that drive the agent down each path.
 
-## Run a simulation
-
-A simulation belongs to one agent and holds the Digital Humans that test it. Each run calls every Digital Human again, so you can compare runs to see how a flow changes across agent versions. Keep one simulation for each flow you want to track this way.
-
-<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/create-simulation-dialog.mp4"></video>
-
-To set up a simulation from the API, follow these steps in order:
-
-1. [Add your agent](/api-reference/endpoint/add-agent).
-2. [Create a simulation](/api-reference/endpoint/create-simulation).
-3. [Generate](/api-reference/endpoint/generate-digital-humans) or [create](/api-reference/endpoint/create-digital-human) Digital Humans. Include the simulation ID.
-4. [Queue a simulation run](/api-reference/endpoint/queue-simulation-run).
-
-## Simulation types
-
-You pick a type when you create a simulation. Most types set how Bluejay makes the Digital Humans, and others set up a special kind of test, such as Load Testing or Voicemail.
-
-| Type | What it does |
-|---|---|
-| Generate from Natural Language | Makes Digital Humans from a plain-language description. |
-| Goal Adherence | Tests how well the agent reaches the goals you set. |
-| Replay From Transcript | Makes Digital Humans from existing conversations. |
-| Generate From Workflow | Makes Digital Humans from the Workflow that the agent syncs from its voice platform. |
-| Customer Journeys | One Digital Human calls the agent several times in sequence. See [Customer Journeys](/test/simulations/customer-journeys). |
-| Upload Digital Humans | Makes Digital Humans from a CSV file. |
-| Use Previous Digital Humans | Uses existing Digital Humans or communities. |
-| Load Testing | Tests performance, latency, and throughput under load. |
-| Voicemail | Acts as a voicemail machine: plays a greeting, then records the message. Outbound agents only. |
-| IVR Flow | Plays an IVR Flow that you build on the **Scenario Builder** page in the app. Your agent is the caller. Outbound voice agents only. |
-| Scenario Adherence | Makes one Digital Human for each path through a scenario that you build on the **Scenario Builder** page in the app. Voice agents only. |
-| Generate from Knowledge Base | Makes Digital Humans across the topics in a [Knowledge Base](#knowledge-bases). |
-| Generate from System Prompt | Finds each rule in the agent prompt and makes Digital Humans to test them. |
-
-To run a Red Teaming test, start from the **Red Teaming** page. See [Red Teaming](/test/red-teaming/overview).
-
 ## Knowledge Bases
 
 A Knowledge Base holds the facts your agent must know. Bluejay uses it to check that your agent states those facts correctly, and it can also generate Digital Humans that ask about them.
@@ -210,12 +175,209 @@ A new document shows **Processing** while Bluejay reads it, and Bluejay uses it 
 | Custom Metrics | If a metric has `settings.use_knowledge_base` set to `true`, the judge can search the Knowledge Base. |
 | Simulations | The **Generate from Knowledge Base** [simulation type](#simulation-types) makes Digital Humans across the topics in a Knowledge Base. |
 
+## Run a simulation
+
+A simulation belongs to one agent and holds the Digital Humans that test it. Each run calls every Digital Human again, so you can compare runs to see how a flow changes across agent versions. Keep one simulation for each flow you want to track this way.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/create-simulation-dialog.mp4"></video>
+
+To set up a simulation from the API, follow these steps in order:
+
+1. [Add your agent](/api-reference/endpoint/add-agent).
+2. [Create a simulation](/api-reference/endpoint/create-simulation).
+3. [Generate](/api-reference/endpoint/generate-digital-humans) or [create](/api-reference/endpoint/create-digital-human) Digital Humans. Include the simulation ID.
+4. [Queue a simulation run](/api-reference/endpoint/queue-simulation-run).
+
+## Simulation types
+
+You pick a type when you create a simulation. Most types set how Bluejay makes the Digital Humans, and others set up a special kind of test, such as Load Testing or Voicemail.
+
+| Type | What it does |
+|---|---|
+| Generate from Natural Language | Makes Digital Humans from a plain-language description. |
+| Goal Adherence | Tests how well the agent reaches the goals you set. |
+| Replay From Transcript | Makes Digital Humans from existing conversations. |
+| Generate From Workflow | Makes Digital Humans from the Workflow that the agent syncs from its voice platform. |
+| Customer Journeys | One Digital Human calls the agent several times in sequence. See [Customer Journeys](/test/simulations/create#customer-journeys). |
+| Upload Digital Humans | Makes Digital Humans from a CSV file. |
+| Use Previous Digital Humans | Uses existing Digital Humans or communities. |
+| Load Testing | Tests performance, latency, and throughput under load. |
+| Voicemail | Acts as a voicemail machine: plays a greeting, then records the message. Outbound agents only. |
+| IVR Flow | Plays an IVR Flow that you build on the **Scenario Builder** page in the app. Your agent is the caller. Outbound voice agents only. |
+| Scenario Adherence | Makes one Digital Human for each path through a scenario that you build on the **Scenario Builder** page in the app. Voice agents only. |
+| Generate from Knowledge Base | Makes Digital Humans across the topics in a [Knowledge Base](#knowledge-bases). |
+| Generate from System Prompt | Finds each rule in the agent prompt and makes Digital Humans to test them. |
+
+To run a Red Teaming test, start from the **Red Teaming** page. See [Red Teaming](/test/red-teaming/overview).
+
+## Customer Journeys
+
+In a Customer Journeys simulation, the same Digital Human contacts your agent several times in a fixed order. Use it to test how your agent treats a customer who comes back.
+
+<iframe
+  src="https://www.youtube.com/embed/MywLdzH9J3g"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+### Build a journey
+
+A journey is an ordered list of steps. Each step is one conversation (a call or a text thread) with its own intent, for example "Book appointment" followed by "Reschedule". To test a customer who comes back later, set a step to wait before it starts. The Digital Human keeps the same identity across the steps, so later calls test how your agent treats a returning customer.
+
+![Customer Journeys card on the Create Simulation dialog](/images/journey-card.png)
+
+![Customer Journeys configuration: steps on the left, preview on the right](/images/journey-config-panel.png)
+
+If a step ends with one of these statuses, Bluejay cancels the later steps of that journey with the code `STEP_SKIPPED`:
+
+- No Connection
+- No Answer
+- Call Dropped
+- Out of Funds
+- System Error
+
+### Journey results
+
+The calls of one journey group into one row on the run page.
+
+![Journey rows grouped on the run page](/images/journey-runs-grouped.png)
+
+## Read the results
+
+The run page shows the run's pass rate and one row for each call. Each row shows the call's status and the result of each [custom metric](/test/custom-metrics/overview). If a Digital Human has more than one call in the run, for example with [Personalities](/test/simulations/digital-humans#personalities), its calls group into one row.
+
+Start with the status, because it tells you how to read the row:
+
+- **Completed** means the call ran and was scored, so its metric results show whether your agent did its job. Click the row to open the call and see where a failing metric went wrong.
+- Any other final status means the call did not end as a normal scored call. The call's error code says why. Look it up in [Error codes](#error-codes) to see whether the problem is in your setup, your agent, or Bluejay, and what to do.
+
+After you fix the problem, click **Rerun** and choose **Rerun failed**. Bluejay reruns only the calls that failed or ended with an error status, so you can check the fix without paying for the full run.
+
+## Call statuses
+
+The API returns the status value in capitals, for example `NO_CONNECTION`.
+
+### Final statuses
+
+| Status | Value | Meaning |
+|---|---|---|
+| <span className="bj-status bj-status-completed"><Icon icon="circle-check" size={12} />Completed</span> | `COMPLETED` | The call ran and was scored. Pass or fail shows separately. |
+| <span className="bj-status bj-status-not-evaluated"><Icon icon="circle-minus" size={12} />Not Evaluated</span> | `NOT_EVALUATED` | Production only. Bluejay stored the conversation but did not score it, because it was outside the scoring sample of your organization. |
+| <span className="bj-status bj-status-no-connection"><Icon icon="plug-circle-xmark" size={12} />No Connection</span> | `NO_CONNECTION` | Bluejay could not reach your agent. |
+| <span className="bj-status bj-status-no-answer"><Icon icon="phone-slash" size={12} />No Answer</span> | `NO_ANSWER` | Bluejay reached the line, but nobody engaged. |
+| <span className="bj-status bj-status-call-dropped"><Icon icon="phone-arrow-down-left" size={12} />Call Dropped</span> | `CALL_DROPPED` | The call started, then the line dropped. Bluejay scores the transcript up to the drop. |
+| <span className="bj-status bj-status-out-of-funds"><Icon icon="wallet" size={12} />Out of Funds</span> | `OUT_OF_FUNDS` | Your Bluejay balance ran out. |
+| <span className="bj-status bj-status-system-error"><Icon icon="triangle-exclamation" size={12} />System Error</span> | `SYSTEM_ERROR` | A Bluejay service failed. |
+| <span className="bj-status bj-status-custom-error"><Icon icon="circle-exclamation" size={12} />Custom Error</span> | `CUSTOM_ERROR` | The transcript matched the custom error prompt in the simulation settings. |
+| <span className="bj-status bj-status-cancelled"><Icon icon="ban" size={12} />Cancelled</span> | `CANCELLED` | You stopped the call before it ran or before anything was recorded. |
+
+### In-progress statuses
+
+| Status | Value | Meaning |
+|---|---|---|
+| <span className="bj-status bj-status-initializing"><Icon icon="hourglass-start" size={12} />Initializing</span> | `INITIALIZING` | Bluejay is preparing the call. |
+| <span className="bj-status bj-status-queued"><Icon icon="clock" size={12} />Queued</span> | `QUEUED` | The call waits to start. |
+| <span className="bj-status bj-status-ready"><Icon icon="circle-dot" size={12} />Ready</span> | `READY` | Bluejay loaded the test data. The call is ready to start. |
+| <span className="bj-status bj-status-dispatched"><Icon icon="paper-plane" size={12} />Dispatched</span> | `DISPATCHED` | Bluejay sent the call to a call worker. |
+| <span className="bj-status bj-status-running"><Icon icon="phone-volume" size={12} />Running</span> | `RUNNING` | The conversation is in progress. |
+| <span className="bj-status bj-status-evaluation-pending"><Icon icon="hourglass-half" size={12} />Evaluation Pending</span> | `CONVERSATION_ENDED` | The conversation ended and waits for scoring. |
+| <span className="bj-status bj-status-evaluating"><Icon icon="spinner" size={12} />Evaluating</span> | `EVALUATING` | Bluejay is running the metrics. |
+
+You can cancel a call while its status is one of these:
+
+- `INITIALIZING`
+- `QUEUED`
+- `READY`
+- `DISPATCHED`
+
+You can end a `RUNNING` call. If nothing was recorded when it ends, its status is `CANCELLED`.
+
+## Error codes
+
+Each failed call has an `error_code` and a message that say what went wrong. The codes are grouped below by the call's status.
+
+### No Connection
+
+Usually a problem in your configuration or your provider plan. In a code, `<PROVIDER>` is the name of your voice platform. The Limits section of your platform page under **Integrations** lists its exact codes.
+
+| Codes | Meaning | What to do |
+|---|---|---|
+| `WEBSOCKET_AUTH_FAILED` | Your WebSocket endpoint rejected the credentials that Bluejay has. | Update the username and password on the agent. |
+| `<PROVIDER>_AUTH_FAILED` | Your provider rejected the API key that Bluejay has. | Update the key in the integration settings. |
+| `MISSING_<PROVIDER>_INTEGRATION` | The provider integration is not connected or not complete. | Connect the integration. |
+| `<PROVIDER>_INTEGRATION_DECRYPT_FAILED` | Bluejay could not decrypt the stored credentials. | Connect the integration again. |
+| `MISSING_<PROVIDER>_AGENT_ID`, `MISSING_<PROVIDER>_ASSISTANT_ID` | The agent or assistant ID is empty. | Set the ID on the agent. |
+| `OUTBOUND_TRIGGER_FAILED` | Your [outbound trigger webhook](/test/simulations/create#connect-your-agent) did not return a `2xx` status after 3 tries. | Check the URL and that your endpoint answers within 15 seconds. |
+| `<PROVIDER>_BRIDGE_CONNECT_FAILED`, `<PROVIDER>_SESSION_SETUP_FAILED` | The provider accepted the connection but did not start a session. Often temporary. | Run the call again. |
+| `UNUSABLE_CALLER_ID`, `INVALID_PHONE_NUMBER`, `INVALID_SIP_DESTINATION`, `SIP_DIAL_FAILED` | The caller ID is not verified, the destination is not valid, or the SIP dial failed. | Check the number or SIP destination. |
+| `DYNAMIC_ENDPOINT_FAILED` | Bluejay could not get a SIP endpoint from the dynamic SIP webhook of the agent. | Check that the webhook is reachable and returns an endpoint. |
+| `CUSTOMER_CONCURRENCY_LIMIT` | Your provider's concurrent-call limit was reached. | Raise the limit or run fewer calls at once. |
+| `NO_CONNECTION_TYPE` | The agent has no connection type. | Set a connection type. |
+
+### No Answer
+
+The problem is on your side: your agent or your line.
+
+| Code | Meaning |
+|---|---|
+| `NO_ANSWER` | The phone rang and nobody answered. |
+| `CALL_REJECTED` | Your agent rejected the call (SIP 486 or 603). |
+| `AGENT_HUNG_UP_BEFORE_SPEECH` | Your agent answered, then hung up before it spoke. |
+| `AGENT_NO_RESPONSE` | Your agent connected, but did not reply when the Digital Human spoke. |
+| `INBOUND_NO_INCOMING_CALL` | Inbound Digital Humans only. Your agent did not call the Digital Human. |
+| `STEP_NO_ACTIVITY` | A Customer Journeys step had no call or message before its deadline. |
+
+Make sure your agent is online, accepts calls from the Bluejay caller ID, and routes Bluejay traffic correctly.
+
+### Call Dropped
+
+Usually a problem with your agent or your provider. Check your provider status page and your recent agent changes.
+
+| Codes | Meaning |
+|---|---|
+| `<PROVIDER>_AGENT_ERROR` | Your provider agent reported an error during the call. |
+| `<PROVIDER>_AGENT_START_FAILED` | Your provider agent did not start its turn. |
+| `<PROVIDER>_MONITORING_ERROR` | Bluejay lost the monitoring connection to your provider. |
+| `<PROVIDER>_CONNECTION_FAILED`, `BRIDGE_DISCONNECTED` | The audio bridge between Bluejay and your provider stopped. |
+
+### Out of Funds
+
+`INSUFFICIENT_BALANCE`: your balance reached zero. Add funds in **Settings** > **Billing**, then run the calls again.
+
+### System Error
+
+The problem is in Bluejay, not in your agent. Run the call again. If the error repeats, ask in the [Slack community](https://join.slack.com/t/bluejaycommunity/shared_invite/zt-442xk85k5-Qkbq65wVOxK~1FHU5OadEA).
+
+| Code | Meaning |
+|---|---|
+| `HYDRATION_FAILED` | Bluejay could not load the data to run the test. |
+| `EVAL_HYDRATION_FAILED` | Bluejay could not load the data to score the call. |
+| `EVAL_NO_TRANSCRIPT` | The transcript is missing or empty. |
+| `EVAL_AUDIO_CONVERSION_FAILED` | Bluejay could not convert the call audio. |
+| `EVAL_PIPELINE_FAILED` | The scoring step failed. |
+| `EVAL_QUEUE_FAILED` | Bluejay could not queue the call for scoring. |
+| `RECORDING_URL_FAILED` | Bluejay could not make a link to the recording. |
+| `END_SIGNAL_TIMEOUT` | The call did not stop when asked, so Bluejay ended it. |
+| `AGENT_WORKER_LOST` | The Bluejay worker for the call stopped responding. |
+| `SIP_TRUNK_RECYCLED` | A newer simulation reused the phone number, so Bluejay stopped this test. |
+| `DB_WRITE_FAILED` | A Bluejay database write failed. |
+| `EMAIL_SENDER_MISMATCH` | Your email agent replied from an address that is not configured on the agent. Add the address to the reply-from addresses of the agent. |
+| `UNKNOWN` | Bluejay has no specific code for the failure. |
+| `UNKNOWN_LEGACY` | The call ran before Bluejay recorded failure reasons. |
+
+If the code is `EVAL_HYDRATION_FAILED`, `EVAL_PIPELINE_FAILED`, or `EVAL_QUEUE_FAILED`, you can retry only the scoring from the call panel.
+
 ## Related
 
 - [Agents API](/api-reference/endpoint/add-agent)
 - [Agent Versions API](/api-reference/endpoint/create-prompt-version)
 - [Knowledge Base API](/api-reference/endpoint/create-knowledge-base)
 - [Simulation API](/api-reference/endpoint/create-simulation)
-- [MCP testing tools](/mcp/testing-tools)
-- [Simulation Results](/test/simulations/simulation-results)
 - [Digital Human Reference](/test/simulations/digital-humans)
+- [Simulation MCP tools](/mcp/testing-tools#simulations)
+- [Personalities](/test/simulations/digital-humans#personalities)
+- [Simulation Results API](/api-reference/endpoint/retrieve-simulation-results)
+- [Webhooks](/api-reference/webhooks)
