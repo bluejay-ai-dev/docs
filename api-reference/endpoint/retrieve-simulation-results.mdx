@@ -1,6 +1,6 @@
 ---
 title: 'Retrieve Simulation Results'
-description: "Retrieve the results of a simulation run. Returns the simulation run details and associated test cases."
+description: "Retrieve one page of a simulation run's results. Default 100 conversations, max 100."
 openapi: 'GET /v1/retrieve-simulation-results/{simulation_run_id}'
 ---
 <div className="ai-prompt-box">
@@ -12,7 +12,7 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Retrieve Simulation Results — GET /v1/retrieve-simulation-results/{simulation_run_id}
 
-> **What this endpoint does:** Retrieve the results of a simulation run. Returns the simulation run details and associated test cases.
+> **What this endpoint does:** Returns the simulation run summary plus one page of conversations. Default `limit` is 100. Max `limit` is 100. Use `offset` to walk further pages. Existing callers that omit these params still work, but runs with more than 100 conversations only get the first page.
 
 **Endpoint:** GET `https://api.getbluejay.ai/v1/retrieve-simulation-results/{simulation_run_id}`
 **Auth:** `X-API-Key` header
@@ -23,23 +23,45 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 | simulation_run_id | string |  |
 | X-API-Key | string | API key required to authenticate requests. |
 
+### Optional Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| limit | integer | How many conversations to return. Default 100. Min 1. Max 100. Values outside that range return 422. |
+| offset | integer | How many conversations to skip, oldest first. Default 0. |
+
 ### Example
-**Simple GET:**
+**Page through every conversation:**
 ```python
 import requests
 
 def retrieve_simulation_results(simulation_run_id: str, api_key: str) -> dict:
     url = f"https://api.getbluejay.ai/v1/retrieve-simulation-results/{simulation_run_id}"
     headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+    limit = 100
+    offset = 0
+    pages = []
+    while True:
+        response = requests.get(url, headers=headers, params={"limit": limit, "offset": offset})
+        response.raise_for_status()
+        page = response.json()
+        pages.append(page)
+        results = page.get("simulation_results") or []
+        if len(results) < limit:
+            break
+        offset += limit
+    run = pages[0]["simulation_run"]
+    all_results = [r for p in pages for r in (p.get("simulation_results") or [])]
+    return {"simulation_run": run, "simulation_results": all_results, "status": "200"}
 ```
 
+Each conversation includes `transcript` (turns from the database) when stored inline. `transcript_url` is only set when the transcript is not in the database. Prefer `transcript`, then fall back to downloading `transcript_url`.
+
+`simulation_run` is the full run (status, `total_tests`, `tests_passed`). It is not paged. Stop paging when a page has fewer than `limit` conversations. There is no `has_more` field.
+
 ### Constraints
-- Minimal changes — only add/change files needed for this integration.
+- Minimal changes. Only add or change files needed for this integration.
 - Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+- Include error handling for 422: Validation Error (`limit` not in 1–100, or `offset` < 0).
 
 ### Integration Checklist
 Before writing code, verify:
@@ -52,4 +74,10 @@ Then implement the integration, export it, and confirm it compiles/passes lint.
 </div>
 
 
-Retrieves the simulation results for a specific agent simulation run by `simulation_run_id`. This endpoint returns detailed information about the simulation, including the agent's performance, evaluations, hallucinations, redundancy, and custom evaluation metrics.
+Returns the simulation run summary and one page of conversations for `simulation_run_id`.
+
+`limit` defaults to 100 and cannot exceed 100. `offset` skips that many conversations, oldest first. Omitting both is the same as `limit=100&offset=0`. A run with more than 100 conversations needs further pages (`offset=100`, `offset=200`, …) until a page is shorter than `limit`.
+
+`simulation_run` is always the whole run. Use `total_tests` for the run size, not the length of the current `simulation_results` array.
+
+Each conversation includes evaluations, metrics, and tool calls. Transcripts come back as `transcript` when they are stored in the database. `transcript_url` is only present when they are not.
