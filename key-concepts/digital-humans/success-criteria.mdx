@@ -48,7 +48,7 @@ The current set always lives as jsonb `[{id, text}]` on the test case. The HTTP 
 
 | Surface | `success_criteria` / grade |
 | --- | --- |
-| `/v1` digital human get, create, update, delete | Newline-joined **string** |
+| `/v1` digital human get, create, update | Newline-joined **string** |
 | `POST /v1/generate-digital-humans` | Writes bullets internally, returns a **string** |
 | `GET /v1/retrieve-simulation-result(s)` | `goal_success` boolean only |
 | `GET /v2/retrieve-simulation-results` | Run: `tests_passed` / `eval_failed` (100% rule) + `success_rate`. Each result: `criteria[]` + `criteria_pass_rate` |
@@ -65,9 +65,11 @@ import requests
 
 BASE = "https://api.getbluejay.ai"
 headers = {"X-API-Key": os.environ["BLUEJAY_API_KEY"]}
+dh_id = "YOUR_DIGITAL_HUMAN_ID"
+result_id = "YOUR_TEST_RESULT_ID"
 
 # v1 — same string contract as before
-dh = requests.get(f"{BASE}/v1/get-digital-human/{dh_id}", headers=headers).json()
+dh = requests.get(f"{BASE}/v1/digital-human/{dh_id}", headers=headers).json()
 print(dh["success_criteria"])
 # "Agent greets the caller\nAgent states the disclosure"
 
