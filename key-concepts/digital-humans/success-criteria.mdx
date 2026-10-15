@@ -1,10 +1,10 @@
 ---
 title: Success Criteria
-description: Author expected behaviors as bullets, grade each one, and read the list on /v2
+description: Author expected behaviors as bullets. Each bullet is a success-type metric.
 icon: list-check
 ---
 
-Success criteria are the assertions on a Digital Human. Write them as discrete expected behaviors. Bluejay grades each bullet met / not met, keeps an overall pass/fail, and exposes the checklist on `/v2`.
+Success criteria are the assertions on a Digital Human. Write them as discrete expected behaviors. Bluejay stores each bullet as a workspace **success-type metric**, grades it on every call, and exposes the checklist on `/v2`.
 
 `/v1` stays a string so existing integrations do not break.
 
@@ -21,34 +21,38 @@ Write one bullet per expected behavior:
 - Agent recaps next steps before hangup
 </Check>
 
-In the dashboard, add bullets on the Digital Human. On `/v1` create, update, and generate, send a newline-separated string — Bluejay stores it as `[{id, text}]`.
+In the dashboard, add bullets on the Digital Human plus-list. On `/v1` create, update, and generate, send a newline-separated string. Bluejay mints one success-type metric per line and stores the current set as `[{id, text}]` on the Digital Human. Those metrics are **not** creatable in the Metrics library.
 
-Use [custom metrics](/key-concepts/custom-metrics/overview) for a different dimension (tone, compliance, latency). Do not invent a metric per success-criteria bullet.
+Use [custom metrics](/key-concepts/custom-metrics/overview) for a different dimension (tone, compliance, latency). Do not invent a library metric per success-criteria bullet.
 
 ## How a call is graded
 
-The Success metric stays one metric. The judge returns a verdict per bullet.
+Each current bullet is its own metric result (`boolean_value` + `reasoning`). The judge returns a verdict per id.
 
 | Field | Meaning |
 | --- | --- |
-| `criteria[]` | Each authored bullet with `id`, `text`, `passed`, `reasoning` |
-| `criteria_pass_rate` | Share of bullets that passed, `0`–`100` |
-| `goal_success` | `true` only when every bullet passed (`criteria_pass_rate == 100`) |
+| `criteria[]` | Each current bullet with `id`, `text`, `passed`, `reasoning` |
+| `criteria_pass_rate` | Share of current bullets that passed, `0`–`100`. Computed on read from those bullets. |
+| `simulation_run.tests_passed` / `eval_failed` | A result passes only when the rate is `100`. Anything else is a fail. |
+| `simulation_run.success_rate` | Share of graded results that were 100% successful. Same as the run page outcome rate. |
 
-A call that meets 3 of 4 behaviors is **75** on `/v2` and **fail** on `/v1`. Reviewers override individual bullets; the rate and overall pass/fail recompute from the full list.
+A call that meets 3 of 4 behaviors is **75** on the result and a **fail** in the run counts. Reviewers override individual bullets with the existing per-metric human edit.
 
-Goal widgets average `criteria_pass_rate`. Older rows with no criteria list fall back to boolean 100 / 0.
+Replacing the plus-list on update mints **new** metric rows and points the Digital Human at those ids. Previous success-type rows stay so historical `metric_results` keep their grades.
+
+Goal widgets and pass-rate alerts average all success-type results on the conversation. Older singleton Success rows (`f0f97934-…`) still count as one boolean 100 / 0.
 
 ## `/v1` vs `/v2`
 
-Storage is always jsonb `[{id, text}]` on the test case. The HTTP version decides what the caller sees.
+The current set always lives as jsonb `[{id, text}]` on the test case. The HTTP version decides what the caller sees.
 
 | Surface | `success_criteria` / grade |
 | --- | --- |
 | `/v1` digital human get, create, update, delete | Newline-joined **string** |
 | `POST /v1/generate-digital-humans` | Writes bullets internally, returns a **string** |
 | `GET /v1/retrieve-simulation-result(s)` | `goal_success` boolean only |
-| `GET /v2/retrieve-simulation-result(s)` | `criteria[]` + `criteria_pass_rate` |
+| `GET /v2/retrieve-simulation-results` | Run: `tests_passed` / `eval_failed` (100% rule) + `success_rate`. Each result: `criteria[]` + `criteria_pass_rate` |
+| `GET /v2/retrieve-simulation-result` | `criteria[]` + `criteria_pass_rate` |
 | `POST /v2/generate-digital-humans` | Returns `[{id, text}]` — this is the generate list. Do not put that list on `/v1`. |
 
 <Note>
@@ -79,6 +83,6 @@ print(result["criteria_pass_rate"], result["criteria"])
 
 - Conversation details in the app — each bullet with met / not met, plus per-bullet override
 - [Retrieve Simulation Results v2](/api-reference/endpoint/retrieve-simulation-results-v2) and [Retrieve Simulation Result v2](/api-reference/endpoint/retrieve-simulation-result-v2)
-- Goal widgets — average of the 0–100 rate
+- Goal widgets — average of success-type results (legacy singleton rows stay 100 / 0)
 
 [Retrieve v1](/api-reference/endpoint/retrieve-simulation-results) is unchanged: `goal_success` is still pass/fail.
