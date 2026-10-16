@@ -1,6 +1,6 @@
 ---
 title: "POST /v1/bluejay-as-code"
-description: "Create or update Bluejay resources from a JSON file of your setup."
+description: "Create or update Bluejay resources from a YAML file of your setup."
 sidebarTitle: "/\u200bv1/\u200bbluejay-as-code"
 api: "POST https://api.getbluejay.ai/v1/bluejay-as-code"
 playground: "none"
@@ -19,6 +19,29 @@ Digital Humans that are not in the bundle are unlinked from the simulation. Cust
 <Warning>
   If you generate new `bluejay_as_code_id` values for each push, Bluejay creates duplicate items. Keep the values stable in your config.
 </Warning>
+
+Bluejay reads the body as YAML when `Content-Type` is one of these types:
+
+- `application/yaml`
+- `application/x-yaml`
+- `text/yaml`
+- `text/x-yaml`
+
+With any other `Content-Type`, Bluejay reads the body as JSON. A YAML body that cannot be read, or that uses anchors and aliases (`&` and `*`), returns HTTP `400`. The response is always JSON.
+
+<Warning>
+JSON payloads are deprecated on November 20th, 2026. Push YAML instead. See [Move from JSON to YAML](/key-concepts/bluejay-as-code/overview#move-from-json-to-yaml).
+</Warning>
+
+Send the file with `--data-binary`, because `--data` removes the line breaks that YAML depends on:
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/bluejay-as-code \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
+  --header "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+```
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 

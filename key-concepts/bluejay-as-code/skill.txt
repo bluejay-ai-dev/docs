@@ -6,7 +6,9 @@ You are a senior backend engineer integrating the Bluejay API. Think step-by-ste
 
 ## Bluejay as Code Overview
 
-Bluejay as Code (BaC) is a pull/push workflow for managing Bluejay agent configuration as version-controlled files. Instead of configuring agents through the UI, you define everything in a JSON payload, commit it to source control, and push it to apply changes.
+Bluejay as Code (BaC) is a pull/push workflow for managing Bluejay agent configuration as version-controlled files. Instead of configuring agents through the UI, you define everything in a YAML payload, commit it to source control, and push it to apply changes.
+
+**Format:** Always use YAML. JSON payloads are deprecated on November 20th, 2026. If the project has a JSON payload file, move it to YAML: push it once if it has unpushed changes, pull the same root again with `?format=yaml`, and replace the JSON file with the YAML one. The `bluejay_as_code_id` values stay the same.
 
 The payload is simulation-centric: it describes a single simulation and all the objects that belong to it — its agent, the digital humans that participate in it, and the custom metrics used to evaluate it.
 
@@ -16,18 +18,29 @@ The payload is simulation-centric: it describes a single simulation and all the 
 
 Every BaC operation revolves around a single payload:
 
-```json
-{
-  "agents": [ { "bluejay_as_code_id": "...", ... } ],
-  "simulations": [ { "bluejay_as_code_id": "...", ... } ],
-  "digital_humans": [ { "bluejay_as_code_id": "...", ... } ],
-  "custom_metrics": [ { "bluejay_as_code_id": "...", ... } ]
-}
+```yaml
+agents:
+- bluejay_as_code_id: ...
+  # agent fields
+simulations:
+- bluejay_as_code_id: ...
+  # simulation fields
+digital_humans:
+- bluejay_as_code_id: ...
+  # digital human fields
+custom_metrics:
+- bluejay_as_code_id: ...
+  # custom metric fields
 ```
 
 **Constraints:**
-- A pulled payload contains one agent and one simulation. A pushed payload can contain more. With more than one agent, list each simulation's `bluejay_as_code_id` in its agent's `simulations` array.
-- `digital_humans` and `custom_metrics` are arrays of any size (including empty).
+- A pulled payload contains one agent and one simulation. A pushed payload can contain more. With more than one agent, list each simulation's `bluejay_as_code_id` in its agent's `simulations` list.
+- `digital_humans` and `custom_metrics` are lists of any size (including empty).
+
+**YAML rules:**
+- Write multi-line text, such as a system prompt, as a `|` block.
+- Quote any value YAML would read as something other than text, such as `'+15551234567'`, `'no'`, `'yes'`, `'on'`, `'off'`, or `'007'`. Unquoted, these become numbers or booleans.
+- Do not use anchors or aliases (`&`, `*`). Bluejay rejects them with HTTP 400.
 
 ---
 
@@ -58,6 +71,11 @@ Exports a Bluejay configuration bundle as a BaC payload, with all `bluejay_as_co
 | root_type | string | One of `simulation`, `agent`, `digital-human`, `custom-metric`. |
 | root_id | string | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity. |
 
+**Query parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| format | string | `yaml` returns YAML. Always send it. Without it (or `Accept: application/yaml`), the response is JSON. |
+
 **Response:** Full BaC payload with `bluejay_as_code_id` populated on every entity.
 
 **Usage pattern:** For most workflows, root on `simulation` — it pulls the simulation, its agent, every linked digital human, and every associated custom metric in one call. Pull once to bootstrap your config file, then commit the returned IDs — they are your source of truth going forward.
@@ -65,13 +83,13 @@ Exports a Bluejay configuration bundle as a BaC payload, with all `bluejay_as_co
 ```python
 import requests
 
-def pull_bluejay_as_code(root_id: str, api_key: str, root_type: str = "simulation") -> dict:
+def pull_bluejay_as_code(root_id: str, api_key: str, root_type: str = "simulation") -> str:
     # root_type can also be "agent", "digital-human", or "custom-metric"
     url = f"https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
     headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, params={"format": "yaml"})
     response.raise_for_status()
-    return response.json()
+    return response.text  # write this to the payload file as is
 ```
 
 ---
@@ -81,7 +99,9 @@ def pull_bluejay_as_code(root_id: str, api_key: str, root_type: str = "simulatio
 Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id` and created, updated, or left untouched depending on whether it exists and whether its fields have changed. The endpoint is the same regardless of which root_type was used to pull the bundle.
 
 **Auth:** `X-API-Key` header
-**Content-Type:** application/json
+**Content-Type:** application/yaml (with any other Content-Type the body is read as JSON, so a YAML body fails)
+**Body:** the YAML file contents, sent as raw bytes. With curl use `--data-binary @file.yaml`, never `--data`, which strips line breaks.
+**Response:** always JSON.
 
 **Diffing behaviour:**
 | Scenario | Result |
@@ -115,10 +135,10 @@ Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id`
 ```python
 import requests
 
-def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
+def push_bluejay_as_code(payload_yaml: str, api_key: str) -> dict:
     url = "https://api.getbluejay.ai/v1/bluejay-as-code"
-    headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
-    response = requests.post(url, headers=headers, json=payload)
+    headers = {"X-API-Key": api_key, "Content-Type": "application/yaml"}
+    response = requests.post(url, headers=headers, data=payload_yaml.encode("utf-8"))
     response.raise_for_status()
     result = response.json()
     if not result["valid"]:
@@ -133,15 +153,19 @@ def push_bluejay_as_code(payload: dict, api_key: str) -> dict:
 ```python
 import uuid
 import requests
+import yaml  # PyYAML
 
 BASE_URL = "https://api.getbluejay.ai/v1"
 API_KEY  = "your-api-key"
 SIM_ID   = "your-simulation-uuid"
 
-headers = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
-
-# 1. Pull current config — anchored on the simulation
-payload = requests.get(f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}", headers=headers).json()
+# 1. Pull current config as YAML — anchored on the simulation
+pulled = requests.get(
+    f"{BASE_URL}/bluejay-as-code/simulation/{SIM_ID}",
+    headers={"X-API-Key": API_KEY},
+    params={"format": "yaml"},
+).text
+payload = yaml.safe_load(pulled)
 
 # 2. Edit — update the agent system prompt
 payload["agents"][0]["system_prompt"] = "You are a helpful support agent. Always greet the customer by name."
@@ -157,7 +181,13 @@ payload["digital_humans"].append({
 })
 
 # 4. Push — single unified endpoint regardless of which root_type you pulled from
-result = requests.post(f"{BASE_URL}/bluejay-as-code", headers=headers, json=payload).json()
+#    In a real project, edit the committed YAML file instead and push its contents.
+body = yaml.safe_dump(payload, sort_keys=False, allow_unicode=True)
+result = requests.post(
+    f"{BASE_URL}/bluejay-as-code",
+    headers={"X-API-Key": API_KEY, "Content-Type": "application/yaml"},
+    data=body.encode("utf-8"),
+).json()
 
 if not result["valid"]:
     raise ValueError(result["errors"])
