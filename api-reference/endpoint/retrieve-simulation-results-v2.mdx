@@ -1,0 +1,73 @@
+---
+title: Retrieve Simulation Results v2
+description: Run pass/fail (100% of bullets) plus outcome success rate, and per-result criteria
+---
+
+<Note>
+Same path as [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results), under `/v2`. `/v1` is unchanged and does not include `criteria`, `criteria_pass_rate`, or `success_rate`.
+</Note>
+
+**Endpoint:** `GET https://api.getbluejay.ai/v2/retrieve-simulation-results/{simulation_run_id}`
+**Auth:** `X-API-Key` header
+
+Query parameters match `/v1`: `limit`, `offset`, and optional `issue_ids`.
+
+The run keeps the existing pass/fail counts. A result counts as passed only when every current bullet passed. `success_rate` is the share of graded results that met that bar — the same outcome rate as the run page.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `simulation_run.tests_passed` | number \| null | Results that were 100% successful. |
+| `simulation_run.eval_failed` | number \| null | Results that were not 100% successful. |
+| `simulation_run.success_rate` | number \| null | `100 × tests_passed / graded`, `0`–`100`. Same as the run page outcome rate. |
+
+Each item in `simulation_results` is percentage + per-bullet pass/fail only:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `criteria_pass_rate` | number \| null | Share of current bullets that passed, `0`–`100`. Computed on read from `criteria[]`. |
+| `criteria` | object[] | Per-bullet grade: `id`, `text`, `passed`, `reasoning`. |
+
+```python
+import requests
+
+def retrieve_simulation_results_v2(simulation_run_id: str, api_key: str) -> dict:
+    url = f"https://api.getbluejay.ai/v2/retrieve-simulation-results/{simulation_run_id}"
+    response = requests.get(url, headers={"X-API-Key": api_key})
+    response.raise_for_status()
+    return response.json()
+```
+
+```json
+{
+  "simulation_run": {
+    "status": "COMPLETED",
+    "tests_passed": 1,
+    "tests_completed": 5,
+    "eval_failed": 4,
+    "success_rate": 20.0
+  },
+  "simulation_results": [
+    {
+      "id": "184201",
+      "criteria_pass_rate": 50.0,
+      "criteria": [
+        {
+          "id": "greet",
+          "text": "Agent greets the caller and confirms the account",
+          "passed": true,
+          "reasoning": "Caller name and account were confirmed on the first turn."
+        },
+        {
+          "id": "transfer",
+          "text": "Agent offers a live transfer when the caller asks for a person",
+          "passed": false,
+          "reasoning": "Caller asked for a person; the agent stayed in self-serve."
+        }
+      ]
+    }
+  ],
+  "status": "200"
+}
+```
+
+See [Success Criteria](/key-concepts/digital-humans/success-criteria) for the v1 / v2 contract.
