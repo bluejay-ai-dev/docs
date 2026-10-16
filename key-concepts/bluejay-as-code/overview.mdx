@@ -5,6 +5,8 @@ description: "Use Infrastructure as Code (IaC) with Bluejay."
 icon: code-branch
 ---
 
+import { DownloadFile } from "/snippets/download-file.jsx";
+
 Bluejay as Code saves your agents, simulations, Digital Humans, and custom metrics as a YAML file. Keep the file in your Git repository, and change your setup the same way you change your code:
 
 1. [Pull](#pull-the-payload) your current setup from Bluejay into a file.
@@ -28,7 +30,7 @@ JSON payloads are deprecated on November 20th, 2026. Use YAML for new files, and
 
 ## Pull the payload
 
-To pull, request the type of the entity you start from and its ID, and add `format=yaml`. Without it, the pull returns JSON. This example pulls a simulation:
+To pull, request the type and ID of the entity you start from, with `format=yaml` (without it, you get JSON). This example pulls a simulation:
 
 ```bash
 curl "https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID?format=yaml" \
@@ -68,7 +70,7 @@ custom_metrics:
   prompt: The agent verifies the caller's date of birth before it discusses patient information.
 ```
 
-Text with more than one line, such as a system prompt, comes back as a `|` block, so a pull request shows a prompt change line by line.
+Long text like a system prompt comes back as a `|` block, so pull requests show prompt edits line by line.
 
 ## Edit the payload
 
@@ -80,11 +82,11 @@ Each entity takes the same fields as its API resource, except for a few Digital 
 
 A simulation has no field for its agent, so Bluejay finds the agent from the payload. If the payload has one agent, Bluejay links the new simulation to it. If the payload has more than one agent, add the simulation's `bluejay_as_code_id` to the `simulations` list of the agent it belongs to.
 
-When you type a value by hand, put it in quotes if YAML could read it as something other than text. For example, YAML reads `+15551234567` as a number and `no` as `false`, so write `'+15551234567'` and `'no'`. A pull already quotes these values. Bluejay rejects YAML anchors and aliases (`&` and `*`), so write each value out in full.
+Quote hand-typed values that YAML would otherwise turn into numbers or booleans, such as `'+15551234567'` or `'no'`. Pulled files already quote them. YAML anchors and aliases (`&`, `*`) are not supported.
 
 ## Push the payload
 
-Set `Content-Type` to `application/yaml`. Without it, Bluejay reads the file as JSON and the push fails. Send the file with `--data-binary`, because `--data` removes the line breaks that YAML depends on.
+Send the file with the `Content-Type: application/yaml` header, or Bluejay reads it as JSON and the push fails. Use `--data-binary`, since `--data` strips the line breaks YAML needs.
 
 ```bash
 curl https://api.getbluejay.ai/v1/bluejay-as-code \
@@ -93,7 +95,7 @@ curl https://api.getbluejay.ai/v1/bluejay-as-code \
   --data-binary @simulation.yaml
 ```
 
-The response is JSON:
+Bluejay replies with what it changed:
 
 ```json response
 {
@@ -137,15 +139,11 @@ The `bluejay_as_code_id` values do not change, so your next push updates the sam
 
 ## Claude Code skill
 
-To have Claude Code write and push payloads for you, give it the skill file. The file teaches Claude Code the payload shape and the rules for pull and push.
+Give Claude Code this skill to write and push payloads for you.
 
-<Card title="Download skill" icon="download" href="https://raw.githubusercontent.com/bluejay-ai-dev/docs/main/key-concepts/bluejay-as-code/skill.txt">
-  `skill.txt`
-</Card>
-
-1. Download the file.
-2. Save it in your repository, for example as `bluejay-as-code.skill.txt`.
-3. In Claude Code, mention the file with `@bluejay-as-code.skill.txt` in your request.
+<DownloadFile href="https://raw.githubusercontent.com/bluejay-ai-dev/docs/main/key-concepts/bluejay-as-code/skill.txt" filename="bluejay-as-code.skill.txt">
+  Download skill
+</DownloadFile>
 
 ## Related
 

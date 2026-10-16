@@ -27,13 +27,13 @@ Bluejay reads the body as YAML when `Content-Type` is one of these types:
 - `text/yaml`
 - `text/x-yaml`
 
-With any other `Content-Type`, Bluejay reads the body as JSON. A YAML body that cannot be read, or that uses anchors and aliases (`&` and `*`), returns HTTP `400`. The response is always JSON.
+Any other `Content-Type` is read as JSON. Unreadable YAML, or YAML with anchors and aliases (`&`, `*`), returns HTTP `400`.
 
 <Warning>
 JSON payloads are deprecated on November 20th, 2026. Push YAML instead. See [Move from JSON to YAML](/key-concepts/bluejay-as-code/overview#move-from-json-to-yaml).
 </Warning>
 
-Send the file with `--data-binary`, because `--data` removes the line breaks that YAML depends on:
+Use `--data-binary`, since `--data` strips the line breaks YAML needs:
 
 ```bash
 curl --request POST \
