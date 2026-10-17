@@ -1,0 +1,68 @@
+---
+title: "Metrics"
+description: "Use custom metrics to grade each simulation conversation on the rules that matter to your business."
+icon: gauge-high
+sidebarTitle: "Metrics"
+---
+
+import { MetricExamples } from "/snippets/metric-examples.jsx";
+import MetricsShared from "/snippets/metrics-shared.mdx";
+import MetricsReference from "/snippets/metrics-reference.mdx";
+
+<MetricExamples />
+
+## Set up a metric
+
+<Steps>
+  <Step title="Start a new metric">
+    On the **Metrics** page, click **Create**, then **Create manually**.
+  </Step>
+  <Step title="Choose the type">
+    Pick a **Type**. For LLM as a Judge, also pick a **Response type**. See [Metric types](#metric-types) and [Response types](#response-types).
+  </Step>
+  <Step title="Write the prompt">
+    Name the metric and write the **Prompt** the judge grades against. The [prompting guide](#prompting-guide) shows how to get the same verdict on similar calls.
+  </Step>
+  <Step title="Choose what it grades">
+    Under **Agents**, pick the agents it applies to. **Runs on** sets whether it grades production conversations, simulations, or both, and **Evaluates** sets which side of the conversation it reads. Both default to everything.
+  </Step>
+  <Step title="Add it to existing simulations">
+    New simulations run all of their agent's metrics by default. For a simulation that already exists, switch the metric on in its **Custom Metrics** tab and click **Save**.
+  </Step>
+</Steps>
+
+<MetricsShared />
+
+## Tool calls, events, and metadata
+
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](#dynamic-variables).
+
+### Send tool calls
+
+Bluejay sends an `X-Simulation-Result-Id` with each simulated call. The [integration page](/integrations/overview) for your connection says where it arrives. Your agent reads the ID, records its tool calls during the call, and sends them with the ID after the call ends.
+
+If your agent cannot read the ID, leave out `simulation_result_id` and send `start_time`, `end_time`, and `duration` so Bluejay can find the call.
+
+After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
+
+```json
+{
+  "simulation_result_id": "1234",
+  "tool_calls": [
+    {
+      "name": "transfer_funds",
+      "parameters": { "from": "12345", "to": "67890", "amount": 500 },
+      "output": { "transaction_id": "txn_abc123", "status": "completed" },
+      "start_offset_ms": 120000
+    }
+  ],
+  "events": [
+    { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
+  ],
+  "metadata": { "resolution_status": "resolved" }
+}
+```
+
+Some integrations collect tool calls without this API call. The integration page for your platform says if it does.
+
+<MetricsReference />

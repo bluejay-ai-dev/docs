@@ -1,0 +1,63 @@
+---
+title: "Metrics"
+description: "Use custom metrics to grade each production conversation on the rules that matter to your business."
+icon: gauge-high
+sidebarTitle: "Metrics"
+---
+
+import { MetricExamples } from "/snippets/metric-examples.jsx";
+import MetricsShared from "/snippets/metrics-shared.mdx";
+import MetricsReference from "/snippets/metrics-reference.mdx";
+
+<MetricExamples />
+
+## Set up a metric
+
+<Steps>
+  <Step title="Start a new metric">
+    On the **Metrics** page, click **Create**, then **Create manually**.
+  </Step>
+  <Step title="Choose the type">
+    Pick a **Type**. For LLM as a Judge, also pick a **Response type**. See [Metric types](#metric-types) and [Response types](#response-types).
+  </Step>
+  <Step title="Write the prompt">
+    Name the metric and write the **Prompt** the judge grades against. The [prompting guide](#prompting-guide) shows how to get the same verdict on similar calls.
+  </Step>
+  <Step title="Choose what it grades">
+    Under **Agents**, pick the agents it applies to. **Runs on** sets whether it grades production conversations, simulations, or both, and **Evaluates** sets which side of the conversation it reads. Both default to everything.
+  </Step>
+</Steps>
+
+<MetricsShared />
+
+## Tool calls, events, and metadata
+
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](#dynamic-variables).
+
+### Send tool calls
+
+Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording, because you cannot add them later.
+
+```json
+{
+  "agent_id": "123",
+  "start_time_utc": "2026-07-16T18:00:00Z",
+  "participants": [
+    { "role": "AGENT", "spoke_first": true },
+    { "role": "USER", "spoke_first": false }
+  ],
+  "recording_url": "https://storage.example.com/call.mp3",
+  "tool_calls": [
+    {
+      "name": "check_order_status",
+      "start_offset_ms": 2000,
+      "description": "Look up order status by order ID",
+      "parameters": { "order_id": "ORD-2024-001" },
+      "output": { "status": "in_transit" }
+    }
+  ],
+  "metadata": { "customer_tier": "premium" }
+}
+```
+
+<MetricsReference />
