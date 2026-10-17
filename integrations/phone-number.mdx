@@ -1,25 +1,35 @@
 ---
 title: "Phone Number"
 sidebarTitle: "Phone Number"
-description: "Connect an agent that customers reach by phone number, and test it over voice calls or SMS."
+description: "Connect an agent that talks to customers over a phone number, and test it over voice calls or SMS."
 icon: phone
 ---
 
-Digital Humans call or text the same number your customers use, so the test goes over the real carrier path.
+Each test goes over the real carrier path, between your agent's number and a number that each Digital Human owns.
 
 ## Voice calls
 
-To test an agent that answers calls, create an Inbound Voice agent with the **Phone** connection type and enter **Your Agent's Phone Number** in E.164 format, for example `+15551234567`. When a run starts, each Digital Human calls that number, and Bluejay records the call, transcribes it, and grades it.
+Create a Voice agent with the **Phone** connection type, and enter your agent's phone number in E.164 format, for example `+15551234567`. The agent type sets who places the call:
+
+- **Inbound**: your agent answers calls. When a run starts, each Digital Human calls your agent's number.
+- **Outbound**: your agent places calls. Each Digital Human waits on its own number until your agent calls it. See [Outbound agents](#outbound-agents) for how your agent learns when to call.
+
+Either way, Bluejay records the call, transcribes it, and grades it.
 
 A phone call cannot carry the result ID that links tool calls and traces to the result, because the public phone network usually drops custom SIP headers. If you need that link, connect the agent over [SIP](/integrations/sip) or through your voice platform's integration page.
 
 ## SMS
 
-To test an agent that answers text messages, create a Text agent with the **SMS** connection type. Each Digital Human texts the agent's phone number, and Bluejay grades the run from the transcript. To start an SMS run from the API, use [Queue SMS Simulation Run](/api-reference/endpoint/queue-sms-simulation-run).
+Create a Text agent with the **SMS** connection type and your agent's phone number. The agent type sets who texts first:
+
+- **Inbound**: each Digital Human texts your agent's number.
+- **Outbound**: your agent texts each Digital Human first. Bluejay matches the messages to the test by your agent's number and the Digital Human's number, so your agent must text from the number saved on the agent.
+
+Bluejay grades the run from the transcript. To start an SMS run from the API, use [Queue SMS Simulation Run](/api-reference/endpoint/queue-sms-simulation-run).
 
 ## Outbound agents
 
-If your agent places calls, create the agent with type **Outbound** and give each Digital Human a phone number. The Digital Humans wait on their lines until your agent calls or the run times out, so your agent needs to know when a run starts and which numbers to call. Use one of these two triggers:
+An Outbound agent places the call or sends the first text, so give each Digital Human a phone number. The Digital Humans wait on their lines until your agent reaches them or the run times out, so your agent needs to know when a run starts and which numbers to contact. Use one of these two triggers:
 
 - **Outbound Trigger Webhook URL** on the agent. Bluejay sends one `POST` for each conversation, and your system then calls or messages the Digital Human. See [Outbound trigger webhook](/test/simulations/reference#outbound-trigger-webhook) for the body, headers, and retries.
 - **`outbound_simulation_started` event** on a [webhook](/api-reference/webhooks). Bluejay sends one event per run with every number to call. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
@@ -34,7 +44,7 @@ Say your support line is an inbound voice agent at `+15551234567`, and you want 
 
 <Steps>
 <Step title="Create the agent">
-Create an Inbound Voice agent with the **Phone** connection type, and enter `+15551234567` in **Your Agent's Phone Number**.
+Create a Voice agent with type **Inbound** and the **Phone** connection type, and enter `+15551234567` as its phone number.
 </Step>
 <Step title="Run a simulation">
 [Create a simulation](/test/simulations/create) for the agent with Digital Humans, and run it. Each Digital Human calls `+15551234567` from its own number and talks to your agent as a customer would.

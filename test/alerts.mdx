@@ -1,0 +1,43 @@
+---
+title: "Alerts"
+sidebarTitle: "Alerts"
+description: "Get notified when a simulation run shows your agent's quality dropping."
+icon: bell
+---
+
+import AlertsShared from "/snippets/alerts-shared.mdx";
+
+An alert fires when a metric in your simulation results crosses a threshold. Bluejay sends the alert to Slack, PagerDuty, Better Stack, or email, so it reaches your team where they already look. To start an automated flow when an alert fires, subscribe a URL to the alert events in [Webhooks](/api-reference/webhooks#events).
+
+If you are setting up alerts for production calls, see [Alerts](/monitor/alerts).
+
+To create alerts from code, use the [Alerts API](/api-reference/endpoint/create-alert).
+
+## How alerts evaluate
+
+A metric alert checks one of these:
+
+- **Across a simulation run** checks each run when it completes.
+- **Across the last N conversations** uses the agent's most recent N conversations, across runs.
+
+For a pass/fail metric, the value is the percentage of conversations that passed (0 to 100).
+
+A **System Failures** alert fires at once when one conversation in a run ends with the selected failure status.
+
+<AlertsShared />
+
+## Choose where each alert goes
+
+Each alert has its own channels, so you can match the channel to how urgent the problem is. A channel stays off until you connect it.
+
+## Incidents
+
+PagerDuty and Better Stack receive incidents, and your escalation policy in that tool decides who gets the page. An alert opens one incident per run. Bluejay never resolves these incidents, so resolve them in PagerDuty or Better Stack.
+
+## Related
+
+- [Alerts API](/api-reference/endpoint/create-alert)
+- [Alerts MCP tools](/mcp/monitoring-tools#monitor)
+- [Webhooks](/api-reference/webhooks)
+- [Issues](/test/issues)
+- [Dashboards](/test/dashboards)

@@ -1,11 +1,15 @@
 ---
 title: "Alerts"
 sidebarTitle: "Alerts"
-description: "Get notified when your agent's quality drops, in simulations or in production."
+description: "Get notified when your agent's quality drops in production."
 icon: bell
 ---
 
+import AlertsShared from "/snippets/alerts-shared.mdx";
+
 An alert fires when a metric crosses a threshold. Bluejay sends the alert to Slack, PagerDuty, Better Stack, or email, so it reaches your team where they already look. To start an automated flow when an alert fires, subscribe a URL to the alert events in [Webhooks](/api-reference/webhooks#events).
+
+If you are setting up alerts for simulation results, see [Alerts](/test/alerts).
 
 To catch a slow drop in quality, watch a pass rate over many conversations. To catch a failure that must never happen, watch a single event.
 
@@ -13,62 +17,19 @@ To create alerts from code, use the [Alerts API](/api-reference/endpoint/create-
 
 ## How alerts evaluate
 
-<Tabs>
-  <Tab title="Simulations">
-    A simulation alert checks one of these:
+An alert counts the production conversations that match the condition in a window, either a time interval or the last N conversations. The alert enters alarm when at least N conversations match, and recovers when the count drops below 80% of N (minimum 1).
 
-    - **Across a simulation run** checks each run when it completes.
-    - **Across the last N conversations** uses the agent's most recent N conversations, across runs.
+With the last N conversations as the window, the alert does not fire until N conversations exist.
 
-    For a pass/fail metric, the value is the percentage of conversations that passed (0 to 100).
+For a metric where one failure is too many, for example hallucination, set N to 1.
 
-    A **System Failures** alert fires at once when one conversation in a run ends with the selected failure status.
-  </Tab>
-  <Tab title="Production">
-    A production alert counts the conversations that match the condition in a window, either a time interval or the last N conversations. The alert enters alarm when at least N conversations match, and recovers when the count drops below 80% of N (minimum 1).
-
-    With the last N conversations as the window, the alert does not fire until N conversations exist.
-
-    For a metric where one failure is too many, for example hallucination, set N to 1.
-  </Tab>
-</Tabs>
-
-## Connect a channel
-
-Connect each channel once, then choose which channels each alert uses.
-
-<Tabs>
-<Tab title="Slack">
-1. In Bluejay, connect Slack on the **Slack** tab of the Integrations settings.
-2. Approve the permissions in Slack.
-
-Each alert then picks its own Slack channel.
-
-![Connect to Slack](/images/integrations-slack-connect.png)
-</Tab>
-<Tab title="PagerDuty">
-1. In PagerDuty, open the service that receives Bluejay incidents.
-2. Under **Integrations**, add an **Events API V2** integration and copy its **Integration Key**.
-3. In Bluejay, paste the key into **Routing Key** on the **PagerDuty** tab of the Integrations settings.
-</Tab>
-<Tab title="Better Stack">
-1. In Better Stack, open **API tokens**, then **Team-based tokens**.
-2. Select the team whose on-call rotation receives Bluejay incidents.
-3. Under **Uptime API tokens**, create a token and copy it.
-4. In Bluejay, paste the token into **API token** on the **Better Stack** tab of the Integrations settings. Bluejay checks the token with Better Stack when you save it.
-</Tab>
-<Tab title="Email">
-Email needs no connection. Each alert can send to all team members, or to the addresses you enter.
-</Tab>
-</Tabs>
-
-To send alerts to your own endpoint, subscribe a [webhook](/api-reference/webhooks#events) to the alert events.
+<AlertsShared />
 
 ## Choose where each alert goes
 
 Each alert and uptime monitor has its own channels, so you can match the channel to how urgent the problem is. Page the on-call team for failures that need action now, for example an uptime monitor that goes DOWN, and send quality drops to Slack or email. A channel stays off until you connect it.
 
-To check the setup before you rely on it, use **Send test notification** on an observability alert.
+To check the setup before you rely on it, use **Send test notification** on an alert.
 
 ![Slack Notifications in the alert dialog](/images/integrations-slack-alarm-dialog.png)
 
@@ -79,8 +40,7 @@ PagerDuty and Better Stack receive incidents, and your escalation policy in that
 | Source | Opens an incident | Resolves the incident |
 |---|---|---|
 | Uptime monitor | When the monitor goes DOWN | When the monitor recovers |
-| Observability alert | PagerDuty only, when the alert triggers | When the alert recovers |
-| Simulation alert | One incident per run | Never. Resolve it in PagerDuty or Better Stack. |
+| Alert | PagerDuty only, when the alert triggers | When the alert recovers |
 
 ## Related
 

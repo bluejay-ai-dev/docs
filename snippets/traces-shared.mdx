@@ -1,0 +1,24 @@
+## Export traces to Bluejay
+
+To send traces to Bluejay, point an OTLP over HTTP exporter at `https://otlp.getbluejay.ai/v1/traces` and send your API key in the `X-API-KEY` header. Any OpenTelemetry-compatible library works, for example OpenInference, OpenLLMetry, or Langfuse.
+
+```python
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+
+tracer_provider = trace_sdk.TracerProvider(
+    resource=Resource.create({SERVICE_NAME: "<your_service_name>"})
+)
+tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(
+    "https://otlp.getbluejay.ai/v1/traces",
+    headers={"X-API-KEY": "<BLUEJAY_API_KEY>"},
+)))
+
+# Example: instrument the OpenAI client
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+If your agent runs on a voice framework, its integration page can show a framework-specific setup.
