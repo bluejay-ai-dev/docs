@@ -1,47 +1,28 @@
 ---
 title: "Digital Human Reference"
-description: "The ultimate guide for configuring simulated customers."
+description: "Configure each setting of a Digital Human, the simulated customer that tests your agent."
 icon: users
 sidebarTitle: "Digital Human Reference"
 ---
 
-import { Transcript } from "/snippets/transcript.jsx";
-
 A Digital Human is a simulated customer that can call, text, or email your agent. Each one has a goal, and Bluejay grades whether your agent handled it.
 
-This page covers each setting of a Digital Human. You can also create Digital Humans in the app from a CSV upload or from an IVR Flow.
-
-<Transcript
-  turns={[
-    { role: "agent", t: "00:01", text: "Thanks for calling. Can I have your member ID?" },
-    { role: "human", t: "00:04", text: "Sure, it is 4829-3371." },
-    { role: "agent", t: "00:09", text: "Thank you. I booked a callback for tomorrow at 10 AM." }
-  ]}
-  verdict={{ metric: "Success Criteria", pass: true, reason: "The agent verified the member ID and booked a callback." }}
-/>
+You can also create Digital Humans in the app from a CSV upload or from an IVR Flow.
 
 ## Persona
 
 The **Persona** tab says who the caller is, what they want, and what counts as a pass. These settings decide what each conversation is about and how Bluejay grades it.
 
-<ParamField path="intent" type="string">
-  **Description / Intent**: what the caller wants, in one or two sentences. Do not put agent behavior or "if X, do Y" rules here. The model treats them only as suggestions, so see [Make runs repeatable](#make-runs-repeatable) for fields that make them stick.
-</ParamField>
-<ParamField path="success_criteria" type="string">
-  **Success Criteria**: the pass or fail condition, written as one or two agent outcomes that the transcript can show.
-</ParamField>
-<ParamField path="role_description" type="string">
-  **Personality**: who the caller is, in one short line, for example "retiree on a family plan".
-</ParamField>
-<ParamField path="scripted_responses" type="object[]">
-  **Scripted Responses**: fixed replies to specific agent lines. See [Scripted responses](#scripted-responses).
-</ParamField>
-<ParamField path="expected_tool_calls" type="object[]">
-  **Tool Adherence**: the tool calls the agent must make.
-</ParamField>
-<ParamField path="num_runs" type="integer" default="1">
-  How many times this Digital Human runs in each simulation run.
-</ParamField>
+| Setting | API field | API default | Effect |
+|---|---|---|---|
+| Description / Intent | `intent` | None | What the caller wants, in one or two sentences. |
+| Success Criteria | `success_criteria` | None | The pass or fail condition, as one or two agent outcomes the transcript can show. |
+| Personality | `role_description` | None | Who the caller is, in one short line, for example "retiree on a family plan". |
+| Scripted Responses | `scripted_responses` | None | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
+| Tool Adherence | `expected_tool_calls` | None | The tool calls the agent must make. |
+| API only | `num_runs` | 1 | How many times this Digital Human runs in each simulation run. |
+
+Keep agent behavior and "if X, do Y" rules out of the intent. The model treats them only as suggestions, so use the fields in [Make runs repeatable](#make-runs-repeatable) instead.
 
 ## Behavior
 
@@ -49,9 +30,9 @@ The **Behavior** tab sets how the caller sounds and acts: their voice, the line 
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/dh-behavior-levers.mp4"></video>
 
-| UI label | API field | Values | API default |
+| Setting | API field | Values | API default |
 |---|---|---|---|
-| Voice | `language`, `accent`, `gender` | Valid combinations from `get_voice_options` | `en` |
+| Voice | `language`<br/>`accent`<br/>`gender` | Valid combinations from `get_voice_options` | `en` |
 | Voice Speed | `voice_speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` | `normal` |
 | Background Noise | `background_noise` | `none`, a preset, or `custom`. `custom` needs `custom_background_noise_url`. | `none` |
 | Background Noise Volume | `background_noise_volume` | 0 to 1 | 0.8 |
@@ -81,7 +62,7 @@ When you change a trait, select **Update Existing Digital Humans** to apply the 
 
 The **Tools** tab controls what the Digital Human can do besides talk, for example end the call, stay silent, or press keypad keys.
 
-| UI label | API field | API default | Effect |
+| Setting | API field | API default | Effect |
 |---|---|---|---|
 | Allow End Call Tool | `allow_end_call_tool` | `true` | The Digital Human can end the call. |
 | End Conversation (On Trigger Phrases) | `hangup_phrases` | None | Agent phrases that end the call. |
@@ -93,15 +74,11 @@ The **Tools** tab controls what the Digital Human can do besides talk, for examp
 
 The **Connection** tab sets the phone number the Digital Human uses and how it gets through to your agent.
 
-<ParamField path="phone_number" type="string">
-  The number of the Digital Human. It must be a number that your organization owns.
-</ParamField>
-<ParamField path="extension" type="string">
-  Keys to send as DTMF after the call connects to an inbound agent, for example `1,2`. A comma adds a short pause.
-</ParamField>
-<ParamField path="always_on_mode" type="boolean" default="false">
-  **Always On**: if `true`, the Digital Human answers calls on `phone_number`.
-</ParamField>
+| Setting | API field | API default | Effect |
+|---|---|---|---|
+| Phone number | `phone_number` | None | The number of the Digital Human. It must be a number that your organization owns. |
+| Extension | `extension` | None | Keys to send as DTMF after the call connects to an inbound agent, for example `1,2`. A comma adds a short pause. |
+| Always On | `always_on_mode` | `false` | The Digital Human answers calls on its phone number. |
 
 ## Scripted responses
 
