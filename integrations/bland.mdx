@@ -5,79 +5,123 @@ icon: '/logo/bland.svg'
 sidebarTitle: "Bland"
 ---
 
-Bluejay syncs each pathway as an agent.
+Bluejay syncs each Bland pathway as an agent, along with your Bland knowledge bases. A test can reach the pathway three ways:
+
+- **Websocket**: Bluejay talks to the pathway's web agent, so no phone number is necessary.
+- **Phone**: Bland places a real call from the pathway to each Digital Human.
+- **Chat**: Bluejay sends text turns to the pathway.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/bland-walkthrough.mp4"></video>
 
 ## Connect
 
-Bluejay needs two values from Bland:
+1. In Bluejay, open the **Bland** tab of the Integrations settings and save both keys:
+   - **API Key**: your Bland API key. Bluejay uses it to pull pathways and knowledge bases, place test calls, and push your edits back to Bland.
+   - **Webhook Secret**: the webhook signing secret from the **General** tab of your Bland organization settings. Bluejay rejects any call that Bland sends without a valid signature.
+2. Click **Sync Agents from Bland**. Bluejay creates one agent for each pathway in a **Synced from Bland** folder. To pick up changes you make in Bland, run the sync again or turn on **Autosync from Bland**, which syncs about every 5 minutes.
 
-| Field | Value |
-|---|---|
-| Webhook Secret | The webhook signing secret from the **General** tab of your Bland organization settings. Bluejay uses it to verify webhooks. |
-| API Key | Your Bland API key. Bluejay uses it to pull pathways and push changes back. |
+You can also add one pathway from **Create Agent**: choose the **Bland** tile, then pick a synced pathway or paste its pathway ID.
 
-1. In Bluejay, enter **Webhook Secret** and **API Key** on the **Bland** tab of the Integrations settings.
-2. Click **Sync Agents from Bland** to import every pathway as an agent.
-3. To keep Bluejay current when you change pathways in Bland, turn on **Autosync from Bland**.
+### What the sync pulls in
 
-To work on a pathway, open the **Workflow** tab of the synced agent, where you can pull a pathway version from Bland, push your edits back, and publish a version.
+For each pathway, Bluejay pulls in:
 
-### Call settings
+- The working copy of the pathway, with its nodes and routing. The pathway's global prompt becomes the agent's prompt.
+- The prompts and routing conditions of the Bland Persona that routes calls into the pathway, if there is one.
+- The pathways that it warm-transfers into, up to 4 levels deep and 8 pathways in total. A pathway that only one other pathway transfers into does not get its own agent, because its calls belong to that pathway's agent.
+- Its connection type. A pathway with a Bland web agent gets the websocket path, and a pathway without one gets the phone path.
 
-To make test phone calls behave like your production calls, paste the call parameters you send to Bland in production as JSON into **Call settings (Optional)** on the agent's **Bland** tile. Bluejay sends them when Bland places a phone call; websocket and chat runs do not use them. Keys you leave out keep the Bland default, and Bluejay rejects unknown keys.
+The sync also copies every Bland knowledge base into its own Bluejay knowledge base, so that custom metrics can check answers against the same content. Bland does not say which pathway uses which knowledge base, so attach each one to its agents yourself. A later sync updates the same knowledge base in place.
 
-Bluejay sets these keys itself:
+A sync never deletes an agent. If you delete a pathway in Bland, its agent stays in Bluejay.
 
-- `phone_number`
-- `pathway_id`
-- `pathway_version`
-- `from`
-- `metadata`
-- `request_data`
-- `webhook`
-- `webhook_events`
+### Edit a pathway
+
+The **Workflow** tab of a synced agent shows the pathway. There you can pull any version from Bland, push your edits back to the working copy, and publish a version to staging or production.
+
+- Bland cannot store routing conditions through a working-copy update, so a push that changes routing has to go out as a new version.
+- A version you pulled is read-only. Pull the working copy before you push.
+- Publishing to production makes a copy of the version with a new number. Publishing to staging keeps the number.
 
 ## Test
-
-When Bluejay syncs a pathway, it picks the voice path for you: a pathway with a Bland web agent uses the websocket path, and a pathway without one uses the phone path.
 
 <Tabs>
 <Tab title="Websocket">
 
-Bluejay opens a Bland web-agent session over websocket, so no phone number is necessary, but the pathway must have a web agent. Use this path to iterate on pathway logic.
+Bluejay opens a session with the pathway's Bland web agent, so no phone number is necessary. Use this path to iterate on pathway logic.
+
+The pathway needs a web agent in Bland. If it has none, create one in Bland and sync again, and Bluejay switches the agent to this path.
 
 </Tab>
 <Tab title="Phone">
 
-Bland places a real phone call from the pathway to the Digital Human. The agent type must be **Outbound**, and each Digital Human needs a phone number. Bluejay tags each call `environment: staging` so it stays out of your production reports.
+Bland places a real phone call from the pathway to each Digital Human. The agent type must be **Outbound**, and each Digital Human needs a phone number. A sync creates every agent as Inbound, so change the type before you run the test.
 
-To have Bluejay dial a Bland number instead, create an agent with the **Phone** connection type and set **Your Agent's Phone Number** in E.164 format.
+Bland dials from a number in its own pool. Bluejay tags each call with `qa_vendor: bluejay`, `type: vendor-qa-dispatch`, and `environment: staging`, so you can keep test calls out of your production reports.
+
+To have Bluejay dial your Bland number instead, keep the agent Inbound and give it your Bland phone number.
 
 </Tab>
 <Tab title="Chat">
 
-Set the agent mode to **Text** and choose the **Bland** text tile. Bluejay sends text turns to the pathway through the Bland chat API.
+Set the agent mode to **Text** and choose the **Bland** text tile. Bluejay sends text turns to the pathway through the Bland pathway chat API.
+
+A chat cannot run a transfer node, so the conversation ends when the pathway reaches one, and Bluejay scores what happened up to that point.
 
 </Tab>
 </Tabs>
 
+### Call settings and request data
+
+To make phone tests behave like your production calls, open the agent's **Connection Settings** and paste JSON into the **Bland** tile:
+
+- **Call settings (Optional)**: the call parameters that you send to Bland in production. Keys you leave out keep the Bland default. Bluejay rejects unknown keys, and also these keys, which it sets itself:
+  - `phone_number`
+  - `pathway_id`
+  - `pathway_version`
+  - `from`
+  - `metadata`
+  - `request_data`
+  - `webhook`
+  - `webhook_events`
+- **Request data (Optional)**: the `request_data` that your pathway expects. Bluejay adds each Digital Human's traits to it before the call, and writes the Digital Human's name, phone number, and email over matching keys.
+
+Bluejay sends both only on calls that Bland places. Websocket and chat runs do not use them.
+
 ## Monitor
 
-Bland sends production calls to Bluejay through the phone number webhook.
+Bland sends each call to Bluejay through a webhook.
 
-1. In Bland, open your phone number settings.
-2. In the **Advanced** section, set the webhook URL to `https://api.getbluejay.ai/v1/integrations/bland`, and save the inbound call changes.
-3. In Bluejay, make sure the agent has the same phone number, or is synced from the same pathway.
+1. In Bland, open your phone number settings. In the **Advanced** section, set the webhook URL to `https://api.getbluejay.ai/v1/integrations/bland`, and save the inbound call changes.
+2. For calls that you place through the Bland API, set `webhook` on the send-call request to the same URL.
+
+Bluejay files each call under the agent synced from the call's pathway. If no agent has that pathway yet, Bluejay creates one on the first call. When a call warm-transfers to another pathway, Bluejay joins both legs into one conversation and records the handoff latency in its metadata. The metadata tags of the call also go into conversation `metadata`, so custom metrics can use them as [dynamic variables](/test/metrics#dynamic-variables).
+
+The pathway's own record of the call also goes into `metadata`, for live calls and for phone tests that Bland places:
+
+- `pathway_tags`: a list of the names of the tags that the call reached, such as `["Confirm_Identity", "Voicemail_Listening"]`.
+- `pathway_logs`: Bland's step-by-step log of the call, as Bland returns it. Each entry has fields such as the tag, the chosen node ID, and a timestamp.
+
+A dynamic variable puts the whole list into the prompt as text. To check that a call reached a tag, write a prompt such as "Do these pathway tags include Confirm_Identity: `{{pathway_tags}}`?".
 
 For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent, Bluejay tells Bland to place each check call. You do not need an outbound trigger webhook.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/add-link-bland.mov"></video>
+
+## Limits
+
+| Symptom | Cause |
+|---|---|
+| **No Connection** with `SIP_DIAL_FAILED` | No Bland API key is saved, the agent has no pathway, or the Digital Human has no phone number. |
+| Phone test on a synced agent fails | The agent is still Inbound and has no phone number, so nobody places the call. Set the type to **Outbound**. |
+| Websocket test fails to connect | The pathway has no Bland web agent. Create one in Bland and sync again. |
+| Live calls do not show | The **Webhook Secret** is missing or wrong, so Bluejay rejects the webhook. |
+| A knowledge base is missing | Its text is larger than 1 MB, or Bland returned no text for it. |
 
 ## Related
 
 - [Agents API](/api-reference/endpoint/add-agent)
 - [Bland MCP tools](/mcp/workspace-tools#voice-platforms)
 - [Agents](/test/simulations/create#connect-your-agent)
+- [Knowledge Bases](/test/simulations/reference#knowledge-bases)
 - [Logs](/monitor/logs)

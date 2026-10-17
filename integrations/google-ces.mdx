@@ -5,26 +5,47 @@ icon: '/logo/google-ces.svg'
 sidebarTitle: "Google CES"
 ---
 
-Bluejay syncs your CES agents, so you do not set up each one by hand.
+import { Code } from "/snippets/code.jsx";
+
+Bluejay syncs each deployment of your CES apps as an agent, so you do not set up each one by hand. From Bluejay you can then test the agent by voice or chat, edit its instructions and handoffs, and publish a new version to a deployment.
 
 ## Connect
 
-1. Set up the **Google Agents** credential as described in [Dialogflow CX](/integrations/google-dfcx#connect). CES uses the same credential. For keyless access, run the setup script with `--ces`.
-2. Give the service account all three roles in the table below.
+1. Set up the **Google Agents** credential as described in [Dialogflow CX](/integrations/google-dfcx#connect). CES uses the same credential. For keyless access, run the setup script with `--ces`, which grants the sync and run roles.
+2. Give the service account the roles in the table below. The setup script does not grant the push and publish roles, so add them yourself if you edit agents from Bluejay or use Self-Improve.
 3. Turn on the `ces.googleapis.com` API in the project.
-4. Click **Sync Agents from Google**. It creates one agent for each CES app it finds.
+4. Click **Sync Agents from Google**. It creates one agent for each deployment of each CES app it finds.
 
 | Use | Permissions | Predefined role |
 |---|---|---|
-| Sync | `ces.apps.get`, `ces.apps.list`, `ces.deployments.get`, `ces.deployments.list` | `roles/ces.viewer` |
-| Run simulations | `ces.sessions.runSession`, `ces.sessions.bidiRunSession` | `roles/ces.client` |
-| Quota | `serviceusage.services.use` | `roles/serviceusage.serviceUsageConsumer` |
+| Sync and pull | `ces.apps.get`, `ces.apps.list`, `ces.agents.list`, `ces.tools.list`, `ces.appVersions.get`, <Code>ces.appVersions.list</Code>, `ces.deployments.get`, <Code>ces.deployments.list</Code> | <Code>roles/ces.viewer</Code> |
+| Run simulations | <Code>ces.sessions.runSession</Code>, <Code>ces.sessions.bidiRunSession</Code> | <Code>roles/ces.client</Code> |
+| Push | `ces.agents.update`, `ces.tools.update` | <Code>roles/ces.agentEditor</Code>, <Code>roles/ces.toolsEditor</Code> |
+| Publish and Self-Improve | `ces.agents.update`, <Code>ces.appVersions.create</Code>, <Code>ces.deployments.update</Code> | <Code>roles/ces.agentEditor</Code>, <Code>roles/ces.appEditor</Code>, <Code>roles/ces.deploymentEditor</Code> |
+| Quota | <Code>serviceusage.services.use</Code> | <Code>roles/serviceusage.serviceUsageConsumer</Code> |
+
+`roles/ces.toolsEditor` is needed only to change a tool's description. `roles/ces.admin` covers every CES permission in the table, if you prefer one role.
 
 To connect one agent by hand instead of syncing, open its **Connection Settings** and choose the **Google CES** tile.
 
 | Field | Value |
 |---|---|
-| CES Deployment Path | `apps/<app>/deployments/<deployment>`. In CX Agent Studio, open **Deployed channels** and copy the **Deployment ID**. |
+| CES Deployment Path | <Code>{"apps/<app>/deployments/<deployment>"}</Code>. In CX Agent Studio, open **Deployed channels** and copy the **Deployment ID**. |
+
+### What the sync pulls in
+
+A sync reads the app version that the deployment serves. It shows each CES agent in the app as a step on the **Workflow** tab, with its handoffs to other agents as the links between steps. The agent's prompt in Bluejay holds every CES agent's instructions, tools, and handoffs, and a later sync updates it.
+
+A sync never replaces a workflow that has edits you have not pushed yet.
+
+### Edit an agent
+
+The **Workflow** tab of a synced agent shows the app's agents and handoffs. There you can pull the version the deployment serves, the CES draft, or any saved version. Then you can edit an agent's name, instructions, tools, and handoffs, push your edits to the draft, and publish.
+
+- A push always writes to the CES draft, whichever version you pulled. No deployment serves the draft, so a push does not change what callers hear.
+- Publish pushes your edits, saves the draft as a new CES version, and points the deployment you choose at that version.
+- Create, delete, or change the root agent in CES, then pull again. A push that adds or removes an agent, or changes the root agent, is rejected.
+- If someone changed the same field in CES after your pull, the push is rejected and names the agent and field. Pull the working copy again and redo those edits.
 
 ## Test
 
@@ -43,10 +64,17 @@ Set the agent mode to **Text** and choose the **Google CES** text tile. Bluejay 
 </Tab>
 </Tabs>
 
+## Self-Improve
+
+[Self-Improve](/improve/self-improve) supports agents that use the **Google CES** connection type. It rewrites the instructions of the CES agents in the app, and leaves tools and handoffs as they are.
+
+A deployment serves a saved version, not the draft, so every round publishes its new instructions as a CES version and points the agent's deployment at it. When the run ends, the deployment serves the best instructions that the run found. Because each deployment syncs as its own agent, run Self-Improve on the agent for a deployment that does not serve customers.
+
+The run fails at the start if the CES draft has changes that the deployment does not serve yet. Publish or discard those changes in CES first.
+
 ## Limits
 
 - Bluejay always replies `{"status": "ok"}` to client-side tool calls. You cannot set a different tool response.
-- Bluejay cannot push edits to CES agents.
 - Without `serviceusage.services.use`, each run fails with `USER_PROJECT_DENIED`.
 
 ## Related
@@ -55,3 +83,4 @@ Set the agent mode to **Text** and choose the **Google CES** text tile. Bluejay 
 - [Agents MCP tools](/mcp/testing-tools#agents)
 - [Dialogflow CX](/integrations/google-dfcx)
 - [Agents](/test/simulations/create#connect-your-agent)
+- [Self-Improve](/improve/self-improve)

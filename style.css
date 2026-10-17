@@ -385,16 +385,12 @@ html.dark .callout[data-callout-type="danger"] {
   white-space: normal !important;
 }
 
-/* Code in a cell wraps at spaces, so long code never takes width from the shared first column.
-   An identifier stays whole, except in the first column when it is longer than the column. */
+/* Code in a cell wraps at spaces and never inside a word. A long identifier gets break points
+   at "_", "/" and "." from the Code snippet (or FieldTable); without them it widens its column. */
 [data-table-wrapper] td code {
   white-space: normal;
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
   word-break: normal;
-}
-
-[data-table-wrapper] td:first-child code {
-  overflow-wrap: anywhere;
 }
 
 /* Endpoint tables (method, linked path, description) keep methods and paths on one line. */
@@ -892,8 +888,9 @@ html.dark div#pagination > a {
 
 /* API field tables: a row with child fields opens and closes on click. */
 
-.bj-field-table td:first-child {
-  white-space: nowrap;
+/* On a phone the four columns can need more than the page width; scroll the table, not the page. */
+.bj-field-table {
+  overflow-x: auto;
 }
 
 .bj-field-name {

@@ -1,6 +1,10 @@
 export const FieldTable = ({ rows = [] }) => {
   const [open, setOpen] = useState({});
   const toggle = (key) => setOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  const breakable = (text, at = /(?<=[_/])|(?<=[A-Za-z])(?=\.[A-Za-z])/) =>
+    String(text)
+      .split(at)
+      .flatMap((part, i) => (i > 0 ? [<wbr key={i} />, part] : [part]));
 
   const renderRows = (items, depth, prefix) =>
     items.flatMap((row, i) => {
@@ -31,7 +35,7 @@ export const FieldTable = ({ rows = [] }) => {
               ) : (
                 <span className="bj-field-chevron-space" aria-hidden="true" />
               )}
-              <code>{row.name}</code>
+              <code>{breakable(row.name)}</code>
             </span>
           </td>
           <td>
@@ -39,10 +43,10 @@ export const FieldTable = ({ rows = [] }) => {
           </td>
           <td>{row.required ? "Required" : "Optional"}</td>
           <td>
-            {row.description ? <div>{row.description}</div> : null}
+            {row.description ? <div>{breakable(row.description, /(?<=[_/])/)}</div> : null}
             {row.default !== undefined ? (
               <div className="bj-field-meta">
-                Default: <code>{String(row.default)}</code>
+                Default: <code>{breakable(row.default)}</code>
               </div>
             ) : null}
             {row.values && row.values.length ? (
@@ -50,7 +54,7 @@ export const FieldTable = ({ rows = [] }) => {
                 Allowed values:
                 {row.values.map((v) => (
                   <div key={v}>
-                    <code>{v}</code>
+                    <code>{breakable(v)}</code>
                   </div>
                 ))}
               </div>

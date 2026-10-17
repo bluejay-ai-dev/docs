@@ -5,6 +5,8 @@ icon: users
 sidebarTitle: "Digital Human Reference"
 ---
 
+import { Code } from "/snippets/code.jsx";
+
 A Digital Human is a simulated customer that can call, text, or email your agent. Each one has a goal, and Bluejay grades whether your agent handled it.
 
 You can also create Digital Humans in the app from a CSV upload or from an IVR Flow.
@@ -16,10 +18,10 @@ The **Persona** tab says who the caller is, what they want, and what counts as a
 | Setting | API field | API default | Effect |
 |---|---|---|---|
 | Description / Intent | `intent` | None | What the caller wants, in one or two sentences. |
-| Success Criteria | `success_criteria` | None | The pass or fail condition, as one or two agent outcomes the transcript can show. |
-| Personality | `role_description` | None | Who the caller is, in one short line, for example "retiree on a family plan". |
-| Scripted Responses | `scripted_responses` | None | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
-| Tool Adherence | `expected_tool_calls` | None | The tool calls the agent must make. |
+| Success Criteria | <Code>success_criteria</Code> | None | The pass or fail condition, as one or two agent outcomes the transcript can show. |
+| Personality | <Code>role_description</Code> | None | Who the caller is, in one short line, for example "retiree on a family plan". |
+| Scripted Responses | <Code>scripted_responses</Code> | None | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
+| Tool Adherence | <Code>expected_tool_calls</Code> | None | The tool calls the agent must make. |
 | API only | `num_runs` | 1 | How many times this Digital Human runs in each simulation run. |
 
 Keep agent behavior and "if X, do Y" rules out of the intent. The model treats them only as suggestions, so use the fields in [Make runs repeatable](#make-runs-repeatable) instead.
@@ -32,19 +34,19 @@ The **Behavior** tab sets how the caller sounds and acts: their voice, the line 
 
 | Setting | API field | Values | API default |
 |---|---|---|---|
-| Voice | `language`<br/>`accent`<br/>`gender` | Valid combinations from `get_voice_options` | `en` |
+| Voice | `language`<br/>`accent`<br/>`gender` | Valid combinations from <Code>get_voice_options</Code> | `en` |
 | Voice Speed | `voice_speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` | `normal` |
-| Background Noise | `background_noise` | `none`, a preset, or `custom`. `custom` needs `custom_background_noise_url`. | `none` |
-| Background Noise Volume | `background_noise_volume` | 0 to 1 | 0.8 |
-| Audio Quality | `audio_quality` | `high`, `medium`, `low`, `horrible` | `high` |
-| Dropouts | `connection_quality` | `none`, `low`, `medium`, `high` | `none` |
+| Background Noise | <Code>background_noise</Code> | `none`, a preset, or `custom`. `custom` needs <Code>custom_background_noise_url</Code>. | `none` |
+| Background Noise Volume | <Code>background_noise_volume</Code> | 0 to 1 | 0.8 |
+| Audio Quality | <Code>audio_quality</Code> | `high`, `medium`, `low`, `horrible` | `high` |
+| Dropouts | <Code>connection_quality</Code> | `none`, `low`, `medium`, `high` | `none` |
 | Verbosity | `verbosity` | `low`, `medium`, `high` | `medium` |
 | Fluency | `fluency` | `beginner`, `intermediate`, `native` | `native` |
 | Creativity | `creativity` | 0 to 2 | 0.7 |
-| Patience (seconds) | `endpointing_delay` | Seconds to wait before a reply | 1.5 |
-| No Response Timeout (seconds) | `silence_timeout` | 15 seconds or more | None |
+| Patience (seconds) | <Code>endpointing_delay</Code> | Seconds to wait before a reply | 1.5 |
+| No Response Timeout (seconds) | <Code>silence_timeout</Code> | 15 seconds or more | None |
 | Interruptions | `interruptions` | None, Probabilistic, Keywords, Contextual | None |
-| Speaks First | `speaks_first_config` | Who speaks first, and the opening message | The Digital Human speaks first. Some voice platform connections start with the agent. |
+| Speaks First | <Code>speaks_first_config</Code> | Who speaks first, and the opening message | The Digital Human speaks first. Some voice platform connections start with the agent. |
 
 There is no emotion setting. To make the caller angry, rushed, or confused, write that attitude into **Personality** (`role_description`).
 
@@ -64,11 +66,11 @@ The **Tools** tab controls what the Digital Human can do besides talk, for examp
 
 | Setting | API field | API default | Effect |
 |---|---|---|---|
-| Allow End Call Tool | `allow_end_call_tool` | `true` | The Digital Human can end the call. |
-| End Conversation (On Trigger Phrases) | `hangup_phrases` | None | Agent phrases that end the call. |
-| Allow Silence Tool | `allow_silence_tool` | `true` | The Digital Human can stay silent. |
-| Allow DTMF Tool | `allow_dtmf_tool` | `true` | The Digital Human can send keypad tones. |
-| Default Number Submission Mode | `default_dtmf_or_voiced` | `voiced` | Used when the agent does not say how to enter a number. |
+| Allow End Call Tool | <Code>allow_end_call_tool</Code> | `true` | The Digital Human can end the call. |
+| End Conversation (On Trigger Phrases) | <Code>hangup_phrases</Code> | None | Agent phrases that end the call. |
+| Allow Silence Tool | <Code>allow_silence_tool</Code> | `true` | The Digital Human can stay silent. |
+| Allow DTMF Tool | <Code>allow_dtmf_tool</Code> | `true` | The Digital Human can send keypad tones. |
+| Default Number Submission Mode | <Code>default_dtmf_or_voiced</Code> | `voiced` | Used when the agent does not say how to enter a number. |
 
 ## Connection
 
@@ -76,9 +78,9 @@ The **Connection** tab sets the phone number the Digital Human uses and how it g
 
 | Setting | API field | API default | Effect |
 |---|---|---|---|
-| Phone number | `phone_number` | None | The number of the Digital Human. It must be a number that your organization owns. |
+| Phone number | <Code>phone_number</Code> | None | The number of the Digital Human. It must be a number that your organization owns. |
 | Extension | `extension` | None | Keys to send as DTMF after the call connects to an inbound agent, for example `1,2`. A comma adds a short pause. |
-| Always On | `always_on_mode` | `false` | The Digital Human answers calls on its phone number. |
+| Always On | <Code>always_on_mode</Code> | `false` | The Digital Human answers calls on its phone number. |
 
 ## Scripted responses
 
@@ -86,11 +88,11 @@ A scripted response makes a reply the same on each run. Each item pairs an agent
 
 | Field | Values | Notes |
 |---|---|---|
-| `match_phrase` | string | A line the agent says, for example "Can I have your account number?". A description of agent behavior never matches. |
+| <Code>match_phrase</Code> | string | A line the agent says, for example "Can I have your account number?". A description of agent behavior never matches. |
 | `match_type` | `exact`, `context` | `context` matches lines with the same meaning. |
-| `response_type` | `phrase`, `dtmf`, `silence`, `audio` | |
-| `response_value` | string | Required for `phrase` and `dtmf`. Do not set it for `audio`. `audio` uses `scripted_response_audio_snippet_url`. |
-| `occurrence_mode` | `always`, `first_n` | `first_n` needs `occurrence_n`. |
+| <Code>response_type</Code> | `phrase`, `dtmf`, `silence`, `audio` | |
+| <Code>response_value</Code> | string | Required for `phrase` and `dtmf`. Do not set it for `audio`. `audio` uses <Code>scripted_response_audio_snippet_url</Code>. |
+| <Code>occurrence_mode</Code> | `always`, `first_n` | `first_n` needs <Code>occurrence_n</Code>. |
 
 If `scripted_responses_ordered` is `true`, the responses run in list order and each fires once.
 
@@ -137,8 +139,8 @@ An "if the agent says X, the caller does Y" rule in the intent is only a suggest
 | Need | Setting |
 |---|---|
 | A fixed value, for example a date of birth | **Traits** (`traits`) |
-| A fixed line, keypad entry, or pause | **Scripted Responses** (`scripted_responses`) |
-| A fixed opening line | **Speaks First** (`speaks_first_config`) |
+| A fixed line, keypad entry, or pause | **Scripted Responses** (<Code>scripted_responses</Code>) |
+| A fixed opening line | **Speaks First** (<Code>speaks_first_config</Code>) |
 | The same call on each run | **Creativity** (`creativity`) from 0.0 to 0.3 |
 
 Before you create a batch, create one Digital Human, run it, and read the transcript. Bluejay accepts a configuration that has no effect, for example a scripted response that never matches, so the transcript is where you see whether each setting worked.
