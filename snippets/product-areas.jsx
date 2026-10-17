@@ -6,7 +6,7 @@ export const ProductAreas = () => {
     {
       name: "Test",
       href: "/test/simulations/create",
-      text: "Find where your agent fails before real customers reach it.",
+      text: "Find your agent's weak spots.",
       glyph: (
         <span className="bj-area-g bj-area-g-run">
           {run.map((c, i) => <i key={i} className={c} />)}
@@ -16,7 +16,7 @@ export const ProductAreas = () => {
     {
       name: "Monitor",
       href: "/monitor/logs",
-      text: "Grade your real conversations and get alerted when they fail.",
+      text: "Verify your agent runs smoothly in production.",
       glyph: (
         <span className="bj-area-g bj-area-g-live">
           {live.map((c, i) => <i key={i} className={c} />)}
@@ -26,7 +26,7 @@ export const ProductAreas = () => {
     {
       name: "Improve",
       href: "/improve/bluejay-ai",
-      text: "Find out why conversations fail and what to fix first.",
+      text: "Strengthen your agent, automatically.",
       glyph: (
         <span className="bj-area-g bj-area-g-rank">
           {rank.map((w, i) => <i key={i} className={i === 0 ? "f" : ""} style={{ "--w": w }} />)}
