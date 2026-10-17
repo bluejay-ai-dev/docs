@@ -32,24 +32,30 @@ Bluejay uses two Vapi keys:
 | Private API Key | Your Vapi private key. Bluejay uses it to sync assistants and open web calls. |
 | Public API Key | Your Vapi public key. Vapi sends it in the `x-vapi-secret` header so Bluejay can verify the webhook. |
 
-1. In Vapi, open **Settings > API Keys** and copy both keys.
-2. In Bluejay, paste them on the **Vapi** tab of the Integrations settings.
-3. Click **Sync Agents from Vapi** to import every assistant and squad.
-4. To keep Bluejay current when you change assistants in Vapi, turn on **Autosync from Vapi**.
+<Steps>
+<Step title="Save the Vapi keys">
+In Vapi, open **Settings > API Keys** and copy both keys. In Bluejay, paste them on the **Vapi** tab of the Integrations settings.
+</Step>
+<Step title="Sync the assistants">
+Click **Sync Agents from Vapi** to import every assistant and squad. To keep Bluejay current when you change assistants in Vapi, turn on **Autosync from Vapi**.
+</Step>
+<Step title="Set the webhook on each assistant">
+In Vapi, open each assistant, then **Advanced > Webhook Server**, so Vapi sends each call to Bluejay when it ends. On the classic UI, open **Messaging**.
 
-Then set the webhook on each assistant in Vapi, so Vapi sends each call to Bluejay when it ends:
+- **Server URL**: `https://api.getbluejay.ai/v1/integrations/vapi`.
+- Headers: add a header named `x-vapi-secret` with your public key as the value. Without it, Bluejay rejects the webhook with `401`.
+- **Server Messages**: keep only `end-of-call-report`.
 
-1. Open the assistant, then **Advanced > Webhook Server**. On the classic UI, open **Messaging**.
-2. Set **Server URL** to `https://api.getbluejay.ai/v1/integrations/vapi`.
-3. Add a header named `x-vapi-secret` with your public key as the value. Without it, Bluejay rejects the webhook with `401`.
-4. Under **Server Messages**, keep only `end-of-call-report`, then click **Publish**.
+Then click **Publish**.
+</Step>
+</Steps>
 
 ![Vapi webhook configuration](/images/vapi-sim-webhook.png)
 
-Bluejay accepts the webhook only from an assistant that a Bluejay agent is linked to, and a sync links each one for you. To connect one agent by hand instead of syncing:
+Bluejay accepts the webhook only from an assistant that a Bluejay agent is linked to, and a sync links each one for you. To connect one agent by hand instead of syncing, set the same assistant ID in two places on the agent:
 
-1. Open its **Connection Settings**, choose the **VAPI** tile, and set **VAPI Assistant ID**.
-2. Open its **Observability Settings**, set **Voice AI Provider** to **VAPI**, and set **Assistant ID** to the same ID. This links the assistant, so Bluejay accepts its webhook.
+- **Connection Settings**: choose the **VAPI** tile and set **VAPI Assistant ID**.
+- **Observability Settings**: set **Voice AI Provider** to **VAPI** and **Assistant ID** to the same ID. This links the assistant, so Bluejay accepts its webhook.
 
 An assistant that uses a Vapi workflow syncs with an empty prompt. To work on its graph, open the **Workflow** tab of the synced agent, where you can pull the graph from Vapi and push your edits back.
 

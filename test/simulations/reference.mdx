@@ -114,9 +114,10 @@ The problem is in Bluejay, not in your agent. Run the call again. If the error r
 | <Code>AGENT_WORKER_LOST</Code> | The Bluejay worker for the call stopped responding. |
 | <Code>SIP_TRUNK_RECYCLED</Code> | A newer simulation reused the phone number, so Bluejay stopped this test. |
 | <Code>DB_WRITE_FAILED</Code> | A Bluejay database write failed. |
-| <Code>EMAIL_SENDER_MISMATCH</Code> | Your email agent replied from an address that is not configured on the agent. Add the address to the reply-from addresses of the agent. |
 | `UNKNOWN` | Bluejay has no specific code for the failure. |
 | <Code>UNKNOWN_LEGACY</Code> | The call ran before Bluejay recorded failure reasons. |
+
+An email conversation can also show <Code>EMAIL_SENDER_MISMATCH</Code> without ending: your agent replied from an address that is not configured on it. The conversation stays open, and the code clears when a reply arrives from a configured address. Add the address to the agent's [reply-from addresses](/integrations/email#how-a-conversation-runs).
 
 If the code is `EVAL_HYDRATION_FAILED`, `EVAL_PIPELINE_FAILED`, or `EVAL_QUEUE_FAILED`, you can retry only the scoring from the call panel.
 
@@ -124,7 +125,7 @@ If the code is `EVAL_HYDRATION_FAILED`, `EVAL_PIPELINE_FAILED`, or `EVAL_QUEUE_F
 
 For an outbound agent, your system starts each conversation. When a run starts, Bluejay sends a POST to your **Outbound Trigger Webhook URL**, and your system then calls or messages the Digital Human.
 
-By default, the body has `phone_number` and `sim_conversation_id`. To send other fields, set a body template with tokens such as `{{digital_human.phone_number}}`.
+By default, the body has `phone_number` and `sim_conversation_id`. For a [SIP](/integrations/sip#outbound-agents) agent, it also has `sip_uri`, the SIP address your agent dials. To send other fields, set a body template with tokens such as `{{digital_human.phone_number}}`.
 
 Your webhook must return a `2xx` status within 15 seconds. After 3 failed tries, the conversation ends with [`OUTBOUND_TRIGGER_FAILED`](#error-codes).
 
@@ -135,6 +136,7 @@ Supported tokens include:
 - `{{digital_human.id}}`
 - `{{digital_human.name}}`
 - `{{digital_human.phone_number}}`
+- `{{digital_human.sip_uri}}`, for SIP agents only
 - `{{digital_human.email}}`
 - `{{digital_human.stable_email}}`
 - `{{digital_human.intent}}`
@@ -166,46 +168,6 @@ A workflow is the multi-agent graph of a provider agent, for example a root agen
 </Warning>
 
 To import a graph from a document, attach the document in a **Bluejay AI** chat and ask for a workflow. After you approve the draft, Bluejay AI saves it to the agent. You can import only to an agent that has no workflow provider. An imported workflow has no provider to sync with, so it has no Pull or Push: to change it, edit it in Bluejay or import an updated document.
-
-## Email agents
-
-Each Digital Human sends from its own address on `mail.bluejaysims.com`. Email runs take longer than voice or SMS runs.
-
-<Warning>
-  Corporate mail (Google Workspace, Microsoft 365) quarantines mail from unknown senders. If you do not allowlist `mail.bluejaysims.com` in the agent inbox, the agent never receives the test and every check fails.
-</Warning>
-
-### Google Workspace
-
-1. In the Admin console, open **Apps > Google Workspace > Gmail > Spam, phishing, and malware**.
-2. Under **Email allowlist**, add a rule that bypasses spam for `mail.bluejaysims.com`.
-3. Save.
-
-### Microsoft 365
-
-1. In Microsoft 365 Defender, open **Policies & rules > Threat policies > Anti-spam**.
-2. Add `mail.bluejaysims.com` to the allowed domains, or add a mail flow rule that bypasses spam filtering for that domain.
-3. Save.
-
-If a test email does not arrive, look in the admin quarantine first.
-
-<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-run-sim.mp4"></video>
-
-For an outbound email agent, your agent sends the first email. Each Digital Human waits for an email at its own address, then replies.
-
-Bluejay grades each agent reply with these built-in metrics:
-
-- **SPF Pass Rate**
-- **DKIM Pass Rate**
-- **DMARC Pass Rate**
-- **Delivered Rate**
-- **Spam Score**
-
-<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-metrics.mp4"></video>
-
-To check an email agent on a schedule, use [Uptime Monitoring](/monitor/uptime/overview). The minimum interval for email is 30 minutes.
-
-<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/email-uptime.mp4"></video>
 
 ## Knowledge Bases
 

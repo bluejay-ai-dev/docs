@@ -7,7 +7,7 @@ icon: network-wired
 
 import { Code } from "/snippets/code.jsx";
 
-Use a SIP connection to test a voice agent over the same phone path your customers use. The SIP connection type works for both Inbound and Outbound agents. If your agent answers calls, Bluejay calls the SIP URI or dynamic SIP webhook you set on the agent, and your agent reads the result ID from the SIP headers to link tool calls and traces. If your agent places calls, it calls a Digital Human, as described in [Outbound agents](#outbound-agents).
+Use a SIP connection to test a voice agent over the same phone path your customers use. The SIP connection type works for both Inbound and Outbound agents. If your agent answers calls, Bluejay calls the SIP URI or dynamic SIP webhook you set on the agent, and your agent reads the result ID from the SIP headers to link tool calls and traces. If your agent places calls, it dials each Digital Human's SIP address, and the Digital Human answers, as described in [Outbound agents](#outbound-agents).
 
 If your agent uses a regular phone number, see [Phone Number](/integrations/phone-number) instead.
 
@@ -19,7 +19,7 @@ Use a Voice agent with the **SIP** connection type.
 
 | Field | API field | Description |
 |---|---|---|
-| SIP URI | `sip_uri` | `sip:user@host`. Use `sips:` or `;transport=tls`, `tcp`, or `udp` to set the transport. TLS without a port uses port 5061. |
+| SIP URI | `sip_uri` | Inbound agents only. `sip:user@host`. Use `sips:` or `;transport=tls`, `tcp`, or `udp` to set the transport. TLS without a port uses port 5061. |
 | SIP Username | <Code>sip_username</Code> | Optional. Digest auth username. |
 | SIP Password | <Code>sip_password</Code> | Optional. Digest auth password. |
 | SIP Headers | <Code>custom_sip_headers</Code> | Optional. Extra headers, sent with the names you enter. |
@@ -63,9 +63,28 @@ Bluejay sends the request up to 3 times, with a 10-second timeout each. Return t
 
 ### Outbound agents
 
-If your agent places calls, each Digital Human waits on its own phone number for your agent to call. To tell your agent when a run starts and which numbers to call, see [Outbound agents](/integrations/phone-number#outbound-agents).
+If your agent places calls, it dials each Digital Human at a SIP address, and the Digital Human answers. The address is built from the Digital Human's [phone number](/integrations/phone-number#digital-human-numbers), so give each Digital Human one number. When a run starts, Bluejay tells your system which address to dial.
 
-If the agent has both **SIP Username** and **SIP Password**, Bluejay accepts a call to a Digital Human only when your agent answers the digest auth challenge with them. If either one is empty, Bluejay accepts calls that come in over the phone network.
+<Steps>
+<Step title="Create the agent">
+Create a Voice agent with type **Outbound** and the **SIP** connection type, and set these fields:
+
+- **Outbound Trigger Webhook URL**: required. Bluejay sends a `POST` here for each conversation, and rejects the run if the field is empty. See [Outbound trigger webhook](/test/simulations/reference#outbound-trigger-webhook).
+- **SIP Username** and **SIP Password**: optional. Set both when your agent calls from your own SBC, as described below.
+
+Leave **SIP URI** empty. Bluejay never dials it for an Outbound agent.
+</Step>
+<Step title="Dial the Digital Human">
+When the trigger request arrives, call the `sip_uri` in its body. The address has the form `sip:<Digital Human phone number>@4ydpxced5og.sip.livekit.cloud`, with the number in E.164, for example `sip:+15551230000@4ydpxced5og.sip.livekit.cloud`.
+</Step>
+</Steps>
+
+The same address appears under **SIP Address** on the **Connection** tab of each Digital Human. If you set a custom body template on the trigger, add it with `{{digital_human.sip_uri}}`.
+
+Bluejay checks the caller before a Digital Human answers:
+
+- If the agent has both **SIP Username** and **SIP Password**, your agent must answer the digest auth challenge with them, and it can call from any source.
+- If either one is empty, Bluejay accepts only calls that arrive over the phone network through Twilio. A call from your own SBC without credentials is rejected.
 
 ## SIP headers
 
@@ -139,6 +158,7 @@ app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
 ## Limits
 
 - If the dynamic SIP webhook fails 3 times, the call ends with status `NO_CONNECTION` and error `DYNAMIC_ENDPOINT_FAILED`. Bluejay does not fall back to the SIP URI.
+- For an Outbound agent, Bluejay sets no digest auth realm. An SBC that needs a specific realm may fail to authenticate.
 
 ## Related
 

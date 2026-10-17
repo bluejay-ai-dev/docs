@@ -13,10 +13,17 @@ Bluejay syncs your agents and their workflows.
 
 ## Connect
 
-1. In Bluejay, open the **Eleven Labs** tab of the Integrations settings and save both values:
-   - **ElevenLabs API Key**: an API key from **Developers > API Keys** in ElevenLabs. Bluejay uses it to sync agents, open test calls, get tool calls, and fetch the conversation behind a production trace.
-   - **Webhook Secret**: the HMAC secret of your ElevenLabs post-call webhook. Bluejay rejects any production call that ElevenLabs sends without a valid signature. See [Monitor](#monitor).
-2. Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent in a **Synced from ElevenLabs** folder, with its prompt, workflow, and tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
+<Steps>
+<Step title="Save the ElevenLabs keys">
+In Bluejay, open the **Eleven Labs** tab of the Integrations settings and save both values:
+
+- **ElevenLabs API Key**: an API key from **Developers > API Keys** in ElevenLabs. Bluejay uses it to sync agents, open test calls, get tool calls, and fetch the conversation behind a production trace.
+- **Webhook Secret**: the HMAC secret of your ElevenLabs post-call webhook. Bluejay rejects any production call that ElevenLabs sends without a valid signature. See [Monitor](#monitor).
+</Step>
+<Step title="Sync the agents">
+Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent in a **Synced from ElevenLabs** folder, with its prompt, workflow, and tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
+</Step>
+</Steps>
 
 A sync never deletes an agent. If you delete an agent in ElevenLabs, its agent stays in Bluejay.
 
@@ -55,12 +62,18 @@ Use an Inbound Voice agent with the [Phone connection type](/test/simulations/cr
 
 ElevenLabs sends each production call to Bluejay through a post-call webhook. The transcript, the trace, and the recording all go to the same URL and are signed with the same secret.
 
-1. In ElevenLabs settings, find **Post-Call Webhook** and click **Select Webhook > Create Webhook**. Set the URL to `https://api.getbluejay.ai/v1/integrations/ElevenLabs`, keep **Webhook Auth Method** as **HMAC**, and click **Create**.
-2. Copy the webhook secret into **Webhook Secret** in Bluejay.
-3. In the post-call webhook settings, choose what ElevenLabs sends. You can set this for the whole workspace, or override it on one agent under **Security > Post Call Webhook**.
-   - **Transcript**: the transcript, tool calls, and call details. Bluejay needs it to score the call, so keep it on.
-   - **OpenTelemetry transcript payloads**: sends the transcript as an OpenTelemetry trace. See [Traces](#traces).
-   - **Send audio data**: sends the call recording. See [Call audio](#call-audio).
+<Steps>
+<Step title="Create the post-call webhook">
+In ElevenLabs settings, find **Post-Call Webhook** and click **Select Webhook > Create Webhook**. Set the URL to `https://api.getbluejay.ai/v1/integrations/ElevenLabs`, keep **Webhook Auth Method** as **HMAC**, and click **Create**. Copy the webhook secret into **Webhook Secret** in Bluejay.
+</Step>
+<Step title="Choose what ElevenLabs sends">
+In the post-call webhook settings, choose what ElevenLabs sends. You can set this for the whole workspace, or override it on one agent under **Security > Post Call Webhook**.
+
+- **Transcript**: the transcript, tool calls, and call details. Bluejay needs it to score the call, so keep it on.
+- **OpenTelemetry transcript payloads**: sends the transcript as an OpenTelemetry trace. See [Traces](#traces).
+- **Send audio data**: sends the call recording. See [Call audio](#call-audio).
+</Step>
+</Steps>
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-1-webhook.jpg" src="/images/elevenlabs-1-webhook.mp4" aria-label="Set up the ElevenLabs webhook" />
 
