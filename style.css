@@ -384,6 +384,21 @@ html.dark .callout[data-callout-type="danger"] {
   white-space: nowrap;
 }
 
+/* Sentence-length code in a first column wraps at spaces; identifiers never split. */
+[data-table-wrapper] td:first-child code {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Every table shares one first-column width, so the tables on a page line up.
+   Three-column endpoint tables (linked code in the second column) keep a narrow method column. */
+@media (min-width: 640px) {
+  [data-table-wrapper] table:not(:has(thead th:nth-child(3):last-child):has(td:nth-child(2) > a > code)) th:first-child {
+    width: 33%;
+  }
+}
+
 [data-table-wrapper] th {
   color: var(--bj-text-2);
   border-bottom: 1px solid var(--bj-border);
@@ -1425,4 +1440,28 @@ html.dark .bj-mx-seg > span.on {
   .bj-mx-name { grid-area: name; }
   .bj-mx-type { grid-area: type; text-align: right; }
   .bj-mx-result { grid-area: result; }
+}
+
+/* Mermaid diagrams in the docs' colors; mermaid's own rules use ID selectors, hence !important */
+.mermaid .node rect,
+.mermaid .node polygon,
+.mermaid .node path {
+  fill: var(--bj-surface) !important;
+  stroke: var(--bj-border) !important;
+  stroke-width: 1px !important;
+  rx: 6px;
+}
+
+.mermaid .nodeLabel,
+.mermaid .nodeLabel p {
+  color: var(--bj-text) !important;
+}
+
+.mermaid .flowchart-link {
+  stroke: var(--bj-text-2) !important;
+}
+
+.mermaid marker path {
+  fill: var(--bj-text-2) !important;
+  stroke: var(--bj-text-2) !important;
 }
