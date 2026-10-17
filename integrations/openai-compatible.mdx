@@ -7,11 +7,13 @@ icon: message-bot
 
 import { Code } from "/snippets/code.jsx";
 
-Use the **OpenAI-compatible** connection type when your text agent answers `POST /chat/completions` in the OpenAI format. Most in-house agents do, and so does any agent behind LiteLLM, vLLM, Ollama, or a server built on the OpenAI SDK. Bluejay sends each Digital Human message to that endpoint and reads the agent's reply from the response, so your agent does not need a webhook or a callback to Bluejay.
+Point Bluejay at the endpoint your agent already serves, and Digital Humans chat with it the same way your own app does.
 
 The connection is named after the request format, not the company. It does not test a ChatGPT agent from OpenAI.
 
 ## Connect
+
+This connection fits your agent if it answers `POST /chat/completions` in the OpenAI format. Most in-house agents do, and so does any agent behind LiteLLM, vLLM, Ollama, or a server built on the OpenAI SDK.
 
 <Tabs>
 <Tab title="Website">
@@ -51,7 +53,7 @@ Queue runs with [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/q
 
 ## How a conversation runs
 
-The Digital Human always sends the first message. For each Digital Human message, Bluejay sends one request that holds the whole conversation so far, because the chat completions format keeps no state between requests. Digital Human messages have the `user` role and your agent's earlier replies have the `assistant` role. Bluejay sends no `system` message, so your agent uses its own instructions.
+Bluejay sends each Digital Human message to your endpoint and reads your agent's reply from the response, so your agent does not need a webhook or a callback to Bluejay. The Digital Human always sends the first message. Each request holds the whole conversation so far, because the chat completions format keeps no state between requests. Digital Human messages have the `user` role and your agent's earlier replies have the `assistant` role. Bluejay sends no `system` message, so your agent uses its own instructions.
 
 ```json
 {
