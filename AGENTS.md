@@ -8,6 +8,7 @@ This file provides guidance to coding agents working in this repository.
 - Headings are sentence case. Page titles in frontmatter are Title Case, because the sidebar shows them.
 - Capitalize product names: Bluejay AI, Bluejay as Code, Digital Human, Knowledge Base, Red Teaming, Metrics Lab, Self-Improve, and simulation type names. Generic nouns stay lowercase in running text: agent, simulation, custom metric, issue, alert, dashboard, conversation, trace, webhook, integration.
 - App UI labels are bold and keep the app's exact capitalization.
+- Do not explain a button or field whose label already says what it does, such as "Click **Reset to default** to go back to the standard text." Clicks belong in the docs only as steps of a longer workflow, or when they carry something the screen does not show, such as a limit, a default, or a consequence.
 
 ## PR conventions
 
