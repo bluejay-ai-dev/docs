@@ -1,0 +1,169 @@
+---
+title: "SIP"
+sidebarTitle: "SIP"
+description: "Connect a voice agent over SIP, and link tool calls and traces to each result with SIP headers."
+icon: network-wired
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Use a SIP connection to test a voice agent over the same phone path your customers use. The SIP connection type works for both Inbound and Outbound agents.
+
+If your agent uses a regular phone number, see [Phone Number](/integrations/phone-number) instead.
+
+## Connect
+
+### SIP URI
+
+Use a Voice agent with the **SIP** connection type. If your agent answers calls, Bluejay calls the SIP URI or the [dynamic SIP webhook](#dynamic-sip-webhook) you set on the agent. If your agent places calls, see [Outbound agents](#outbound-agents).
+
+| Field | API field | Description |
+|---|---|---|
+| SIP URI | `sip_uri` | Inbound agents only. `sip:user@host`. Use `sips:` or `;transport=tls`, `tcp`, or `udp` to set the transport. TLS without a port uses port 5061. |
+| SIP Username | <Code>sip_username</Code> | Optional. Digest auth username. |
+| SIP Password | <Code>sip_password</Code> | Optional. Digest auth password. |
+| SIP Headers | <Code>custom_sip_headers</Code> | Optional. Extra headers, sent with the names you enter. |
+| Dynamic SIP Webhook URL | <Code>dynamic_sip_webhook_url</Code> | Optional. If set, Bluejay uses it in place of the SIP URI. |
+
+To send your own headers on every call, add them after `?` on the SIP URI, for example `sip:agent@host?X-Tenant=acme`, and Bluejay puts them in the INVITE. A Digital Human trait marked as a SIP header also goes into the INVITE, with an `X-` prefix.
+
+### Dynamic SIP webhook
+
+Use a dynamic SIP webhook when each call needs its own SIP destination, for example a new room per call. Before each call, Bluejay sends a `POST` to the webhook and dials the destination in the response.
+
+Request body:
+
+```json
+{
+  "test_result_id": "583149",
+  "experiment_run_id": 163456,
+  "agent_id": 22330,
+  "organization_id": "fb838ba6-...",
+  "nonce": "583149",
+  "timestamp": "2026-07-07T21:43:48.461190+00:00"
+}
+```
+
+Response body:
+
+| Field | Required | Description |
+|---|---|---|
+| `sip_uri` | One of `sip_uri` or <Code>phone_number</Code> | SIP destination for this call. |
+| <Code>phone_number</Code> | One of `sip_uri` or <Code>phone_number</Code> | Phone number to dial in place of a SIP URI. |
+| <Code>sip_username</Code> | No | Digest auth username for this call. |
+| <Code>sip_password</Code> | No | Digest auth password for this call. |
+| <Code>custom_headers</Code> | No | Headers that Bluejay merges into the INVITE. |
+| `metadata` | No | Bluejay stores this in the result metadata under <Code>dynamic_sip_endpoint.response_metadata</Code>. |
+
+If the agent has a webhook signing key, Bluejay signs the body with HMAC-SHA256 and sends the signature in the `X-Bluejay-Signature` header. Verify it as shown in [HTTP Webhook (Chat)](/integrations/http-webhooks#verify-the-signature).
+
+<Warning>
+Bluejay sends the request up to 3 times, with a 10-second timeout each. Return the same destination for the same `test_result_id`. Otherwise a retry gets a different room, and you end up with duplicate rooms.
+</Warning>
+
+### Outbound agents
+
+If your agent places calls, it dials each Digital Human at a SIP address, and the Digital Human answers. The address is built from the Digital Human's [phone number](/integrations/phone-number#digital-human-numbers), so give each Digital Human one number. When a run starts, Bluejay tells your system which address to dial.
+
+<Steps>
+<Step title="Create the agent">
+Create a Voice agent with type **Outbound** and the **SIP** connection type, and set these fields:
+
+- **Outbound Trigger Webhook URL**: required. Bluejay sends a `POST` here for each conversation, and rejects the run if the field is empty. See [Outbound trigger webhook](/test/simulations/reference#outbound-trigger-webhook).
+- **SIP Username** and **SIP Password**: optional. Set both when your agent calls from your own SBC, as described below.
+
+Leave **SIP URI** empty. Bluejay never dials it for an Outbound agent.
+</Step>
+<Step title="Dial the Digital Human">
+When the trigger request arrives, call the `sip_uri` in its body. The address has the form `sip:<Digital Human phone number>@4ydpxced5og.sip.livekit.cloud`, with the number in E.164, for example `sip:+15551230000@4ydpxced5og.sip.livekit.cloud`.
+</Step>
+</Steps>
+
+The same address appears under **SIP Address** on the **Connection** tab of each Digital Human. If you set a custom body template on the trigger, add it with `{{digital_human.sip_uri}}`.
+
+Bluejay checks the caller before a Digital Human answers:
+
+- If the agent has both **SIP Username** and **SIP Password**, your agent must answer the digest auth challenge with them, and it can call from any source.
+- If either one is empty, Bluejay accepts only calls that arrive over the phone network through Twilio. A call from your own SBC without credentials is rejected.
+
+## SIP headers
+
+Bluejay adds these headers to every SIP INVITE it sends to your agent:
+
+| Header | Value |
+|---|---|
+| `X-Simulation-Result-Id` | The result ID. Use it with [<Code>/v1/update-simulation-result</Code>](/api-reference/endpoint/update-simulation-result). |
+| `X-Simulation-Run-Id` | The simulation run ID. |
+| `X-Simulation-Id` | The simulation ID. |
+| `X-Digital-Human-Id` | The Digital Human ID. |
+| `X-Agent-Id` | The agent ID. |
+| `X-Folder-Id` | The agent folder ID. |
+| `X-From-Number` | The Digital Human's phone number. |
+| `X-Sip-Uri` | The dialed SIP URI. |
+| `X-Call-Type` | `SIP` |
+| `X-Custom-Headers` | Your custom headers as one JSON string. |
+
+To attach tool calls, metadata, or [trace IDs](/test/traces#link-a-trace) to the result, read `X-Simulation-Result-Id` when the call arrives, then send them to `/v1/update-simulation-result` after the call. See [Tool Calls](/test/metrics#tool-calls-events-and-metadata).
+
+## Twilio SIP domain
+
+If your agent sits behind Twilio, put a Twilio SIP domain in front of it so Bluejay can call it over SIP. The example agent is OpenAI Realtime, but the Twilio steps are the same for any agent behind Twilio.
+
+<Steps>
+<Step title="Create a credential list">
+In the Twilio Console, open **Voice**, then **SIP domains**, then **Credential lists**. Create a list with a username and a password.
+</Step>
+<Step title="Create the SIP domain">
+On the **SIP domains** tab, click **Create SIP Domain**. Enter a unique name, for example `twilio-openai`. Under **Voice authentication**, select the credential list, and leave **IP access control lists** empty. Under **Call control configuration**, set **Configure method** to `Webhook` and **Webhook URL** to your server. Use `HTTP POST`.
+</Step>
+<Step title="Create the Bluejay agent">
+Set **SIP URI** to `sip:agent@twilio-openai.sip.twilio.com`. Set **SIP Username** and **SIP Password** from the credential list.
+</Step>
+</Steps>
+
+Twilio sends Bluejay SIP headers to your webhook as form fields with the `SipHeader_` prefix, for example `SipHeader_X-Simulation-Result-Id`.
+
+<Accordion title="OpenAI Realtime behind Twilio">
+
+To test the agent without Twilio or a phone line, connect it with [OpenAI Realtime](/integrations/openai-realtime) instead.
+
+Your server answers two requests per call, while the audio goes from Twilio to OpenAI directly.
+
+1. Twilio calls your `/twiml` route. Return TwiML that dials `sip:<OPENAI_PROJECT_ID>@sip.api.openai.com;transport=tls`. Set `callerId` on `<Dial>` to a number on your Twilio account.
+2. OpenAI sends `realtime.call.incoming` to the webhook on your OpenAI project. Verify the signature, return `200`, then call `POST /v1/realtime/calls/{call_id}/accept` with the instructions.
+
+To carry the result ID to OpenAI, add it to the dialed URI as `?X-Simulation-Result-Id=<id>`, and OpenAI returns it in `data.sip_headers` on the webhook event.
+
+```javascript
+app.all('/twiml', express.urlencoded({ extended: false }), (req, res) => {
+  const simId = req.body['SipHeader_X-Simulation-Result-Id'] || '';
+  const uri = `sip:${OPENAI_PROJECT_ID}@sip.api.openai.com;transport=tls` +
+    (simId ? `?X-Simulation-Result-Id=${encodeURIComponent(simId)}` : '');
+  res.type('text/xml').send(
+    `<Response><Dial answerOnBridge="true" callerId="${CALLER_ID}"><Sip>${uri}</Sip></Dial></Response>`
+  );
+});
+```
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| The leg to OpenAI ends with SIP 400 | No <Code>realtime.call.incoming</Code> webhook on the OpenAI project | Register the webhook on the same project as <Code>OPENAI_PROJECT_ID</Code>. |
+| Twilio error 13224 | `callerId` is missing, or OpenAI rejected the INVITE | Set `callerId`. Read `DialSipResponseCode` from the `<Dial>` action callback. |
+| Accept returns <Code>401 mismatched_project</Code> | The API key belongs to a different project | Use a key from the same project. |
+| Bluejay call fails with SIP 403 or 407 | Wrong credentials, or the list is under SIP registration | Attach the list under **Voice authentication**. |
+| The agent says a wrong date | The model has no clock | Add today's date to the instructions. |
+
+</Accordion>
+
+## Limits
+
+- If the dynamic SIP webhook fails 3 times, the call ends with status `NO_CONNECTION` and error `DYNAMIC_ENDPOINT_FAILED`. Bluejay does not fall back to the SIP URI.
+- For an Outbound agent, Bluejay sets no digest auth realm. An SBC that needs a specific realm may fail to authenticate.
+
+## Related
+
+- [Phone Number](/integrations/phone-number)
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [Create a Simulation](/test/simulations/create)
+- [Traces](/test/traces)

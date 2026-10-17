@@ -1,55 +1,65 @@
 ---
-title: 'Get Simulation Runs'
-description: "Get all simulation runs for a specific simulation."
-openapi: 'GET /v1/get-simulation-runs/{simulation_id}'
+title: "GET /v1/get-simulation-runs/{simulation_id}"
+description: "List the runs of one simulation with their status and results."
+sidebarTitle: "/\u200bv1/\u200bget-simulation-runs/\u200b{simulation_id}"
+api: "GET https://api.getbluejay.ai/v1/get-simulation-runs/{simulation_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Simulation Runs — GET /v1/get-simulation-runs/{simulation_id}
+Returns the runs of a simulation.
 
-> **What this endpoint does:** Get all simulation runs for a specific simulation.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/get-simulation-runs/{simulation_id}`
-**Auth:** `X-API-Key` header
+## Path parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| simulation_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "simulation_id", "type": "string", "required": true, "description": ""}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Headers
 
-def get_simulation_runs(simulation_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/get-simulation-runs/{simulation_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulation_runs", "type": "object[]", "required": false, "description": "List of simulation runs", "children": [{"name": "id", "type": "integer", "required": true, "description": "ID of the simulation run"}, {"name": "experiment_id", "type": "integer", "required": true, "description": "ID of the simulation associated with the run"}, {"name": "summary", "type": "string or null", "required": false, "description": "Summary of the simulation run"}, {"name": "tests_passed", "type": "integer or null", "required": false, "description": "Number of tests that passed in the simulation run"}, {"name": "tests_failed", "type": "integer or null", "required": false, "description": "Status-level failure count (dropped calls, infra errors) - NOT eval-grade failures. See eval_failed for that."}, {"name": "total_tests", "type": "integer or null", "required": false, "description": "Total number of tests in the simulation run"}, {"name": "tests_completed", "type": "integer or null", "required": false, "description": "Number of tests that were completed in the simulation run"}, {"name": "curr_step_id", "type": "integer or null", "required": false, "description": "Current step ID of the simulation run"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the simulation run was created"}, {"name": "status", "type": "string", "required": true, "description": "Current status of the simulation run", "values": ["RUNNING", "COMPLETED"]}, {"name": "phone_number", "type": "string or null", "required": false, "description": "Phone number of the simulation run"}, {"name": "eval_failed", "type": "integer or null", "required": true, "description": "Eval-grade failure count (tests_completed - tests_passed) - what most consumers mean by 'failed'. tests_failed only counts status-level failures."}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/get-simulation-runs/{simulation_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "simulation_runs": [
+    {
+      "id": 123,
+      "experiment_id": 123,
+      "summary": "<string>",
+      "tests_passed": 123,
+      "tests_failed": 123,
+      "total_tests": 123,
+      "tests_completed": 123,
+      "curr_step_id": 123,
+      "created_at": "2026-01-01T00:00:00Z",
+      "status": "RUNNING",
+      "phone_number": "<string>",
+      "eval_failed": 123
+    }
+  ]
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-This endpoint allows you to retrieve all runs for a specific simulation.
+{/* END GENERATED */}

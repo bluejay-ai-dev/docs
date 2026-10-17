@@ -1,0 +1,75 @@
+---
+title: "POST /v1/red-team-simulations"
+description: "Start a red team test that attacks your agent to find weak spots."
+sidebarTitle: "/\u200bv1/\u200bred-team-simulations"
+api: "POST https://api.getbluejay.ai/v1/red-team-simulations"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+import { Code } from "/snippets/code.jsx";
+
+Starts a red team test against an agent. Each attack is a real voice call.
+
+## Confirm the test
+
+1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
+2. Send the same request with `confirmed: true`. The response has `test_id`, `simulation_id`, and `simulation_run_id`.
+
+## Limits
+
+| Setting | Default | Maximum |
+|---|---|---|
+| `max_levels` | 5 | 5 (24 with <Code>attack_quotas</Code>) |
+| <Code>max_branches_per_node</Code> | 3 | 3 (20 with <Code>attack_quotas</Code>) |
+| <Code>max_total_dhs</Code> | 16 | 16 (83 with <Code>attack_quotas</Code>) |
+| <Code>max_call_duration_minutes</Code> | 10 | 10 |
+| `recon_count` | 3 | <Code>max_total_dhs</Code> |
+
+Send these settings inside `config`. Values above the maximum are lowered to the maximum. Each family in `attack_quotas` allows 20 attempts at most.
+
+## Errors
+
+- 400: the agent uses SMS.
+- 402 with code `RED_TEAMING_PAYMENT_METHOD_REQUIRED`: the organization has no payment method.
+- 403 with code `red_team_custom_matrix_not_allowed`: `attack_quotas` needs a Growth plan or higher. Check with [Get Red Team Entitlements](/api-reference/endpoint/get-red-team-entitlements).
+
+Rate limit: 30 requests per minute.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "Target agent to red-team."}, {"name": "config", "type": "object or null", "required": false, "description": "Overrides for max_levels/max_branches_per_node/max_total_dhs/max_call_duration_minutes/recon_count/objective/extension/harm_categories/harm_first/attack_quotas. attack_quotas is {social_engineering, prompt_injection, audio_native, content_harm} → attempt counts (0 = adaptive). Clamped to the mandatory ceilings; quota mode raises the call budget and sizes each attack level from those counts (largest family, at least one slot per active family). Content-safety probes run by default; pass harm_categories=[] for an OWASP-only test."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "", "default": false}]} />
+
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/red-team-simulations \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "config": {},
+    "confirmed": false
+  }'
+```
+
+{/* END GENERATED */}

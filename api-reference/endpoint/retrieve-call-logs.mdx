@@ -1,59 +1,197 @@
 ---
-title: 'Retrieve Call Logs'
-description: "DEPRECATED. Use GET /v1/observability/conversations instead."
-openapi: 'GET /v1/retrieve-call-logs/{agent_id}'
+title: "GET /v1/retrieve-call-logs/{agent_id}"
+description: "List the production call logs of one agent, with a page of results at a time."
+deprecated: true
+sidebarTitle: "/\u200bv1/\u200bretrieve-call-logs/\u200b{agent_id}"
+api: "GET https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Retrieve Call Logs — GET /v1/retrieve-call-logs/{agent_id}
+<Warning>
+  This endpoint is deprecated. Use [List Conversations](/api-reference/endpoint/list-conversations) with `agent_ids`.
+</Warning>
 
-> **What this endpoint does:** **DEPRECATED**. Use GET `/v1/observability/conversations` instead, which takes the same filters plus metric and metadata filters. Each row includes `metric_results`.
+Returns call logs for one agent, with evaluations.
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}`
-**Auth:** `X-API-Key` header
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Path parameters
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/retrieve-call-logs and include any optional parameters (e.g., `label`, `page_size`, `page`, `last`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": ""}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Query parameters
 
-def retrieve_call_logs(agent_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+<FieldTable rows={[{"name": "label", "type": "string or null", "required": false, "description": "Label of the agent to filter by"}, {"name": "page_size", "type": "integer", "required": false, "description": "Max calls per page", "default": 20}, {"name": "page", "type": "integer", "required": false, "description": "Page number (1-based)", "default": 1}, {"name": "last", "type": "string", "required": false, "description": "Last X days to filter by", "default": "1day", "values": ["1day", "3days", "7days", "30days", "90days", "all"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "call_logs", "type": "object[]", "required": false, "description": "List of calls retrieved from the database", "children": [{"name": "id", "type": "string", "required": true, "description": "Unique identifier for the call"}, {"name": "agent_id", "type": "string", "required": true, "description": "ID of the agent associated with the call"}, {"name": "external_agent_id", "type": "string or null", "required": false, "description": "External ID of the agent associated with the call"}, {"name": "recording_url", "type": "string or null", "required": true, "description": "URL to the recording file (supported formats: .mp4, .wav, .m4a)"}, {"name": "start_time_utc", "type": "string", "required": true, "description": "When the call started, in UTC"}, {"name": "participants", "type": "object[]", "required": true, "description": "List of call participants", "children": [{"name": "role", "type": "string", "required": true, "description": "Role of the participant in the call", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "spoke_first", "type": "boolean or null", "required": false, "description": "Whether the participant spoke first in the call"}, {"name": "name", "type": "string or null", "required": false, "description": "Name of the participant"}, {"name": "phone_number", "type": "string or null", "required": false, "description": "Phone number of the participant (if applicable)"}]}, {"name": "call_direction", "type": "string", "required": false, "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)", "default": "INBOUND", "values": ["INBOUND", "OUTBOUND"]}, {"name": "interface", "type": "string", "required": false, "description": "Interface used for the call", "default": "PHONE", "values": ["PHONE", "WEB"]}, {"name": "status", "type": "string", "required": true, "description": "Current status of the call", "values": ["INITIALIZING", "QUEUED", "READY", "DISPATCHED", "RUNNING", "CONVERSATION_ENDED", "EVALUATING", "COMPLETED", "NOT_EVALUATED", "NO_CONNECTION", "NO_ANSWER", "CALL_DROPPED", "OUT_OF_FUNDS", "SYSTEM_ERROR", "CUSTOM_ERROR", "CANCELLED", "INCOMPLETED", "REJECTED", "INSUFFICIENT_FUNDS"]}, {"name": "created_at", "type": "string (date-time)", "required": false, "description": "When this request was created (defaults to now in UTC)"}, {"name": "transcript_url", "type": "string or null", "required": false, "description": "URL to the transcript file (supported formats: .txt, .json)"}, {"name": "tool_calls", "type": "object[] or null", "required": false, "description": "List of tool calls made during the call", "children": [{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "parameters", "type": "object or null", "required": false, "description": ""}, {"name": "output", "type": "any or null", "required": false, "description": ""}]}, {"name": "events", "type": "object[] or null", "required": false, "description": "List of events that occurred during the call", "children": [{"name": "title", "type": "string", "required": true, "description": "Title of the event"}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the event in milliseconds"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the event"}, {"name": "end_offset_ms", "type": "integer or null", "required": false, "description": "End offset of the event in milliseconds"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the event"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the event"}]}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the call"}, {"name": "duration_ms", "type": "integer or null", "required": false, "description": "Duration of the call in milliseconds", "default": 0}, {"name": "evaluations", "type": "object[] or null", "required": false, "description": "List of evaluations associated with the call", "children": [{"name": "id", "type": "string", "required": false, "description": "Unique identifier for the evaluation result"}, {"name": "created_at", "type": "string (date-time)", "required": false, "description": "When this evaluation result was created (defaults to now in UTC)"}, {"name": "hallucination", "type": "boolean or null", "required": false, "description": "Whether the agent exhibited hallucination during the call"}, {"name": "hallucination_reasoning", "type": "string or null", "required": false, "description": "Reasoning behind the hallucination, if applicable"}, {"name": "redundancy", "type": "boolean or null", "required": false, "description": "Whether the agent exhibited redundancy during the call"}, {"name": "redundancy_reasoning", "type": "string or null", "required": false, "description": "Reasoning behind the redundancy, if applicable"}, {"name": "agent_speak_percentage", "type": "number or null", "required": true, "description": "Percentage of the call where the agent was speaking"}, {"name": "avg_agent_latency", "type": "number or null", "required": true, "description": "Average latency of the agent's responses during the call"}, {"name": "latency", "type": "object or null", "required": false, "description": "Latency metrics for the agent's responses", "children": [{"name": "avg_agent_latency", "type": "number or null", "required": false, "description": "Average latency", "default": 0}, {"name": "max_agent_latency", "type": "number or null", "required": false, "description": "Maximum latency", "default": 0}, {"name": "p50_agent_latency", "type": "number or null", "required": false, "description": "50th percentile latency", "default": 0}, {"name": "p90_agent_latency", "type": "number or null", "required": false, "description": "90th percentile latency", "default": 0}, {"name": "p95_agent_latency", "type": "number or null", "required": false, "description": "95th percentile latency", "default": 0}, {"name": "p99_agent_latency", "type": "number or null", "required": false, "description": "99th percentile latency", "default": 0}]}, {"name": "filler_ignored_latency", "type": "object or null", "required": false, "description": "Filler ignored latency metrics", "children": [{"name": "avg_filler_ignored_latency", "type": "number or null", "required": false, "description": "Average filler ignored latency", "default": 0}, {"name": "p50_filler_ignored_latency", "type": "number or null", "required": false, "description": "50th percentile filler ignored latency", "default": 0}, {"name": "p90_filler_ignored_latency", "type": "number or null", "required": false, "description": "90th percentile filler ignored latency", "default": 0}, {"name": "p95_filler_ignored_latency", "type": "number or null", "required": false, "description": "95th percentile filler ignored latency", "default": 0}, {"name": "p99_filler_ignored_latency", "type": "number or null", "required": false, "description": "99th percentile filler ignored latency", "default": 0}]}, {"name": "num_turns", "type": "integer or null", "required": false, "description": "Total number of turns taken by the agent during the call"}, {"name": "call_summary", "type": "string or null", "required": false, "description": "Summary of the call, if applicable"}, {"name": "custom_evals", "type": "any[] or object or null", "required": false, "description": "List of custom evaluations performed during the call"}, {"name": "custom_evals_success_rate", "type": "number or null", "required": false, "description": "Success rate of the custom evaluations performed during the call"}, {"name": "goal_success", "type": "boolean or null", "required": false, "description": "Whether the goal was successfully achieved during the call"}, {"name": "goal_reasoning", "type": "string or null", "required": false, "description": "Reasoning behind the goal success, if applicable"}, {"name": "pronunciation_score", "type": "number or null", "required": false, "description": "Pronunciation score of the agent during the call"}, {"name": "pronunciation_reasoning", "type": "string or null", "required": false, "description": "Reasoning behind the pronunciation score, if applicable"}, {"name": "sentiment_label", "type": "string or null", "required": false, "description": "Overall sentiment label for customer utterances"}, {"name": "sentiment_score", "type": "number or null", "required": false, "description": "Overall sentiment score for customer utterances"}, {"name": "sentiment_scores", "type": "object or null", "required": false, "description": "Per-label sentiment scores for customer utterances", "children": [{"name": "{key}", "type": "number", "required": false, "description": "Any key.", "children": []}]}, {"name": "custom_metrics", "type": "object[] or null", "required": false, "description": "Custom metrics associated with the evaluation", "children": [{"name": "name", "type": "string", "required": true, "description": "The name of the custom metric"}, {"name": "description", "type": "string", "required": true, "description": "The description of the custom metric"}, {"name": "response_type", "type": "string", "required": true, "description": "The response type of the custom metric"}, {"name": "response_value", "type": "string", "required": true, "description": "The response value of the custom metric"}, {"name": "reasoning", "type": "string or null", "required": false, "description": "The reasoning of the custom metric"}, {"name": "min_value", "type": "number or null", "required": false, "description": "The minimum value of the custom metric"}, {"name": "max_value", "type": "number or null", "required": false, "description": "The maximum value of the custom metric"}, {"name": "category", "type": "string or null", "required": false, "description": "The category of the custom metric"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "The tags of the custom metric"}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "The scoring guidance of the custom metric"}, {"name": "enum_options", "type": "string[] or null", "required": false, "description": "The enum options of the custom metric"}, {"name": "human_edited", "type": "boolean or null", "required": false, "description": "Whether this metric result was manually overridden by a human"}, {"name": "human_response_value", "type": "string or null", "required": false, "description": "Human-overridden response_value; null when no override applied"}, {"name": "human_reasoning", "type": "string or null", "required": false, "description": "Human-overridden reasoning; null when no override applied"}, {"name": "override_reason_code", "type": "string or null", "required": false, "description": "Structured reason for the latest human override. One of: ai_hallucination, overly_strict_success_criteria, overly_strict_system_prompt, other."}, {"name": "override_notes", "type": "string or null", "required": false, "description": "Freeform notes from the human reviewer accompanying the latest override"}, {"name": "last_edited_by", "type": "string or null", "required": false, "description": "User id of the most recent human reviewer"}, {"name": "last_edited_at", "type": "string (date-time) or null", "required": false, "description": "Timestamp of the most recent human override"}]}, {"name": "human_edited", "type": "boolean or null", "required": false, "description": "Whether any result in this evaluation was manually overridden by a human"}, {"name": "human_goal_success", "type": "boolean or null", "required": false, "description": "Human-overridden goal_success; null when no override applied"}, {"name": "human_goal_reasoning", "type": "string or null", "required": false, "description": "Human-overridden goal_reasoning; null when no override applied"}, {"name": "human_hallucination", "type": "boolean or null", "required": false, "description": "Human-overridden hallucination verdict; null when no override applied"}, {"name": "human_hallucination_reasoning", "type": "string or null", "required": false, "description": "Human-overridden hallucination reasoning; null when no override applied"}, {"name": "human_redundancy", "type": "boolean or null", "required": false, "description": "Human-overridden redundancy verdict; null when no override applied"}, {"name": "human_redundancy_reasoning", "type": "string or null", "required": false, "description": "Human-overridden redundancy reasoning; null when no override applied"}, {"name": "human_pronunciation_score", "type": "number or null", "required": false, "description": "Human-overridden pronunciation score; null when no override applied"}, {"name": "human_pronunciation_reasoning", "type": "string or null", "required": false, "description": "Human-overridden pronunciation reasoning; null when no override applied"}, {"name": "override_goal_reason_code", "type": "string or null", "required": false, "description": "Reason for the human override of goal_success."}, {"name": "override_goal_notes", "type": "string or null", "required": false, "description": "Freeform notes from the reviewer for the goal override."}, {"name": "override_hallucination_reason_code", "type": "string or null", "required": false, "description": "Reason for the human override of hallucination."}, {"name": "override_hallucination_notes", "type": "string or null", "required": false, "description": "Freeform notes from the reviewer for the hallucination override."}, {"name": "override_redundancy_reason_code", "type": "string or null", "required": false, "description": "Reason for the human override of redundancy."}, {"name": "override_redundancy_notes", "type": "string or null", "required": false, "description": "Freeform notes from the reviewer for the redundancy override."}, {"name": "override_pronunciation_reason_code", "type": "string or null", "required": false, "description": "Reason for the human override of pronunciation_score."}, {"name": "override_pronunciation_notes", "type": "string or null", "required": false, "description": "Freeform notes from the reviewer for the pronunciation override."}, {"name": "last_edited_by", "type": "string or null", "required": false, "description": "User id of the most recent human reviewer"}, {"name": "last_edited_at", "type": "string (date-time) or null", "required": false, "description": "Timestamp of the most recent human override"}, {"name": "predicted_age", "type": "number or null", "required": false, "description": "Estimated age of the caller in years, from their audio"}, {"name": "customer_gender", "type": "string or null", "required": false, "description": "Predicted gender of the caller: 'male', 'female', or 'indeterminate' when confidence is at or below 0.7"}, {"name": "gender_confidence", "type": "number or null", "required": false, "description": "Confidence 0-1 behind customer_gender; null when the prediction is 'indeterminate'"}, {"name": "detected_language", "type": "string or null", "required": false, "description": "Language detected on the call"}, {"name": "language_confidence", "type": "number or null", "required": false, "description": "Confidence 0-1 behind detected_language"}, {"name": "agent_audio_clarity", "type": "number or null", "required": false, "description": "Agent audio: audio clarity score 0-100 (higher better)"}, {"name": "user_audio_clarity", "type": "number or null", "required": false, "description": "User audio: audio clarity score 0-100 (higher better)"}]}, {"name": "metrics", "type": "object[] or null", "required": false, "description": "Metric results scored on this call. Includes the audio measurements that have no evaluations column, such as user_perceived_loudness, user_audio_clipping and user_audio_dropouts", "children": [{"name": "metric_name", "type": "string", "required": true, "description": "Stable name of the metric, e.g. 'user_perceived_loudness'"}, {"name": "metric_type", "type": "string", "required": true, "description": "One of int, float, boolean, enum, qualitative, json, pass_fail, yes_no"}, {"name": "value", "type": "string", "required": true, "description": "The effective value as a string: the human correction when one was applied, otherwise the model's"}, {"name": "human_edited", "type": "boolean", "required": false, "description": "Whether a reviewer overrode this result", "default": false}, {"name": "reasoning", "type": "string or null", "required": false, "description": "Reasoning behind the effective value"}]}, {"name": "annotations", "type": "any[] or null", "required": false, "description": "Annotations associated with the call"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the call"}, {"name": "custom_metrics", "type": "any[] or null", "required": false, "description": "Please use the custom metrics in the evaluations instead"}, {"name": "conversation_ended_by", "type": "string or null", "required": false, "description": "Which participant role ended the conversation: 'USER' or 'AGENT'", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}]}, {"name": "total_count", "type": "integer", "required": true, "description": "Total number of calls for this agent"}, {"name": "page", "type": "integer", "required": true, "description": "Current page (1-based)"}, {"name": "page_size", "type": "integer", "required": true, "description": "Page size"}, {"name": "total_pages", "type": "integer", "required": true, "description": "Total number of pages"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/retrieve-call-logs/{agent_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "call_logs": [
+    {
+      "id": "<string>",
+      "agent_id": "<string>",
+      "external_agent_id": "<string>",
+      "recording_url": "<string>",
+      "start_time_utc": "<string>",
+      "participants": [
+        {
+          "role": "AGENT",
+          "spoke_first": true,
+          "name": "<string>",
+          "phone_number": "<string>"
+        }
+      ],
+      "call_direction": "INBOUND",
+      "interface": "PHONE",
+      "status": "INITIALIZING",
+      "created_at": "2026-01-01T00:00:00Z",
+      "transcript_url": "<string>",
+      "tool_calls": [
+        {
+          "name": "<string>",
+          "start_offset_ms": 123,
+          "description": "<string>",
+          "parameters": {},
+          "output": null
+        }
+      ],
+      "events": [
+        {
+          "title": "<string>",
+          "start_offset_ms": 123,
+          "description": "<string>",
+          "end_offset_ms": 123,
+          "tags": [
+            null
+          ],
+          "metadata": {}
+        }
+      ],
+      "tags": [
+        "<string>"
+      ],
+      "duration_ms": 0,
+      "evaluations": [
+        {
+          "id": "<string>",
+          "created_at": "2026-01-01T00:00:00Z",
+          "hallucination": true,
+          "hallucination_reasoning": "<string>",
+          "redundancy": true,
+          "redundancy_reasoning": "<string>",
+          "agent_speak_percentage": 1.5,
+          "avg_agent_latency": 1.5,
+          "latency": {
+            "avg_agent_latency": 0,
+            "max_agent_latency": 0,
+            "p50_agent_latency": 0,
+            "p90_agent_latency": 0,
+            "p95_agent_latency": 0,
+            "p99_agent_latency": 0
+          },
+          "filler_ignored_latency": {
+            "avg_filler_ignored_latency": 0,
+            "p50_filler_ignored_latency": 0,
+            "p90_filler_ignored_latency": 0,
+            "p95_filler_ignored_latency": 0,
+            "p99_filler_ignored_latency": 0
+          },
+          "num_turns": 123,
+          "call_summary": "<string>",
+          "custom_evals": [
+            null
+          ],
+          "custom_evals_success_rate": 1.5,
+          "goal_success": true,
+          "goal_reasoning": "<string>",
+          "pronunciation_score": 1.5,
+          "pronunciation_reasoning": "<string>",
+          "sentiment_label": "<string>",
+          "sentiment_score": 1.5,
+          "sentiment_scores": {
+            "key": null
+          },
+          "custom_metrics": [
+            {}
+          ],
+          "human_edited": true,
+          "human_goal_success": true,
+          "human_goal_reasoning": "<string>",
+          "human_hallucination": true,
+          "human_hallucination_reasoning": "<string>",
+          "human_redundancy": true,
+          "human_redundancy_reasoning": "<string>",
+          "human_pronunciation_score": 1.5,
+          "human_pronunciation_reasoning": "<string>",
+          "override_goal_reason_code": "<string>",
+          "override_goal_notes": "<string>",
+          "override_hallucination_reason_code": "<string>",
+          "override_hallucination_notes": "<string>",
+          "override_redundancy_reason_code": "<string>",
+          "override_redundancy_notes": "<string>",
+          "override_pronunciation_reason_code": "<string>",
+          "override_pronunciation_notes": "<string>",
+          "last_edited_by": "<string>",
+          "last_edited_at": "2026-01-01T00:00:00Z",
+          "predicted_age": 1.5,
+          "customer_gender": "<string>",
+          "gender_confidence": 1.5,
+          "detected_language": "<string>",
+          "language_confidence": 1.5,
+          "agent_audio_clarity": 1.5,
+          "user_audio_clarity": 1.5
+        }
+      ],
+      "metrics": [
+        {
+          "metric_name": "<string>",
+          "metric_type": "<string>",
+          "value": "<string>",
+          "human_edited": false,
+          "reasoning": "<string>"
+        }
+      ],
+      "annotations": [
+        null
+      ],
+      "metadata": {},
+      "custom_metrics": [
+        null
+      ],
+      "conversation_ended_by": "AGENT"
+    }
+  ],
+  "total_count": 123,
+  "page": 123,
+  "page_size": 123,
+  "total_pages": 123
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-**DEPRECATED.** Use `GET /v1/observability/conversations` instead. Pass `agent_ids` to scope to an agent. Each row includes `metric_results`.
-
-This endpoint still works for existing integrations. It returns one call log per observability conversation for `agent_id`, including evaluations.
+{/* END GENERATED */}

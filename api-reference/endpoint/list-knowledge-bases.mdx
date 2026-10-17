@@ -1,42 +1,57 @@
 ---
-title: 'List Knowledge Bases'
-description: "List your organization's knowledge bases with document counts"
-openapi: 'GET /v1/knowledge-base'
+title: "GET /v1/knowledge-base"
+description: "List all Knowledge Bases in your organization with their names and IDs."
+sidebarTitle: "/\u200bv1/\u200bknowledge-base"
+api: "GET https://api.getbluejay.ai/v1/knowledge-base"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## List Knowledge Bases — GET /v1/knowledge-base
+Returns the Knowledge Bases in your organization, each with `document_count`.
 
-> **What this endpoint does:** List your organization's knowledge bases with document counts.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/knowledge-base`
-**Auth:** `X-API-Key` header
+## Headers
 
-### Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Example
-```python
-import requests
+## Response
 
-def list_knowledge_bases(api_key: str) -> list:
-    r = requests.get("https://api.getbluejay.ai/v1/knowledge-base", headers={"X-API-Key": api_key})
-    r.raise_for_status()
-    return r.json()
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "organization_id", "type": "string", "required": true, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "updated_at", "type": "string or null", "required": false, "description": ""}, {"name": "document_count", "type": "integer", "required": false, "description": "", "default": 0}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/knowledge-base \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Handle 404 (not found / not in your organization) and 422 (validation error).
-````
-</div>
+## Example response
 
-Returns every knowledge base in your organization, each with a `document_count`.
+```json 200
+[
+  {
+    "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "organization_id": "<string>",
+    "name": "<string>",
+    "description": "<string>",
+    "folder_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "created_at": "<string>",
+    "updated_at": "<string>",
+    "document_count": 0
+  }
+]
+```
+
+{/* END GENERATED */}

@@ -1,0 +1,69 @@
+---
+title: "POST /v1/metrics-lab/lab/{lab_id}/conversations"
+description: "Add production calls or simulation results to a Metrics Lab lab to test metrics on them."
+sidebarTitle: "/\u200bv1/\u200bmetrics-lab/\u200blab/\u200b{lab_id}/\u200bconversations"
+api: "POST https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Adds conversations to a lab.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "lab_id", "type": "string", "required": true, "description": "Lab ID (UUID as string)"}, {"name": "conversations", "type": "object[]", "required": true, "description": "List of conversations to add to the lab", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Simulated conversation ID"}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "added_count", "type": "integer", "required": true, "description": "Number of conversations successfully added"}, {"name": "skipped_count", "type": "integer", "required": true, "description": "Number of conversations that were skipped (already existed)"}, {"name": "added_conversation_ids", "type": "object[]", "required": true, "description": "List of conversation identifiers that were added"}, {"name": "message", "type": "string or null", "required": false, "description": "Human-readable message about the operation"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "lab_id": "<string>",
+    "conversations": [
+      {
+        "call_id": "<string>",
+        "test_result_id": 123
+      }
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "added_count": 123,
+  "skipped_count": 123,
+  "added_conversation_ids": [
+    {}
+  ],
+  "message": "<string>"
+}
+```
+
+{/* END GENERATED */}

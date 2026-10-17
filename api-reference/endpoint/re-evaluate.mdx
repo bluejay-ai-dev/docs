@@ -1,54 +1,54 @@
 ---
-title: 'Reevaluate'
-description: "Re-evaluate a call."
-openapi: 'POST /v1/re-evaluate/{conversation_id}'
+title: "POST /v1/re-evaluate/{conversation_id}"
+description: "Score a conversation again, for example against another agent version."
+sidebarTitle: "/\u200bv1/\u200bre-evaluate/\u200b{conversation_id}"
+api: "POST https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Reevaluate — POST /v1/re-evaluate/{conversation_id}
+Creates a new evaluation for a conversation.
 
-> **What this endpoint does:** Re-evaluate a call.
+The JSON body is optional. Send `{"version": 3}` to score against agent version 3. Omit the body, or send `{}`, to keep the version stored on the conversation. An unknown version returns 400.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}`
-**Auth:** `X-API-Key` header
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| call_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Path parameters
 
-### Example
-**POST with body:**
-```python
-import requests
+<FieldTable rows={[{"name": "conversation_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-def reevaluate(call_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/re-evaluate/{conversation_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string", "required": true, "description": ""}, {"name": "call_id", "type": "string", "required": true, "description": ""}, {"name": "message", "type": "string", "required": true, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/re-evaluate/{conversation_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "status": "<string>",
+  "call_id": "<string>",
+  "message": "<string>"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-Reevaluate an existing call by call ID. Will create a new evaluation for the call.
+{/* END GENERATED */}

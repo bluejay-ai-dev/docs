@@ -1,56 +1,61 @@
 ---
-title: 'Get Communities'
-description: "Get all communities, optionally filtered by Digital Human (test case)."
-openapi: 'GET /v1/communities'
+title: "GET /v1/communities"
+description: "List all communities of Digital Humans in your organization."
+sidebarTitle: "/\u200bv1/\u200bcommunities"
+api: "GET https://api.getbluejay.ai/v1/communities"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Communities — GET /v1/communities
+Returns the communities in your organization. Filter by Digital Human with the query parameter.
 
-> **What this endpoint does:** Get all communities, optionally filtered by Digital Human (test case).
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/communities`
-**Auth:** `X-API-Key` header
+## Query parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "digital_human_id", "type": "integer or null", "required": false, "description": ""}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/get-communities and include any optional parameters (e.g., `digital_human_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Headers
 
-### Example
-**Simple GET:**
-```python
-import requests
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-def get_communities(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/communities"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Response
+
+<FieldTable rows={[{"name": "communities", "type": "object[]", "required": true, "description": "List of communities", "children": [{"name": "id", "type": "string", "required": true, "description": "Unique identifier for the community"}, {"name": "title", "type": "string", "required": true, "description": "Title of the community"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the community"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When this community was created"}, {"name": "digital_human_ids", "type": "integer[]", "required": false, "description": "List of digital human (test case) IDs associated with this community"}]}, {"name": "total_count", "type": "integer", "required": true, "description": "Total number of communities"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/communities \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "communities": [
+    {
+      "id": "<string>",
+      "title": "<string>",
+      "description": "<string>",
+      "created_at": "2026-01-01T00:00:00Z",
+      "digital_human_ids": [
+        123
+      ]
+    }
+  ],
+  "total_count": 123
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-This endpoint allows you to retrieve communities.
+{/* END GENERATED */}

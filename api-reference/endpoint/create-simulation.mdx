@@ -1,72 +1,84 @@
 ---
-title: 'Create Simulation'
-description: "Create a new simulation with the provided details. Returns the simulation ID and a status code."
-openapi: 'POST /v1/create-simulation'
+title: "POST /v1/create-simulation"
+description: "Create a simulation that tests your agent with a set of Digital Humans."
+sidebarTitle: "/\u200bv1/\u200bcreate-simulation"
+api: "POST https://api.getbluejay.ai/v1/create-simulation"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Create Simulation — POST /v1/create-simulation
+Creates a simulation for an agent and returns `simulation_id`.
 
-> **What this endpoint does:** Create a new simulation with the provided details. Returns the simulation id and a status code.
+`prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/create-simulation`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| agent_id | string | ID of the agent to be used in the simulation |
+## Headers
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-simulation and include any optional parameters (e.g., `name`, `description`, `agent_version_id`, `knowledge_base_id`, `sequential_calling`, `max_concurrent`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Request Body (required fields)
-```json
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": "ID of the agent to be used in the simulation"}, {"name": "name", "type": "string or null", "required": false, "description": "Name of the simulation"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the simulation"}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Deprecated. Use agent_version_id. Same uuid, still works."}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": "Optional default agent version UUID for this simulation"}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": "Optional default knowledge base UUID for this simulation"}, {"name": "max_concurrent", "type": "integer or null", "required": false, "description": "Maximum number of concurrent calls in the simulation (max 500)"}, {"name": "hangup_on_transfer", "type": "boolean or null", "required": false, "description": "Whether to hang up the call on transfer", "default": false}, {"name": "max_call_duration", "type": "integer or null", "required": false, "description": "Maximum duration of each call (default is 10). Units specified by max_call_duration_units", "default": 10}, {"name": "max_call_duration_units", "type": "string or null", "required": false, "description": "Units for max_call_duration: 'minutes' (default) or 'seconds'", "default": "minutes", "values": ["minutes", "seconds"]}, {"name": "ringing_timeout", "type": "integer or null", "required": false, "description": "Ringing timeout in seconds for SIP trunks (default 300s)", "default": 300}, {"name": "digital_humans_settings", "type": "object or null", "required": false, "description": "Settings for digital humans in the simulation", "children": [{"name": "default_name", "type": "string or null", "required": false, "description": "Default name for the digital human", "default": "random"}, {"name": "default_caller_number", "type": "string or null", "required": false, "description": "Default caller phone number for the digital human", "default": "random"}, {"name": "default_language", "type": "string or null", "required": false, "description": "Default language for the digital human", "default": "random"}, {"name": "default_background_noise", "type": "string or null", "required": false, "description": "Background noise to be used in the simulation", "default": "none"}, {"name": "first_message", "type": "string or null", "required": false, "description": "First message to be spoken by the digital human", "default": "ai_generated"}, {"name": "num_runs", "type": "integer or null", "required": false, "description": "Number of runs per digital human per simulation run (run count).", "default": 1}]}, {"name": "selected_custom_metrics", "type": "array of string (uuid) or null", "required": false, "description": "Custom metric IDs to enable for this simulation"}, {"name": "custom_metrics_failing_threshold", "type": "integer or null", "required": false, "description": "Score threshold below which a custom metric is considered failing (0-100)"}, {"name": "custom_metrics_passing_threshold", "type": "integer or null", "required": false, "description": "Score threshold at or above which a custom metric is considered passing (0-100)"}, {"name": "runs_per_digital_human", "type": "integer or null", "required": false, "description": "Number of simulation runs to execute per digital human (defaults to 1 when omitted)"}, {"name": "delay_between_tests_seconds", "type": "number or null", "required": false, "description": "seconds to wait after a test completes before the next launches (0 = off)"}, {"name": "inactivity_timeout_seconds", "type": "integer or null", "required": false, "description": "seconds to wait for an agent reply before ending a text conversation (300-1800 = 5-30 min); defaults to 300 when unset"}, {"name": "always_on", "type": "boolean or null", "required": false, "description": "When true, simulation has always-on digital humans configured", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulation_id", "type": "integer", "required": true, "description": "ID of the created simulation"}, {"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "200"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/create-simulation \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": "<string>",
+    "name": "<string>",
+    "description": "<string>",
+    "prompt_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "agent_version_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "knowledge_base_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "max_concurrent": 123,
+    "hangup_on_transfer": false,
+    "max_call_duration": 10,
+    "max_call_duration_units": "minutes",
+    "ringing_timeout": 300,
+    "digital_humans_settings": {
+      "default_name": "random",
+      "default_caller_number": "random",
+      "default_language": "random",
+      "default_background_noise": "none",
+      "first_message": "ai_generated",
+      "num_runs": 1
+    },
+    "selected_custom_metrics": [
+      "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+    ],
+    "custom_metrics_failing_threshold": 123,
+    "custom_metrics_passing_threshold": 123,
+    "runs_per_digital_human": 123,
+    "delay_between_tests_seconds": 1.5,
+    "inactivity_timeout_seconds": 123,
+    "always_on": false
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "agent_id": "string"
+  "simulation_id": 123,
+  "status": "200"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-simulation. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_simulation(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/create-simulation"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-<Note>
-  **New:** `agent_version_id`
-
-  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
-</Note>
-
- Given the agent ID, and simulation settings, this endpoint creates a simulation and returns the simulation ID.
+{/* END GENERATED */}

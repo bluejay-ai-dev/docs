@@ -1,74 +1,74 @@
 ---
-title: 'Create Agent Version'
-description: "Create a new agent version under /agents/{agent_id}/versions."
-openapi: 'POST /v1/agents/{agent_id}/versions'
+title: "POST /v1/agents/{agent_id}/versions"
+description: "Create a new version of an agent prompt to test or deploy."
+sidebarTitle: "/\u200bv1/\u200bagents/\u200b{agent_id}/\u200bversions"
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Create Agent Version — POST /v1/agents/{agent_id}/versions
+Creates the next agent version of an agent. `prompt_text` is optional. If you omit it, Bluejay copies the current prompt.
 
-> **What this endpoint does:** create a new agent version under /agents/{agent_id}/versions.
+`POST /v1/agents/{agent_id}/prompts/versions` is the deprecated path of this endpoint.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/agents/{agent_id}/versions`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | integer |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Path parameters
 
-`prompt_text` is optional. Omit it to copy the current prompt (the agent's latest version) and increment the version. Send `""` to store a blank prompt.
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version and include any optional parameters (e.g., `prompt_text`, `commit_message`, `labels`, `override_label`, `metadata`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Headers
 
-### Request Body
-```json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "prompt_text", "type": "string or null", "required": false, "description": "Prompt content. Omit to copy the current latest version (MAX(version) / latest label) and increment. An empty string stores a blank prompt."}, {"name": "commit_message", "type": "string or null", "required": false, "description": ""}, {"name": "labels", "type": "string[] or null", "required": false, "description": ""}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When true, a label that already points at another version (including production) moves here.", "default": false}, {"name": "metadata", "type": "object or null", "required": false, "description": ""}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "the id of the prompt"}, {"name": "prompt_text", "type": "string", "required": true, "description": "the prompt content"}, {"name": "commit_message", "type": "string or null", "required": false, "description": ""}, {"name": "labels", "type": "string[] or null", "required": false, "description": "labels associated with the prompt"}, {"name": "metadata", "type": "object or null", "required": false, "description": "arbitrary JSON metadata"}, {"name": "version", "type": "integer", "required": true, "description": "the version number of the prompt"}, {"name": "agent_id", "type": "integer", "required": true, "description": "id of the agent that owns this prompt"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "prompt_text": "<string>",
+    "commit_message": "<string>",
+    "labels": [
+      "<string>"
+    ],
+    "override_label": false,
+    "metadata": {}
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "prompt_text": "You are a helpful assistant."
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "prompt_text": "<string>",
+  "commit_message": "<string>",
+  "labels": [
+    "<string>"
+  ],
+  "metadata": {},
+  "version": 123,
+  "agent_id": 123
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-prompt-version. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_prompt_version(agent_id: int, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-<Note>
-  **New:** `POST /v1/agents/{agent_id}/versions`
-
-  **Deprecated:** `POST /v1/agents/{agent_id}/prompts/versions`. Old path, still works.
-</Note>
-
-Creates a new agent version under `/agents/{agent_id}/versions`. `prompt_text` is optional. Omit it to copy the current prompt and increment the version.
+{/* END GENERATED */}

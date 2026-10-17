@@ -1,0 +1,75 @@
+---
+title: "POST /v1/metrics-lab/evaluate-conversation"
+description: "Queue one lab conversation for evaluation with the metrics in the lab."
+sidebarTitle: "/\u200bv1/\u200bmetrics-lab/\u200bevaluate-conversation"
+api: "POST https://api.getbluejay.ai/v1/metrics-lab/evaluate-conversation"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Queues an evaluation of one conversation with the metrics you send. The conversation is a production call or a simulation result. Read the result with [Get Lab](/api-reference/endpoint/get-lab).
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": "Lab ID (UUID) for the evaluation"}, {"name": "conversation", "type": "object", "required": true, "description": "Conversation to evaluate", "children": [{"name": "type", "type": "string", "required": true, "description": "Type of conversation: 'obs_conversation' or 'sim_conversation'", "values": ["obs_conversation", "sim_conversation"]}, {"name": "id", "type": "string", "required": true, "description": "ID of the conversation (obs_conversation_id UUID or sim_conversation_id integer as string)"}]}, {"name": "metrics", "type": "object", "required": true, "description": "Metrics to use for evaluation", "children": [{"name": "type", "type": "string", "required": true, "description": "Type of metrics: 'custom_metric' or 'custom_metric_revision'", "values": ["custom_metric", "custom_metric_revision"]}, {"name": "custom_metric_ids", "type": "string[] or null", "required": false, "description": "List of custom metric IDs (required when type is 'custom_metric')"}, {"name": "custom_metric_revision_id", "type": "string or null", "required": false, "description": "Custom metric revision ID (required when type is 'custom_metric_revision')"}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string", "required": true, "description": "Status of the operation"}, {"name": "message", "type": "string", "required": true, "description": "Response message"}, {"name": "conversation_id", "type": "string", "required": true, "description": "ID of the conversation"}, {"name": "conversation_type", "type": "string", "required": true, "description": "Type of conversation"}, {"name": "metrics", "type": "object[]", "required": true, "description": "List of metrics with their evaluation IDs", "children": [{"name": "type", "type": "string", "required": true, "description": "Type of metric: 'custom_metric' or 'custom_metric_revision'"}, {"name": "id", "type": "string", "required": true, "description": "Metric ID (custom_metric_id or custom_metric_revision_id)"}, {"name": "eval_id", "type": "string", "required": true, "description": "Evaluation ID (lab_annotate_ai_evaluation_id or lab_ai_evaluation_id)"}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/metrics-lab/evaluate-conversation \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "lab_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "conversation": {
+      "type": "obs_conversation",
+      "id": "<string>"
+    },
+    "metrics": {
+      "type": "custom_metric",
+      "custom_metric_ids": [
+        "<string>"
+      ],
+      "custom_metric_revision_id": "<string>"
+    }
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "status": "<string>",
+  "message": "<string>",
+  "conversation_id": "<string>",
+  "conversation_type": "<string>",
+  "metrics": [
+    {
+      "type": "<string>",
+      "id": "<string>",
+      "eval_id": "<string>"
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

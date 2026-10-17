@@ -1,5 +1,50 @@
 ---
-title: 'Get Uptime Series'
-description: 'Uptime percentage over time for one monitor — the data behind the uptime chart.'
-openapi: 'GET /v1/uptime/monitors/{monitor_id}/series'
+title: "GET /v1/uptime/monitors/{monitor_id}/series"
+description: "Get the pass and fail history of an uptime monitor over time."
+sidebarTitle: "/\u200bv1/\u200buptime/\u200bmonitors/\u200b{monitor_id}/\u200bseries"
+api: "GET https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/series"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Returns outcome counts, uptime percentage, and p50, p90, p95, and p99 latency per time bucket. `days` is 7 by default and 365 at most.
+
+<Warning>
+  This endpoint needs a signed-in user token. A request with an API key returns 400.
+</Warning>
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": ""}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "days", "type": "integer", "required": false, "description": "Lookback window in days.", "default": 7}, {"name": "bucket", "type": "string or null", "required": false, "description": "Aggregation granularity. Defaults to a width that suits the range."}, {"name": "check", "type": "string or null", "required": false, "description": "Grade one health check instead of the monitor's own verdict: its check_type, or a custom metric's id."}, {"name": "label", "type": "string or null", "required": false, "description": "The check's display name, so runs written before custom metrics were keyed by id still grade."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/series \
+  --header 'X-API-Key: <api-key>'
+```
+
+{/* END GENERATED */}

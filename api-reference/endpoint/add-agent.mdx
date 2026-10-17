@@ -1,87 +1,172 @@
 ---
-title: 'Add Agent'
-description: "Add a new agent to the system. Returns the agent ID, status, and version (always 1 on create). Store agent_id and version."
-openapi: 'POST /v1/add-agent'
+title: "POST /v1/add-agent"
+description: "Add an agent to Bluejay so you can test and monitor it."
+sidebarTitle: "/\u200bv1/\u200badd-agent"
+api: "POST https://api.getbluejay.ai/v1/add-agent"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Add Agent — POST /v1/add-agent
+import { Code } from "/snippets/code.jsx";
 
-> **What this endpoint does:** Add a new agent to the system. Returns the agent id, status, and version (always 1 on create). Store agent_id and version.
+Adds an agent. The response contains `agent_id` and `version`, which is always `1` on create. Store both values.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/add-agent`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Fields by connection type
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| name | string | Name of the agent |
-| system_prompt | string | System prompt for the agent |
-| knowledge_base | string | Knowledge base of the agent |
-| goals | array[string] | List of goals for the agent |
+Each `connection_type` reads its own fields from the request. A request without a required field returns `400`.
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/add-agent and include any optional parameters (e.g., `phone_number`, `type`, `connection_type`, `mode`, `keyterms`, `external_agent_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+| `connection_type` | Required | Optional |
+|---|---|---|
+| `PHONE`<br />`SMS` | None | <Code>phone_number</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
+| `SIP` | None | `sip_uri`<br /><Code>sip_username</Code><br /><Code>sip_password</Code><br /><Code>custom_sip_headers</Code><br /><Code>dynamic_sip_webhook_url</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
+| `WEBSOCKET` | None | <Code>websocket_url</Code><br /><Code>websocket_username</Code><br /><Code>websocket_password</Code> |
+| `LIVEKIT` | None | <Code>livekit_agent_name</Code><br /><Code>livekit_metadata</Code><br /><Code>livekit_customer_tool_topic</Code><br /><Code>livekit_token_webhook_url</Code><br /><Code>livekit_token_webhook_auth</Code> |
+| `PIPECAT` | None | <Code>pipecat_agent_name</Code><br /><Code>pipecat_agent_configuration</Code><br /><Code>pipecat_room_properties</Code> |
+| <Code>HTTP_WEBHOOK</Code> | None | `http_webhook`<br /><Code>http_webhook_sync_reply</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
+| <Code>ELEVEN_LABS</Code> | <Code>eleven_labs_agent_id</Code> | None |
+| `RETELL` | <Code>retell_agent_id</Code> | <Code>phone_number</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
+| `VAPI` | <Code>vapi_assistant_id</Code> | None |
+| `KORE` | `kore_host`<br />`kore_bot_id`<br /><Code>kore_client_id</Code><br /><Code>kore_client_secret</Code> | None |
+| <Code>OPENAI_CHAT</Code> | <Code>openai_base_url</Code> | <Code>openai_api_key</Code><br /><Code>openai_model</Code> |
+| <Code>OPENAI_REALTIME</Code> | None | <Code>openai_realtime_url</Code><br /><Code>openai_realtime_session</Code><br /><Code>openai_api_key</Code><br /><Code>openai_model</Code><br /><Code>openai_prompt_id</Code><br /><Code>openai_prompt_version</Code> |
+| <Code>SIERRA_VOICE</Code> | <Code>sierra_agent_token</Code> | <Code>sierra_release</Code><br /><Code>sierra_agent_parameters</Code> |
+| <Code>AMELIA_CHAT</Code><br /><Code>AMELIA_VOICE</Code> | <Code>amelia_base_url</Code><br /><Code>amelia_domain_code</Code> | <Code>amelia_flow_name</Code><br /><Code>amelia_agent_name</Code> |
+| <Code>GOOGLE_CES_CHAT</Code><br /><Code>GOOGLE_CES_VOICE</Code> | `ces_app_id`<br /><Code>ces_deployment_id</Code> | None |
+| <Code>GOOGLE_DFCX_CHAT</Code><br /><Code>GOOGLE_DFCX_VOICE</Code> | <Code>dfcx_project_id</Code><br /><Code>dfcx_location</Code><br /><Code>dfcx_agent_id</Code> | None |
+| <Code>BLAND_PHONE</Code><br /><Code>BLAND_CHAT</Code> | <Code>bland_pathway_id</Code> | <Code>bland_call_settings</Code><br /><Code>provider_request_data</Code><br /><Code>phone_number</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
+| <Code>BLAND_VOICE</Code> | <Code>bland_pathway_id</Code><br /><Code>bland_agent_id</Code> | <Code>bland_call_settings</Code><br /><Code>provider_request_data</Code><br /><Code>phone_number</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
+| `EMAIL` | <Code>email_address</Code> | <Code>email_reply_addresses</Code><br /><Code>outbound_trigger_webhook_url</Code><br /><Code>outbound_trigger_payload_template</Code> |
 
-### Request Body (required fields)
-```json
-{
-  "name": "example_name",
-  "system_prompt": "You are a helpful assistant.",
-  "knowledge_base": "string",
-  "goals": [
-    "string"
-  ]
-}
+An `OPENAI_REALTIME` agent without `openai_realtime_url` connects to OpenAI's own Realtime endpoint. An `EMAIL` agent always gets `mode` `EMAIL`.
+
+If you leave out `connection_type`, Bluejay infers it from the fields you send. For example, `vapi_assistant_id` makes a `VAPI` agent. Google CES, Dialogflow CX, Amelia and Bland agents are inferred as voice agents, so send `connection_type` for a chat agent. A request with none of these fields makes a `PHONE` agent.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "bluejay_as_code_id", "type": "string (uuid) or null", "required": false, "description": "Stable code-addressable identifier"}, {"name": "name", "type": "string", "required": true, "description": "Name of the agent"}, {"name": "system_prompt", "type": "string", "required": true, "description": "System prompt for the agent"}, {"name": "phone_number", "type": "string or null", "required": false, "description": "Phone number associated with the agent"}, {"name": "goals", "type": "string[]", "required": true, "description": "List of goals for the agent"}, {"name": "type", "type": "string or null", "required": false, "description": "INBOUND: Agent receives incoming calls from customers OUTBOUND: Agent makes outgoing calls to customers", "default": "INBOUND", "values": ["INBOUND", "OUTBOUND"]}, {"name": "connection_type", "type": "string or null", "required": false, "description": "Connection type of the agent (Livekit, Websocket, etc.)", "values": ["SMS", "HTTP_WEBHOOK", "PHONE", "SIP", "WEBSOCKET", "LIVEKIT", "PIPECAT", "ELEVEN_LABS", "RETELL", "VAPI", "KORE", "OPENAI_CHAT", "OPENAI_REALTIME", "SIERRA_VOICE", "AMELIA_CHAT", "AMELIA_VOICE", "GOOGLE_CES_CHAT", "GOOGLE_CES_VOICE", "GOOGLE_DFCX_VOICE", "GOOGLE_DFCX_CHAT", "BLAND_PHONE", "BLAND_VOICE", "BLAND_CHAT", "EMAIL"]}, {"name": "mode", "type": "string or null", "required": false, "description": "Modality of the agent", "default": "VOICE", "values": ["VOICE", "TEXT", "EMAIL"]}, {"name": "keyterms", "type": "string[] or null", "required": false, "description": "List of keyterms for the agent"}, {"name": "follow_up_sms_sender_numbers", "type": "string[] or null", "required": false, "description": "E.164 campaign numbers authorized to send this agent's follow-up SMS"}, {"name": "external_agent_id", "type": "string or null", "required": false, "description": "External agent ID for the agent"}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Custom labels to attach to version 1 alongside production and latest"}, {"name": "folder", "type": "string or null", "required": false, "description": "Name of the folder to put the agent in"}, {"name": "websocket_url", "type": "string or null", "required": false, "description": "WebSocket URL for real-time communication"}, {"name": "websocket_username", "type": "string or null", "required": false, "description": "Username for WebSocket authentication"}, {"name": "websocket_password", "type": "string or null", "required": false, "description": "Password for WebSocket authentication"}, {"name": "sip_uri", "type": "string or null", "required": false, "description": "SIP URI for VoIP calls"}, {"name": "sip_username", "type": "string or null", "required": false, "description": "Username for SIP authentication"}, {"name": "sip_password", "type": "string or null", "required": false, "description": "Password for SIP authentication"}, {"name": "custom_sip_headers", "type": "object or null", "required": false, "description": "Custom headers for SIP requests (Do not include `X-` prefix for the headers, these get added automatically)", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "dynamic_sip_webhook_url", "type": "string or null", "required": false, "description": "Per-call SIP endpoint webhook. When set (SIP connection), each call fetches its destination SIP URI from this URL at dial time."}, {"name": "outbound_trigger_webhook_url", "type": "string or null", "required": false, "description": "Customer-dialed sims: Bluejay POSTs a rendered payload to this URL at dispatch so the customer's own flow dials their agent into the receiving digital human."}, {"name": "outbound_trigger_payload_template", "type": "object or null", "required": false, "description": "JSON template for the outbound trigger webhook body; {{tokens}} like {{digital_human.phone_number}} are filled per call."}, {"name": "redact_pii", "type": "boolean or null", "required": false, "description": "Enable/disable PII redaction", "default": false}, {"name": "livekit_agent_name", "type": "string or null", "required": false, "description": "LiveKit agent name"}, {"name": "livekit_metadata", "type": "object or null", "required": false, "description": "LiveKit metadata"}, {"name": "livekit_customer_tool_topic", "type": "string or null", "required": false, "description": "LiveKit customer tool topic"}, {"name": "livekit_token_webhook_url", "type": "string or null", "required": false, "description": "Webhook URL Bluejay calls per simulated call to fetch a LiveKit room token; alternative to storing the org's LiveKit API key/secret. Empty string clears the field."}, {"name": "livekit_token_webhook_auth", "type": "string or null", "required": false, "description": "Value of the Authorization header Bluejay sends on the token-webhook POST (e.g. 'Bearer <token>'). Stored encrypted. Empty string clears the field."}, {"name": "pipecat_agent_name", "type": "string or null", "required": false, "description": "Pipecat agent name"}, {"name": "pipecat_agent_configuration", "type": "object or null", "required": false, "description": "Pipecat agent configuration"}, {"name": "pipecat_room_properties", "type": "object or null", "required": false, "description": "Pipecat room properties"}, {"name": "http_webhook", "type": "string or null", "required": false, "description": "HTTP webhook URL for text agent communication"}, {"name": "http_webhook_sync_reply", "type": "boolean or null", "required": false, "description": "HTTP_WEBHOOK text agents: your endpoint answers in the HTTP response body instead of calling /send-http-text-message. Bluejay reads the reply out of that response."}, {"name": "voice_provider", "type": "string or null", "required": false, "description": "Voice provider for the agent"}, {"name": "provider_id", "type": "string or null", "required": false, "description": "Provider ID for the agent"}, {"name": "eleven_labs_agent_id", "type": "string or null", "required": false, "description": "ElevenLabs Convai agent_id (for ELEVEN_LABS connection type; the xi-api-key lives in the org's integrations row)"}, {"name": "retell_agent_id", "type": "string or null", "required": false, "description": "Retell agent_id (for RETELL connection type; the retell_key lives in the org's integrations row)"}, {"name": "vapi_assistant_id", "type": "string or null", "required": false, "description": "Vapi assistant_id (for VAPI connection type; the vapi_private_key lives in the org's integrations row)"}, {"name": "ces_app_id", "type": "string or null", "required": false, "description": "Google CES app id (for GOOGLE_CES_VOICE / GOOGLE_CES_CHAT; the WIF JSON lives in the org's integrations row)"}, {"name": "ces_deployment_id", "type": "string or null", "required": false, "description": "Google CES deployment id (deployment is bound to a specific app version)"}, {"name": "dfcx_project_id", "type": "string or null", "required": false, "description": "Google Dialogflow CX GCP project ID (for GOOGLE_DFCX_VOICE / GOOGLE_DFCX_CHAT; the WIF JSON lives in the org's integrations row)"}, {"name": "dfcx_location", "type": "string or null", "required": false, "description": "Google Dialogflow CX location (e.g. us-central1, global)"}, {"name": "dfcx_agent_id", "type": "string or null", "required": false, "description": "Google Dialogflow CX agent UUID (from the DFCX agent resource)"}, {"name": "amelia_base_url", "type": "string or null", "required": false, "description": "Amelia deployment base URL including context root (e.g. https://tenant.amelia.com/Amelia)"}, {"name": "amelia_domain_code", "type": "string or null", "required": false, "description": "Amelia domain code the conversation opens against (from /api/init -> domains[].code)"}, {"name": "amelia_flow_name", "type": "string or null", "required": false, "description": "Which conversation flow in the Amelia domain this agent tracks (required for workflow sync)"}, {"name": "amelia_agent_name", "type": "string or null", "required": false, "description": "Which cognitive agent in the Amelia domain this agent tracks (takes precedence over amelia_flow_name for workflow sync)"}, {"name": "kore_host", "type": "string or null", "required": false, "description": "Kore.ai platform host (e.g. https://kb.est.k8s.qa.kore.aws.spctrm.net)"}, {"name": "kore_bot_id", "type": "string or null", "required": false, "description": "Kore.ai bot ID (e.g. st-d536681d-...)"}, {"name": "kore_client_id", "type": "string or null", "required": false, "description": "Kore.ai webhook app Client ID (cs-...)"}, {"name": "kore_client_secret", "type": "string or null", "required": false, "description": "Kore.ai webhook app Client Secret (HS256); stored encrypted"}, {"name": "openai_base_url", "type": "string or null", "required": false, "description": "Base URL of an OpenAI-compatible API, e.g. https://example.com/v1; the driver appends /chat/completions"}, {"name": "openai_api_key", "type": "string or null", "required": false, "description": "Bearer key for OPENAI_CHAT or OPENAI_REALTIME; stored encrypted. Omit for an agent behind no auth"}, {"name": "openai_model", "type": "string or null", "required": false, "description": "Model name sent in the request; many compatible servers ignore it"}, {"name": "openai_realtime_url", "type": "string or null", "required": false, "description": "OpenAI Realtime wss endpoint (for OPENAI_REALTIME); defaults to OpenAI's own, set it for Azure or a self-hosted server"}, {"name": "openai_realtime_session", "type": "object or null", "required": false, "description": "Merged into the bridge's session.update: instructions, voice, turn_detection, tools. Audio formats are set by Bluejay and cannot be overridden"}, {"name": "openai_prompt_id", "type": "string or null", "required": false, "description": "Stored OpenAI prompt the agent is built from (pmpt_...). Referencing it tests the agent itself; pasting its instructions into openai_realtime_session tests a copy"}, {"name": "openai_prompt_version", "type": "string or null", "required": false, "description": "Prompt version to pin. Omit to open whatever the prompt's current revision is"}, {"name": "email_address", "type": "string or null", "required": false, "description": "EMAIL connection: the customer agent's inbox the digital human emails"}, {"name": "email_reply_addresses", "type": "string[] or null", "required": false, "description": "EMAIL connection: other addresses the customer agent may reply from. The digital human always writes to email_address; a reply from any listed address is accepted once it authenticates."}, {"name": "bland_pathway_id", "type": "string or null", "required": false, "description": "Bland pathway id the agent runs (for BLAND_VOICE / BLAND_CHAT; the bland_api_key lives in the org's integrations row)"}, {"name": "bland_agent_id", "type": "string or null", "required": false, "description": "Bland web agent id bound to the pathway (required for BLAND_VOICE: a pathway itself cannot be dialled)"}, {"name": "sierra_agent_token", "type": "string or null", "required": false, "description": "Sierra agent token: the URL path segment naming the agent in the Sierra Voice Protocol (for SIERRA_VOICE; the org's headless API token lives in the integrations row)"}, {"name": "sierra_release", "type": "string or null", "required": false, "description": "Sierra release to pin the conversation to: a release target name (e.g. staging, production) or a release hash. Empty string clears the field."}, {"name": "sierra_agent_parameters", "type": "object or null", "required": false, "description": "Sierra agentParameters: a map of string key/value pairs the agent receives as request parameters at open (at most 512 entries)"}, {"name": "bland_call_settings", "type": "object or null", "required": false, "description": "Bland send-call params for this agent's dispatch (voicemail_action, interruption_threshold, max_duration, voice...). Unset keys inherit Bland's own defaults; unknown keys are refused. Pass {} to clear."}, {"name": "provider_request_data", "type": "object or null", "required": false, "description": "Send-call request_data template for Bland outbound dispatch. Cooked advisor/match fields; each digital human's name, phone and email overlay at send time. Pass {} to clear."}, {"name": "enable_outbound_call_auto_start", "type": "boolean or null", "required": false, "description": "Automatically initiate an outbound call when a test result reaches READY state"}, {"name": "simulations_disabled", "type": "boolean or null", "required": false, "description": "Enable/disable simulations for this agent", "default": false}, {"name": "workflow", "type": "object or null", "required": false, "description": "Provider-specific workflow definition (e.g. full ElevenLabs Get Agent response). Parsing depends on `provider`."}, {"name": "provider", "type": "string or null", "required": false, "description": "Source platform the agent's definition comes from. Defaults to ELEVENLABS for ELEVEN_LABS connection_type, otherwise CUSTOM.", "values": ["CUSTOM", "ELEVENLABS", "VAPI", "RETELL", "GOOGLE_CES_VOICE", "GOOGLE_CES_CHAT", "GOOGLE_DFCX_VOICE", "GOOGLE_DFCX_CHAT", "AMELIA", "BLAND"]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "ID of the created agent"}, {"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "200"}, {"name": "version", "type": "integer or null", "required": false, "description": "Bluejay version integer; always 1 on create"}, {"name": "http_webhook_key", "type": "string or null", "required": false, "description": "Signing key for HTTP webhook (only provided if http_webhook was set)"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/add-agent \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "bluejay_as_code_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "name": "<string>",
+    "system_prompt": "<string>",
+    "phone_number": "<string>",
+    "goals": [
+      "<string>"
+    ],
+    "type": "INBOUND",
+    "connection_type": "SMS",
+    "mode": "VOICE",
+    "keyterms": [
+      "<string>"
+    ],
+    "follow_up_sms_sender_numbers": [
+      "<string>"
+    ],
+    "external_agent_id": "<string>",
+    "labels": [
+      "<string>"
+    ],
+    "folder": "<string>",
+    "websocket_url": "<string>",
+    "websocket_username": "<string>",
+    "websocket_password": "<string>",
+    "sip_uri": "<string>",
+    "sip_username": "<string>",
+    "sip_password": "<string>",
+    "custom_sip_headers": {
+      "key": "<string>"
+    },
+    "dynamic_sip_webhook_url": "<string>",
+    "outbound_trigger_webhook_url": "<string>",
+    "outbound_trigger_payload_template": {},
+    "redact_pii": false,
+    "livekit_agent_name": "<string>",
+    "livekit_metadata": {},
+    "livekit_customer_tool_topic": "<string>",
+    "livekit_token_webhook_url": "<string>",
+    "livekit_token_webhook_auth": "<string>",
+    "pipecat_agent_name": "<string>",
+    "pipecat_agent_configuration": {},
+    "pipecat_room_properties": {},
+    "http_webhook": "<string>",
+    "http_webhook_sync_reply": true,
+    "voice_provider": "<string>",
+    "provider_id": "<string>",
+    "eleven_labs_agent_id": "<string>",
+    "retell_agent_id": "<string>",
+    "vapi_assistant_id": "<string>",
+    "ces_app_id": "<string>",
+    "ces_deployment_id": "<string>",
+    "dfcx_project_id": "<string>",
+    "dfcx_location": "<string>",
+    "dfcx_agent_id": "<string>",
+    "amelia_base_url": "<string>",
+    "amelia_domain_code": "<string>",
+    "amelia_flow_name": "<string>",
+    "amelia_agent_name": "<string>",
+    "kore_host": "<string>",
+    "kore_bot_id": "<string>",
+    "kore_client_id": "<string>",
+    "kore_client_secret": "<string>",
+    "openai_base_url": "<string>",
+    "openai_api_key": "<string>",
+    "openai_model": "<string>",
+    "openai_realtime_url": "<string>",
+    "openai_realtime_session": {},
+    "openai_prompt_id": "<string>",
+    "openai_prompt_version": "<string>",
+    "email_address": "<string>",
+    "email_reply_addresses": [
+      "<string>"
+    ],
+    "bland_pathway_id": "<string>",
+    "bland_agent_id": "<string>",
+    "sierra_agent_token": "<string>",
+    "sierra_release": "<string>",
+    "sierra_agent_parameters": {},
+    "bland_call_settings": {},
+    "provider_request_data": {},
+    "enable_outbound_call_auto_start": true,
+    "simulations_disabled": false,
+    "workflow": {},
+    "provider": "CUSTOM"
+  }'
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/add-agent. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
+## Example response
 
-### Example
-**POST with body:**
-```python
-import requests
-
-def add_agent(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/add-agent"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-Given the name, system prompt, knowledge base, phone number, and goals, this endpoint adds your agent and returns the agent ID and version.
-
-<Note>
-  The response includes `version`. Bluejay version integer; always `1` on create. Store `agent_id` and `version`.
-</Note>
-
-```json
+```json 200
 {
-  "agent_id": 1842,
+  "agent_id": 123,
   "status": "200",
-  "version": 1
+  "version": 123,
+  "http_webhook_key": "<string>"
 }
 ```
+
+{/* END GENERATED */}

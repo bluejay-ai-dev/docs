@@ -1,57 +1,55 @@
 ---
-title: 'Delete Call Log'
-description: "Delete a specific call log given its ID. Validates that the user has access to the call log by checking organization membership."
-openapi: 'DELETE /v1/call-log/{call_id}'
+title: "DELETE /v1/call-log/{call_id}"
+description: "Delete one production call log by its call ID to remove that call from Bluejay."
+sidebarTitle: "/\u200bv1/\u200bcall-log/\u200b{call_id}"
+api: "DELETE https://api.getbluejay.ai/v1/call-log/{call_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Delete Call Log — DELETE /v1/call-log/{call_id}
+Deletes a call log. Set `recording_only=true` to delete only the recording file and keep the call log.
 
-> **What this endpoint does:** Delete a specific call log given its ID. Validates that the user has access to the call log by checking organization membership. Args: call_id: The ID of the call to delete recording_only: If True, only delete the recording file and clear recording fields. If False (default), delete the entire call log.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** DELETE `https://api.getbluejay.ai/v1/call-log/{call_id}`
-**Auth:** `X-API-Key` header
+## Path parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| call_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "call_id", "type": "string", "required": true, "description": ""}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/delete-call-log and include any optional parameters (e.g., `recording_only`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Query parameters
 
-### Example
-**DELETE request:**
-```python
-import requests
+<FieldTable rows={[{"name": "recording_only", "type": "boolean", "required": false, "description": "If true, only delete the recording file and clear recording fields. If false, delete the entire call log including all data.", "default": false}]} />
 
-def delete_call_log(call_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/call-log/{call_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.delete(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "message", "type": "string", "required": true, "description": "Success message"}, {"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "200"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request DELETE \
+  --url https://api.getbluejay.ai/v1/call-log/{call_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "message": "<string>",
+  "status": "200"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-This endpoint allows you to delete a call log and optionally the recording only. The `call_id` identifies the observability conversation to delete.
+{/* END GENERATED */}

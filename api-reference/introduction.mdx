@@ -1,97 +1,96 @@
 ---
-title: "API Reference Introduction"
+title: "API Reference"
 sidebarTitle: "Introduction"
-description: 'Build with the Bluejay simulations and observability APIs'
+description: "Make your first request to the Bluejay REST API, and handle its errors, pagination, and rate limits."
 icon: code
 ---
 
-Bluejay provides APIs for testing, monitoring, and improving conversational AI agents across voice and chat workflows.
+import { Code } from "/snippets/code.jsx";
 
-## Base URL
+The Bluejay REST API takes and returns JSON. To find an endpoint, use the sidebar or the [cheat sheet](/api-reference/cheat-sheet).
 
-```bash
-https://api.getbluejay.ai/v1
+## Make your first request
+
+<Steps>
+  <Step title="Get an API key">
+    Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key. **Scope** decides which workspaces the key reaches:
+
+    - **Workspace**: requests read and write only in the workspace you pick.
+    - **Organization**: requests act as you and reach every workspace you can open. Anything the key creates lands in the workspace you last selected in the app.
+
+    A key stops reaching a workspace when you lose access to it. Because the key already decides the organization, the API ignores the `X-Organization-Id` header.
+  </Step>
+  <Step title="Send a request">
+    Send every request to the base URL `https://api.getbluejay.ai`, with the key in the `X-API-Key` header. All endpoint paths start with `/v1`. This request lists the agents your key can reach:
+
+    ```bash
+    curl https://api.getbluejay.ai/v1/all-agents \
+      -H "X-API-Key: YOUR_API_KEY"
+    ```
+  </Step>
+  <Step title="Read the response">
+    A successful request returns a `2xx` status and a JSON body. This request returns a list of agents, and each item has the agent's `id`, which other endpoints take as `agent_id`. Each endpoint page shows the fields of its response and an example. If the request fails, read the status code and the `detail` field, as [Errors](#errors) explains.
+  </Step>
+</Steps>
+
+To try an endpoint without writing code, use the [API Playground](/api-reference/playground).
+
+## Errors
+
+When a request fails, the response has an HTTP status code and a JSON body whose `detail` field explains the problem:
+
+```json
+{ "detail": "Agent not found" }
 ```
 
-## Authentication
+<div className="table-fit">
 
-Sign up for a [Bluejay Account](https://app.getbluejay.ai) and
-generate an API key from the [API Keys page](https://app.getbluejay.ai/settings/api-keys).
-If you do not have a Bluejay account, book a demo [here](https://cal.com/rohanv/15min) to receive one. 
+| Status | Meaning |
+|---|---|
+| 400 | The request is not valid for the current state, for example a delete that a rule blocks. |
+| 401 | The API key is missing, not valid, or revoked. |
+| 402 | The organization needs a payment method. `code` is <Code>NO_PAYMENT_METHOD</Code> or <Code>RED_TEAMING_PAYMENT_METHOD_REQUIRED</Code>. |
+| 403 | The resource is not in your organization or workspace. `code` is <Code>INSUFFICIENT_CREDITS</Code> or <Code>SPEND_ALERT_REACHED</Code> when billing blocks the request. |
+| 404 | The resource does not exist. |
+| 409 | The request conflicts with current data, for example a duplicate. |
+| 422 | A field failed validation. `detail` is a list of items with `loc`, `msg`, and `type`. |
+| 429 | The rate limit is exceeded. The body is `{"error": "Rate limit exceeded: ..."}`. |
+| 503 | Authentication is not available for a short time. Send the request again. |
 
-Use that key to authenticate requests to the Bluejay API.
+</div>
 
-## Start here
+When billing blocks a request, the body also has a `code` field next to `detail`:
 
-<CardGroup cols={2}>
-  <Card
-    title="Run simulations"
-    icon="flask"
-    href="/api-reference/endpoint/queue-simulation-run"
-  >
-    Queue realistic simulation runs to evaluate agents before they reach production.
-  </Card>
-  <Card
-    title="Evaluate production calls"
-    icon="chart-line"
-    href="/api-reference/endpoint/evaluate"
-  >
-    Measure quality, latency, and behavior in live conversations with observability workflows.
-  </Card>
-  <Card
-    title="Manage agents"
-    icon="robot"
-    href="/api-reference/endpoint/add-agent"
-  >
-    Create, update, and organize the agents that power your evaluation workflows.
-  </Card>
-  <Card
-    title="Subscribe to webhooks"
-    icon="bolt"
-    href="/api-reference/webhook/events-webhook"
-  >
-    Push results and event data into downstream systems when runs complete.
-  </Card>
-</CardGroup>
+```json
+{ "detail": "...", "code": "INSUFFICIENT_CREDITS" }
+```
 
-## Running a Simulation via API
+## Pagination
 
-<Steps>
-  <Step title="Add Agent" titleSize="h3">
-    [Add your agent](/api-reference/endpoint/add-agent) to Bluejay if you haven't already.
-  </Step>
-  <Step title="Create Simulation" titleSize="h3">
-    [Create a simulation](/api-reference/endpoint/create-simulation) to group your Digital Humans so you can run them in parallel.
-  </Step>
-  <Step title="Generate or Create Digital Humans" titleSize="h3">
-    [Generate](/api-reference/endpoint/generate-digital-humans) or [create](/api-reference/endpoint/create-digital-human) Digital Humans. Make sure to attach the Simulation ID so the Digital Humans are associated with the Simulation you created in Step 2.
-  </Step>
-  <Step title="Queue Simulation Run" titleSize="h3">
-    [Queue a simulation run](/api-reference/endpoint/queue-simulation-run) to trigger the simulation — think of this as the Run button.
-  </Step>
-</Steps>
+A list endpoint that can return many rows splits them into pages, using one of three styles. Each endpoint page shows its parameters, defaults, and maximum values.
 
-## Integrating Observability
+<div className="table-fit">
 
-<Steps>
-  <Step title="Add Agent" titleSize="h3">
-    [Add your agent](/api-reference/endpoint/add-agent) to Bluejay if you haven't already.
-  </Step>
-  <Step title="Define Custom Metrics" titleSize="h3">
-    [Create custom metrics](/api-reference/endpoint/create-custom-metric) that capture the quality signals you care about — resolution rate, tone, compliance, or anything specific to your use case.
-  </Step>
-  <Step title="Send Calls to Evaluate" titleSize="h3">
-    [Call the evaluate endpoint](/api-reference/endpoint/evaluate) with a recording URL or transcript from your production calls. Bluejay scores each call against your agent's configured metrics.
-  </Step>
-  <Step title="Review Results" titleSize="h3">
-    List production conversations with `GET /v1/observability/conversations` to inspect scores, latency, and per-metric results. `GET /v1/retrieve-call-logs/{agent_id}` is deprecated.
-  </Step>
-</Steps>
+| Style | Parameters | Example endpoints |
+|---|---|---|
+| Page | `page` (starts at 1) and `page_size` | [Get All Digital Humans](/api-reference/endpoint/get-all-digital-humans), [List conversations](/api-reference/endpoint/list-conversations) |
+| Offset | `limit` and `offset` | [List Issues](/api-reference/endpoint/list-issues), [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results) |
+| Limit | `limit` only | [List Traces](/api-reference/endpoint/list-traces), [List Agent Versions](/api-reference/endpoint/list-prompt-versions) |
 
-## Core API areas
+</div>
 
-- `Agents`: create and manage the systems you want to evaluate.
-- `Simulations`: define test scenarios, Digital Humans, and simulation runs.
-- `Observability`: evaluate live calls, logs, and quality signals.
-- `Workflows`: automate evaluation and operational follow-up.
-- `Webhooks`: stream Bluejay events into your own tooling.
+Other list endpoints return all rows in one response.
+
+## Rate limits
+
+Endpoints with a rate limit allow 100 requests per minute from each client IP address, unless the end of the endpoint page shows a different limit.
+
+[Evaluate](/api-reference/endpoint/evaluate) counts requests for your whole organization instead of for each IP address. It allows 100 requests per minute, or 500 for enterprise accounts.
+
+If you go over a limit, the request returns 429. Wait until the next minute, then send the request again.
+
+## Related
+
+- [API cheat sheet](/api-reference/cheat-sheet)
+- [Connect the MCP server](/mcp/connect)
+- [Bluejay as Code](/bluejay-as-code/overview)

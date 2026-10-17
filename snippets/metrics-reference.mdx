@@ -1,0 +1,65 @@
+import { Code } from "/snippets/code.jsx";
+
+### Tool call fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | The tool name. |
+| <Code>start_offset_ms</Code> | integer | Yes | Milliseconds from the start of the conversation. |
+| `description` | string | No | What the tool does. |
+| `parameters` | object | No | The input to the tool. |
+| `output` | any | No | The value the tool returned. |
+
+### Event fields
+
+An event marks a moment in the conversation, for example an escalation or a hold.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | The event name. |
+| <Code>start_offset_ms</Code> | integer | Yes | Milliseconds from the start of the conversation. |
+| <Code>end_offset_ms</Code> | integer | No | When the event ended. |
+| `description` | string | No | Details of the event. |
+| `tags` | string[] | No | Tags for the event. |
+| `metadata` | object | No | Extra data for the event. |
+
+## Metrics Lab
+
+You label conversations with the verdict you expect, then test prompt revisions until the metric agrees with you.
+
+<iframe
+  src="https://www.youtube.com/embed/9OaFvPKCvaI"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+### Build a lab
+
+A lab pairs one or more custom metrics with a sample of conversations from an agent or a simulation run. You test prompt revisions against this sample, so the result is only as good as the sample. Select 20 to 50 conversations for each metric, and include clear passes, clear fails, and unclear cases.
+
+![The Lab tab on the Metrics page with the Create Lab button](/images/metrics-lab-landing.png)
+
+![The Create Lab dialog with the name, metrics, and conversations steps](/images/metrics-lab-create-dialog.png)
+
+### Label the conversations
+
+Your label is the human verdict, and the metric's result is the AI verdict. The alignment score shows how often the two agree. To save time, label in bulk when many rows share the same verdict.
+
+![The Annotate tab with AI and Human columns](/images/metrics-lab-annotate-table.png)
+
+<Note>
+Label every conversation before you read the alignment score. The score compares only rows that have a human verdict.
+</Note>
+
+To test prompt revisions and publish the best one, see [Improve the accuracy of a metric](/cookbook/improve-metric-accuracy).
+
+## Related
+
+- [Custom Metrics API](/api-reference/endpoint/create-custom-metrics)
+- [Custom Metrics MCP tools](/mcp/testing-tools#metrics)
+- [Evaluate API](/api-reference/endpoint/evaluate)
+- [Metrics Lab API](/api-reference/endpoint/create-lab)
+- [Metrics Lab MCP tools](/mcp/testing-tools#labs)

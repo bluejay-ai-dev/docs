@@ -1,43 +1,65 @@
 ---
-title: 'Get Knowledge Base'
-description: 'Fetch a knowledge base with its documents and ingestion status'
-openapi: 'GET /v1/knowledge-base/{knowledge_base_id}'
+title: "GET /v1/knowledge-base/{knowledge_base_id}"
+description: "Get the details of one Knowledge Base and the agents attached to it."
+sidebarTitle: "/\u200bv1/\u200bknowledge-base/\u200b{knowledge_base_id}"
+api: "GET https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Knowledge Base — GET /v1/knowledge-base/{knowledge_base_id}
+Returns a Knowledge Base and its documents. Each document has an ingestion `status`.
 
-> **What this endpoint does:** Fetch a knowledge base with its documents and ingestion status.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id}`
-**Auth:** `X-API-Key` header
+## Path parameters
 
-### Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| knowledge_base_id | string (uuid) | **Required.** The knowledge base to fetch. |
+<FieldTable rows={[{"name": "knowledge_base_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-### Example
-```python
-import requests
+## Headers
 
-def get_knowledge_base(kb_id: str, api_key: str) -> dict:
-    r = requests.get(f"https://api.getbluejay.ai/v1/knowledge-base/{kb_id}", headers={"X-API-Key": api_key})
-    r.raise_for_status()
-    return r.json()
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "organization_id", "type": "string", "required": true, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "updated_at", "type": "string or null", "required": false, "description": ""}, {"name": "documents", "type": "object[]", "required": true, "description": "", "children": [{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "type", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "status", "type": "string or null", "required": false, "description": ""}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/knowledge-base/{knowledge_base_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Handle 404 (not found / not in your organization) and 422 (validation error).
-````
-</div>
+## Example response
 
-Returns the knowledge base plus its documents, each with an ingestion `status`.
+```json 200
+{
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "organization_id": "<string>",
+  "name": "<string>",
+  "description": "<string>",
+  "folder_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "created_at": "<string>",
+  "updated_at": "<string>",
+  "documents": [
+    {
+      "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+      "name": "<string>",
+      "type": "<string>",
+      "created_at": "<string>",
+      "status": "<string>"
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

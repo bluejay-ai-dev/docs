@@ -1,0 +1,51 @@
+---
+title: "Traces"
+description: "Investigate why your agent failed (or succeeded) in a simulation with traces."
+icon: route
+sidebarTitle: "Traces"
+---
+
+import TracesShared from "/snippets/traces-shared.mdx";
+
+Bluejay accepts OpenTelemetry traces and shows each trace next to the simulated conversation that you link it to.
+
+If you are linking traces to production calls, see [Traces](/monitor/traces).
+
+<iframe
+  src="https://www.youtube.com/embed/wNhFpwT3dTQ"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+<TracesShared />
+
+## Link a trace
+
+To show a trace next to its simulated conversation, send Bluejay the trace IDs for that call.
+
+1. Read the `X-Simulation-Result-Id` that Bluejay sends with each simulated call. It arrives as a SIP header, a WebSocket upgrade header, or in a form that your [integration page](/integrations/phone-number) describes.
+2. Collect the trace IDs that your agent creates during the call.
+3. After the call ends, call `tracer_provider.force_flush()`. If you skip this, the trace can be missing.
+4. Send `simulation_result_id` and `trace_ids` to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+
+```python
+import httpx
+
+async def link_traces(simulation_result_id, trace_ids, api_key):
+    async with httpx.AsyncClient(timeout=10) as client:
+        await client.post(
+            "https://api.getbluejay.ai/v1/update-simulation-result",
+            json={"simulation_result_id": simulation_result_id, "trace_ids": trace_ids},
+            headers={"X-API-Key": api_key},
+        )
+```
+
+## Related
+
+- [Traces API](/api-reference/endpoint/list-traces)
+- [Traces MCP tools](/mcp/monitoring-tools#monitor)
+- [Create a Simulation](/test/simulations/create)
+- [Tool Calls, Events, and Metadata](/test/metrics#tool-calls-events-and-metadata)

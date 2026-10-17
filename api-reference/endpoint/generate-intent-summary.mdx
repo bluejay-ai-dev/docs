@@ -1,65 +1,58 @@
 ---
-title: 'Generate intent summary'
-description: 'Generate an intent summary for a test case when intent exceeds a character limit.'
-openapi: 'POST /v1/generate-intent-summary'
+title: "POST /v1/generate-intent-summary"
+description: "Shorten a long Digital Human intent into a brief summary."
+sidebarTitle: "/\u200bv1/\u200bgenerate-intent-summary"
+api: "POST https://api.getbluejay.ai/v1/generate-intent-summary"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Generate intent summary — POST /v1/generate-intent-summary
+Writes `intent_summary` on a Digital Human. If the intent is 500 characters or shorter, Bluejay clears `intent_summary` and the response has `skipped: true`.
 
-> **What this endpoint does:** Generate intent summary for a test case (only if intent exceeds character limit). **400** if the test case tags indicate workflow playback (tag lowercased contains `workflow`): workflow-tagged Digital Humans use enriched playback on the agent; intent summary is not applicable.
+The response is 400 if the Digital Human has a workflow or voicemail tag, or has no intent.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/generate-intent-summary`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| test_case_id | integer | ID of the test case |
+## Headers
 
-### Request Body (required fields)
-```json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "test_case_id", "type": "integer", "required": true, "description": "ID of the test case"}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "intent_summary", "type": "string or null", "required": false, "description": "The generated intent summary, or null if intent is short"}, {"name": "test_case_id", "type": "integer", "required": true, "description": "ID of the test case"}, {"name": "skipped", "type": "boolean", "required": false, "description": "True if summary was skipped because intent is short", "default": false}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/generate-intent-summary \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "test_case_id": 123
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "test_case_id": 123
+  "intent_summary": "<string>",
+  "test_case_id": 123,
+  "skipped": false
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/generate-intent-summary. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def generate_intent_summary(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/generate-intent-summary"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 400: Workflow-tagged test case: intent summary not applicable; 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-For some workflow-driven Digital Humans this route returns **400**; see the constraints above and the OpenAPI description.
+{/* END GENERATED */}

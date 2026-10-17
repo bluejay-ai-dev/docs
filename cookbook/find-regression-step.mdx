@@ -1,0 +1,43 @@
+---
+title: "Find Which Check a Regression Broke"
+sidebarTitle: "Find a Regression"
+description: "See which step of a call broke after an agent change, not only that the pass rate dropped."
+icon: magnifying-glass-chart
+---
+
+A run gives each call one pass or fail, so when an agent change breaks something you see the pass rate dip but not which part of the call went wrong. If you split the call into separate checks, each with its own custom metric, every run shows which check failed and on which calls. This recipe sets up those checks and compares them across runs.
+
+## Before you start
+
+- Create a simulation that covers the flow you want to protect. See [Create a Simulation](/test/simulations/create).
+- Save the current agent prompt as an [Agent Version](/test/simulations/reference#agent-versions), so that you have a baseline to compare against.
+
+## Steps
+
+<Steps>
+  <Step title="Write one metric for each check">
+    Create one [custom metric](/test/metrics) for each step you always care about, for example that the agent quoted the right price, booked the appointment, and captured a callback number. Keep each metric to one question with a Pass/Fail result, so a failure points to one step. Add the metrics to the simulation in its **Custom Metrics** tab.
+  </Step>
+  <Step title="Check the important metrics in Metrics Lab">
+    Confirm in Metrics Lab that your key metrics agree with your verdicts. See [Improve the Accuracy of a Metric](/cookbook/improve-metric-accuracy).
+  </Step>
+  <Step title="Run the simulation after each prompt change">
+    Save each prompt change as a new [Agent Version](/test/simulations/reference#agent-versions), then click **Create New Run** and choose that version in **Agent version**. Each run then belongs to one known version of the agent.
+  </Step>
+  <Step title="Compare the metrics across runs">
+    In the **Run History** tab, select the run before the change and the run after it, and click **Compare Runs**, then **Compare** in the tray at the bottom of the page. Set **Compare by** to each metric in turn: the metric whose calls went from Pass to Fail is the step that broke, and **Regressed** marks the Digital Humans where it happened.
+  </Step>
+</Steps>
+
+## Check the result
+
+When the setup works, a drop in the pass rate traces to one or two metrics that regressed, and you can open the failing calls to see what the agent said at that step. If every metric still passes while the pass rate drops, the failure is in a step that no metric checks yet, so add a metric for it.
+
+Some checks apply only to some calls, for example a callback number only matters when the agent offered a callback. Make that metric conditional, so it runs only when the agent called a given tool or the call reached a given [Workflow](/test/simulations/reference#workflow) node. On other calls it does not run and has no result, so it does not drag down the comparison. See [Conditional metrics](/test/metrics#conditional-metrics).
+
+## Related
+
+- [Metrics](/test/metrics)
+- [Metrics Lab](/test/metrics#metrics-lab)
+- [Simulation Results](/test/simulations/create#read-the-results)
+- [A/B Test Two Agents](/cookbook/ab-test-agents)

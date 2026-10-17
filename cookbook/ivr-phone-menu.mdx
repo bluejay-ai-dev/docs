@@ -1,0 +1,44 @@
+---
+title: "Test an Agent That Calls Through a Phone Menu"
+sidebarTitle: "Phone Menus (IVR)"
+description: "Check that your outbound voice agent picks the right options and waits through hold when it calls a business phone menu."
+icon: phone-volume
+---
+
+When your outbound agent calls a business, it often meets a phone menu before it reaches a person, and a wrong key press or a hang-up during hold music means the call fails. This recipe builds a copy of that phone menu in Bluejay, has your agent call into it, and grades whether it reached the right place.
+
+## Before you start
+
+- An outbound voice agent in Bluejay. See [Connect your agent](/test/simulations/create#connect-your-agent).
+- The menu your agent will meet: the prompts it hears, the keys for each option, and where hold music plays.
+
+## Steps
+
+<Steps>
+  <Step title="Create an IVR Flow">
+    Open the **Scenario Builder** page in the app, click **Create**, and choose **Create IVR Flow**. In an IVR Flow, the Digital Human plays the business's phone system and your agent is the caller.
+  </Step>
+  <Step title="Add the menus and hold steps">
+    From the **IVR / Digital Human** section of the toolbox, add an **IVR Menu** node for each menu the caller hears. Under **Options**, click **Add option** and write the **Phrase** for each choice, for example "press 2 for billing". Add a **Hold** node wherever the real line plays hold music, and set its **Hold duration**.
+  </Step>
+  <Step title="Add the key presses your agent should make">
+    Each option on an **IVR Menu** node has its own connection point. From the **Your Agent** section, add a **DTMF** node with the key your agent should press, connect the option to it, and continue the flow from there to the next menu or hold step. Click **Save**.
+  </Step>
+  <Step title="Grade the outcome you care about">
+    Add an LLM as a Judge [custom metric](/test/metrics) for your agent that checks the result of the call, for example "The agent reached the billing department and stated the reason for the call". New simulations run all of the agent's metrics, so the first run is scored on it.
+  </Step>
+  <Step title="Run it as a simulation">
+    Click **Test** in the Scenario Builder toolbar and run the simulation. See [IVR Flow](/test/simulation-types/ivr-flow).
+  </Step>
+</Steps>
+
+## Check the result
+
+Open the run and read each call as described in [Simulation Results](/test/simulations/create#read-the-results). A **Completed** call with a passing metric means your agent pressed the right keys and stayed on through hold. If the metric fails, open the call to find the menu where the agent went wrong, then change the agent's prompt and click **Rerun**.
+
+## Related
+
+- [Create a Simulation](/test/simulations/create)
+- [Simulation Results](/test/simulations/create#read-the-results)
+- [Metrics](/test/metrics)
+- [Prompting Guide](/test/metrics#prompting-guide)

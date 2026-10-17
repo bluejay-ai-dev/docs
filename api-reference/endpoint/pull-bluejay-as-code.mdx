@@ -1,66 +1,95 @@
 ---
-title: "Pull Bluejay as Code"
-description: "Export a Bluejay configuration as a JSON payload, rooted at any of four entity types."
-openapi: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
+title: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
+description: "Export a simulation, agent, or metric setup as YAML to keep in your repo."
+sidebarTitle: "/\u200bv1/\u200bbluejay-as-code/\u200b{root_type}/\u200b{root_id}"
+api: "GET https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Pull Bluejay as Code — GET /v1/bluejay-as-code/{root_type}/{root_id}
+<Warning>
+[JSON will be deprecated](/bluejay-as-code/overview#move-from-json-to-yaml) on November 20th, 2026.
+</Warning>
 
-> **What this endpoint does:** Export a Bluejay configuration as a JSON payload, rooted at any of four entity types. The simulation root (`/v1/bluejay-as-code/simulation/{id}`) is the most common — it returns the simulation, its agent, all linked Digital Humans, and all associated custom metrics, each with `bluejay_as_code_id` populated. Use this payload as the starting point for version-controlled config management.
+Exports a bundle with these lists:
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}`
-**Auth:** `X-API-Key` header
+- `agents`
+- `simulations`
+- `digital_humans`
+- `custom_metrics`
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| root_type | string (path) | One of `simulation`, `agent`, `digital-human`, `custom-metric`. Determines which entity anchors the bundle. |
-| root_id | string (path) | The Bluejay ID (or `bluejay_as_code_id` UUID) of the root entity to export. |
+Each item has a `bluejay_as_code_id`.
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/pull-bluejay-as-code.
+Supported values for `root_type` include:
 
-### Response Shape
-```json
+- `simulation`
+- `agent`
+- `digital-human`
+- `custom-metric`
+
+`root_id` is the Bluejay ID or the `bluejay_as_code_id` of the root.
+
+Commit the `bluejay_as_code_id` values to your config. Do not create new values for each push.
+
+To get YAML, add the query parameter `format=yaml` or send the header `Accept: application/yaml`. Without either, the response is JSON.
+
+```bash
+curl "https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID?format=yaml" \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
+  --output simulation.yaml
+```
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "root_type", "type": "string", "required": true, "description": "", "values": ["simulation", "agent", "digital-human", "custom-metric"]}, {"name": "root_id", "type": "string", "required": true, "description": ""}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "format", "type": "string or null", "required": false, "description": "", "values": ["json", "yaml"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "agents", "type": "object[]", "required": true, "description": ""}, {"name": "simulations", "type": "object[]", "required": true, "description": ""}, {"name": "digital_humans", "type": "object[]", "required": true, "description": ""}, {"name": "custom_metrics", "type": "object[]", "required": true, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id} \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
 {
-  "agents": [ { "bluejay_as_code_id": "...", ... } ],
-  "simulations": [ { "bluejay_as_code_id": "...", ... } ],
-  "digital_humans": [ { "bluejay_as_code_id": "...", ... } ],
-  "custom_metrics": [ { "bluejay_as_code_id": "...", ... } ]
+  "agents": [
+    {}
+  ],
+  "simulations": [
+    {}
+  ],
+  "digital_humans": [
+    {}
+  ],
+  "custom_metrics": [
+    {}
+  ]
 }
 ```
 
-### Example
-```python
-import requests
-
-def pull_bluejay_as_code(simulation_id: str, api_key: str) -> dict:
-    # Most integrations anchor on a simulation. You can also use root_type
-    # "agent", "digital-human", or "custom-metric" to anchor on those entities.
-    url = f"https://api.getbluejay.ai/v1/bluejay-as-code/simulation/{simulation_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Commit the returned `bluejay_as_code_id` values into your config file — do not auto-generate them at runtime.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
+{/* END GENERATED */}

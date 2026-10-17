@@ -1,68 +1,63 @@
 ---
-title: 'Add Digital Humans to Simulation'
-description: "Add existing Digital Humans to a simulation without replacing existing associations."
-openapi: 'POST /v1/simulation/{simulation_id}/add-digital-humans'
+title: "POST /v1/simulation/{simulation_id}/add-digital-humans"
+description: "Add existing Digital Humans to a simulation without removing the ones it has."
+sidebarTitle: "/\u200bv1/\u200bsimulation/\u200b{simulation_id}/\u200badd-digital-humans"
+api: "POST https://api.getbluejay.ai/v1/simulation/{simulation_id}/add-digital-humans"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Add Digital Humans to Simulation — POST /v1/simulation/{simulation_id}/add-digital-humans
+Links existing Digital Humans to a simulation. Current links stay.
 
-> **What this endpoint does:** add existing Digital Humans to a simulation without replacing existing associations.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/simulation/{simulation_id}/add-digital-humans`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+## Path parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| simulation_id | integer |  |
-| X-API-Key | string | API key required to authenticate requests. |
-| digital_human_ids | array[integer] | array of existing Digital Human IDs to add to the simulation |
+<FieldTable rows={[{"name": "simulation_id", "type": "integer", "required": true, "description": ""}]} />
 
-### Request Body (required fields)
-```json
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "digital_human_ids", "type": "integer[]", "required": true, "description": "array of existing digital human IDs to add to the simulation"}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "message", "type": "string", "required": true, "description": "success or partial_success message"}, {"name": "failed_sip_reconcile_ids", "type": "integer[]", "required": false, "description": "digital human ids linked to the simulation but whose always-on SIP reconcile failed; they are active but currently unroutable"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/simulation/{simulation_id}/add-digital-humans \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "digital_human_ids": [
+      123
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "digital_human_ids": [
+  "message": "<string>",
+  "failed_sip_reconcile_ids": [
     123
   ]
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/add-digital-humans-to-simulation. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def add_digital_humans_to_simulation(simulation_id: int, payload: dict, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/simulation/{simulation_id}/add-digital-humans"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-Associates existing Digital Humans with a simulation by ID.
+{/* END GENERATED */}

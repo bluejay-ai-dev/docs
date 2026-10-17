@@ -1,0 +1,72 @@
+---
+title: "OpenAI Realtime"
+description: "Test a voice agent built on the OpenAI Realtime API with simulated callers, with no phone number."
+icon: '/logo/openai.svg'
+sidebarTitle: "OpenAI Realtime"
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Bluejay opens a Realtime session for each call and talks to your agent over the OpenAI Realtime WebSocket protocol. The connection works with OpenAI itself, with Azure OpenAI, and with any server of your own that speaks the same protocol.
+
+## Connect
+
+OpenAI has no agent list that Bluejay can sync, so you connect each agent by hand.
+
+<Steps>
+  <Step title="Create the agent">
+    Create a voice agent, or open the **Connection Settings** of an existing one, choose the **OpenAI Realtime** tile, and fill in the fields:
+
+    - **Realtime URL (Optional)**: leave it empty to use OpenAI's own endpoint, <Code>wss://api.openai.com/v1/realtime</Code>. Set it for Azure OpenAI or your own server. Bluejay adds `?model=` to the URL unless the URL already has a `model` parameter.
+    - **API key**: the key Bluejay sends as `Authorization: Bearer`. Bluejay stores it encrypted, and you cannot read it back.
+    - **Model (Optional)**: for example `gpt-realtime`, which is also the model Bluejay uses when you leave the field empty.
+    - **Prompt ID (Optional)**: if you built the agent in the OpenAI Realtime playground, enter its stored prompt (<Code>pmpt_...</Code>) and leave the session overrides empty. Bluejay then tests the prompt itself, so your later edits in OpenAI show up in the next test. Enter a version in the box next to it to pin one, or leave it empty to use the prompt's current version.
+    - **Session overrides (Optional)**: for an agent that lives in your own code, a JSON object that Bluejay sends as the session, such as `instructions`, the voice, turn detection, and tools. Name the agent's language in the instructions, because without one the model can pick a different language on each opening turn.
+
+    Create the agent as **Inbound**. Bluejay always opens the session to your agent, so your agent never places the call.
+  </Step>
+</Steps>
+
+The **Model** and **Prompt ID** fields win over a `model` or `prompt` key in the session overrides. Bluejay always sets the audio format to 24 kHz PCM in both directions, and you cannot change it.
+
+Through the API, set `connection_type` to `OPENAI_REALTIME` on [add agent](/api-reference/endpoint/add-agent), and set these fields:
+
+- `openai_realtime_url`
+- `openai_api_key`
+- `openai_model`
+- `openai_prompt_id`
+- `openai_prompt_version`
+- `openai_realtime_session`
+
+## Test
+
+[Run a simulation](/test/simulations/create) on the agent as you would for any voice agent. For each call, Bluejay:
+
+- Opens the session with your settings and waits for OpenAI to confirm it.
+- Asks your agent for an opening response, so the agent speaks first.
+- Streams the Digital Human's voice to your agent and plays your agent's audio back. When the Digital Human interrupts, Bluejay drops the agent audio that has not played yet.
+- Saves the OpenAI session ID with the result.
+
+The transcript comes from Bluejay's own speech-to-text, not from OpenAI's transcript. If OpenAI sends an error during the call, Bluejay records it in the result metadata under <Code>customer_session_errors</Code>.
+
+## Monitor
+
+Bluejay does not receive your production Realtime sessions. To score them, send each conversation to [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) after it ends. See [Logs](/monitor/logs).
+
+## Limits
+
+Bluejay does not run the tools in your session. When the model calls a function, Bluejay sends no result back, so the agent continues without one and no tool calls appear on the result. Bluejay also does not send the result ID to your agent.
+
+| Result | Cause |
+|---|---|
+| **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | OpenAI rejected the API key. Bluejay does not retry. Check the **API key** on the agent. |
+| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | The server returned HTTP 429. Bluejay does not retry. Lower the simulation concurrency. |
+| **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | The call did not start. The agent has no API key, OpenAI refused the session (for example an unknown prompt ID or model), OpenAI did not open the session within 15 seconds, or the connection failed 3 times, 2 seconds apart. The error message says which. |
+| **Call Dropped** with <Code>BRIDGE_DISCONNECTED</Code> | The connection stopped during the call. |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [WebSocket](/integrations/websockets)
+- [Create a Simulation](/test/simulations/create)

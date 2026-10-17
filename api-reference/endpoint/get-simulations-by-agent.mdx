@@ -1,55 +1,61 @@
 ---
-title: 'Get Simulations by Agent'
-description: "Get all simulations for a specific agent."
-openapi: 'GET /v1/get-simulations-by-agent/{agent_id}'
+title: "GET /v1/get-simulations-by-agent/{agent_id}"
+description: "List the simulations that test one agent, with their IDs and status."
+sidebarTitle: "/\u200bv1/\u200bget-simulations-by-agent/\u200b{agent_id}"
+api: "GET https://api.getbluejay.ai/v1/get-simulations-by-agent/{agent_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Simulations by Agent — GET /v1/get-simulations-by-agent/{agent_id}
+Returns the simulations for one agent.
 
-> **What this endpoint does:** Get all simulations for a specific agent.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/get-simulations-by-agent/{agent_id}`
-**Auth:** `X-API-Key` header
+## Path parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": ""}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Headers
 
-def get_simulations_by_agent(agent_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/get-simulations-by-agent/{agent_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulations", "type": "object[]", "required": false, "description": "List of simulations", "children": [{"name": "id", "type": "integer", "required": true, "description": "ID of the simulation"}, {"name": "name", "type": "string", "required": true, "description": "Name of the simulation"}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "ID of the agent associated with the simulation"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the simulation was created"}, {"name": "settings", "type": "object or null", "required": false, "description": "Settings of the simulation"}, {"name": "selected_custom_metrics", "type": "string[] or null", "required": false, "description": "Custom metric IDs selected for this simulation (null means all agent metrics)"}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/get-simulations-by-agent/{agent_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "simulations": [
+    {
+      "id": 123,
+      "name": "<string>",
+      "agent_id": 123,
+      "created_at": "2026-01-01T00:00:00Z",
+      "settings": {},
+      "selected_custom_metrics": [
+        "<string>"
+      ]
+    }
+  ]
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-This endpoint allows you to retrieve all simulations for a specific agent.
+{/* END GENERATED */}

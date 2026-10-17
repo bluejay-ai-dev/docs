@@ -1,55 +1,91 @@
 ---
-title: 'Get Custom Metric'
-description: "Get a specific custom metric by ID."
-openapi: 'GET /v1/custom-metric/{metric_id}'
+title: "GET /v1/metric/{metric_id}"
+description: "Get the details of one custom metric, including how it scores a call."
+sidebarTitle: "/\u200bv1/\u200bmetric/\u200b{metric_id}"
+api: "GET https://api.getbluejay.ai/v1/metric/{metric_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Custom Metric — GET /v1/custom-metric/{metric_id}
+Returns one custom metric.
 
-> **What this endpoint does:** Get a specific custom metric by ID.
+`GET /v1/custom-metric/{metric_id}` is the deprecated path of this endpoint.
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/custom-metric/{metric_id}`
-**Auth:** `X-API-Key` header
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| metric_id | string |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Path parameters
 
-### Example
-**Simple GET:**
-```python
-import requests
+<FieldTable rows={[{"name": "metric_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-def get_custom_metric(metric_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/custom-metric/{metric_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Unique identifier for the custom metric"}, {"name": "bluejay_as_code_id", "type": "string or null", "required": false, "description": "Stable code-addressable identifier (same as id for custom metrics)"}, {"name": "name", "type": "string", "required": true, "description": "Name of the custom metric"}, {"name": "prompt", "type": "string or null", "required": false, "description": "LLM-judge system prompt for this metric (null for non-judge types)"}, {"name": "description", "type": "string or null", "required": false, "description": "Deprecated: same value as prompt"}, {"name": "summary", "type": "string or null", "required": false, "description": "Short plain-English description of the metric (LLM-generated)"}, {"name": "metric_type", "type": "string", "required": false, "description": "Specific metric kind", "default": "llm_judge"}, {"name": "eval_method", "type": "string", "required": false, "description": "Evaluation category (llm_judge|statistical|ml_model|deterministic)", "default": "llm_judge"}, {"name": "settings", "type": "object", "required": false, "description": "Type-specific config"}, {"name": "eval_segment", "type": "string", "required": false, "description": "Which side of the conversation is evaluated (agent|user|all)", "default": "all"}, {"name": "scope", "type": "string", "required": false, "description": "Which pipeline runs this metric (observability|simulations|all)", "default": "all"}, {"name": "response_type", "type": "string", "required": true, "description": "Type of response expected", "values": ["pass_fail", "yes_no", "qualitative", "quantitative", "json", "enum", "int", "float", "boolean", "tool_call"]}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "List of agent IDs this metric belongs to"}, {"name": "min_value", "type": "number or null", "required": false, "description": "Minimum value for quantitative metrics"}, {"name": "max_value", "type": "number or null", "required": false, "description": "Maximum value for quantitative metrics"}, {"name": "category", "type": "string or null", "required": false, "description": "Category for organizing metrics"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Tags for categorizing the metric"}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "Guidance on how to score this metric"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When this metric was created"}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "When this metric was last updated"}, {"name": "updated_by", "type": "string or null", "required": false, "description": "User who last updated this metric"}, {"name": "created_by", "type": "string or null", "required": false, "description": "User who created this metric"}, {"name": "eval_modality", "type": "string or null", "required": false, "description": "Evaluation modality AUTO/TEXT/AUDIO", "values": ["AUDIO", "TEXT", "AUTO"]}, {"name": "model", "type": "string or null", "required": false, "description": "Model to use for text evaluation of the metric"}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Model to use for audio evaluation of the metric"}, {"name": "temperature", "type": "number or null", "required": false, "description": "Temperature for evaluating the metric"}, {"name": "enum_options", "type": "string[] or null", "required": false, "description": "Options for enum metrics"}, {"name": "tool_names", "type": "string[] or null", "required": false, "description": "Deprecated: mirror of settings.tool_names for tool_call metrics"}, {"name": "json_schema", "type": "object or null", "required": false, "description": "JSON Schema describing the object the judge must return (json metrics only)"}, {"name": "allow_not_applicable", "type": "boolean", "required": false, "description": "Whether this metric allows 'not applicable' responses.", "default": false}, {"name": "eval_modality_auto_selected", "type": "boolean", "required": false, "description": "Deprecated: always false (column removed).", "default": false}, {"name": "template_id", "type": "string or null", "required": false, "description": "Library template this metric was created from"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/metric/{metric_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "id": "<string>",
+  "bluejay_as_code_id": "<string>",
+  "name": "<string>",
+  "prompt": "<string>",
+  "description": "<string>",
+  "summary": "<string>",
+  "metric_type": "llm_judge",
+  "eval_method": "llm_judge",
+  "settings": {},
+  "eval_segment": "all",
+  "scope": "all",
+  "response_type": "pass_fail",
+  "agent_ids": [
+    123
+  ],
+  "min_value": 1.5,
+  "max_value": 1.5,
+  "category": "<string>",
+  "tags": [
+    "<string>"
+  ],
+  "scoring_guidance": "<string>",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "updated_by": "<string>",
+  "created_by": "<string>",
+  "eval_modality": "AUDIO",
+  "model": "<string>",
+  "audio_model": "<string>",
+  "temperature": 1.5,
+  "enum_options": [
+    "<string>"
+  ],
+  "tool_names": [
+    "<string>"
+  ],
+  "json_schema": {},
+  "allow_not_applicable": false,
+  "eval_modality_auto_selected": false,
+  "template_id": "<string>"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-This endpoint allows you to retrieve a specific custom metric by its unique identifier. Provide the metric ID in the path to get detailed information about the custom metric. 
+{/* END GENERATED */}
