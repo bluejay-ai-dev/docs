@@ -1239,3 +1239,167 @@ body:has(#navigation-items a[aria-current="page"]:is([href="/"], [href="/changel
   color: var(--bj-text-2);
   font-size: 0.8125rem;
 }
+
+/* Home page product areas: one row per area, led by a drawing of what it gives you */
+.bj-areas {
+  --bj-area-pass: var(--bj-pass-fg);
+  --bj-area-fail: var(--bj-fail-fg);
+  display: flex;
+  flex-direction: column;
+  margin: 0.5rem 0 0;
+  border: 1px solid var(--bj-border);
+  border-radius: calc(var(--bj-radius) + 2px);
+  background: var(--bj-surface);
+  overflow: hidden;
+}
+
+html.dark .bj-areas {
+  --bj-area-pass: #22C55E;
+  --bj-area-fail: #EF4444;
+  background: transparent;
+}
+
+.bj-area {
+  display: grid;
+  grid-template-columns: 9.5rem 7.5rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: 1.5rem;
+  padding: 1.05rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  border: 0;
+  outline: none;
+  transition: background-color 140ms ease;
+}
+
+.bj-area + .bj-area {
+  border-top: 1px solid var(--bj-border);
+}
+
+.bj-area-glyph {
+  display: flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: var(--bj-radius);
+  background: var(--bj-surface-2);
+}
+
+html.dark .bj-area-glyph {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--bj-border);
+}
+
+.bj-area-name {
+  font-family: Haffer, var(--bj-sans);
+  font-weight: 500;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--bj-text);
+}
+
+.bj-area-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--bj-text-2);
+  text-wrap: pretty;
+}
+
+.bj-area:hover,
+.bj-area:focus-visible {
+  background: var(--bj-surface-2);
+}
+
+.bj-area:hover .bj-area-glyph,
+.bj-area:focus-visible .bj-area-glyph {
+  background: var(--bj-surface);
+}
+
+html.dark .bj-area:hover .bj-area-glyph,
+html.dark .bj-area:focus-visible .bj-area-glyph {
+  background: transparent;
+}
+
+.bj-area:hover .bj-area-name,
+.bj-area:focus-visible .bj-area-name {
+  color: var(--bj-blue-ink);
+}
+
+html.dark .bj-area:hover .bj-area-name,
+html.dark .bj-area:focus-visible .bj-area-name {
+  color: var(--bj-blue);
+}
+
+.bj-area:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--bj-blue);
+}
+
+.bj-area-g {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.bj-area-g-run,
+.bj-area-g-live {
+  justify-content: space-between;
+}
+
+.bj-area-g-run i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--bj-area-pass);
+  opacity: 0.75;
+}
+
+.bj-area-g-live {
+  height: 100%;
+}
+
+.bj-area-g-live i {
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--bj-text-2);
+  opacity: 0.45;
+}
+
+.bj-area-g-rank {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.bj-area-g-rank i {
+  width: var(--w);
+  height: 5px;
+  border-radius: 2px;
+  background: var(--bj-text-2);
+  opacity: 0.4;
+}
+
+.bj-area-g i.f {
+  background: var(--bj-area-fail);
+  opacity: 1;
+}
+
+.bj-area-g-live i.f {
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bj-area { transition: none; }
+}
+
+@media (max-width: 640px) {
+  .bj-area {
+    grid-template-columns: minmax(0, 1fr) 7rem;
+    grid-template-areas: "name glyph" "text text";
+    row-gap: 0.4rem;
+    padding: 1rem;
+  }
+  .bj-area-glyph { grid-area: glyph; height: 1.75rem; padding: 0 0.5rem; }
+  .bj-area-name { grid-area: name; }
+  .bj-area-text { grid-area: text; text-wrap: balance; }
+}
