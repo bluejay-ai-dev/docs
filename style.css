@@ -1482,3 +1482,111 @@ html.dark .bj-mx-seg > span.on {
   fill: var(--bj-text-2) !important;
   stroke: var(--bj-text-2) !important;
 }
+
+/* Method pills in the sidebar's colors, on endpoint titles (method-titles.js) and in <Method> */
+
+[data-bj-method] {
+  --bj-method-bg: rgb(96 165 250 / 0.2);
+  --bj-method-fg: rgb(29 78 216);
+}
+
+[data-bj-method="GET"] {
+  --bj-method-bg: rgb(74 222 128 / 0.2);
+  --bj-method-fg: rgb(21 128 61);
+}
+
+[data-bj-method="PUT"] {
+  --bj-method-bg: rgb(250 204 21 / 0.2);
+  --bj-method-fg: rgb(161 98 7);
+}
+
+[data-bj-method="PATCH"] {
+  --bj-method-bg: rgb(251 146 60 / 0.2);
+  --bj-method-fg: rgb(194 65 12);
+}
+
+[data-bj-method="DELETE"] {
+  --bj-method-bg: rgb(248 113 113 / 0.2);
+  --bj-method-fg: rgb(185 28 28);
+}
+
+html.dark [data-bj-method] {
+  --bj-method-fg: rgb(96 165 250);
+}
+
+html.dark [data-bj-method="GET"] {
+  --bj-method-fg: rgb(74 222 128);
+}
+
+html.dark [data-bj-method="PUT"] {
+  --bj-method-fg: rgb(250 204 21);
+}
+
+html.dark [data-bj-method="PATCH"] {
+  --bj-method-fg: rgb(251 146 60);
+}
+
+html.dark [data-bj-method="DELETE"] {
+  --bj-method-fg: rgb(248 113 113);
+}
+
+.bj-method,
+#page-title[data-bj-method]::before {
+  display: inline-block;
+  border-radius: 0.375rem;
+  background: var(--bj-method-bg);
+  color: var(--bj-method-fg);
+  font-family: var(--bj-sans);
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.bj-method {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.6875rem;
+  line-height: 1.25;
+}
+
+/* The title keeps its text "POST /v1/…" for the tab, search and screen readers; the pill and path are drawn from attributes. */
+
+#page-title[data-bj-method] {
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+/* An endpoint title (its sidebar link has a pill) waits for the script, so it does not swap from plain text; it shows after 2s if the script never runs. */
+body:has(#sidebar a[aria-current="page"] .method-nav-pill) #page-title:not([data-bj-method]) {
+  visibility: hidden;
+  animation: bj-method-title-fallback 0s 2s forwards;
+}
+
+@keyframes bj-method-title-fallback {
+  to {
+    visibility: visible;
+  }
+}
+
+#page-title[data-bj-method]::before {
+  content: attr(data-bj-method);
+  content: attr(data-bj-method) / "";
+  margin-right: 0.625rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  vertical-align: 0.3125rem;
+}
+
+#page-title[data-bj-method]::after {
+  content: attr(data-bj-path);
+  content: attr(data-bj-path) / "";
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+@media (min-width: 640px) {
+  #page-title[data-bj-method]::after {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}

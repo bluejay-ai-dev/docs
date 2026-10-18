@@ -15,6 +15,16 @@ import re
 DOCS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(DOCS_DIR, "api-reference", "cheat-sheet.mdx")
 GENERATED_MARK = "{/* GENERATED"
+IMPORT = 'import { Method } from "/snippets/method.jsx";'
+PRODUCT_NAME = re.compile(r"Digital Human|Scenario Builder|Red Teaming|Self-Improve|Metrics Lab|Knowledge Base")
+
+
+def heading(group):
+    """Nav groups are Title Case for the sidebar; headings are sentence case except product names."""
+    if PRODUCT_NAME.search(group):
+        return group
+    first, _, rest = group.partition(" ")
+    return f"{first} {rest.lower()}" if rest else first
 
 
 def read_page(slug):
@@ -47,9 +57,10 @@ def tables(group, depth):
         page = read_page(slug)
         if page:
             method, path, line = page
-            rows.append(f"| `{method}` | [`{path}`](/{slug}) | {line} |")
+            pill = f"`{method}`" if method == "WEBHOOK" else f"<Method>{method}</Method>"
+            rows.append(f"| {pill} | [`{path}`](/{slug}) | {line} |")
     if rows:
-        out.append(f"{'#' * depth} {group['group']}\n\n| Method | Path | Description |\n|---|---|---|\n" + "\n".join(rows) + "\n")
+        out.append(f"{'#' * depth} {heading(group['group'])}\n\n| Method | Path | Description |\n|---|---|---|\n" + "\n".join(rows) + "\n")
     for p in group["pages"]:
         if isinstance(p, dict):
             out += tables(p, depth + 1 if rows else depth)
@@ -60,6 +71,9 @@ def main():
     nav = json.load(open(os.path.join(DOCS_DIR, "docs.json")))["navigation"]["tabs"]
     tab = next(t for t in nav if t["tab"] == "API")
     head = open(OUT).read().split("\n## ", 1)[0].rstrip() + "\n"
+    if IMPORT not in head:
+        fm_end = head.index("---", 3) + 3
+        head = f"{head[:fm_end]}\n\n{IMPORT}{head[fm_end:]}"
     out = [head]
     for top in tab["groups"]:
         sections = []
@@ -67,10 +81,10 @@ def main():
             if isinstance(p, dict):
                 sections += tables(p, 3)
         if sections:
-            out.append(f"## {top['group']}\n")
+            out.append(f"## {heading(top['group'])}\n")
             out += sections
     open(OUT, "w").write("\n".join(out))
-    print(f"Wrote {sum(s.count('| `') for s in out)} endpoints to {OUT}")
+    print(f"Wrote {sum(s.count('](/') for s in out)} endpoints to {OUT}")
 
 
 if __name__ == "__main__":
