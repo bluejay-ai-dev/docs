@@ -1106,7 +1106,7 @@ body:has(#navigation-items a[aria-current="page"]:is([href="/"], [href="/changel
   font-size: 0.8125rem;
 }
 
-/* Home page backdrop: the Bluejay world, faded behind Core concepts and the resource cards */
+/* Home page backdrop: the Bluejay world, faded behind Core concepts and the link cards */
 .bj-home-world {
   position: relative;
   isolation: isolate;
@@ -1144,7 +1144,7 @@ html.dark .bj-home-world::before {
   margin-bottom: 2rem;
 }
 
-/* Home page cards: the area panel and the resource cards share one surface */
+/* Home page cards: the area panel and the link cards share one surface */
 .bj-areas,
 .bj-home-card {
   border: 1px solid var(--bj-border);
@@ -1296,86 +1296,77 @@ html.dark .mdx-content a.bj-area-link:focus-visible {
   }
 }
 
-/* Home page resource cards: Cookbook, API/MCP, Bluejay as Code */
-.bj-home-more {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+/* Home page link cards: one whole-card link per destination, below Core concepts */
+.bj-home-links {
+  container-type: inline-size;
   margin: 0 0 1rem;
 }
 
-.bj-home-card {
+.bj-home-links-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 0.75rem;
+}
+
+.mdx-content a.bj-home-card {
+  border-color: var(--bj-border);
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 1rem 1.125rem 0.75rem;
-}
-
-.bj-home-rows {
-  list-style: none;
-  margin: 0 -0.5rem;
-  padding: 0;
-}
-
-.bj-home-rows li {
-  margin: 0;
-  padding: 0;
-}
-
-.bj-home-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.35rem 0.5rem;
-  border: 0;
-  border-radius: var(--bj-radius);
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color: var(--bj-text-2);
+  padding: 1.125rem 1.25rem 1.25rem;
+  color: inherit;
   text-decoration: none;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: border-color 120ms ease;
 }
 
-.bj-home-chev {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  opacity: 0;
-  transform: translateX(-3px);
-  transition: opacity 120ms ease, transform 120ms ease;
+.bj-home-card .bj-card-title {
+  margin: 0.875rem 0 0.25rem;
 }
 
-.bj-home-row:hover,
-.bj-home-row:focus-visible {
-  background: var(--bj-surface-2);
+.bj-home-card-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--bj-text-2);
+  text-wrap: pretty;
+}
+
+.mdx-content a.bj-home-card:hover,
+.mdx-content a.bj-home-card:focus-visible {
+  border-color: var(--bj-blue-ink);
+}
+
+.bj-home-card:hover .bj-card-title,
+.bj-home-card:focus-visible .bj-card-title {
   color: var(--bj-blue-ink);
 }
 
-html.dark .bj-home-row:hover,
-html.dark .bj-home-row:focus-visible {
+html.dark .mdx-content a.bj-home-card:hover,
+html.dark .mdx-content a.bj-home-card:focus-visible {
+  border-color: var(--bj-blue);
+}
+
+html.dark .bj-home-card:hover .bj-card-title,
+html.dark .bj-home-card:focus-visible .bj-card-title {
   color: var(--bj-blue);
 }
 
-.bj-home-row:hover .bj-home-chev,
-.bj-home-row:focus-visible .bj-home-chev {
-  opacity: 1;
-  transform: none;
+.mdx-content a.bj-home-card:focus-visible {
+  outline: 2px solid var(--bj-blue);
+  outline-offset: 1px;
 }
 
-.bj-home-row:focus-visible {
-  outline: 2px solid var(--bj-blue);
-  outline-offset: -2px;
+@container (max-width: 50rem) {
+  .bj-home-links-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@container (max-width: 34rem) {
+  .bj-home-links-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .mdx-content a.bj-area-link,
-  .bj-home-row,
-  .bj-home-chev { transition: none; }
-}
-
-@media (max-width: 900px) {
-  .bj-home-more { grid-template-columns: minmax(0, 1fr); }
+  .mdx-content a.bj-home-card { transition: none; }
 }
 
 /* Metric examples (metrics page) */

@@ -49,61 +49,28 @@ export const HomeAreas = () => {
   );
 };
 
-export const HomeMore = () => {
-  const more = [
-    {
-      name: "Cookbook",
-      icon: "book-open",
-      links: [
-        ["A/B Test Two Agents", "/cookbook/ab-test-agents"],
-        ["Improve Metric Accuracy", "/cookbook/improve-metric-accuracy"],
-        ["After-Hours Uptime", "/cookbook/after-hours-uptime"],
-        ["Phone Menus (IVR)", "/cookbook/ivr-phone-menu"],
-        ["Red Team Before Launch", "/cookbook/red-team-before-launch"],
-        ["Find a Regression", "/cookbook/find-regression-step"],
-      ],
-    },
-    {
-      name: "API/MCP",
-      icon: "code",
-      links: [
-        ["Introduction", "/api-reference/introduction"],
-        ["Cheat Sheet", "/api-reference/cheat-sheet"],
-        ["Webhooks", "/api-reference/webhooks"],
-        ["CI/CD Integration", "/api-reference/ci-cd"],
-        ["MCP Server", "/mcp/overview"],
-      ],
-    },
-    {
-      name: "Bluejay as Code",
-      icon: "file-code",
-      links: [
-        ["Overview", "/bluejay-as-code/overview"],
-        ["Claude Code skill", "/bluejay-as-code/overview#claude-code-skill"],
-        ["Cookbook", "/bluejay-as-code/cookbook"],
-      ],
-    },
+export const HomeLinks = () => {
+  const cards = [
+    ["Test", "/test/simulations/create", "flask-vial", "Run a simulation to test your agent with many realistic customers before you ship a change."],
+    ["Monitor", "/monitor/logs", "list", "Find the production conversations where your agent failed, and see why in the transcript and metrics."],
+    ["Improve", "/improve/bluejay-ai", null, "Ask Bluejay AI why calls fail and what to fix first in your agent."],
+    ["Cookbook", "/cookbook/ab-test-agents", "book-open", "Step-by-step recipes for common jobs."],
+    ["Developers guide", "/api-reference/introduction", "code", "API, MCP server, webhooks, and Bluejay as Code."],
+    ["Integrations", "/integrations/phone-number", "plug", "Connect your agent's voice, text, or email platform."],
   ];
   return (
-    <div className="bj-home-more not-prose">
-      {more.map((g) => (
-        <section key={g.name} className="bj-home-card">
-          <span className="bj-card-icon" aria-hidden="true"><Icon icon={g.icon} size={16} /></span>
-          <h3 className="bj-card-title">{g.name}</h3>
-          <ul className="bj-home-rows">
-            {g.links.map(([label, href]) => (
-              <li key={href}>
-                <a className="bj-home-row" href={href}>
-                  <span>{label}</span>
-                  <svg className="bj-home-chev" viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+    <div className="bj-home-links not-prose">
+      <div className="bj-home-links-grid">
+        {cards.map(([title, href, icon, text]) => (
+          <a key={href} className="bj-home-card" href={href}>
+            <span className="bj-card-icon" aria-hidden="true">
+              {icon ? <Icon icon={icon} size={18} /> : <span className="bj-card-icon-flywheel" />}
+            </span>
+            <span className="bj-card-title">{title}</span>
+            <span className="bj-home-card-text">{text}</span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 };
