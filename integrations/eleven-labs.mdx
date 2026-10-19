@@ -21,15 +21,15 @@ In Bluejay, open the **Eleven Labs** tab of the Integrations settings and save b
 - **Webhook Secret**: the HMAC secret of your ElevenLabs post-call webhook. Bluejay rejects any production call that ElevenLabs sends without a valid signature. See [Monitor](#monitor).
 </Step>
 <Step title="Sync the agents">
-Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent in a **Synced from ElevenLabs** folder, with its prompt, workflow, and tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
+Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent, with its prompt, workflow, and tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
 </Step>
 </Steps>
 
 A sync never deletes an agent. If you delete an agent in ElevenLabs, its agent stays in Bluejay.
 
-To connect one agent by hand instead of syncing, open its **Connection Settings**, choose the **ElevenLabs** tile, and set **ElevenLabs Agent ID**. To score its production calls too, see [Monitor](#monitor).
+To connect one agent by hand instead of syncing, give it the **ElevenLabs** connection type and set **ElevenLabs Agent ID**. To score its production calls too, see [Monitor](#monitor).
 
-To edit a synced workflow, open the **Workflow** tab of the agent, where you can pull changes from ElevenLabs, push your edits back, and merge a branch into Main.
+To edit a synced workflow, use the agent's **Workflow** tab to pull changes from ElevenLabs, push your edits back, and merge a branch into Main.
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-workflows-tab.jpg" src="/images/elevenlabs-sim-workflows-tab.mp4" aria-label="The Workflows tab in Bluejay" />
 
@@ -73,13 +73,13 @@ In the post-call webhook settings, choose what ElevenLabs sends. You can set thi
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-1-webhook.jpg" src="/images/elevenlabs-1-webhook.mp4" aria-label="Set up the ElevenLabs webhook" />
 
-Bluejay files each call under the Bluejay agent whose **Assistant ID** is the call's ElevenLabs agent ID, and rejects calls from any other ElevenLabs agent. A sync sets the **Assistant ID** for you. For an agent you connected by hand, open its **Observability Settings**, choose **ElevenLabs**, and paste the ElevenLabs agent ID as **Assistant ID**.
+Bluejay files each call under the Bluejay agent whose **Assistant ID** is the call's ElevenLabs agent ID, and rejects calls from any other ElevenLabs agent. A sync sets the **Assistant ID** for you. For an agent you connected by hand, choose **ElevenLabs** in its **Observability Settings** and set **Assistant ID** to the ElevenLabs agent ID.
 
 For a workflow agent, Bluejay adds an event to the conversation each time the call enters a new workflow node, so you can follow the path the call took.
 
 ### Traces
 
-With **OpenTelemetry transcript payloads** on, ElevenLabs sends each call as a trace, with a span for every user turn, agent response, and tool call. Bluejay stores the trace and shows it next to the conversation, so you can see where the time went in a call. See [Traces](/monitor/traces).
+With **OpenTelemetry transcript payloads** on, ElevenLabs sends each call as a trace, with a span for every user turn, agent response, and tool call. Bluejay stores the trace with the conversation, so you can see where the time went in a call. See [Traces](/monitor/traces).
 
 The trace has the timing of the call but not its full content, so Bluejay fetches the conversation from ElevenLabs with your **ElevenLabs API Key**. Save the key before you turn this on. The trace has no audio, so turn on **Send audio data** too if you want recordings.
 
