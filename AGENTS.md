@@ -11,6 +11,7 @@ This file provides guidance to coding agents working in this repository.
 - The page header already shows the frontmatter `description`, so the first paragraph must not repeat it. Leave out lines about the page itself, such as "Open a section when you need it."
 - Do not explain a button or field whose label already says what it does, such as "Click **Reset to default** to go back to the standard text." Clicks belong in the docs only as steps of a longer workflow, or when they carry something the screen does not show, such as a limit, a default, or a consequence.
 - In tables, wrap a long identifier (12+ characters with `_`, `/`, or a dot between letters) in `<Code>` from `snippets/code.jsx` instead of backticks, so it breaks only at those separators. Write values that contain `<` or `>` as `<Code>{"MISSING_<PROVIDER>_INTEGRATION"}</Code>`.
+- Screenshots are in `images/`. An engineer who changes a pictured screen updates its screenshot in the same change. Capture from a test org, crop to the relevant area, and show no customer or internal names.
 - A step never only sets a visible field, such as "Set **Number of calls** from 1 to 100." Keep setup to a few steps, and list what each field does as short bullets inside the step where you set them.
 
 ## PR conventions
