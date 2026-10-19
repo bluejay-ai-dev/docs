@@ -63,10 +63,12 @@ export const HomeLinks = () => {
       <div className="bj-home-links-grid">
         {cards.map(([title, href, icon, text]) => (
           <a key={href} className="bj-home-card" href={href}>
-            <span className="bj-card-icon" aria-hidden="true">
-              {icon ? <Icon icon={icon} size={18} /> : <span className="bj-card-icon-flywheel" />}
+            <span className="bj-home-card-head">
+              <span className="bj-card-icon" aria-hidden="true">
+                {icon ? <Icon icon={icon} size={16} /> : <span className="bj-card-icon-flywheel" />}
+              </span>
+              <span className="bj-card-title">{title}</span>
             </span>
-            <span className="bj-card-title">{title}</span>
             <span className="bj-home-card-text">{text}</span>
           </a>
         ))}
