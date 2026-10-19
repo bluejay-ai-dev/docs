@@ -11,25 +11,34 @@ Use an alert with a [metric](/monitor/metrics) to catch failures on your product
 
 To create alerts from code, use the [Alerts API](/api-reference/endpoint/create-alert).
 
-## How alerts evaluate
-
-An alert counts the production conversations that match the condition in a window, either a time interval or the last N conversations. The alert enters alarm when at least N conversations match, and recovers when the count drops below 80% of N (minimum 1).
-
-With the last N conversations as the window, the alert does not fire until N conversations exist.
-
-For a metric where one failure is too many, for example hallucination, set N to 1.
-
-Create each alert in the [workspace](/administration/workspaces) of the agents it should watch. Even an alert set to all agents watches only its own workspace.
-
 <AlertsShared />
 
-## Choose where each alert goes
+## Create an alert
 
-Each alert and uptime monitor has its own channels, so you can match the channel to how urgent the problem is. Page the on-call team for failures that need action now, for example an uptime monitor that goes DOWN, and send quality drops to Slack or email. A channel stays off until you connect it.
+<Steps>
+  <Step title="Open the dialog">
+    In the sidebar under **Observability**, open **Alerts** and click **Create Alert**.
+  </Step>
+  <Step title="Set the trigger and scope">
+    Choose what counts as a failure, and how many failures in what window raise the alert. For a metric where one failure is too many, such as hallucination, set **for at least** to 1.
 
-To check the setup before you rely on it, use **Send test notification** on an alert.
+    An alert watches only its own [workspace](/administration/workspaces), even when set to all agents, so create it in the workspace of the agents it should watch.
+  </Step>
+  <Step title="Choose who gets notified">
+    Send failures that need action now to PagerDuty or Better Stack, and quality drops to Slack or email. Only [connected channels](#connect-a-channel) can be turned on.
 
-![Create Alert dialog with Name, Trigger, Scope, and Notify sections, Slack Notifications on, and a Slack preview with Send test notification](/images/integrations-slack-alarm-dialog.png)
+    ![Create Alert dialog with Name, Trigger, Scope, and Notify sections, Slack Notifications on, and a Slack preview with Send test notification](/images/integrations-slack-alarm-dialog.png)
+  </Step>
+  <Step title="Test and create">
+    Click **Send test notification**, then **Create Alert**.
+  </Step>
+</Steps>
+
+## How alerts evaluate
+
+An alert counts the production conversations that match its condition in the window. It enters alarm when at least N conversations match, where N is the **for at least** number, and recovers when the count drops below 80% of N (minimum 1).
+
+With the last N conversations as the window, the alert does not fire until that many conversations exist.
 
 ## Incidents
 
