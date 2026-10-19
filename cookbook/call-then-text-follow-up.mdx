@@ -1,0 +1,48 @@
+---
+title: "Test a Text Follow-Up After a Call"
+sidebarTitle: "Call, Then Text"
+description: "Check that your voice agent texts the customer what it promised on the call, and handles their reply."
+icon: comment-sms
+---
+
+Use a [Customer Journey](/test/simulation-types/customer-journeys) when your voice agent sends a text after a call, for example a booking confirmation.
+
+## Before you start
+
+- A voice agent saved with its phone number. See [Phone Number](/integrations/phone-number).
+- The number must be able to send text messages. Bluejay checks this when you save the agent. If you change the number, save the agent again before you build the journey, or the **SMS** option stays locked.
+
+## Set it up
+
+<Steps>
+  <Step title="Add the call step">
+    [Create a simulation](/test/simulations/create#create-a-simulation) for the agent and select the **Customer Journeys** card. Add a **Call** step with the intent the customer has on the call, for example "Book a cleaning for next week".
+  </Step>
+  <Step title="Add the text step">
+    Add an **SMS** step set to **Outbound**, so the Digital Human waits for your agent to text first. Write the intent as what the customer does with the text, for example "Confirm the appointment" or "Ask to move it one hour later". One step covers the agent's text and the customer's replies.
+
+    In the success criteria, describe what the agent's text must do, for example "The agent texts the appointment date, time, and address." The Digital Human ends the text conversation as soon as the agent does this, and Bluejay grades the step against it. If you leave it blank, Bluejay writes one from the intent.
+
+    - The Digital Human knows what was agreed on the call, such as the date and time booked, so it replies as the same customer.
+    - If your agent texts from a different number than the one saved on the agent, add **Different phone number** to the step with that number. Bluejay only matches texts from the step's number.
+  </Step>
+  <Step title="Give the agent enough time, then run">
+    Add **Response timeout** to the text step if your agent texts more than a few minutes after the call. Without it, the step lasts at most 15 minutes. The timeout covers the whole text conversation, not only the first text, and can be up to 72 hours.
+
+    Click **Save**, then **Generate Digital Humans**, and run the simulation.
+  </Step>
+</Steps>
+
+## What to check
+
+- Bluejay grades the call and the text as separate steps, each against its own success criteria. See [Simulation Results](/test/simulations/create#read-the-results).
+- A text step where your agent never texted ends as **No Answer** with the code `STEP_NO_ACTIVITY`. Check that the agent texts from the number Bluejay expects, then check the timeout.
+- If your agent texts while the call is still going, Bluejay keeps the text for the text step. A reply that arrives up to 3 minutes after the text step ends is added to that step and graded again.
+- If the call step fails, for example with **No Answer**, Bluejay skips the text step. See [Error codes](/test/simulations/reference#error-codes).
+
+## Related
+
+- [Customer Journeys](/test/simulation-types/customer-journeys)
+- [Phone Number](/integrations/phone-number)
+- [Create a Simulation](/test/simulations/create)
+- [Simulation Reference](/test/simulations/reference)
