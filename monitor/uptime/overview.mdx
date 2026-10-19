@@ -88,20 +88,9 @@ A run fails if it does not finish within its timeout.
 
 ## Custom caller
 
-To make the probe use one of your Digital Humans, add this entry to the monitor's `checks` array:
+The probe calls as **Health Checker**, a caller built for uptime checks. To call as one of your Digital Humans instead, pick it under **Custom Caller** when you create or edit the monitor, or choose **Create a digital human**. A custom caller is less reliable than the default, so keep the default unless your agent needs a particular caller.
 
-```json
-{
-  "id": "dh-1234",
-  "label": "Impatient repeat customer",
-  "description": "Digital Human check.",
-  "enabled": true,
-  "isTemplate": false,
-  "digitalHumanId": "1234"
-}
-```
-
-The Digital Human entry only selects the caller and grades nothing, so also keep at least one enabled check with a `checkType` or `customMetricId`. When you update `checks`, send the full array, because the update replaces it.
+Through the [API](/api-reference/endpoint/create-uptime-monitor), add a check with a `digitalHumanId` to `checks`. It only picks the caller, so keep at least one check that grades something, and send the whole `checks` array on every update, because an update replaces it.
 
 ## Outbound agents
 

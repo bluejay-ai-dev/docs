@@ -8,11 +8,12 @@ This file provides guidance to coding agents working in this repository.
 - Headings are sentence case. Page titles in frontmatter are Title Case, because the sidebar shows them.
 - Capitalize product names: Bluejay AI, Bluejay as Code, Digital Human, Knowledge Base, Red Teaming, Metrics Lab, Self-Improve, and simulation type names. Generic nouns stay lowercase in running text: agent, simulation, custom metric, issue, alert, dashboard, conversation, trace, webhook, integration.
 - App UI labels are bold and keep the app's exact capitalization.
+- The first paragraph tells the reader what the page is for, clearly enough to decide in a second whether they are in the right place. That makes it short, such as "Use an alert with a [metric](/monitor/metrics) to catch failures on your production conversations." Leave mechanism and tips for the section where the reader needs them.
 - The page header already shows the frontmatter `description`, so the first paragraph must not repeat it. Leave out lines about the page itself, such as "Open a section when you need it."
 - Do not explain a button or field whose label already says what it does, such as "Click **Reset to default** to go back to the standard text." Clicks belong in the docs only as steps of a longer workflow, or when they carry something the screen does not show, such as a limit, a default, or a consequence.
 - In tables, wrap a long identifier (12+ characters with `_`, `/`, or a dot between letters) in `<Code>` from `snippets/code.jsx` instead of backticks, so it breaks only at those separators. Write values that contain `<` or `>` as `<Code>{"MISSING_<PROVIDER>_INTEGRATION"}</Code>`.
 - Screenshots are in `images/`. An engineer who changes a pictured screen updates its screenshot in the same change. Capture from a test org, crop to the relevant area, and show no customer or internal names.
-- A step never only sets a visible field, such as "Set **Number of calls** from 1 to 100." Keep setup to a few steps, and list what each field does as short bullets inside the step where you set them.
+- A step never only sets a visible field, such as "Set **Number of calls** from 1 to 100." Keep setup to a few steps. Inside a step, add a bullet for a field only when it tells the reader something the label does not, such as a limit, a non-obvious effect, or a consequence. Never write a list that restates field labels, such as "**Agents**: the agents it applies to."
 
 ## PR conventions
 
