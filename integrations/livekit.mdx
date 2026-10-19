@@ -7,7 +7,7 @@ sidebarTitle: "LiveKit"
 
 import { Code } from "/snippets/code.jsx";
 
-Bluejay can [test](#test) your agent directly in a LiveKit room, so you need no phone number, or call it over LiveKit SIP, or answer the calls your agent places. To [score your live calls](#monitor), send them with the LiveKit webhook or from your agent through the API.
+Connect an agent that runs as a LiveKit Agents worker.
 
 <img className="block dark:hidden" src="/images/connect-livekit.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
 <img className="hidden dark:block" src="/images/connect-livekit-dark.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
@@ -16,39 +16,40 @@ Bluejay can [test](#test) your agent directly in a LiveKit room, so you need no 
 
 <Steps>
 <Step title="Save the LiveKit keys">
-In LiveKit Cloud, open **Settings > API keys** and copy the API key, API secret, and server URL. The URL looks like `wss://your-project.livekit.cloud`. In Bluejay, paste them on the **LiveKit** tab of the Integrations settings.
+In LiveKit Cloud, open **Settings > API keys** and copy the API key, API secret, and server URL. The URL looks like `wss://your-project.livekit.cloud`. In Bluejay, paste them on the **LiveKit** tab of the Integrations settings. Skip this step if your server will issue room tokens through a [token webhook](#token-webhook).
 </Step>
-<Step title="Connect each agent">
-Give each agent the **LiveKit** connection type, and fill in the fields in the table below. **Authentication** and the token webhook fields are in the agent's **Connection Settings** after you create it.
+<Step title="Create the agent">
+Create a Voice agent with the **LiveKit** connection type:
+
+- **LiveKit Agent Name**: the name your worker registers with. Leave it empty only if your worker uses automatic dispatch, because Bluejay then dispatches no agent.
+- **LiveKit Customer Tool Topic (Optional)**: set it to record tool calls. See [Tool calls](#tool-calls).
+- **LiveKit Metadata (Optional JSON)**: Bluejay sends it as the job metadata when it dispatches your agent, with each Digital Human's `livekit_metadata` merged over it and the simulation IDs added, such as `X-Simulation-Result-Id`.
+</Step>
+<Step title="Choose how Bluejay joins the room">
+In the agent's **Connection Settings**, set **Authentication**:
+
+- **API Key**: Bluejay creates the room token with the keys you saved.
+- **Token Webhook**: your server creates the room token, so Bluejay stores no LiveKit keys. Set **Token Webhook URL**, and put the full header value in **Authorization Header (Optional)**, scheme included, for example `Bearer <token>`. See [Token webhook](#token-webhook).
 </Step>
 </Steps>
-
-| Field | Value |
-|---|---|
-| Authentication | **API Key** uses the keys above. **Token Webhook** calls your server for a room token, so Bluejay stores no LiveKit keys. |
-| Token Webhook URL | Required for **Token Webhook**. See [Token webhook](#token-webhook). |
-| Authorization Header (Optional) | Sent as the `Authorization` header on the token webhook. Include the scheme, for example `Bearer <token>`. |
-| LiveKit Agent Name | The name your worker registers with. Leave it empty only if your worker uses automatic dispatch, because Bluejay then dispatches no agent. |
-| LiveKit Customer Tool Topic (Optional) | The data topic your agent publishes tool calls to, for example `customer.tool.calls`. |
-| LiveKit Metadata (Optional JSON) | JSON that Bluejay sends as the job metadata when it dispatches your agent. With a token webhook, Bluejay sends it as <Code>agent_metadata</Code>. |
-
-Bluejay merges a Digital Human's `livekit_metadata` over this JSON and adds the simulation IDs, such as `X-Simulation-Result-Id`.
 
 ## Test
 
 <Tabs>
 <Tab title="Direct">
 
-Use this path to iterate on agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it. It works for inbound agents only. Save your LiveKit keys or set up a [token webhook](#token-webhook), and set **LiveKit Agent Name** to the name your worker registers with.
+Use this path to iterate on agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it, so you need no phone number. An agent with the **LiveKit** connection type, set up as in [Connect](#connect), uses this path.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/connection-settings.mp4"></video>
 
 </Tab>
 <Tab title="SIP">
 
-Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. You can use a number you did not buy, as long as it matches your trunk.
+Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. The number does not need to be one you bought, as long as it matches your trunk.
 
-1. Create an inbound trunk in the project that owns the SIP host.
+<Steps>
+<Step title="Create an inbound trunk">
+Create the trunk in the project that owns the SIP host.
 
 ```json trunk.json
 { "trunk": { "name": "bluejay-inbound", "numbers": ["+15551230000"] } }
@@ -58,7 +59,16 @@ Use SIP to test the same path that your phone calls take. Bluejay sends a SIP IN
 lk sip inbound create trunk.json
 ```
 
-2. Create a dispatch rule on the trunk. Set `agentName` to your worker name.
+To read the result ID from your agent, for example to call [Update Simulation Result](/api-reference/endpoint/update-simulation-result), map the `X-Simulation-Result-Id` header to a participant attribute. Run `lk sip inbound update --id ST_your_trunk_id -` with:
+
+```json
+{ "headers_to_attributes": { "X-Simulation-Result-Id": "X-Simulation-Result-Id" } }
+```
+
+The ID then shows in `participant.attributes`. LiveKit sets the attribute asynchronously, so it can be missing at the moment the SIP participant joins.
+</Step>
+<Step title="Create a dispatch rule">
+Create the rule on the trunk, and set `agentName` to your worker name.
 
 ```json dispatch.json
 {
@@ -72,8 +82,11 @@ lk sip inbound create trunk.json
 ```bash
 lk sip dispatch create dispatch.json
 ```
-
-3. In Bluejay, choose the **SIP** connection type and set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. Use the number exactly as it appears in the trunk `numbers`.
+</Step>
+<Step title="Create the Bluejay agent">
+Create a Voice agent with the **SIP** connection type, and set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. Use the number exactly as it appears in the trunk `numbers`. See [SIP](/integrations/sip) for the other SIP fields.
+</Step>
+</Steps>
 
 Bluejay puts each custom SIP header from **Connection Settings** on the INVITE under the name you enter, and also sends all of them together as JSON in `X-Custom-Headers`. Your agent can read them with the `lk.sip.GetRemoteHeaders` RPC:
 
@@ -91,37 +104,29 @@ if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
     headers = json.loads(response)["headers"]
 ```
 
-To call [Update Simulation Result](/api-reference/endpoint/update-simulation-result) from your agent, you need the `X-Simulation-Result-Id` header as a participant attribute. Add it to the trunk with `lk sip inbound update --id ST_your_trunk_id -`:
-
-```json
-{ "headers_to_attributes": { "X-Simulation-Result-Id": "X-Simulation-Result-Id" } }
-```
-
-The ID then shows in `participant.attributes`. LiveKit sets the attribute asynchronously, so it can be missing at the moment the SIP participant joins.
-
-| SIP error | Cause |
-|---|---|
-| `404 No trunk found` | The INVITE reached LiveKit, but no trunk matched. The trunk is on a different project, or its `numbers` do not match the URI. |
-| `408 request timed out` | The trunk matched, but nothing answered. The dispatch rule is missing, or no worker has that `agentName`. |
-| Call connects but the agent is silent | The agent joined but made no audio, for example because of a bad LLM or TTS key. Bluejay scores this as no answer. |
-| Result stays running with no transcript | The URI has no number. Use `sip:<number>@<host>`. |
-
 </Tab>
 <Tab title="Outbound">
 
-To test an outbound agent, your agent dials the Digital Humans. The **LiveKit** tile is inbound only, so use the **Phone** connection type.
+To test an agent that places calls, your agent dials the Digital Humans. The **LiveKit** connection type is inbound only, so use the **Phone** connection type.
 
-1. Create an agent with type **Outbound**, mode **Voice**, and the **Phone** connection type.
-2. Give each Digital Human a phone number.
-3. Set **Outbound Trigger Webhook URL** on the agent, or subscribe a [webhook](/api-reference/webhooks) to `outbound_simulation_started`.
-4. When the webhook fires, have your agent dial each `phone_number`, for example with `create_sip_participant`. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
+<Steps>
+<Step title="Create the agent">
+Create an Outbound Voice agent with the **Phone** connection type, and give each Digital Human a phone number.
+</Step>
+<Step title="Set a trigger">
+Set **Outbound Trigger Webhook URL** on the agent, or subscribe a [webhook](/api-reference/webhooks) to `outbound_simulation_started`. Without a trigger, your agent never learns that a run started, and the Digital Humans wait until the run times out.
+</Step>
+<Step title="Dial the Digital Humans">
+When the trigger fires, have your agent dial each `phone_number`, for example with `create_sip_participant`. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
+</Step>
+</Steps>
 
 </Tab>
 </Tabs>
 
 ### Token webhook
 
-With **Token Webhook** authentication, your server creates the room token, so Bluejay stores no LiveKit keys. Before each call, Bluejay sends a POST to the **Token Webhook URL**:
+With **Token Webhook** authentication, Bluejay sends a `POST` to the **Token Webhook URL** before each call:
 
 ```json
 {
@@ -139,7 +144,7 @@ With **Token Webhook** authentication, your server creates the room token, so Bl
 | `livekit_url` | Replaces the server URL from the integration. Required if you saved no LiveKit integration. |
 | `room_name` | Optional. Replaces the room the Digital Human joins. |
 
-Also make sure your agent is dispatched: put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
+Make sure your agent is dispatched. Put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
 
 Bluejay waits 15 seconds for the response. If the request times out or returns `408`, `429`, or a `5xx` status, Bluejay tries again, up to 3 attempts in total. If your endpoint returns `401` or `403`, Bluejay does not try again, and the run fails with `NO_CONNECTION` and `LIVEKIT_SESSION_SETUP_FAILED`.
 
@@ -215,7 +220,7 @@ Keep the order in `on_shutdown`: `span.end()`, then `force_flush()`, then the PO
 
 ## Monitor
 
-To score your live calls, send them to Bluejay with the LiveKit webhook or from your agent through the API. Use the API if you need tool calls.
+To score your live calls, send them with the LiveKit webhook or from your agent through the API. Use the API if you need tool calls.
 
 <Tabs>
 <Tab title="Webhook">
@@ -238,7 +243,7 @@ Make sure your agent has a [dispatch name](https://docs.livekit.io/agents/build/
 </Step>
 </Steps>
 
-On the first call with a new dispatch name, Bluejay creates an agent for it. To replace the webhook URL, click the refresh icon next to it. The old URL then stops working.
+On the first call with a new dispatch name, Bluejay creates an agent for it. If you refresh the webhook URL in Bluejay, the old URL stops working, so update it in LiveKit Cloud too.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/livekit-obs-full.mp4"></video>
 
@@ -290,6 +295,16 @@ await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "
 
 </Tab>
 </Tabs>
+
+## Troubleshooting
+
+| What you see | What to do |
+|---|---|
+| **No Connection** with <Code>LIVEKIT_SESSION_SETUP_FAILED</Code> | Bluejay could not join the room. If you use a token webhook, check that it accepts the **Authorization Header** and returns a working token. A `401` or `403` from the webhook is not retried. |
+| SIP `404 No trunk found` | The INVITE reached LiveKit, but no trunk matched. Create the trunk on the project in the SIP URI, and make its `numbers` match the URI. |
+| SIP `408 request timed out` | The trunk matched, but nothing answered. Add the dispatch rule, and check that a worker runs with that `agentName`. |
+| The call connects but the agent is silent | The agent joined but made no audio, for example because of a bad LLM or TTS key. Bluejay scores this as no answer. |
+| A SIP result stays running with no transcript | The SIP URI has no number. Use `sip:<number>@<host>`. |
 
 ## Related
 

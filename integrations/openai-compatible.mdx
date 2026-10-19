@@ -7,58 +7,31 @@ icon: message-bot
 
 import { Code } from "/snippets/code.jsx";
 
-Point Bluejay at the endpoint your agent already serves, and Digital Humans chat with it the same way your own app does.
-
-This is the OpenAI-style chat completions wire format, not a ChatGPT product agent from OpenAI.
+Connect a chat agent that answers `POST /chat/completions` in the OpenAI format, as agents behind LiteLLM, vLLM, Ollama, or the OpenAI SDK do. This is the wire format, not a ChatGPT agent from OpenAI.
 
 <img className="block dark:hidden" src="/images/connect-openai-compatible.png" alt="The OpenAI-compatible connection fields with an API base URL, an API key, and a model" />
 <img className="hidden dark:block" src="/images/connect-openai-compatible-dark.png" alt="The OpenAI-compatible connection fields with an API base URL, an API key, and a model" />
 
 ## Connect
 
-This connection fits your agent if it answers `POST /chat/completions` in the OpenAI format. Most in-house agents do, and so does any agent behind LiteLLM, vLLM, Ollama, or a server built on the OpenAI SDK.
-
-<Tabs>
-<Tab title="Website">
 <Steps>
 <Step title="Create the agent">
-Create a Text agent with the **Inbound** type and choose the **OpenAI-compatible** tile. Fill in:
+Create a Text agent with the **OpenAI-compatible** connection type:
 
-- **API base URL**: the address of your API, for example `https://your-agent.example.com/v1`. Bluejay adds `/chat/completions` itself, so leave that part off.
-- **API key**: the key that your agent expects. Bluejay sends it as `Authorization: Bearer <key>` and stores it encrypted. Leave it empty if your agent needs no key.
+- **API base URL**: for example `https://your-agent.example.com/v1`. Bluejay adds `/chat/completions` itself, so leave that part off.
+- **API key**: Bluejay sends it as `Authorization: Bearer <key>` and stores it encrypted. Leave it empty if your agent needs no key.
 - **Model**: the `model` value in each request. If you leave it empty, Bluejay sends `default`. Many agents ignore this value.
+
+To create the agent from the API, call [Add Agent](/api-reference/endpoint/add-agent) with `connection_type` set to `OPENAI_CHAT`, and set `openai_base_url`, `openai_api_key`, and `openai_model`.
 </Step>
 <Step title="Run a simulation">
-Add the agent to a [simulation](/test/simulations/create) and run it.
+Add the agent to a [simulation](/test/simulations/create) and run it. Your agent needs no webhook or callback to Bluejay. To queue runs from the API, use [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run).
 </Step>
 </Steps>
-</Tab>
-<Tab title="API">
-
-```bash
-curl -X POST https://api.getbluejay.ai/v1/add-agent \
-  -H "X-API-Key: $BLUEJAY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Support Agent",
-    "system_prompt": "You are a support agent.",
-    "goals": [],
-    "type": "INBOUND",
-    "mode": "TEXT",
-    "connection_type": "OPENAI_CHAT",
-    "openai_base_url": "https://your-agent.example.com/v1",
-    "openai_api_key": "sk-...",
-    "openai_model": "support-agent"
-  }'
-```
-
-Queue runs with [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run), the same endpoint that other chat agents use.
-</Tab>
-</Tabs>
 
 ## How a conversation runs
 
-Bluejay sends each Digital Human message to your endpoint and reads your agent's reply from the response, so your agent does not need a webhook or a callback to Bluejay. The Digital Human always sends the first message. Each request holds the whole conversation so far, because the chat completions format keeps no state between requests. Digital Human messages have the `user` role and your agent's earlier replies have the `assistant` role. Bluejay sends no `system` message, so your agent uses its own instructions.
+Bluejay sends each Digital Human message to your endpoint and reads your agent's reply from the response. The Digital Human always sends the first message. Each request holds the whole conversation so far, because the chat completions format keeps no state between requests. Digital Human messages have the `user` role and your agent's earlier replies have the `assistant` role. Bluejay sends no `system` message, so your agent uses its own instructions.
 
 ```json
 {
@@ -72,7 +45,7 @@ Bluejay sends each Digital Human message to your endpoint and reads your agent's
 }
 ```
 
-Bluejay asks for the full reply in one response, so streaming is not used. It reads the reply from `choices[0].message.content`, as a string or as a list of text parts. The Digital Human then answers, and the loop continues until one side ends the conversation.
+Bluejay sends `"stream": false`, so return the whole reply in one response. Bluejay reads the reply from `choices[0].message.content`, as a string or as a list of text parts. The Digital Human then answers, and the loop continues until one side ends the conversation.
 
 - **Your agent ends it**: return `"finish_reason": "stop_conversation"` on the reply. Bluejay then ends and evaluates the conversation right away.
 - **The Digital Human ends it**: Bluejay ends the conversation and sends no further requests.
@@ -113,19 +86,19 @@ This connection runs tests only. To score your agent's production conversations,
 
 ## Limits
 
-- Use an Inbound agent. An Outbound run starts without a Digital Human message, and Bluejay has nothing to send, so the conversation never starts.
+- The connection is inbound only, because the Digital Human always sends the first message. An agent created as Outbound through the API never starts a conversation.
 - Bluejay waits 10 seconds to connect and up to 10 minutes for each reply.
 - A failed turn is not retried. If your endpoint cannot be reached, returns a `4xx` or `5xx` status, or returns a body that is not JSON, the conversation waits and then ends after the simulation's inactivity timeout, 5 minutes by default.
 
 ## Troubleshooting
 
-| Symptom | Cause |
+| What you see | What to do |
 |---|---|
-| **Enter the base URL only, without /chat/completions** | The **API base URL** ends with <Code>/chat/completions</Code>. Bluejay adds that path itself. |
-| **API base URL must be a valid http(s) URL** | The **API base URL** is not a full http or https URL. |
-| `400`: `OPENAI_CHAT connection_type requires openai_base_url` | The API request sets <Code>connection_type</Code> to `OPENAI_CHAT` without <Code>openai_base_url</Code>. |
+| **Enter the base URL only, without /chat/completions** | Remove <Code>/chat/completions</Code> from the end of the **API base URL**. Bluejay adds that path itself. |
+| **API base URL must be a valid http(s) URL** | Enter the full URL, starting with `http://` or `https://`. |
+| `400`: `OPENAI_CHAT connection_type requires openai_base_url` | Set <Code>openai_base_url</Code> in the API request. |
 | `400`: `OPENAI_CHAT is a text connection type and has no voice transport` | The run was queued with <Code>/v1/queue-simulation-run</Code>. Use <Code>/v1/queue-http-text-simulation-run</Code>. |
-| The conversation stops partway and ends after the inactivity timeout | Your endpoint failed on that turn, or it returned tool calls with no reply text. |
+| The conversation stops partway and ends after the inactivity timeout | Your endpoint failed on that turn, or it returned tool calls with no reply text. Check your endpoint's logs for that turn, and return reply text with every response. |
 
 ## Related
 

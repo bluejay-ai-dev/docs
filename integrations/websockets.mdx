@@ -7,24 +7,16 @@ sidebarTitle: "WebSocket"
 
 import { Code } from "/snippets/code.jsx";
 
-You build a WebSocket server, and Bluejay connects to it and exchanges raw audio with it over the CHIRP protocol.
+Build the WebSocket server that Bluejay connects to for each test call.
 
 <img className="block dark:hidden" src="/images/connect-websocket.png" alt="The Websocket connection fields with a Websocket URL, a username, and a password filled in" />
 <img className="hidden dark:block" src="/images/connect-websocket-dark.png" alt="The Websocket connection fields with a Websocket URL, a username, and a password filled in" />
 
 ## Connect
 
-Use a Voice agent with the **Websocket** connection type.
-
-| Field | Required | Description |
-|---|---|---|
-| Websocket URL | Yes | For example <Code>wss://your-host/voice</Code>. |
-| Websocket Username | No | If set with the password, Bluejay sends `Authorization: Basic <base64(user:pass)>`. |
-| Websocket Password | No | See Websocket Username. |
-
-Bluejay also sends `X-Simulation-Result-Id` on the upgrade request. To report tool calls or traces for the call, send them with this ID to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
-
-At minimum, your server needs to accept the upgrade, check the credentials, and read and write binary frames. Text frames are optional, so you can ignore them at first. Each example below echoes the audio back; replace the echo with your agent's audio.
+<Steps>
+<Step title="Run a WebSocket server">
+At minimum, your server accepts the upgrade, checks the credentials, and reads and writes binary [audio](#audio) frames. You can ignore [text events](#text-events) at first. Each example below echoes the audio back. Replace the echo with your agent's audio.
 
 <CodeGroup>
 
@@ -117,18 +109,27 @@ func main() {
 ```
 
 </CodeGroup>
+</Step>
+<Step title="Create the agent">
+Create a Voice agent with the **Websocket** connection type. The **Websocket URL** starts with `ws://` or `wss://`, for example `wss://your-host/voice`. If you set both **Websocket Username** and **Websocket Password**, Bluejay sends them as `Authorization: Basic <base64(user:pass)>` on the upgrade request.
+</Step>
+<Step title="Link tool calls and traces">
+Bluejay sends `X-Simulation-Result-Id` on the upgrade request. To report tool calls or traces for the call, send them with this ID to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+</Step>
+</Steps>
 
 ## Audio
 
+Bluejay and your server talk over the CHIRP protocol. Binary frames carry audio in both directions, in this format:
+
 | Property | Value |
 |---|---|
-| Frame type | WebSocket binary |
 | Encoding | `pcm_s16le` (signed 16-bit little-endian) |
 | Sample rate | 16000 Hz |
 | Channels | 1 (mono) |
 | Frame size | Any even byte length. 20 ms (640 bytes) is a good size. |
 
-Every binary frame from Bluejay is the Digital Human's audio, including any background noise, so play it to your agent as it arrives. Send your agent's audio back in the same format.
+Every binary frame from Bluejay is the Digital Human's audio, including any background noise, so play it to your agent as it arrives. Send your agent's audio back in the same format. To end a call, close the WebSocket.
 
 ## Text events
 
@@ -159,15 +160,14 @@ To match a `mark` echo, use `data.name`, because the echo has a new `id` and `ts
 
 To interrupt the Digital Human (barge-in), send `speech.started`. There is no separate interrupt event.
 
-## Limits
+## Troubleshooting
 
-| Result | Cause |
+| What you see | What to do |
 |---|---|
-| **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | Your server returned HTTP 401 or 403 on the upgrade. Bluejay does not retry. Check the username and password. |
-| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Your server returned HTTP 429. Bluejay does not retry. Lower the simulation concurrency. |
-| **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | The connection failed before the call started. Bluejay tries 3 times, 2 seconds apart. |
-
-To end a call, close the WebSocket.
+| **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | Your server returned HTTP 401 or 403 on the upgrade, and Bluejay does not retry. Check the username and password on the agent. |
+| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Your server returned HTTP 429, and Bluejay does not retry. Lower the simulation concurrency. |
+| **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | The connection failed before the call started, after 3 tries 2 seconds apart. Check that your server is running and reachable. |
+| A `session.error` text event | Bluejay dropped one of your frames, and the session continues. Fix the frame using the [error code](#text-events). |
 
 ## Related
 
