@@ -7,7 +7,7 @@ sidebarTitle: "Pipecat"
 
 import { Code } from "/snippets/code.jsx";
 
-To test your Pipecat Cloud agent, Bluejay starts a session for it in a Daily room and joins the room as a Digital Human, so you need no phone number.
+Connect an agent you deployed to Pipecat Cloud, then run simulated calls on it without a phone number.
 
 <img className="block dark:hidden" src="/images/connect-pipecat.png" alt="The Pipecat connection fields with a saved Pipecat API key and a Pipecat agent name" />
 <img className="hidden dark:block" src="/images/connect-pipecat-dark.png" alt="The Pipecat connection fields with a saved Pipecat API key and a Pipecat agent name" />
@@ -16,38 +16,31 @@ To test your Pipecat Cloud agent, Bluejay starts a session for it in a Daily roo
 
 <Steps>
 <Step title="Deploy the agent">
-Deploy your agent to Pipecat Cloud with the [Pipecat quickstart](https://docs.pipecat.ai/getting-started/quickstart). Note the agent name in `pcc-deploy.toml`, because you enter it in Bluejay later.
+Deploy your agent to Pipecat Cloud with the [Pipecat quickstart](https://docs.pipecat.ai/getting-started/quickstart). Note the agent name in `pcc-deploy.toml`.
 </Step>
 <Step title="Add a public API key">
-In the Pipecat dashboard, open **API Keys** and create a key on the **Public** tab. The key starts with `pk_`. Paste it on the **Pipecat** tab of the Integrations settings.
+In the Pipecat dashboard, open **API Keys** and create a key on the **Public** tab. Paste it on the **Pipecat** tab of the Integrations settings. A private key does not work: Bluejay needs a key that starts with `pk_`.
 </Step>
 <Step title="Create the agent">
-Create an Inbound Voice agent, choose the **Pipecat** connection type, and enter the agent name from the first step as **Pipecat Agent Name**. The **Pipecat** connection supports inbound agents only.
+Create an Inbound Voice agent with the **Pipecat** connection type, and enter the agent name as **Pipecat Agent Name**. The **Pipecat** connection supports inbound agents only.
 </Step>
 </Steps>
 
-<Warning>
-A private Pipecat key does not work. Bluejay rejects a key that does not start with `pk_`, and the call fails with **No Connection** and `PIPECAT_CONNECTION_FAILED`.
-</Warning>
-
 ## Fields
 
-Set these fields on the agent. **Pipecat Agent Configuration** and **Pipecat Room Properties** are in the agent's **Connection Settings** after you create it.
+For each simulated call, Bluejay starts a session for your agent in a Daily room and joins the room as a Digital Human. After you create the agent, you can set two more fields in its **Connection Settings**:
 
-| Field | Required | Description |
-|---|---|---|
-| Pipecat Agent Name | Yes | The agent name in Pipecat Cloud. |
-| Pipecat Agent Configuration | No | JSON that Bluejay sends as `body` to your agent on start. |
-| Pipecat Room Properties | No | JSON that Bluejay merges into the Daily room properties. |
+- **Pipecat Agent Configuration**: JSON that Bluejay sends to your agent as `body` on start.
+- **Pipecat Room Properties**: JSON that Bluejay merges into the Daily room properties.
 
 To report tool calls from a simulation, have your bot read its result ID from `args.body`. Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and the other `X-` keys) to the `body` it sends on start. Then send the tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
 
-## Limits
+## Troubleshooting
 
-| Symptom | Cause |
+| Symptom | Fix |
 |---|---|
-| **No Connection** with <Code>PIPECAT_CONNECTION_FAILED</Code> | The Pipecat session stopped before audio started, for example because the key is not a `pk_` key. |
-| Run fails at start | No Pipecat key is saved, or the agent has no **Pipecat Agent Name**. |
+| **No Connection** with <Code>PIPECAT_CONNECTION_FAILED</Code> | The Pipecat session stopped before audio started. Make sure the saved key starts with `pk_`. |
+| Run fails at start | Save a Pipecat key, and set **Pipecat Agent Name** on the agent. |
 
 ## Related
 

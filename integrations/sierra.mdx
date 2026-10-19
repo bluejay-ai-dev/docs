@@ -7,44 +7,39 @@ sidebarTitle: "Sierra"
 
 import { Code } from "/snippets/code.jsx";
 
-Bluejay talks to the agent directly over the Sierra Voice Protocol, so the agent does not need a phone number. Sierra supports voice simulations only.
+Connect each Sierra voice agent with its tokens, then run simulated calls on it without a phone number.
 
 <img className="block dark:hidden" src="/images/connect-sierra.png" alt="The Sierra connection fields with a saved headless API token, an agent token, a release, and agent parameters" />
 <img className="hidden dark:block" src="/images/connect-sierra-dark.png" alt="The Sierra connection fields with a saved headless API token, an agent token, a release, and agent parameters" />
 
 ## Connect
 
-You need two tokens: your organization's headless API token, which every Sierra agent shares, and an agent token for each agent. Sierra has no agent list that Bluejay can sync, so you connect each agent by hand.
+Sierra has no agent list that Bluejay can sync, so you connect each agent by hand.
 
 <Steps>
 <Step title="Save the headless API token">
-In Sierra, open the **Voice Protocol** page and click **Create API token**. Copy the token right away, because Sierra shows it only once. In Bluejay, paste the token on the **Sierra** tab of the Integrations settings.
+In Sierra, open the **Voice Protocol** page and click **Create API token**. Copy the token right away, because Sierra shows it only once. Paste it on the **Sierra** tab of the Integrations settings. Every Sierra agent in your organization uses this token.
 </Step>
 <Step title="Connect the agent">
-Create a voice agent with the **Sierra** connection type, and fill in the fields below.
+Create a voice agent with the **Sierra** connection type.
+
+- **Sierra agent token**: the last part of the agent's Voice Protocol URL, <Code>{"api.sierra.chat/chat/voice/svp/<agent token>"}</Code>.
+- **Release**: a release target such as `staging` or `production`, or a release hash. Leave it empty to use the agent's default release.
+- **Agent parameters**: a JSON object of string values, such as `{"customerId": "1234"}`. Sierra hands these to the agent as request parameters when each call opens. A number or a list is rejected when you save. The object holds at most 512 entries, and each key and value is limited to 16 KB.
 </Step>
 </Steps>
 
-| Field | Required | What to enter |
-|---|---|---|
-| **Headless API token** | Yes | The token from step 1. Once it is saved, every Sierra agent in your organization uses it. |
-| **Sierra agent token** | Yes | The last part of the agent's Voice Protocol URL, <Code>{"api.sierra.chat/chat/voice/svp/<agent token>"}</Code>. |
-| **Release** | No | A release target such as `staging` or `production`, or a release hash. Leave it empty to use the agent's default release. |
-| **Agent parameters** | No | A JSON object of string values, such as `{"customerId": "1234"}`. Sierra hands these to the agent as request parameters when each call opens. |
-
-**Agent parameters** must be a JSON object whose values are all strings. A number or a list is rejected when you save. The object can hold at most 512 entries, and each key and value is limited to 16 KB.
-
 ## Test
 
-[Run a simulation](/test/simulations/create) on the agent as you would for any voice agent. For each call, Bluejay opens a new Sierra conversation with the release and agent parameters set on the agent, and closes it when the call ends.
+[Run a simulation](/test/simulations/create) on the agent as you would for any voice agent. Each call opens a new Sierra conversation with the agent's release and parameters.
 
 ## Troubleshooting
 
-| Symptom | Cause |
+| Symptom | Fix |
 |---|---|
-| **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | Sierra rejected the headless API token or the agent token. Check the token on the **Sierra** tab of the Integrations settings and the **Sierra agent token** on the agent. |
-| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Sierra returned `429`. Lower the max concurrency in Bluejay. |
-| **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | The call did not start. No headless API token is saved, the agent has no **Sierra agent token**, or Sierra did not open the conversation. For a missing token, the error message says which one. |
+| **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | Sierra rejected a token. Check the token on the **Sierra** tab of the Integrations settings and the **Sierra agent token** on the agent. |
+| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Sierra returned `429`. Lower **Max concurrent conversations** on the simulation. |
+| **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | No headless API token is saved, the agent has no **Sierra agent token**, or Sierra did not open the conversation. For a missing token, the error message says which one. |
 | **Call Dropped** with <Code>BRIDGE_DISCONNECTED</Code> | The connection to Sierra was lost during the call. Run the call again. |
 
 ## Related
