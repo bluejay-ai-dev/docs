@@ -9,7 +9,7 @@ Each test goes over the real carrier path, between your agent's number and a num
 
 ## Voice calls
 
-Create a Voice agent with the **Phone** connection type, and enter your agent's phone number in E.164 format, for example `+15551234567`. The agent type sets who places the call:
+Create a Voice agent with the **Phone** connection type, and enter your agent's phone number in E.164 format, for example `+15551234567`. An Outbound agent with an **Outbound Trigger Webhook URL** does not need a number. The agent type sets who places the call:
 
 - **Inbound**: your agent answers calls. When a run starts, each Digital Human calls your agent's number.
 - **Outbound**: your agent places calls. Each Digital Human waits on its own number until your agent calls it. See [Outbound agents](#outbound-agents) for how your agent learns when to call.
@@ -17,7 +17,7 @@ Create a Voice agent with the **Phone** connection type, and enter your agent's 
 <img className="block dark:hidden" src="/images/agent-phone-number.png" alt="The Connect Your Agent dialog with agent type Inbound, mode Voice, the Phone connection type selected, and the agent's phone number entered" />
 <img className="hidden dark:block" src="/images/agent-phone-number-dark.png" alt="The Connect Your Agent dialog with agent type Inbound, mode Voice, the Phone connection type selected, and the agent's phone number entered" />
 
-A phone call cannot carry the result ID that links tool calls and traces to the result, because the public phone network usually drops custom SIP headers. If you need that link, connect the agent over [SIP](/integrations/sip) or through your voice platform's integration page.
+Bluejay sends the result ID that links tool calls and traces to the result in a SIP header, but the public phone network usually drops custom SIP headers before they reach your agent. If you need that link, connect the agent over [SIP](/integrations/sip) or through your voice platform's integration page.
 
 ## SMS
 
@@ -33,7 +33,7 @@ Bluejay grades the run from the transcript. To start an SMS run from the API, us
 An Outbound agent places the call or sends the first text, so give each Digital Human a phone number. The Digital Humans wait on their lines until your agent reaches them or the run times out, so your agent needs to know when a run starts and which numbers to contact. Use one of these two triggers:
 
 - **Outbound Trigger Webhook URL** on the agent. Bluejay sends one `POST` for each conversation, and your system then calls or messages the Digital Human. See [Outbound trigger webhook](/test/simulations/reference#outbound-trigger-webhook) for the body, headers, and retries.
-- **`outbound_simulation_started` event** on a [webhook](/api-reference/webhooks). Bluejay sends one event per run with every number to call. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
+- **`outbound_simulation_started` event** on a [webhook](/api-reference/webhooks). For a voice agent, Bluejay sends one event per run with the numbers to call. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
 
 <img className="block dark:hidden" src="/images/agent-phone-outbound.png" alt="The Connect Your Agent dialog for an Outbound Phone agent, with an Outbound Trigger Webhook URL entered and the Trigger Payload Template field below it" />
 <img className="hidden dark:block" src="/images/agent-phone-outbound-dark.png" alt="The Connect Your Agent dialog for an Outbound Phone agent, with an Outbound Trigger Webhook URL entered and the Trigger Payload Template field below it" />
@@ -60,7 +60,7 @@ Bluejay records, transcribes, and grades each call against your success criteria
 
 ## Limits
 
-If a call fails to connect because the number is not valid or the caller ID is not verified, the result shows `INVALID_PHONE_NUMBER` or `UNUSABLE_CALLER_ID`. If a newer simulation reuses a Digital Human's number while a test is running, Bluejay stops the older test with `SIP_TRUNK_RECYCLED`. See [Error codes](/test/simulations/reference#error-codes) for what to do.
+If a call fails to connect because the number is not valid, the result shows `SIP_DIAL_FAILED`. If the caller ID is not verified, it shows `UNUSABLE_CALLER_ID`. If a newer simulation reuses a Digital Human's number while a test is running, Bluejay stops the older test with `SIP_TRUNK_RECYCLED`. See [Error codes](/test/simulations/reference#error-codes) for what to do.
 
 ## Related
 

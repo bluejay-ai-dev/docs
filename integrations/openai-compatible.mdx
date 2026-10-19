@@ -38,6 +38,8 @@ curl -X POST https://api.getbluejay.ai/v1/add-agent \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Support Agent",
+    "system_prompt": "You are a support agent.",
+    "goals": [],
     "type": "INBOUND",
     "mode": "TEXT",
     "connection_type": "OPENAI_CHAT",
@@ -72,7 +74,7 @@ Bluejay asks for the full reply in one response, so streaming is not used. It re
 - **Your agent ends it**: return `"finish_reason": "stop_conversation"` on the reply. Bluejay then ends and evaluates the conversation right away.
 - **The Digital Human ends it**: Bluejay ends the conversation and sends no further requests.
 
-Bluejay saves the response `id` in the conversation's metadata, so you can match a result to your own logs.
+Bluejay saves the last response `id` in the conversation's metadata, so you can match a result to your own logs.
 
 ### Tool calls
 
@@ -117,7 +119,7 @@ This connection runs tests only. To score your agent's production conversations,
 | Symptom | Cause |
 |---|---|
 | **Enter the base URL only, without /chat/completions** | The **API base URL** ends with <Code>/chat/completions</Code>. Bluejay adds that path itself. |
-| **API base URL must start with http:// or https://** | The **API base URL** has no scheme. |
+| **API base URL must be a valid http(s) URL** | The **API base URL** is not a full http or https URL. |
 | `400`: `OPENAI_CHAT connection_type requires openai_base_url` | The API request sets <Code>connection_type</Code> to `OPENAI_CHAT` without <Code>openai_base_url</Code>. |
 | `400`: `OPENAI_CHAT is a text connection type and has no voice transport` | The run was queued with <Code>/v1/queue-simulation-run</Code>. Use <Code>/v1/queue-http-text-simulation-run</Code>. |
 | The conversation stops partway and ends after the inactivity timeout | Your endpoint failed on that turn, or it returned tool calls with no reply text. |

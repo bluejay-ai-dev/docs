@@ -1,5 +1,5 @@
 ---
-title: "Websocket Simulations"
+title: "WebSocket Simulations"
 description: "Test a voice agent on your own server over WebSocket, with no phone number or voice platform."
 icon: arrow-right-arrow-left
 sidebarTitle: "WebSocket"
@@ -28,20 +28,23 @@ At minimum, your server needs to accept the upgrade, check the credentials, and 
 ```python Python (websockets)
 # pip install websockets
 import asyncio, base64, os
+from http import HTTPStatus
 from websockets.asyncio.server import serve
 
 EXPECTED = "Basic " + base64.b64encode(
     f"{os.environ['CHIRP_USER']}:{os.environ['CHIRP_PASS']}".encode()).decode()
 
+def check_auth(connection, request):
+    if request.headers.get("Authorization") != EXPECTED:
+        return connection.respond(HTTPStatus.UNAUTHORIZED, "unauthorized\n")
+
 async def handler(ws):
-    if ws.request.headers.get("Authorization") != EXPECTED:
-        await ws.close(1008, "unauthorized"); return
     async for msg in ws:
         if isinstance(msg, bytes):
             await ws.send(msg)  # replace the echo with your agent audio
 
 async def main():
-    async with serve(handler, "0.0.0.0", 8080):
+    async with serve(handler, "0.0.0.0", 8080, process_request=check_auth):
         await asyncio.Future()
 
 asyncio.run(main())
@@ -122,7 +125,7 @@ func main() {
 | Channels | 1 (mono) |
 | Frame size | Any even byte length. 20 ms (640 bytes) is a good size. |
 
-Every binary frame from Bluejay is the Digital Human's voice, so play it to your agent as it arrives. Send your agent's audio back in the same format.
+Every binary frame from Bluejay is the Digital Human's audio, including any background noise, so play it to your agent as it arrives. Send your agent's audio back in the same format.
 
 ## Text events
 
@@ -135,7 +138,7 @@ Text frames carry events, such as when speech starts and stops. Each one is UTF-
 | `type` | `data` | Bluejay sends it when | If you send it |
 |---|---|---|---|
 | `speech.started` | <Code>utterance_id</Code> | The Digital Human starts to speak. | If the Digital Human is speaking, Bluejay interrupts it and sends `speech.completed` for that utterance. |
-| `speech.completed` | <Code>utterance_id</Code> | The Digital Human stops speaking. | Bluejay records the end of your turn. |
+| `speech.completed` | <Code>utterance_id</Code> | The Digital Human stops speaking. | Bluejay logs it and takes no other action. |
 | `session.error` | `code`, `message` | Your frame is not valid. Bluejay drops the frame and the session continues. | Bluejay logs it in the result metadata under <Code>customer_session_errors</Code>. |
 | `mark` | `name` | Only as an echo of your `mark`. | Bluejay echoes the same `name` after all audio you sent before it has played to the Digital Human. |
 
@@ -160,7 +163,6 @@ To interrupt the Digital Human (barge-in), send `speech.started`. There is no se
 | **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | Your server returned HTTP 401 or 403 on the upgrade. Bluejay does not retry. Check the username and password. |
 | **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Your server returned HTTP 429. Bluejay does not retry. Lower the simulation concurrency. |
 | **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | The connection failed before the call started. Bluejay tries 3 times, 2 seconds apart. |
-| **Call Dropped** with <Code>BRIDGE_DISCONNECTED</Code> | The connection stopped during the call. |
 
 To end a call, close the WebSocket.
 

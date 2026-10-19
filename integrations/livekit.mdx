@@ -25,11 +25,11 @@ Give each agent the **LiveKit** connection type, and fill in the fields in the t
 | Authentication | **API Key** uses the keys above. **Token Webhook** calls your server for a room token, so Bluejay stores no LiveKit keys. |
 | Token Webhook URL | Required for **Token Webhook**. See [Token webhook](#token-webhook). |
 | Authorization Header (Optional) | Sent as the `Authorization` header on the token webhook. Include the scheme, for example `Bearer <token>`. |
-| LiveKit Agent Name | The name your worker registers with. Leave it empty to dispatch your default agent. |
+| LiveKit Agent Name | The name your worker registers with. Leave it empty only if your worker uses automatic dispatch, because Bluejay then dispatches no agent. |
 | LiveKit Customer Tool Topic (Optional) | The data topic your agent publishes tool calls to, for example `customer.tool.calls`. |
 | LiveKit Metadata (Optional JSON) | JSON that Bluejay sends as the job metadata when it dispatches your agent. With a token webhook, Bluejay sends it as <Code>agent_metadata</Code>. |
 
-If you use [Bluejay as Code](/bluejay-as-code/overview), Bluejay fills the Digital Human field `livekit_metadata` from these connection settings, so do not write it by hand.
+Bluejay merges a Digital Human's `livekit_metadata` over this JSON and adds the simulation IDs, such as `X-Simulation-Result-Id`.
 
 ## Test
 
@@ -133,7 +133,7 @@ With **Token Webhook** authentication, your server creates the room token, so Bl
 | Response field | Description |
 |---|---|
 | `token` | Required. A LiveKit token for the identity with `room_join`, `can_publish`, and <Code>can_subscribe</Code>. Add <Code>can_publish_data</Code> for tool call tracking. The TTL must cover the call. |
-| `livekit_url` | Optional. Replaces the server URL from the integration. |
+| `livekit_url` | Replaces the server URL from the integration. Required if you saved no LiveKit integration. |
 | `room_name` | Optional. Replaces the room the Digital Human joins. |
 
 Also make sure your agent is dispatched: put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
@@ -166,6 +166,8 @@ async def report_tool_call(room, tool_name, parameters, output):
 To see your agent's traces on a simulation result, export OpenTelemetry traces to Bluejay, then link them to the result when the call shuts down.
 
 ```python
+import httpx
+from opentelemetry import context as otel_context
 from opentelemetry.sdk import trace as trace_sdk
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
@@ -182,18 +184,22 @@ tracer_provider.add_span_processor(
 set_tracer_provider(tracer_provider)
 otel_trace.set_tracer_provider(tracer_provider)
 
-# After session.start():
-span_ctx = otel_trace.get_current_span().get_span_context()
-trace_ids = [format(span_ctx.trace_id, "032x")] if span_ctx.is_valid else []
+# Before session.start():
+span = otel_trace.get_tracer("my-agent").start_span("call")
+otel_context.attach(otel_trace.set_span_in_context(span))
+trace_ids = [format(span.get_span_context().trace_id, "032x")]
+
+# simulation_result_id: the X-Simulation-Result-Id value from the job metadata
+# or, over SIP, from the participant attributes.
 
 async def on_shutdown():
     span.end()
     tracer_provider.force_flush()
-    if simulation_result_id and (trace_ids or tool_calls):
+    if simulation_result_id:
         async with httpx.AsyncClient(timeout=10) as client:
             res = await client.post(
                 "https://api.getbluejay.ai/v1/update-simulation-result",
-                json={"simulation_result_id": simulation_result_id, "trace_ids": trace_ids, "tool_calls": tool_calls},
+                json={"simulation_result_id": simulation_result_id, "trace_ids": trace_ids},
                 headers={"X-API-Key": BLUEJAY_API_KEY},
             )
             res.raise_for_status()
@@ -229,7 +235,7 @@ Make sure your agent has a [dispatch name](https://docs.livekit.io/agents/build/
 </Step>
 </Steps>
 
-On the first call, Bluejay creates an agent named after the dispatch name. To replace the webhook URL, click the refresh icon next to it. The old URL then stops working.
+On the first call with a new dispatch name, Bluejay creates an agent for it. To replace the webhook URL, click the refresh icon next to it. The old URL then stops working.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/livekit-obs-full.mp4"></video>
 
@@ -288,4 +294,4 @@ await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "
 - [Agents MCP tools](/mcp/testing-tools#agents)
 - [Logs](/monitor/logs)
 - [Traces](/monitor/traces)
-- [Phone and SIP Simulations](/integrations/sip)
+- [SIP](/integrations/sip)

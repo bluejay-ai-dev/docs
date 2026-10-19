@@ -24,7 +24,7 @@ You give Bluejay a webhook URL on your server. Bluejay posts each Digital Human 
 
 <Tabs>
 <Tab title="Website">
-Use a Text agent with the **HTTP Webhook** connection type and your **HTTP Webhook URL**. After you save the agent, generate a **Webhook Signing Key** so your server can [verify each request](#verify-the-signature).
+Use a Text agent with the **HTTP Webhook** connection type and your **Webhook URL**. Bluejay generates a signing key when you create the agent, so your server can [verify each request](#verify-the-signature).
 </Tab>
 <Tab title="API">
 
@@ -34,6 +34,8 @@ curl -X POST https://api.getbluejay.ai/v1/add-agent \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Customer Support Bot",
+    "system_prompt": "You are a customer support agent.",
+    "goals": ["Resolve the caller issue"],
     "type": "INBOUND",
     "mode": "TEXT",
     "connection_type": "HTTP_WEBHOOK",
@@ -75,7 +77,7 @@ curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
 ```
 </Step>
 <Step title="End the conversation">
-Send `"end_conversation": true` to end and evaluate the conversation. The Digital Human can also end it. When a conversation ends, Bluejay posts a last webhook with `"message": null` and `"end_conversation": true`. A conversation that ends because no message arrived gets no last webhook.
+Send `"end_conversation": true` to end and evaluate the conversation. The Digital Human can also end it. When a conversation ends, Bluejay posts a webhook with `"end_conversation": true`. A conversation that ends because no message arrived gets no last webhook.
 </Step>
 </Steps>
 
@@ -131,7 +133,7 @@ curl -X POST https://api.getbluejay.ai/v1/send-http-text-message \
 
 If your endpoint can return the agent reply directly, set `http_webhook_sync_reply` to `true`. Bluejay then reads the reply from your webhook response, so you do not call `/v1/send-http-text-message`. Bluejay waits up to 60 seconds for the response.
 
-The body can be one object, a list of objects, or a string. Bluejay reads the first of these keys that it finds:
+The JSON body can be one object, a list of objects, or a string. Bluejay reads the first of these keys that it finds:
 
 - `message`
 - `reply`
@@ -162,6 +164,6 @@ def verify_signature(raw_body: bytes, signature_header: str, signing_key: str) -
 
 - [HTTP Webhook (Chat) API](/api-reference/endpoint/queue-http-text-simulation-run)
 - [Simulation MCP tools](/mcp/testing-tools#simulations)
-- [Websocket Simulations](/integrations/websockets)
+- [WebSocket Simulations](/integrations/websockets)
 - [Simulation](/test/simulations/create)
 - [Agents](/test/simulations/create#connect-your-agent)

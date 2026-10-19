@@ -7,7 +7,7 @@ sidebarTitle: "Vapi"
 
 import { Code } from "/snippets/code.jsx";
 
-Bluejay syncs your assistants and squads as agents, so you do not set up each one by hand, and tests them over a web call, your Vapi phone number, a Vapi SIP URI, or calls that your assistant places.
+Bluejay syncs your assistants and squads as agents, so you do not set up each one by hand, and tests them over a WebSocket, your Vapi phone number, a Vapi SIP URI, or calls that your assistant places.
 
 <iframe
   src="https://www.youtube.com/embed/jw_gipBfr3Y"
@@ -24,7 +24,7 @@ Bluejay uses two Vapi keys:
 
 | Field | Value |
 |---|---|
-| Private API Key | Your Vapi private key. Bluejay uses it to sync assistants and open web calls. |
+| Private API Key | Your Vapi private key. Bluejay uses it to sync assistants and open WebSocket calls. |
 | Public API Key | Your Vapi public key. Vapi sends it in the `x-vapi-secret` header so Bluejay can verify the webhook. |
 
 <Steps>
@@ -52,18 +52,18 @@ Link each assistant to a Bluejay agent, or Bluejay rejects its webhook. A sync l
 - **Connection Settings**: choose the **VAPI** tile and set **VAPI Assistant ID**.
 - **Observability Settings**: set **Voice AI Provider** to **VAPI** and **Assistant ID** to the same ID. This links the assistant, so Bluejay accepts its webhook.
 
-An assistant that uses a Vapi workflow syncs with an empty prompt. To work on its graph, pull it from Vapi on the synced agent's **Workflow** tab, and push your edits back.
+To edit a synced assistant, pull it from Vapi on the agent's **Workflow** tab, and push your edits back. A synced squad has a **Squad** tab instead, where you edit its graph.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/integrations-vapi.mp4"></video>
 
 ## Test
 
 <Tabs>
-<Tab title="Web call">
+<Tab title="WebSocket">
 
-Bluejay calls the assistant through the Vapi web-call bridge, so no phone number is necessary. Use this path to iterate on the assistant's logic.
+Bluejay calls the assistant over a Vapi WebSocket, so no phone number is necessary. Use this path to iterate on the assistant's logic.
 
-A web call runs the same way whatever the agent type is, and your assistant speaks first. To test calls that your assistant places, use the **Outbound** path.
+A WebSocket call works only with an Inbound agent, and your assistant speaks first. To test calls that your assistant places, use the **Outbound** path.
 
 </Tab>
 <Tab title="Phone">
@@ -115,7 +115,7 @@ def update_simulation_result(simulation_result_id, tool_calls, metadata):
 </Tab>
 <Tab title="Outbound">
 
-Your assistant places a real phone call from your Vapi number to each Digital Human, and Bluejay asks the Vapi API to start each call. A web call cannot place a call, so this path uses the **Phone** connection type.
+Your assistant places a real phone call from your Vapi number to each Digital Human, and Bluejay asks the Vapi API to start each call. A WebSocket call cannot place a call, so this path uses the **Phone** connection type.
 
 1. In the agent's **Connection Settings**, set:
    - **Agent type**: **Outbound**.
@@ -143,11 +143,11 @@ The webhook you set in [Connect](#connect) also sends each production call to Bl
 | Symptom | Cause |
 |---|---|
 | No tool calls in results | The webhook did not reach Bluejay. Check the Server URL and the `x-vapi-secret` header. |
-| Sync runs but agents are missing | The private key is not saved. |
+| Sync runs but agents are missing | Vapi rejected the private key. Check that you saved the private key, not the public key. |
 | **No Connection** with <Code>VAPI_AUTH_FAILED</Code>, <Code>MISSING_VAPI_INTEGRATION</Code>, or <Code>MISSING_VAPI_ASSISTANT_ID</Code> | The key is rejected, no key is saved, or the agent has no **VAPI Assistant ID**. |
-| **No Connection** with <Code>VAPI_BRIDGE_CONNECT_FAILED</Code> or <Code>VAPI_SESSION_SETUP_FAILED</Code> | Vapi accepted the connection but did not start a session. Run the call again. |
+| **No Connection** with <Code>VAPI_BRIDGE_CONNECT_FAILED</Code> or <Code>VAPI_SESSION_SETUP_FAILED</Code> | Vapi rejected the call, the connection did not open, or Bluejay could not set up its side of the call. Run the call again. |
 | **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Vapi returned `429`. Lower the max concurrency in Bluejay. |
-| **Call Dropped** with <Code>VAPI_AGENT_ERROR</Code>, <Code>VAPI_AGENT_START_FAILED</Code>, or <Code>VAPI_MONITORING_ERROR</Code> | The assistant reported an error, did not start its turn, or Bluejay lost the monitoring connection. |
+| **Call Dropped** with <Code>VAPI_AGENT_ERROR</Code>, <Code>VAPI_AGENT_START_FAILED</Code>, or <Code>VAPI_MONITORING_ERROR</Code> | The call failed after it connected, or Bluejay lost the monitoring connection. Run the call again, and check your Vapi call logs. |
 | Outbound test fails with **No Connection** and <Code>SIP_DIAL_FAILED</Code> | No Vapi private key is saved, or the agent has no **Assistant ID** in its **Observability Settings**. |
 | Outbound test ends **No Answer** with <Code>INBOUND_NO_INCOMING_CALL</Code> | Vapi did not place the call. The agent's phone number is not in your Vapi account, or Vapi rejected the request. |
 | Vapi stops placing outbound test calls after a sync | The sync set the connection type back to **VAPI**. Set it to **Phone** again. |

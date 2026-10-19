@@ -5,6 +5,8 @@ icon: '/logo/bland.svg'
 sidebarTitle: "Bland"
 ---
 
+import { Code } from "/snippets/code.jsx";
+
 Bluejay syncs each Bland pathway as an agent, along with your Bland knowledge bases, and tests the pathway over a web call, a phone call, or chat.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/bland-walkthrough.mp4"></video>
@@ -31,8 +33,8 @@ For each pathway, Bluejay pulls in:
 
 - The working copy of the pathway, with its nodes and routing. The pathway's global prompt becomes the agent's prompt.
 - The prompts and routing conditions of the Bland Persona that routes calls into the pathway, if there is one.
-- The pathways that it warm-transfers into, up to 4 levels deep and 8 pathways in total. A pathway that only one other pathway transfers into does not get its own agent, because its calls belong to that pathway's agent.
-- Its connection type. A pathway with a Bland web agent gets the websocket path, and a pathway without one gets the phone path.
+- The pathways that it warm-transfers into, up to 4 levels deep and 8 pathways in total. A pathway that only one other pathway transfers into, and that no Persona routes calls into, does not get its own agent, because its calls belong to that pathway's agent.
+- Its connection type. A pathway with a Bland web agent gets the WebSocket path, and a pathway without one gets the phone path.
 
 The sync also copies every Bland knowledge base into its own Bluejay knowledge base, so that custom metrics can check answers against the same content. Bland does not say which pathway uses which knowledge base, so attach each one to its agents yourself. A later sync updates the same knowledge base in place.
 
@@ -49,7 +51,7 @@ On the **Workflow** tab of a synced agent, pull any version from Bland, push you
 ## Test
 
 <Tabs>
-<Tab title="Websocket">
+<Tab title="WebSocket">
 
 Bluejay opens a session with the pathway's Bland web agent, so no phone number is necessary. Use this path to iterate on pathway logic.
 
@@ -58,11 +60,11 @@ If the pathway has no web agent in Bland, create one there and sync again. Bluej
 </Tab>
 <Tab title="Phone">
 
-Bland places a real phone call from the pathway to each Digital Human. A sync creates every agent as Inbound, so change the agent type to **Outbound** before you run the test, and give each Digital Human a phone number.
+Bland places a real phone call from the pathway to each Digital Human. This path works only for a pathway without a Bland web agent. A sync creates every agent as Inbound, so change the agent type to **Outbound** before you run the test, and give each Digital Human a phone number.
 
-Bland dials from a number in its own pool. Bluejay tags each call with `qa_vendor: bluejay`, `type: vendor-qa-dispatch`, and `environment: staging`, so you can keep test calls out of your production reports.
+By default, Bland dials from a number in its own pool. Bluejay tags each call with `qa_vendor: bluejay`, `type: vendor-qa-dispatch`, and `environment: staging`, so you can keep test calls out of your production reports.
 
-To have Bluejay dial your Bland number instead, keep the agent Inbound and give it your Bland phone number.
+To have Bluejay dial your Bland number instead, use an Inbound Voice agent with the [Phone connection type](/test/simulations/create#connect-your-agent) and your Bland number.
 
 </Tab>
 <Tab title="Chat">
@@ -89,7 +91,7 @@ To make phone tests behave like your production calls, open the agent's **Connec
   - `webhook_events`
 - **Request data (Optional)**: the `request_data` that your pathway expects. Bluejay adds each Digital Human's traits to it before the call, and writes the Digital Human's name, phone number, and email over matching keys.
 
-Bluejay sends both only on calls that Bland places. Websocket and chat runs do not use them.
+Bluejay sends both only on calls that Bland places. WebSocket and chat runs do not use them.
 
 ## Monitor
 
@@ -109,11 +111,11 @@ Bluejay files each call under the agent synced from the call's pathway. If no ag
 The pathway's own record of the call also goes into `metadata`, for live calls and for phone tests that Bland places:
 
 - `pathway_tags`: a list of the names of the tags that the call reached, such as `["Confirm_Identity", "Voicemail_Listening"]`.
-- `pathway_logs`: Bland's step-by-step log of the call, as Bland returns it. Each entry has fields such as the tag, the chosen node ID, and a timestamp.
+- `pathway_logs`: Bland's step-by-step log of the call, as Bland returns it. On a call that a person answered, Bluejay stores Bland's newer event log instead, and each entry has an `event_type`.
 
 A dynamic variable puts the whole list into the prompt as text. To check that a call reached a tag, write a prompt such as "Do these pathway tags include Confirm_Identity: `{{pathway_tags}}`?".
 
-For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent, Bluejay tells Bland to place each check call. You do not need an outbound trigger webhook.
+For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent whose pathway has no Bland web agent, Bluejay tells Bland to place each check call. You do not need an outbound trigger webhook.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/add-link-bland.mov"></video>
 
@@ -121,9 +123,9 @@ For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent, Bluejay 
 
 | Symptom | Cause |
 |---|---|
-| **No Connection** with `SIP_DIAL_FAILED` | No Bland API key is saved, the agent has no pathway, or the Digital Human has no phone number. |
+| **No Connection** with <Code>SIP_DIAL_FAILED</Code> | No Bland API key is saved, the agent has no pathway, the Digital Human has no phone number, or Bland rejected the call. |
 | Phone test on a synced agent fails | The agent is still Inbound and has no phone number, so nobody places the call. Set the type to **Outbound**. |
-| Websocket test fails to connect | The pathway has no Bland web agent. Create one in Bland and sync again. |
+| WebSocket test fails to connect | The pathway has no Bland web agent. Create one in Bland and sync again. |
 | Live calls do not show | The **Webhook Secret** is missing or wrong, so Bluejay rejects the webhook. |
 | A knowledge base is missing | Its text is larger than 1 MB, or Bland returned no text for it. |
 

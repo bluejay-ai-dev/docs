@@ -21,7 +21,7 @@ In Bluejay, open the **Eleven Labs** tab of the Integrations settings and save b
 - **Webhook Secret**: the HMAC secret of your ElevenLabs post-call webhook. Bluejay rejects any production call that ElevenLabs sends without a valid signature. See [Monitor](#monitor).
 </Step>
 <Step title="Sync the agents">
-Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent, with its prompt, workflow, and tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
+Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent, with its prompt and workflow. The next sync adds its tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
 </Step>
 </Steps>
 
@@ -36,9 +36,9 @@ To edit a synced workflow, use the agent's **Workflow** tab to pull changes from
 ## Test
 
 <Tabs>
-<Tab title="Websocket">
+<Tab title="WebSocket">
 
-Bluejay opens a live web call to the agent over websocket, so no phone number is necessary. The **ElevenLabs** tile is inbound only.
+Bluejay opens a live web call to the agent over WebSocket, so no phone number is necessary. The **ElevenLabs** tile is inbound only.
 
 For a multi-agent workflow, **Generate From Workflow** makes Digital Humans for each path, so every branch of the workflow gets a test.
 
@@ -126,13 +126,12 @@ Bluejay sets these metadata keys itself and overwrites any value you send for th
 
 | Symptom | Cause |
 |---|---|
-| Run fails with a missing integration error | No API key is saved. Bluejay needs the key at run time. |
 | **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | The run is over the concurrency of your ElevenLabs plan. Lower the max concurrency in Bluejay. |
 | Edits do not show in the call | The edits are on a branch other than Main. |
 | **No Connection** with <Code>ELEVEN_LABS_AUTH_FAILED</Code>, <Code>MISSING_ELEVEN_LABS_INTEGRATION</Code>, or <Code>MISSING_ELEVEN_LABS_AGENT_ID</Code> | The key is rejected, no key is saved, or the agent has no **ElevenLabs Agent ID**. |
-| **No Connection** with <Code>ELEVEN_LABS_BRIDGE_CONNECT_FAILED</Code> or <Code>ELEVEN_LABS_SESSION_SETUP_FAILED</Code> | ElevenLabs accepted the connection but did not start a session. Run the call again. |
-| **Call Dropped** with <Code>ELEVEN_LABS_AGENT_ERROR</Code>, <Code>ELEVEN_LABS_AGENT_START_FAILED</Code>, or <Code>ELEVEN_LABS_MONITORING_ERROR</Code> | The agent reported an error, did not start its turn, or Bluejay lost the monitoring connection. |
-| Tool calls missing or partial | Bluejay gets them after the call. Long calls can return partial results. |
+| **No Connection** with <Code>ELEVEN_LABS_BRIDGE_CONNECT_FAILED</Code> or <Code>ELEVEN_LABS_SESSION_SETUP_FAILED</Code> | Bluejay could not start the session with ElevenLabs. Run the call again. |
+| **Call Dropped** with <Code>ELEVEN_LABS_AGENT_ERROR</Code>, <Code>ELEVEN_LABS_AGENT_START_FAILED</Code>, or <Code>ELEVEN_LABS_MONITORING_ERROR</Code> | The call failed after it connected, or Bluejay lost the monitoring connection. Run the call again, and check your ElevenLabs call history. |
+| Tool calls missing or partial | Bluejay completes them from the ElevenLabs call history after the call. If the history is not ready within 45 seconds, the result keeps only the tool calls seen during the call. |
 | Live calls do not show | The **Webhook Secret** is missing or wrong, or no Bluejay agent has the call's ElevenLabs agent ID as its **Assistant ID**. |
 | Live calls do not show with **OpenTelemetry transcript payloads** on | No **ElevenLabs API Key** is saved, so Bluejay cannot fetch the conversation behind the trace. |
 | Live calls have no recording | **Send audio data** is off in ElevenLabs. |

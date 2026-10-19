@@ -20,10 +20,10 @@ Set the channel app's JWT signing algorithm to **HS256**, because Bluejay does n
 In Bot Builder, open **Channels & Flows**, then **Webhook**, then **Configurations**. Copy the values in the table below.
 </Step>
 <Step title="Create the agent in Bluejay">
-Use a Text agent with the **Kore.ai** connection type and the four fields from the table below. After you create the agent, Bluejay shows the **Bluejay Webhook URL** and an access token. Copy both. Kore.ai uses the token to authenticate its replies to Bluejay. To find the token later, click **View access token** in the agent's **Connection** settings.
+Use a Text agent with the **Kore.ai** connection type and the four fields from the table below. After you create the agent, Bluejay shows the **Webhook URL (Post URL)** and the **Access Token**. Copy both. Kore.ai uses the token to authenticate its replies to Bluejay. To find the token later, click **View access token** in the agent's **Connection** settings.
 </Step>
 <Step title="Configure the Kore.ai Webhook channel">
-Set **Integration Mode** to **Asynchronous**. Paste the **Bluejay Webhook URL** into **Post URL**. Paste the token into **Access Token**. Save the channel, then publish the bot, because the Webhook channel does not send messages until you publish.
+Set **Integration Mode** to **Asynchronous**. Paste the webhook URL into **Post URL**. Paste the token into **Access Token**. Save the channel, then publish the bot, because the Webhook channel does not send messages until you publish.
 </Step>
 </Steps>
 
@@ -66,9 +66,7 @@ Add the agent to a [simulation](/test/simulations/create) and run it. With the A
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `ConnectTimeout` in the result error | Bluejay cannot reach the Kore.ai host | Use a host that the public internet can reach. |
-| Kore.ai returns 401 | Kore.ai rejects the JWT | Check Client ID and Client Secret, and make sure the app uses HS256. |
-| Kore.ai returns 404 | Wrong Bot ID, or the bot is not published | Fix the Bot ID, then publish the bot. |
+| The transcript has only the Digital Human's first message | Kore.ai did not reply. The Kore Host is unreachable, Kore.ai rejected the JWT, or the Bot ID is wrong or the bot is not published. | Check Kore Host, Bot ID, Client ID, and Client Secret. Make sure the app uses HS256, then publish the bot. |
 | `POST /v1/kore-webhook/<agent_id>` returns 401 | The access token in Kore.ai does not match | Copy the token from **View access token** into Kore.ai again. |
 | Replies show in Kore.ai but not in Bluejay | The channel uses Synchronous mode | Set Asynchronous mode and publish again. |
 
