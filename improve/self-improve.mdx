@@ -8,7 +8,7 @@ Bluejay finds why calls fail, rewrites the prompt, and keeps a change only if th
 
 ## Requirements
 
-Self-Improve pushes each new prompt to your voice platform, so sync the agent from a platform that supports it. Your platform's integration page says if it does.
+Self-Improve pushes each new prompt to the live agent on its platform, so sync the agent from a platform that supports it. Your platform's integration page says if it does. Calls that reach the agent during the run get the prompt under test, so run it on an agent you use for testing.
 
 ## Start a run
 
@@ -25,11 +25,11 @@ The run starts only after you confirm the preview that Bluejay AI shows.
 | Minimum improvement to keep a fix | 0.02 | 0 to 1 |
 | Number of generated metrics | 5 | 1 to 20 |
 
-Bluejay generates metrics for the run. To use your own metrics in their place, name them in your request.
+Bluejay generates metrics for the run and saves them on the agent. To use your own metrics in their place, name them in your request. Either way, the run replaces the simulation's selected custom metrics with the run's metrics, and they stay selected after the run.
 
-## Each round
+## How a run works
 
-1. Metrics: Bluejay generates Pass/Fail metrics from the agent goals and tools, or uses the metrics you named.
+1. Metrics: Bluejay generates metrics from the agent's prompt, workflow, and Knowledge Base, or uses the metrics you named.
 2. Baseline: the current prompt runs the full simulation. If the pass rate already meets the target, the run ends with no change.
 3. Diagnose: Bluejay reads the failed calls and finds one failure pattern.
 4. Fix: Bluejay writes a new prompt for that pattern and pushes it to your provider.
@@ -39,9 +39,9 @@ The run stops when the pass rate meets the target, the round limit is reached, t
 
 ## Result
 
-If the run beats the baseline, Bluejay saves the best prompt as a new agent version on the agent with the `latest` label.
+If the run beats the baseline, Bluejay saves the best prompt as a new agent version on the agent with the `latest` label. The agent on your platform also keeps the best prompt from the run.
 
-To see progress, ask Bluejay AI for the run status.
+To see progress, ask Bluejay AI for the run status. While the chat that started the run stays open, Bluejay AI reports the result when the run ends.
 
 ## Limits
 

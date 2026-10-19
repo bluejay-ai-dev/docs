@@ -47,7 +47,7 @@ You can end a `RUNNING` call. If nothing was recorded when it ends, its status i
 
 ## Error codes
 
-Each failed call has an `error_code` and a message that say what went wrong. The codes are grouped by the call's status. In a Customer Journeys run, a step that ends with an error status cancels the later steps with `STEP_SKIPPED`.
+Each failed call has an `error_code` and a message that say what went wrong. The codes are grouped by the call's status.
 
 ### No Connection
 
@@ -59,9 +59,11 @@ Usually a problem in your configuration or your provider plan. In a code, `<PROV
 | <Code>{"<PROVIDER>_AUTH_FAILED"}</Code> | Your provider rejected the API key that Bluejay has. | Update the key in the integration settings. |
 | <Code>{"MISSING_<PROVIDER>_INTEGRATION"}</Code> | The provider integration is not connected or not complete. | Connect the integration. |
 | <Code>{"<PROVIDER>_INTEGRATION_DECRYPT_FAILED"}</Code> | Bluejay could not decrypt the stored credentials. | Connect the integration again. |
-| <Code>{"MISSING_<PROVIDER>_AGENT_ID"}</Code><br /><Code>{"MISSING_<PROVIDER>_ASSISTANT_ID"}</Code> | The agent or assistant ID is empty. | Set the ID on the agent. |
+| <Code>{"MISSING_<PROVIDER>_AGENT_ID"}</Code><br /><Code>{"MISSING_<PROVIDER>_ASSISTANT_ID"}</Code><br /><Code>NO_PIPECAT_AGENT_NAME</Code> | The agent ID, assistant ID, or agent name is empty. | Set it on the agent. |
 | <Code>OUTBOUND_TRIGGER_FAILED</Code> | Your [outbound trigger webhook](#outbound-trigger-webhook) did not return a `2xx` status after 3 tries. | Check the URL and that your endpoint answers within 15 seconds. |
 | <Code>{"<PROVIDER>_BRIDGE_CONNECT_FAILED"}</Code><br /><Code>{"<PROVIDER>_SESSION_SETUP_FAILED"}</Code> | The provider accepted the connection but did not start a session. Often temporary. | Run the call again. |
+| <Code>LIVEKIT_SESSION_SETUP_FAILED</Code> | Bluejay could not join your LiveKit room. Most often your token webhook rejected the request or returned a token that does not work. | Check the token webhook and its `Authorization` header on the agent. |
+| <Code>BRIDGE_PRE_START_FAILED</Code> | The WebSocket connection to your agent failed before the conversation started. | Check that your endpoint is running, then run the call again. |
 | <Code>UNUSABLE_CALLER_ID</Code><br /><Code>INVALID_PHONE_NUMBER</Code><br /><Code>INVALID_SIP_DESTINATION</Code><br /><Code>SIP_DIAL_FAILED</Code> | The caller ID is not verified, the destination is not valid, or the SIP dial failed. | Check the number or SIP destination. |
 | <Code>DYNAMIC_ENDPOINT_FAILED</Code> | Bluejay could not get a SIP endpoint from the dynamic SIP webhook of the agent. | Check that the webhook is reachable and returns an endpoint. |
 | <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Your provider's concurrent-call limit was reached. | Raise the limit or run fewer calls at once. |
@@ -121,6 +123,13 @@ An email conversation can also show <Code>EMAIL_SENDER_MISMATCH</Code> without e
 
 If the code is `EVAL_HYDRATION_FAILED`, `EVAL_PIPELINE_FAILED`, or `EVAL_QUEUE_FAILED`, you can retry only the scoring from the call panel.
 
+### Cancelled
+
+| Code | Meaning |
+|---|---|
+| <Code>USER_CANCELLED</Code> | You cancelled the call, or ended it before anything was recorded. |
+| <Code>STEP_SKIPPED</Code> | In a Customer Journeys run, an earlier step ended as No Connection, No Answer, Call Dropped, Out of Funds, or System Error, so Bluejay cancelled this step. |
+
 ## Outbound trigger webhook
 
 For an outbound agent, your system starts each conversation. When a run starts, Bluejay sends a POST to your **Outbound Trigger Webhook URL**, and your system then calls or messages the Digital Human.
@@ -155,11 +164,11 @@ Each request also has these headers:
 
 An agent version is a numbered copy of the agent prompt. Save a new version before you change the prompt, so you can compare runs and go back.
 
-Each new version gets the `latest` label. The first version also gets the `production` label, and it keeps it until you promote another version. A new simulation run and a production evaluation use the `production` version unless you select another one.
+Each new version gets the `latest` label. The first version also gets the `production` label, and it keeps it until you promote another version. A new simulation and a production evaluation use the `production` version unless you select another one.
 
 ## Workflow
 
-A workflow is the multi-agent graph of a provider agent, for example a root agent that hands off to sub-agents. It comes from your provider. Use the **Workflow** tab of Agent Settings to see and edit that graph, and to test each path through it with the [Workflow](/test/simulation-types/generate-from-workflow) simulation type.
+A workflow is the multi-agent graph of a provider agent, for example a root agent that hands off to sub-agents. It comes from your provider. Use the **Workflow** tab of Agent Settings (**Squad** for a Vapi squad) to see and edit that graph, and to test each path through it with the [Workflow](/test/simulation-types/generate-from-workflow) simulation type.
 
 **Pull** copies the graph from your provider into Bluejay. **Push** sends your Bluejay edits to the provider.
 
@@ -196,7 +205,7 @@ Bluejay uses a new document only after its status is **Ready**. If the status is
 | Feature | Use |
 |---|---|
 | Success evaluation | When a success criterion depends on facts, the judge searches the Knowledge Bases of the agent. |
-| Hallucination check | If your organization turns on **Enable Hallucination Evaluations**, Bluejay checks the agent's answers against its Knowledge Bases. |
+| Hallucination check | If you add the Hallucination metric from the **Library** tab on the **Metrics** page, Bluejay checks the agent's answers against its Knowledge Bases. |
 | Custom metrics | If a metric has <Code>settings.use_knowledge_base</Code> set to `true`, the judge can search the Knowledge Base. |
 | Simulations | The [Knowledge Base](/test/simulation-types/natural-language#knowledge-base) simulation type makes Digital Humans across the topics in a Knowledge Base. |
 
