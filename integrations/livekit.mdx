@@ -47,14 +47,14 @@ If you use [Bluejay as Code](/bluejay-as-code/overview), Bluejay fills the Digit
 <Tabs>
 <Tab title="Direct">
 
-Use this path to iterate on agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it. It works for inbound agents only, and it needs saved LiveKit keys or a token webhook, plus the **LiveKit Agent Name** that your worker registers with.
+Use this path to iterate on agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it. It works for inbound agents only. Save your LiveKit keys or set up a [token webhook](#token-webhook), and set **LiveKit Agent Name** to the name your worker registers with.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/connection-settings.mp4"></video>
 
 </Tab>
 <Tab title="SIP">
 
-Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. The number does not need to be one you bought, but it must match your trunk.
+Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. You can use a number you did not buy, as long as it matches your trunk.
 
 1. Create an inbound trunk in the project that owns the SIP host.
 
@@ -66,7 +66,7 @@ Use SIP to test the same path that your phone calls take. Bluejay sends a SIP IN
 lk sip inbound create trunk.json
 ```
 
-2. Create a dispatch rule on the trunk. `agentName` must match your worker name.
+2. Create a dispatch rule on the trunk. Set `agentName` to your worker name.
 
 ```json dispatch.json
 {
@@ -81,7 +81,7 @@ lk sip inbound create trunk.json
 lk sip dispatch create dispatch.json
 ```
 
-3. In Bluejay, choose the **SIP** connection type and set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. The number must match the trunk `numbers` exactly.
+3. In Bluejay, choose the **SIP** connection type and set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. Use the number exactly as it appears in the trunk `numbers`.
 
 Bluejay puts each custom SIP header from **Connection Settings** on the INVITE under the name you enter, and also sends all of them together as JSON in `X-Custom-Headers`. Your agent can read them with the `lk.sip.GetRemoteHeaders` RPC:
 
@@ -149,7 +149,7 @@ With **Token Webhook** authentication, your server creates the room token, so Bl
 | `livekit_url` | Optional. Replaces the server URL from the integration. |
 | `room_name` | Optional. Replaces the room the Digital Human joins. |
 
-Your endpoint must also dispatch your agent. Put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
+Also make sure your agent is dispatched: put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
 
 Bluejay waits 15 seconds for the response. If the request times out or returns `408`, `429`, or a `5xx` status, Bluejay tries again, up to 3 attempts in total. If your endpoint returns `401` or `403`, Bluejay does not try again, and the run fails with `NO_CONNECTION` and `LIVEKIT_SESSION_SETUP_FAILED`.
 
