@@ -5,34 +5,42 @@ icon: triangle-exclamation
 sidebarTitle: "Issues"
 ---
 
-Bluejay groups similar failures in your production calls into one issue, so you triage one problem in place of many failed calls. Production has its own issues list, separate from simulations.
+Bluejay groups similar failures in your production calls into one issue, so you triage one problem in place of many failed calls.
 
 If you are tracking issues from simulation results, see [Issues](/test/issues).
 
 ![The production Issues list with one row for each issue, showing its priority, status, failure mode, conversation count, and percent of conversations](/images/issues-list-monitor.png)
 
-## Track an issue
+## How issues work
 
-To track the work on an issue, set its status. Supported statuses include:
+After Bluejay evaluates a production conversation, it finds where the call went wrong and matches each failure to similar failures from your other conversations. One cause that hits many calls becomes one issue, so when you fix that cause, you fix it for every conversation in the issue.
 
-- **Open**
-- **In Progress**
-- **Resolved**
-- **Ignored**
+Each issue has a failure mode:
 
-To order the work across the team, set a priority. A new issue shows **No priority**. Supported priorities include:
+- **Agent Failure**: the agent kept failing the same way across conversations. Bluejay finds these by reading transcripts, and a new one appears once the same failure repeats across several conversations.
+- **System Error**: a tool, the phone provider, or a retry loop failed, and the call recorded the error. These appear as soon as the call is evaluated. Errors with the same message group together even when IDs, times, or URLs in the message differ.
 
-- **Low**
-- **Medium**
-- **High**
-- **Urgent**
+New failures join the issue they match, so its counts grow and **Last Seen** moves forward. **Conversations** counts the conversations the issue hit in the last 90 days, and **Percent of Conversations** is that count out of every conversation Bluejay evaluated in the same window. The list groups issues by status, and within each status the issues hitting the most recent conversations come first.
 
-## Issue types
+## Work through an issue
 
-| Type | Meaning |
-|---|---|
-| Agent Failure | Bluejay grouped similar failures into one issue. |
-| System Error | Bluejay matched a known error, for example a [call error code](/test/simulations/reference#error-codes). |
+<Steps>
+  <Step title="Open the top issue">
+    Under **Open**, select the first issue. Its page describes the failure, shows how often it happens over time, and lists the agents it affects. A broad issue lists its **Reasons**, narrower issues you can open on their own. A System Error shows the error it recorded.
+  </Step>
+  <Step title="Read the conversations">
+    Under **Impacted conversations**, open a conversation to read its transcript next to the issue. When Bluejay knows where in the call the failure happened, the transcript opens at that moment. To see every conversation in the issue, click **Open in Logs**.
+  </Step>
+  <Step title="Find the cause">
+    - **Investigate** opens [Bluejay AI](/improve/bluejay-ai) with a request about this issue already written. Edit it if you want, then send it. Bluejay AI pulls the latest failures, groups them, listens to example calls, and tells you what to change.
+    - **Fix** copies a prompt with the issue's details to your clipboard. Paste it into your coding assistant or AI chat to get the likely cause and an exact edit to your agent's system prompt.
+  </Step>
+  <Step title="Track the work">
+    Set **Priority**, **Status**, and **Assignee** on the issue page or right in the list. Bluejay may set a starting priority on a new issue, but it never overwrites one you set.
+
+    Bluejay never changes an issue's status. If an issue you marked **Resolved** happens again, it stays **Resolved** while its count and **Last Seen** keep updating, so check both after your fix ships.
+  </Step>
+</Steps>
 
 ## Related
 

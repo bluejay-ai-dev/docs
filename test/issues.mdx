@@ -5,36 +5,41 @@ icon: triangle-exclamation
 sidebarTitle: "Issues"
 ---
 
-Bluejay groups similar failures in your simulation results into one issue, so you triage one problem in place of many failed calls. Simulations have their own issues list, separate from production.
+Bluejay groups similar failures in your simulation results into one issue, so you triage one problem in place of many failed calls.
 
 If you are tracking issues from production calls, see [Issues](/monitor/issues).
 
 ![The simulation Issues list with one row for each issue, showing its priority, status, failure mode, conversation count, and percent of conversations](/images/issues-list.png)
 
-## Track an issue
+## How issues work
+
+After Bluejay evaluates a simulation conversation, it finds where the agent went wrong and matches each failure to similar failures from your other simulation conversations. One cause that hits many conversations becomes one issue, so when you fix that cause, you fix it for every conversation in the issue.
+
+Every simulation issue is an **Agent Failure**: the agent kept failing the same way across conversations. Bluejay finds these by reading transcripts, and a new one appears once the same failure repeats across several conversations. Tool and phone provider errors become issues only in [production](/monitor/issues).
+
+New failures join the issue they match, so its counts grow and **Last Seen** moves forward. **Conversations** counts the simulation conversations the issue hit in the last 90 days, and **Percent of Conversations** is that count out of every simulation conversation Bluejay evaluated in the same window. The list groups issues by status, and within each status the issues hitting the most conversations come first.
+
+## Work through an issue
 
 ![An issue's detail page with its description, impacted conversation count, occurrences over time, impacted simulation conversations, and a properties panel for priority, status, and assignee](/images/issue-detail.png)
 
-To track the work on an issue, set its status. Supported statuses include:
+<Steps>
+  <Step title="Open the top issue">
+    Under **Open**, select the first issue. Its page describes the failure, shows how often it happens over time, and lists the agents it affects. A broad issue lists its **Reasons**, narrower issues you can open on their own.
+  </Step>
+  <Step title="Read the conversations">
+    Under **Impacted simulation conversations**, open a conversation to go to its result in the simulation run and see what the agent did.
+  </Step>
+  <Step title="Find the cause">
+    - **Investigate** opens [Bluejay AI](/improve/bluejay-ai) with a request about this issue already written. Edit it if you want, then send it. Bluejay AI pulls the latest failures, groups them, listens to example calls, and tells you what to change.
+    - **Fix** copies a prompt with the issue's details to your clipboard. Paste it into your coding assistant or AI chat to get the likely cause and an exact edit to your agent's system prompt.
+  </Step>
+  <Step title="Track the work">
+    Set **Priority**, **Status**, and **Assignee** on the issue page or right in the list. Bluejay may set a starting priority on a new issue, but it never overwrites one you set.
 
-- **Open**
-- **In Progress**
-- **Resolved**
-- **Ignored**
-
-To order the work across the team, set a priority. A new issue shows **No priority**. Supported priorities include:
-
-- **Low**
-- **Medium**
-- **High**
-- **Urgent**
-
-## Issue types
-
-| Type | Meaning |
-|---|---|
-| Agent Failure | Bluejay grouped similar failures into one issue. |
-| System Error | Bluejay matched a known error, for example a [call error code](/test/simulations/reference#error-codes). |
+    Bluejay never changes an issue's status. If an issue you marked **Resolved** happens again, it stays **Resolved** while its count and **Last Seen** keep updating, so rerun the simulation after your fix and check both.
+  </Step>
+</Steps>
 
 ## Related
 
