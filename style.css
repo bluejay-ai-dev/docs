@@ -1175,21 +1175,22 @@ html.dark .bj-area-glyph {
   height: 18px;
 }
 
-/* Home page link grid backdrop: the Bluejay world, faded behind the cards */
+/* Home page backdrop: the Bluejay world, faded behind Core concepts and the resource cards */
 .bj-home-world {
   position: relative;
   isolation: isolate;
+  margin-top: 2.5rem;
 }
 
 .bj-home-world::before {
   content: "";
   position: absolute;
-  inset: -2rem -3rem;
+  inset: -1rem -3rem -2rem;
   z-index: -1;
-  background: url("/images/brand/world-scene.webp") center / cover no-repeat;
+  background: url("/images/brand/world-scene.webp") center 40% / cover no-repeat;
   opacity: 0.22;
-  -webkit-mask-image: radial-gradient(ellipse at 70% 50%, #000 20%, transparent 72%);
-  mask-image: radial-gradient(ellipse at 70% 50%, #000 20%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 65% 55%, #000 25%, transparent 100%);
+  mask-image: radial-gradient(ellipse 60% 55% at 65% 55%, #000 25%, transparent 100%);
   pointer-events: none;
 }
 
@@ -1212,77 +1213,81 @@ html.dark .bj-home-world::before {
   margin-bottom: 2rem;
 }
 
-/* Home page link grid: product areas as outlined cards, then quieter cards for the rest */
-.bj-home-grid {
-  --bj-area-pass: var(--bj-pass-fg);
-  --bj-area-fail: var(--bj-fail-fg);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin: 0.5rem 0 0;
+/* Home page cards: the area panel and the resource cards share one surface */
+.bj-areas,
+.bj-home-card {
+  border: 1px solid var(--bj-border);
+  border-radius: calc(var(--bj-radius) + 2px);
+  background: var(--bj-surface);
 }
 
-html.dark .bj-home-grid {
+html.dark :is(.bj-areas, .bj-home-card) {
+  background: var(--bj-page);
+}
+
+.bj-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--bj-blue-ink);
+}
+
+html.dark .bj-card-icon {
+  color: var(--bj-blue);
+}
+
+.bj-card-icon svg {
+  background-color: currentColor !important;
+}
+
+.bj-card-icon-flywheel {
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  -webkit-mask: url("/logo/bluejay-flywheel-gray.svg") center / contain no-repeat;
+  mask: url("/logo/bluejay-flywheel-gray.svg") center / contain no-repeat;
+}
+
+.bj-card-title {
+  display: block;
+  margin: 0.75rem 0 0.5rem;
+  font-family: var(--bj-sans);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--bj-text);
+}
+
+/* Home page product areas: one row per area, led by a drawing of what it gives you, its key pages under the line */
+.bj-areas {
+  --bj-area-pass: var(--bj-pass-fg);
+  --bj-area-fail: var(--bj-fail-fg);
+  margin: 0.5rem 0 0;
+  overflow: hidden;
+}
+
+html.dark .bj-areas {
   --bj-area-pass: #22C55E;
   --bj-area-fail: #EF4444;
 }
 
-.bj-home-tier {
+.bj-area {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: 9.5rem 7.5rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: 1.5rem;
+  row-gap: 0.625rem;
+  padding: 1.05rem 1.25rem;
 }
 
-.bj-home-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 1.25rem 1.25rem 0.75rem;
-  border: 1px solid var(--bj-border);
-  border-radius: calc(var(--bj-radius) + 2px);
-  background: var(--bj-surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+.bj-area + .bj-area {
+  border-top: 1px solid var(--bj-border);
 }
 
-html.dark .bj-home-card {
-  background: var(--bj-page);
-  box-shadow: none;
-}
-
-.bj-home-card-quiet {
-  padding-top: 1rem;
-  background: var(--bj-surface-2);
-  border-color: transparent;
-  box-shadow: none;
-}
-
-html.dark .bj-home-card-quiet {
-  background: var(--bj-surface-2);
-  border-color: var(--bj-border);
-}
-
-.bj-home-glyph {
-  width: 7.5rem;
-  height: 2rem;
-  margin-bottom: 1rem;
-}
-
-.bj-home-icon {
-  display: inline-flex;
-  margin-bottom: 0.6rem;
-  color: var(--bj-blue-ink);
-}
-
-html.dark .bj-home-icon {
-  color: var(--bj-blue);
-}
-
-.bj-home-icon svg {
-  background-color: currentColor !important;
-}
-
-.bj-home-title {
-  margin: 0 0 0.5rem;
+.bj-area-name {
   font-family: Haffer, var(--bj-sans);
   font-weight: 500;
   font-size: 1.25rem;
@@ -1290,16 +1295,86 @@ html.dark .bj-home-icon {
   color: var(--bj-text);
 }
 
-.bj-home-text {
-  margin: -0.1rem 0 0.75rem;
+.bj-area-text {
   font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--bj-text-2);
   text-wrap: pretty;
 }
 
-.bj-home-card-quiet .bj-home-title {
-  font-size: 1rem;
+.bj-area-links {
+  grid-column: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mdx-content a.bj-area-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.875rem 0 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--bj-radius);
+  background: var(--bj-surface-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--bj-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.mdx-content a.bj-area-link:hover,
+.mdx-content a.bj-area-link:focus-visible {
+  border-color: var(--bj-blue-ink);
+  color: var(--bj-blue-ink);
+}
+
+html.dark .mdx-content a.bj-area-link:hover,
+html.dark .mdx-content a.bj-area-link:focus-visible {
+  border-color: var(--bj-blue);
+  color: var(--bj-blue);
+}
+
+.mdx-content a.bj-area-link:focus-visible {
+  outline: 2px solid var(--bj-blue);
+  outline-offset: 1px;
+}
+
+@media (max-width: 640px) {
+  .bj-area {
+    grid-template-columns: minmax(0, 1fr) 7rem;
+    grid-template-areas: "name glyph" "text text" "links links";
+    row-gap: 0.4rem;
+    padding: 1rem;
+  }
+  .bj-area .bj-area-glyph { grid-area: glyph; height: 1.75rem; padding: 0 0.5rem; }
+  .bj-area-name { grid-area: name; }
+  .bj-area-text { grid-area: text; text-wrap: balance; }
+  .bj-area-links {
+    grid-area: links;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0.4rem;
+  }
+}
+
+/* Home page resource cards: Cookbook, API/MCP, Bluejay as Code */
+.bj-home-more {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.bj-home-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1rem 1.125rem 0.75rem;
 }
 
 .bj-home-rows {
@@ -1318,19 +1393,14 @@ html.dark .bj-home-icon {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.4rem 0.5rem;
+  padding: 0.35rem 0.5rem;
   border: 0;
   border-radius: var(--bj-radius);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.4;
-  color: var(--bj-text);
+  color: var(--bj-text-2);
   text-decoration: none;
   transition: background-color 120ms ease, color 120ms ease;
-}
-
-.bj-home-card-quiet .bj-home-row {
-  font-size: 0.875rem;
-  color: var(--bj-text-2);
 }
 
 .bj-home-chev {
@@ -1345,12 +1415,6 @@ html.dark .bj-home-icon {
 .bj-home-row:hover,
 .bj-home-row:focus-visible {
   background: var(--bj-surface-2);
-  color: var(--bj-blue-ink);
-}
-
-.bj-home-card-quiet .bj-home-row:hover,
-.bj-home-card-quiet .bj-home-row:focus-visible {
-  background: var(--bj-surface);
   color: var(--bj-blue-ink);
 }
 
@@ -1371,12 +1435,13 @@ html.dark .bj-home-row:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mdx-content a.bj-area-link,
   .bj-home-row,
   .bj-home-chev { transition: none; }
 }
 
 @media (max-width: 900px) {
-  .bj-home-tier { grid-template-columns: minmax(0, 1fr); }
+  .bj-home-more { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Metric examples (metrics page) */

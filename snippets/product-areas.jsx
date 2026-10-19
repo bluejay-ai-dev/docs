@@ -23,39 +23,59 @@ export const AreaGlyph = ({ area }) => {
   );
 };
 
-export const HomeGrid = () => {
-  const main = [
+export const HomeAreas = () => {
+  const areas = [
     {
       name: "Test",
       text: "Find your agent's weak spots.",
-      links: [
-        ["Simulations", "/test/simulations/create"],
-        ["Metrics", "/test/metrics"],
-        ["Red Teaming", "/test/red-teaming/overview"],
-        ["Issues", "/test/issues"],
-        ["Knowledge Bases", "/test/simulations/reference#knowledge-bases"],
+      pages: [
+        ["Simulations", "/test/simulations/create", "flask-vial"],
+        ["Metrics", "/test/metrics", "gauge-high"],
+        ["Red Teaming", "/test/red-teaming/overview", "shield-halved"],
       ],
     },
     {
       name: "Monitor",
       text: "Verify your agent runs smoothly in production.",
-      links: [
-        ["Logs", "/monitor/logs"],
-        ["Metrics", "/monitor/metrics"],
-        ["Uptime", "/monitor/uptime/overview"],
-        ["Issues", "/monitor/issues"],
-        ["Alerts", "/monitor/alerts"],
+      pages: [
+        ["Logs", "/monitor/logs", "list"],
+        ["Uptime", "/monitor/uptime/overview", "heart-pulse"],
+        ["Issues", "/monitor/issues", "triangle-exclamation"],
       ],
     },
     {
       name: "Improve",
       text: "Strengthen your agent, automatically.",
-      links: [
-        ["Bluejay AI", "/improve/bluejay-ai"],
-        ["Self-Improve", "/improve/self-improve"],
+      pages: [
+        ["Bluejay AI", "/improve/bluejay-ai", null],
+        ["Self-Improve", "/improve/self-improve", "wand-magic-sparkles"],
       ],
     },
   ];
+  return (
+    <div className="bj-areas not-prose">
+      {areas.map((a) => (
+        <section key={a.name} className="bj-area" aria-label={a.name}>
+          <span className="bj-area-glyph" aria-hidden="true">{AreaGlyph({ area: a.name })}</span>
+          <span className="bj-area-name">{a.name}</span>
+          <span className="bj-area-text">{a.text}</span>
+          <div className="bj-area-links">
+            {a.pages.map(([title, href, icon]) => (
+              <a key={href} className="bj-area-link" href={href}>
+                <span className="bj-card-icon" aria-hidden="true">
+                  {icon ? <Icon icon={icon} size={14} /> : <span className="bj-card-icon-flywheel" />}
+                </span>
+                <span>{title}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+};
+
+export const HomeMore = () => {
   const more = [
     {
       name: "Cookbook",
@@ -90,44 +110,26 @@ export const HomeGrid = () => {
       ],
     },
   ];
-  const chev = (
-    <svg className="bj-home-chev" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-  const rows = (links) => (
-    <ul className="bj-home-rows">
-      {links.map(([label, href]) => (
-        <li key={href}>
-          <a className="bj-home-row" href={href}>
-            <span>{label}</span>
-            {chev}
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
   return (
-    <div className="bj-home-grid not-prose">
-      <div className="bj-home-tier">
-        {main.map((g) => (
-          <section key={g.name} className="bj-home-card">
-            <span className="bj-area-glyph bj-home-glyph" aria-hidden="true">{AreaGlyph({ area: g.name })}</span>
-            <h3 className="bj-home-title">{g.name}</h3>
-            <p className="bj-home-text">{g.text}</p>
-            {rows(g.links)}
-          </section>
-        ))}
-      </div>
-      <div className="bj-home-tier">
-        {more.map((g) => (
-          <section key={g.name} className="bj-home-card bj-home-card-quiet">
-            <span className="bj-home-icon" aria-hidden="true"><Icon icon={g.icon} size={16} /></span>
-            <h3 className="bj-home-title">{g.name}</h3>
-            {rows(g.links)}
-          </section>
-        ))}
-      </div>
+    <div className="bj-home-more not-prose">
+      {more.map((g) => (
+        <section key={g.name} className="bj-home-card">
+          <span className="bj-card-icon" aria-hidden="true"><Icon icon={g.icon} size={16} /></span>
+          <h3 className="bj-card-title">{g.name}</h3>
+          <ul className="bj-home-rows">
+            {g.links.map(([label, href]) => (
+              <li key={href}>
+                <a className="bj-home-row" href={href}>
+                  <span>{label}</span>
+                  <svg className="bj-home-chev" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 };
