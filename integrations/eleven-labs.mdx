@@ -7,7 +7,7 @@ sidebarTitle: "ElevenLabs"
 
 import { Code } from "/snippets/code.jsx";
 
-Bluejay syncs your agents and their workflows.
+Connect your ElevenLabs account to bring your agents and their workflows into Bluejay, edit workflows here, and send each ElevenLabs call to Bluejay.
 
 <video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/elevenlabs-simulations-walkthrough.mp4"></video>
 
@@ -17,8 +17,8 @@ Bluejay syncs your agents and their workflows.
 <Step title="Save the ElevenLabs keys">
 In Bluejay, open the **Eleven Labs** tab of the Integrations settings and save both values:
 
-- **ElevenLabs API Key**: an API key from **Developers > API Keys** in ElevenLabs. Bluejay uses it to sync agents, open test calls, get tool calls, and fetch the conversation behind a production trace.
-- **Webhook Secret**: the HMAC secret of your ElevenLabs post-call webhook. Bluejay rejects any production call that ElevenLabs sends without a valid signature. See [Monitor](#monitor).
+- **ElevenLabs API Key**: create it under **Developers > API Keys** in ElevenLabs. Bluejay uses it to sync agents, open test calls, get tool calls, and fetch the conversation behind a production trace.
+- **Webhook Secret**: you get it when you create the post-call webhook in [Monitor](#monitor). Without it, Bluejay rejects every production call that ElevenLabs sends.
 </Step>
 <Step title="Sync the agents">
 Click **Sync Agents from ElevenLabs**. Bluejay creates an Inbound Voice agent for each ElevenLabs agent, with its prompt and workflow. The next sync adds its tools. To pick up changes you make in ElevenLabs, run the sync again or turn on **Autosync from ElevenLabs**.
@@ -29,7 +29,19 @@ A sync never deletes an agent. If you delete an agent in ElevenLabs, its agent s
 
 To connect one agent by hand instead of syncing, give it the **ElevenLabs** connection type and set **ElevenLabs Agent ID**. To score its production calls too, see [Monitor](#monitor).
 
-To edit a synced workflow, use the agent's **Workflow** tab to pull changes from ElevenLabs, push your edits back, and merge a branch into Main.
+## Edit a workflow
+
+<Steps>
+<Step title="Pull a branch">
+On the synced agent's **Workflow** tab, pull Main or another branch from ElevenLabs.
+</Step>
+<Step title="Edit and push">
+Push your edits back to the same branch. A push to Main updates the live agent, so callers hear your edits on their next call. A push to another branch does not.
+</Step>
+<Step title="Merge into Main">
+To test or release edits on another branch, merge it into Main. Simulations always use Main.
+</Step>
+</Steps>
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-workflows-tab.jpg" src="/images/elevenlabs-sim-workflows-tab.mp4" aria-label="The Workflows tab in Bluejay" />
 
@@ -40,9 +52,7 @@ To edit a synced workflow, use the agent's **Workflow** tab to pull changes from
 
 Bluejay opens a live web call to the agent over WebSocket, so no phone number is necessary. The **ElevenLabs** tile is inbound only.
 
-For a multi-agent workflow, **Generate From Workflow** makes Digital Humans for each path, so every branch of the workflow gets a test.
-
-Simulations always use the Main branch, so merge other branches to Main before you test them.
+For a multi-agent workflow, use **Generate From Workflow** to make Digital Humans for each path, so every branch of the workflow gets a test.
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-sim-generate.jpg" src="/images/elevenlabs-sim-generate.mp4" aria-label="Generate Digital Humans from a synced workflow" />
 
@@ -64,16 +74,16 @@ ElevenLabs sends each production call to Bluejay through a post-call webhook. Th
 
 <Steps>
 <Step title="Create the post-call webhook">
-In ElevenLabs settings, find **Post-Call Webhook** and click **Select Webhook > Create Webhook**. Set the URL to `https://api.getbluejay.ai/v1/integrations/ElevenLabs`, keep **Webhook Auth Method** as **HMAC**, and click **Create**. Copy the webhook secret into **Webhook Secret** in Bluejay.
+In ElevenLabs settings, find **Post-Call Webhook** and click **Select Webhook > Create Webhook**. Set the URL to `https://api.getbluejay.ai/v1/integrations/ElevenLabs`, keep **Webhook Auth Method** as **HMAC**, and create it. Copy the webhook secret into **Webhook Secret** in Bluejay.
 </Step>
 <Step title="Choose what ElevenLabs sends">
-In the post-call webhook settings, choose what ElevenLabs sends. You can set this for the whole workspace, or override it on one agent under **Security > Post Call Webhook**. Keep **Transcript** on, because Bluejay needs it to score the call. To get [traces](#traces) and [recordings](#call-audio) too, turn on **OpenTelemetry transcript payloads** and **Send audio data**.
+Keep **Transcript** on, because Bluejay needs it to score the call. To get [traces](#traces) and [recordings](#call-audio) too, turn on **OpenTelemetry transcript payloads** and **Send audio data**. To change this for one agent only, use **Security > Post Call Webhook** on that agent.
 </Step>
 </Steps>
 
 <video controls muted playsInline preload="metadata" poster="/images/elevenlabs-1-webhook.jpg" src="/images/elevenlabs-1-webhook.mp4" aria-label="Set up the ElevenLabs webhook" />
 
-Bluejay files each call under the Bluejay agent whose **Assistant ID** is the call's ElevenLabs agent ID, and rejects calls from any other ElevenLabs agent. A sync sets the **Assistant ID** for you. For an agent you connected by hand, choose **ElevenLabs** in its **Observability Settings** and set **Assistant ID** to the ElevenLabs agent ID.
+Bluejay rejects a call unless a Bluejay agent has the call's ElevenLabs agent ID as its **Assistant ID**. A sync sets it for you. For an agent you connected by hand, choose **ElevenLabs** in its **Observability Settings** and set **Assistant ID** to the ElevenLabs agent ID.
 
 For a workflow agent, Bluejay adds an event to the conversation each time the call enters a new workflow node, so you can follow the path the call took.
 
@@ -122,19 +132,19 @@ Bluejay sets these metadata keys itself and overwrites any value you send for th
 - `main_language`
 - `original_webhook_data`
 
-## Limits
+## Troubleshooting
 
-| Symptom | Cause |
+| What you see | What to do |
 |---|---|
 | **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | The run is over the concurrency of your ElevenLabs plan. Lower the max concurrency in Bluejay. |
-| Edits do not show in the call | The edits are on a branch other than Main. |
-| **No Connection** with <Code>ELEVEN_LABS_AUTH_FAILED</Code>, <Code>MISSING_ELEVEN_LABS_INTEGRATION</Code>, or <Code>MISSING_ELEVEN_LABS_AGENT_ID</Code> | The key is rejected, no key is saved, or the agent has no **ElevenLabs Agent ID**. |
+| Edits do not show in the call | Merge the branch with your edits into Main. |
+| **No Connection** with <Code>ELEVEN_LABS_AUTH_FAILED</Code>, <Code>MISSING_ELEVEN_LABS_INTEGRATION</Code>, or <Code>MISSING_ELEVEN_LABS_AGENT_ID</Code> | Save a valid **ElevenLabs API Key**, or set **ElevenLabs Agent ID** on the agent. |
 | **No Connection** with <Code>ELEVEN_LABS_BRIDGE_CONNECT_FAILED</Code> or <Code>ELEVEN_LABS_SESSION_SETUP_FAILED</Code> | Bluejay could not start the session with ElevenLabs. Run the call again. |
-| **Call Dropped** with <Code>ELEVEN_LABS_AGENT_ERROR</Code>, <Code>ELEVEN_LABS_AGENT_START_FAILED</Code>, or <Code>ELEVEN_LABS_MONITORING_ERROR</Code> | The call failed after it connected, or Bluejay lost the monitoring connection. Run the call again, and check your ElevenLabs call history. |
+| **Call Dropped** with <Code>ELEVEN_LABS_AGENT_ERROR</Code>, <Code>ELEVEN_LABS_AGENT_START_FAILED</Code>, or <Code>ELEVEN_LABS_MONITORING_ERROR</Code> | The call failed after it connected. Run the call again, and check your ElevenLabs call history. |
 | Tool calls missing or partial | Bluejay completes them from the ElevenLabs call history after the call. If the history is not ready within 45 seconds, the result keeps only the tool calls seen during the call. |
-| Live calls do not show | The **Webhook Secret** is missing or wrong, or no Bluejay agent has the call's ElevenLabs agent ID as its **Assistant ID**. |
-| Live calls do not show with **OpenTelemetry transcript payloads** on | No **ElevenLabs API Key** is saved, so Bluejay cannot fetch the conversation behind the trace. |
-| Live calls have no recording | **Send audio data** is off in ElevenLabs. |
+| Live calls do not show | Save the right **Webhook Secret**, and check that a Bluejay agent has the call's ElevenLabs agent ID as its **Assistant ID**. |
+| Live calls do not show with **OpenTelemetry transcript payloads** on | Save an **ElevenLabs API Key**, so Bluejay can fetch the conversation behind the trace. |
+| Live calls have no recording | Turn on **Send audio data** in ElevenLabs. |
 
 ## Related
 

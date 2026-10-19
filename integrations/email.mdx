@@ -7,7 +7,7 @@ icon: envelope
 
 import { Code } from "/snippets/code.jsx";
 
-Each test goes over real email, so it also shows whether your agent's replies pass authentication and reach the Digital Human.
+Connect an email agent, let Bluejay's test mail into its inbox, and grade whether your agent's replies pass authentication and arrive.
 
 <img className="block dark:hidden" src="/images/connect-email.png" alt="An agent email address filled in and the allowlist box checked" />
 <img className="hidden dark:block" src="/images/connect-email-dark.png" alt="An agent email address filled in and the allowlist box checked" />
@@ -18,12 +18,12 @@ Each test goes over real email, so it also shows whether your agent's replies pa
 <Tab title="Website">
 <Steps>
 <Step title="Create the agent">
-Create an agent with the **Email** mode. Choose **Inbound** if customers write to your agent first, or **Outbound** if your agent writes first. Enter the **Agent email address**, then check the box that confirms this inbox accepts mail from `mail.bluejaysims.com`. You cannot create the agent until you check it, because without the allowlist the agent may never receive the test. See [Allow Bluejay's mail](#allow-bluejays-mail).
+Create an agent with the **Email** mode. Choose **Inbound** if customers write to your agent first, or **Outbound** if your agent writes first. Enter the **Agent email address**, and confirm that this inbox accepts mail from `mail.bluejaysims.com`. Set up the allowlist first, as in [Allow Bluejay's mail](#allow-bluejays-mail), or the agent may never receive the test.
 
-If your agent answers from other addresses than its inbox, add them later under **Reply-from addresses** in the agent's connection settings. Bluejay accepts a reply only from the agent email address or one of these.
+If your agent answers from addresses other than its inbox, add them later under **Reply-from addresses** in the agent's connection settings. Bluejay ignores a reply from any other address.
 </Step>
 <Step title="Run a simulation">
-Add the agent to a [simulation](/test/simulations/create) and run it.
+Add the agent to a [simulation](/test/simulations/create) and run it. For an **Outbound** agent, send the first email from your own system, as in [How a conversation runs](#how-a-conversation-runs).
 </Step>
 </Steps>
 </Tab>
@@ -88,13 +88,11 @@ Bluejay does not read an end signal from your agent's email. A conversation ends
 
 ## Metrics
 
-Bluejay grades the mail itself with these built-in metrics:
+Bluejay grades the mail itself with built-in metrics, such as **SPF Pass Rate** and **DKIM Pass Rate** on your agent's reply. Three of them need a note:
 
-- **Spam Score**: the spam score of your agent's reply. Lower is better.
-- **Delivered Rate**: whether the Digital Human's email reached your agent's inbox without a hard bounce or a spam complaint.
-- **SPF Pass Rate**: whether your agent's reply passes SPF.
-- **DKIM Pass Rate**: whether your agent's reply passes DKIM.
-- **DMARC Pass Rate**: whether your agent's reply passes DMARC. A domain with no DMARC policy fails this metric, even though Bluejay still accepts its reply.
+- **Spam Score**: lower is better.
+- **Delivered Rate**: checks the Digital Human's email, not your agent's reply. It passes when the email reached your agent's inbox without a hard bounce or a spam complaint.
+- **DMARC Pass Rate**: a domain with no DMARC policy fails this metric, even though Bluejay still accepts its reply.
 
 For an **Inbound** agent, Bluejay also records the time from the Digital Human's first email to your agent's first reply as the agent's latency.
 
@@ -111,15 +109,17 @@ To check an email agent on a schedule, use [Uptime Monitoring](/monitor/uptime/o
 - Email runs take longer than voice or SMS runs.
 - A Digital Human can be in only one open email conversation at a time, because Bluejay matches your agent's replies to the Digital Human by its address. In a run, each Digital Human's conversations take turns, and it runs once even if the simulation sets more runs per Digital Human.
 
-| Symptom | Cause |
+## Troubleshooting
+
+| What you see | What to do |
 |---|---|
-| `400`: `EMAIL connection_type requires email_address` | The API request sets <Code>connection_type</Code> to `EMAIL` without <Code>email_address</Code>. |
-| `400`: `email_reply_addresses: '...' is not an email address` | An entry in <Code>email_reply_addresses</Code> is not an email address. |
-| `400`: `Agent is not an email agent (mode EMAIL, email_address set)` | The run was queued with <Code>/v1/queue-email-simulation-run</Code> for a simulation whose agent is not an email agent. |
+| `400`: `EMAIL connection_type requires email_address` | Set <Code>email_address</Code> when <Code>connection_type</Code> is `EMAIL`. |
+| `400`: `email_reply_addresses: '...' is not an email address` | Fix the entry in <Code>email_reply_addresses</Code> that is not an email address. |
+| `400`: `Agent is not an email agent (mode EMAIL, email_address set)` | Queue <Code>/v1/queue-email-simulation-run</Code> only for a simulation whose agent is an email agent. |
 | `409`: <Code>EMAIL_DIGITAL_HUMAN_CONFLICT</Code> | A Digital Human in the run is already in an open email conversation. Wait for it to finish, then run again. |
 | <Code>EMAIL_SENDER_MISMATCH</Code> | Your agent replied from an address on your domain that the agent does not list. Add it to **Reply-from addresses**. |
-| **System Error** with <Code>END_SIGNAL_TIMEOUT</Code> | An Outbound agent sent no email before the inactivity timeout. |
-| The transcript has only the Digital Human's first email | No reply reached Bluejay. The inbox quarantined the email, or the reply came from an address that is not listed or did not pass authentication. |
+| **System Error** with <Code>END_SIGNAL_TIMEOUT</Code> | An Outbound agent sent no email before the inactivity timeout. Send the first email from your system to the Digital Human's address. |
+| The transcript has only the Digital Human's first email | No reply reached Bluejay. Look in the admin quarantine, and check that the agent replies from a listed address that passes authentication. |
 
 ## Related
 
