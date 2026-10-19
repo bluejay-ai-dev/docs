@@ -5,7 +5,8 @@ export const HomeAreas = () => {
       text: "Find your agent's weak spots.",
       pages: [
         ["Simulations", "/test/simulations/create", "flask-vial"],
-        ["Metrics", "/test/metrics", "gauge-high"],
+        ["Digital Humans", "/test/simulations/digital-humans", "users"],
+        ["Customer Journeys", "/test/simulation-types/customer-journeys", "shoe-prints"],
         ["Red Teaming", "/test/red-teaming/overview", "shield-halved"],
       ],
     },
@@ -15,7 +16,7 @@ export const HomeAreas = () => {
       pages: [
         ["Logs", "/monitor/logs", "list"],
         ["Uptime", "/monitor/uptime/overview", "heart-pulse"],
-        ["Issues", "/monitor/issues", "triangle-exclamation"],
+        ["Alerts", "/monitor/alerts", "bell"],
       ],
     },
     {
@@ -51,9 +52,9 @@ export const HomeAreas = () => {
 
 export const HomeLinks = () => {
   const cards = [
-    ["Test", "/test/simulations/create", "flask-vial", "Run a simulation to test your agent with many realistic customers before you ship a change."],
-    ["Monitor", "/monitor/logs", "list", "Find the production conversations where your agent failed, and see why in the transcript and metrics."],
-    ["Improve", "/improve/bluejay-ai", null, "Ask Bluejay AI why calls fail and what to fix first in your agent."],
+    ["Test", "/test/simulations/create", "flask-vial", "Test your agent with realistic customers before you ship a change."],
+    ["Monitor", "/monitor/logs", "list", "Find the production conversations where your agent failed, and see why."],
+    ["Improve", "/improve/bluejay-ai", null, "Ask Bluejay AI why calls fail and what to fix first."],
     ["Cookbook", "/cookbook/ab-test-agents", "book-open", "Step-by-step recipes for common jobs."],
     ["Developers guide", "/api-reference/introduction", "code", "API, MCP server, webhooks, and Bluejay as Code."],
     ["Integrations", "/integrations/phone-number", "plug", "Connect your agent's voice, text, or email platform."],
