@@ -1,28 +1,3 @@
-export const AreaGlyph = ({ area }) => {
-  if (area === "Test") {
-    const run = ["p", "p", "f", "p", "p", "p", "f", "p", "p"];
-    return (
-      <span className="bj-area-g bj-area-g-run">
-        {run.map((c, i) => <i key={i} className={c} />)}
-      </span>
-    );
-  }
-  if (area === "Monitor") {
-    const live = Array.from({ length: 18 }, (_, i) => (i === 13 ? "f" : ""));
-    return (
-      <span className="bj-area-g bj-area-g-live">
-        {live.map((c, i) => <i key={i} className={c} />)}
-      </span>
-    );
-  }
-  const rank = ["100%", "62%", "34%"];
-  return (
-    <span className="bj-area-g bj-area-g-rank">
-      {rank.map((w, i) => <i key={i} className={i === 0 ? "f" : ""} style={{ "--w": w }} />)}
-    </span>
-  );
-};
-
 export const HomeAreas = () => {
   const areas = [
     {
@@ -56,7 +31,6 @@ export const HomeAreas = () => {
     <div className="bj-areas not-prose">
       {areas.map((a) => (
         <section key={a.name} className="bj-area" aria-label={a.name}>
-          <span className="bj-area-glyph" aria-hidden="true">{AreaGlyph({ area: a.name })}</span>
           <span className="bj-area-name">{a.name}</span>
           <span className="bj-area-text">{a.text}</span>
           <div className="bj-area-links">
