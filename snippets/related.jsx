@@ -1,15 +1,38 @@
-export const Related = ({ links }) => (
-  <div className="bj-related not-prose">
-    {links.map(([title, href, icon, text]) => (
-      <a key={href} className="bj-home-card" href={href}>
-        <span className="bj-home-card-head">
-          <span className="bj-card-icon" aria-hidden="true">
-            <Icon icon={icon} size={16} />
-          </span>
-          <span className="bj-card-title">{title}</span>
-        </span>
-        {text ? <span className="bj-home-card-text">{text}</span> : null}
-      </a>
-    ))}
-  </div>
-);
+export const Related = ({ links }) => {
+  const glyph = (icon, size) =>
+    icon.includes("bluejay-flywheel") ? (
+      <span className="bj-card-icon-flywheel" style={{ width: size, height: size }} />
+    ) : icon.startsWith("/") ? (
+      <img src={icon} alt="" width={size} height={size} className="bj-related-img" />
+    ) : (
+      <Icon icon={icon} size={size} />
+    );
+  const kind = (href) =>
+    href.startsWith("/api-reference/") ? "code" : href.startsWith("/mcp/") ? "plug-circle-bolt" : null;
+  return (
+    <CardGroup cols={2}>
+      {links.map(([title, href, icon, text]) => {
+        const main = kind(href);
+        return (
+          <Card
+            key={href}
+            title={title}
+            href={href}
+            icon={
+              <span className="bj-related-icon">
+                {glyph(main || icon, 20)}
+                {main && icon !== main ? (
+                  <span className="bj-related-sub">
+                    {glyph(icon, 14)}
+                  </span>
+                ) : null}
+              </span>
+            }
+          >
+            {text}
+          </Card>
+        );
+      })}
+    </CardGroup>
+  );
+};
