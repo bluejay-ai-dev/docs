@@ -6,7 +6,6 @@ export const HomeAreas = () => {
       pages: [
         ["Simulations", "/test/simulations/create", "flask-vial"],
         ["Digital Humans", "/test/simulations/digital-humans", "users"],
-        ["Customer Journeys", "/test/simulation-types/customer-journeys", "shoe-prints"],
         ["Red Teaming", "/test/red-teaming/overview", "shield-halved"],
       ],
     },
