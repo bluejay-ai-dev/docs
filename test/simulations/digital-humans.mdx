@@ -5,8 +5,6 @@ icon: users
 sidebarTitle: "Digital Human Reference"
 ---
 
-import { Code } from "/snippets/code.jsx";
-
 A Digital Human is a simulated customer that can call, text, or email your agent. Each one has a goal, and Bluejay grades whether your agent handled it.
 
 <img className="block dark:hidden" src="/images/digital-human-card-edit.png" alt="A Digital Human card open for editing on the Persona tab, with a description, success criteria, and one scripted response" />
@@ -16,14 +14,13 @@ A Digital Human is a simulated customer that can call, text, or email your agent
 
 Persona settings decide what each conversation is about and how Bluejay grades it.
 
-| Setting | API field | API default | Effect |
-|---|---|---|---|
-| Description / Intent | `intent` | None | What the caller wants, in one or two sentences. |
-| Success Criteria | <Code>success_criteria</Code> | None | The pass or fail condition, as one or two agent outcomes the transcript can show. |
-| Personality | <Code>role_description</Code> | None | Who the caller is, in one short line, for example "retiree on a family plan". |
-| Scripted Responses | <Code>scripted_responses</Code> | None | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
-| Tool Adherence | <Code>expected_tool_calls</Code> | None | The tool calls the agent must make. |
-| API only | `num_runs` | 1 | How many times this Digital Human runs in each simulation run. |
+| Setting | Write |
+|---|---|
+| Description / Intent | What the caller wants, in one or two sentences. |
+| Success Criteria | One or two agent outcomes the transcript can show. |
+| Personality | Who the caller is, in one short line, for example "retiree on a family plan". |
+| Scripted Responses | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
+| Tool Adherence | The tool calls the agent must make. |
 
 Keep agent behavior and "if X, do Y" rules out of the intent. The model treats them only as suggestions, so use the fields in [Make runs repeatable](#make-runs-repeatable) instead.
 
@@ -33,22 +30,11 @@ Use behavior settings to test whether your agent copes with harder callers, for 
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/dh-behavior-levers.mp4"></video>
 
-| Setting | API field | Values | API default |
-|---|---|---|---|
-| Voice | `language`<br/>`accent`<br/>`gender` | Valid combinations from <Code>get_voice_options</Code> | `en` |
-| Voice Speed | `voice_speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` | `normal` |
-| Background Noise | <Code>background_noise</Code> | `none`, a preset, or `custom`. `custom` needs <Code>custom_background_noise_url</Code>. | `none` |
-| Background Noise Volume | <Code>background_noise_volume</Code> | 0 to 1 | 0.8 |
-| Audio Quality | <Code>audio_quality</Code> | `high`, `medium`, `low`, `horrible` | `high` |
-| Verbosity | `verbosity` | `low`, `medium`, `high` | `medium` |
-| Fluency | `fluency` | `beginner`, `intermediate`, `native` | `native` |
-| Creativity | `creativity` | 0 to 2 | 0.7 |
-| Patience (seconds) | <Code>endpointing_delay</Code> | Seconds to wait before a reply | 1.5 |
-| No Response Timeout (seconds) | <Code>silence_timeout</Code> | 15 seconds or more | None |
-| Interruptions | `interruptions` | `none`, `low`, `medium`, `high`, `keywords`, `contextual` | None |
-| Speaks First | <Code>speaks_first_config</Code> | Who speaks first, and the opening message | The Digital Human speaks first. Some voice platform connections start with the agent. |
+- **Patience (seconds)** is how long the caller waits before it replies.
+- **No Response Timeout (seconds)** must be 15 seconds or more.
+- **Speaks First**: the Digital Human speaks first unless you change it. Some voice platform connections start with the agent.
 
-There is no emotion setting. To make the caller angry, rushed, or confused, write that attitude into **Personality** (`role_description`).
+There is no emotion setting. To make the caller angry, rushed, or confused, write that attitude into **Personality**.
 
 ## Traits
 
@@ -56,27 +42,20 @@ A trait is a fact that the caller knows and says when the agent asks, for exampl
 
 Define a trait for one agent on the **Customer Traits** page, then set its value on each of that agent's Digital Humans.
 
-To also send a trait as a SIP header on the call, set `is_sip_header` to `true`. The header name is the trait name with an `X-` prefix.
+A trait can also go out as a SIP header on the call. The header name is the trait name with an `X-` prefix.
 
 When you change a trait, select **Update Existing Digital Humans** to apply the change to all Digital Humans of the agent. Otherwise only new Digital Humans get the change.
 
 ## Tools
 
-| Setting | API field | API default | Effect |
-|---|---|---|---|
-| Allow End Call Tool | <Code>allow_end_call_tool</Code> | `true` | The Digital Human can end the call. |
-| End Conversation (On Trigger Phrases) | <Code>hangup_phrases</Code> | None | Agent phrases that end the call. |
-| Allow Silence Tool | <Code>allow_silence_tool</Code> | `true` | The Digital Human can stay silent. |
-| Allow DTMF Tool | <Code>allow_dtmf_tool</Code> | `true` | The Digital Human can send keypad tones. |
-| Default Number Submission Mode | <Code>default_dtmf_or_voiced</Code> | `voiced` | Used when the agent does not say how to enter a number. |
+- **End Conversation (On Trigger Phrases)** ends the call when the agent says one of the phrases.
+- **Default Number Submission Mode** applies when the agent does not say how to enter a number.
 
 ## Connection
 
-| Setting | API field | API default | Effect |
-|---|---|---|---|
-| Phone number | <Code>phone_number</Code> | Your organization's least-used number | The number of the Digital Human. It must be a number that your organization owns. |
-| Extension | `extension` | None | Keys to send as DTMF after the call connects to an inbound agent, for example `1,2`. A comma adds a short pause. |
-| Always On | <Code>always_on_mode</Code> | `false` | The Digital Human answers calls on its phone number. |
+- **Phone number** must be a number your organization owns.
+- **Extension** is the keys the Digital Human presses after the call connects to an inbound agent, for example `1,2`. A comma adds a short pause.
+- **Always On** makes the Digital Human answer calls on its phone number.
 
 Buy numbers under **Settings → Phone Numbers** in the [workspace](/administration/workspaces) where your Digital Humans live. A number stays in the workspace you bought it in, and the app lists only the current workspace's numbers.
 
@@ -84,17 +63,11 @@ With the API, list numbers with [Get Phone Numbers](/api-reference/endpoint/phon
 
 ## Scripted responses
 
-A scripted response makes a reply the same on each run. Each item pairs an agent line with a response.
+A scripted response makes a reply the same on each run. Each one pairs a line the agent says with the caller's reply: words, keypad tones, silence, or an audio clip.
 
-| Field | Values | Notes |
-|---|---|---|
-| <Code>match_phrase</Code> | string | A line the agent says, for example "Can I have your account number?". A description of agent behavior never matches. |
-| `match_type` | `exact`, `context` | `context` matches lines with the same meaning. |
-| <Code>response_type</Code> | `phrase`, `dtmf`, `silence`, `audio` | |
-| <Code>response_value</Code> | string | Required for `phrase` and `dtmf`. Do not set it for `audio`. `audio` uses <Code>scripted_response_audio_snippet_url</Code>. |
-| <Code>occurrence_mode</Code> | `always`, `first_n` | `first_n` needs <Code>occurrence_n</Code>. |
-
-If `scripted_responses_ordered` is `true`, the responses run in list order and each fires once.
+- Under **When the agent says**, write a line the agent says, for example "Can I have your account number?". A description of agent behavior never matches.
+- Matching on context also catches lines with the same meaning, not only the exact words.
+- If **How scripted responses fire** runs them in order, each one fires once, in list order.
 
 ## Personalities
 
@@ -102,7 +75,7 @@ A Personality configures how Digital Humans behave. Use Personalities when you w
 
 When you select Personalities on a simulation, each Digital Human in the run calls once as itself and once for each Personality.
 
-A Personality changes only the fields that you set on it, for example the **Personality** text (`role_description`), voice, background noise, or the [behavior fields](#behavior). All other fields come from the Digital Human. A Personality never changes the intent or the success criteria, so each call still tests the same goal.
+A Personality changes only the fields that you set on it, for example the **Personality** text, voice, background noise, or the [behavior fields](#behavior). All other fields come from the Digital Human. A Personality never changes the intent or the success criteria, so each call still tests the same goal.
 
 The simulation saves its Personality selection, so the next run uses the same set.
 
@@ -138,10 +111,10 @@ An "if the agent says X, the caller does Y" rule in the intent is only a suggest
 
 | Need | Setting |
 |---|---|
-| A fixed value, for example a date of birth | **Traits** (`traits`) |
-| A fixed line, keypad entry, or pause | **Scripted Responses** (<Code>scripted_responses</Code>) |
-| A fixed opening line | **Speaks First** (<Code>speaks_first_config</Code>) |
-| The same call on each run | **Creativity** (`creativity`) from 0.0 to 0.3 |
+| A fixed value, for example a date of birth | **Traits** |
+| A fixed line, keypad entry, or pause | **Scripted Responses** |
+| A fixed opening line | **Speaks First** |
+| The same call on each run | **Creativity** from 0.0 to 0.3 |
 
 Before you create a batch, create one Digital Human, run it, and read the transcript. Bluejay accepts a configuration that has no effect, for example a scripted response that never matches, so the transcript is where you see whether each setting worked.
 
