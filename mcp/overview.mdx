@@ -2,14 +2,88 @@
 title: "Bluejay MCP Server"
 description: "Test and monitor your agents from an AI assistant."
 icon: 'robot'
-sidebarTitle: "Overview"
+sidebarTitle: "Introduction"
 ---
 
-Ask an AI assistant such as Claude Code or Cursor to create simulations, run them, and read the results for you. To add the server to your client, see [Connect a client](/mcp/connect).
+Ask an AI assistant such as Claude Code or Cursor to create simulations, run them, and read the results for you.
 
-## Test the connection
+## Connect
 
-To check that the connection works, ask your assistant: "List my agents." It should return the agents in your organization.
+<Steps>
+  <Step title="Get an API key">
+    Your client signs in to Bluejay with an API key. To create one, see [Make your first request](/api-reference/introduction#make-your-first-request). The key's [scope](/administration/workspaces#api-keys) decides which workspaces your assistant can work in.
+  </Step>
+  <Step title="Add the server to your client">
+    Replace `<your_api_key>` with your API key.
+
+    <Tabs>
+    <Tab title="Claude Code">
+
+    ```bash
+    claude mcp add --transport http bluejay https://api.getbluejay.ai/mcp \
+      --header "X-API-Key: <your_api_key>"
+    ```
+
+    </Tab>
+    <Tab title="Claude Desktop">
+    Add this to `claude_desktop_config.json`, then restart Claude Desktop.
+
+    ```json
+    {
+      "mcpServers": {
+        "bluejay": {
+          "command": "npx",
+          "args": ["mcp-remote", "https://api.getbluejay.ai/mcp", "--header", "X-API-Key:<your_api_key>"]
+        }
+      }
+    }
+    ```
+
+    </Tab>
+    <Tab title="Cursor">
+    Add this to `~/.cursor/mcp.json` or `.cursor/mcp.json` in your project.
+
+    ```json
+    {
+      "mcpServers": {
+        "bluejay": {
+          "url": "https://api.getbluejay.ai/mcp",
+          "headers": { "X-API-Key": "<your_api_key>" }
+        }
+      }
+    }
+    ```
+
+    </Tab>
+    <Tab title="Windsurf">
+    Add this to `~/.codeium/windsurf/mcp_config.json`.
+
+    ```json
+    {
+      "mcpServers": {
+        "bluejay": {
+          "serverUrl": "https://api.getbluejay.ai/mcp",
+          "headers": { "X-API-Key": "<your_api_key>" }
+        }
+      }
+    }
+    ```
+
+    </Tab>
+    <Tab title="Other clients">
+    Add a remote MCP server with these values:
+
+    - URL: `https://api.getbluejay.ai/mcp`
+    - Header: `X-API-Key: <your_api_key>`
+
+    If your client cannot set a custom header, send `Authorization: Bearer <your_api_key>` instead.
+    </Tab>
+    </Tabs>
+  </Step>
+  <Step title="Test the connection">
+    Ask your assistant: "List my agents." It should return the agents in your organization.
+  </Step>
+</Steps>
 
 ## Confirm before a change
 
@@ -17,7 +91,6 @@ Some tools change your agent at the provider, start long runs, or delete parts o
 
 ## Related
 
-- [Connect a client to the Bluejay MCP server](/mcp/connect)
 - [MCP Tools: Testing](/mcp/testing-tools)
 - [MCP Tools: Monitoring](/mcp/monitoring-tools)
 - [MCP Tools: Workspace](/mcp/workspace-tools)
