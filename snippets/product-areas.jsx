@@ -15,6 +15,7 @@ export const HomeAreas = () => {
       pages: [
         ["Logs", "/monitor/logs", "list"],
         ["Uptime", "/monitor/uptime/overview", "heart-pulse"],
+        ["Issues", "/monitor/issues", "triangle-exclamation"],
         ["Alerts", "/monitor/alerts", "bell"],
       ],
     },
