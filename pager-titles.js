@@ -43,7 +43,7 @@
   }
 
   function update() {
-    var pager = document.querySelector('div#pagination');
+    var pager = document.querySelector('#pagination');
     if (!pager) return;
     var prev = pager.querySelector(':scope > a:not(.w-full)');
     if (!prev) return;
