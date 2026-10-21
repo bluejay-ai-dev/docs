@@ -1,0 +1,158 @@
+---
+title: "GET /v1/observability/conversations"
+description: "List production conversations."
+sidebarTitle: "/\u200bv1/\u200bobservability/\u200bconversations"
+api: "GET https://api.getbluejay.ai/v1/observability/conversations"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Returns production conversations, newest first. Each row has `metric_results`.
+
+Set `group_by` to get counts per group instead of rows. You can group by status, agent, label, day, interface, direction, ended_by, a `metadata_path`, or `metric_value`. The same filters apply to rows and counts.
+
+`page_size` is 20 by default and 100 at most.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Query parameters
+
+<FieldTable rows={[{"name": "status", "type": "string[] or null", "required": false, "description": "e.g. COMPLETED, SYSTEM_ERROR"}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": ""}, {"name": "label_ids", "type": "array of string (uuid) or null", "required": false, "description": ""}, {"name": "initiation_direction", "type": "string[] or null", "required": false, "description": "inbound, outbound"}, {"name": "caller_number", "type": "string or null", "required": false, "description": "E.164"}, {"name": "duration_min", "type": "integer or null", "required": false, "description": "Minimum duration in ms"}, {"name": "duration_max", "type": "integer or null", "required": false, "description": "Maximum duration in ms"}, {"name": "tags", "type": "string[] or null", "required": false, "description": ""}, {"name": "conversation_ids", "type": "array of string (uuid) or null", "required": false, "description": ""}, {"name": "issue_ids", "type": "array of string (uuid) or null", "required": false, "description": "Keep conversations linked to any of these issue IDs"}, {"name": "interface", "type": "string[] or null", "required": false, "description": ""}, {"name": "label", "type": "string or null", "required": false, "description": "Label text, resolved to an id"}, {"name": "metadata_path", "type": "string or null", "required": false, "description": "Metadata key, e.g. restaurant_code"}, {"name": "metadata_value", "type": "string or null", "required": false, "description": ""}, {"name": "metric_name", "type": "string or null", "required": false, "description": "Required when group_by is metric_value"}, {"name": "metric_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "metric_value", "type": "string[] or null", "required": false, "description": "Keep only conversations whose metric came out one of these values. Needs metric_name or metric_id. This is the filter, not the grouping."}, {"name": "metric_min", "type": "number or null", "required": false, "description": "Numeric metrics: keep results at or above this"}, {"name": "metric_max", "type": "number or null", "required": false, "description": "Numeric metrics: keep results at or below this"}, {"name": "group_by", "type": "string or null", "required": false, "description": "Omit for rows; set for counts", "values": ["status", "agent", "label", "day", "interface", "direction", "ended_by", "metadata", "metric_value"]}, {"name": "last", "type": "string", "required": false, "description": "", "default": "1day", "values": ["1day", "3days", "7days", "30days", "90days", "all"]}, {"name": "sort_order", "type": "string", "required": false, "description": "", "default": "desc", "values": ["asc", "desc"]}, {"name": "page_size", "type": "integer", "required": false, "description": "", "default": 20}, {"name": "page", "type": "integer", "required": false, "description": "", "default": 1}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "total", "type": "integer", "required": true, "description": "Everything matching the filters, not just this page"}, {"name": "group_by", "type": "string or null", "required": false, "description": ""}, {"name": "data", "type": "object[]", "required": false, "description": "", "children": [{"name": "obs_conversation_id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "organization_id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "workspace_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "label_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "status", "type": "string or null", "required": false, "description": "Enum representing the possible states of a conversation.", "values": ["INITIALIZING", "QUEUED", "READY", "DISPATCHED", "RUNNING", "CONVERSATION_ENDED", "EVALUATING", "COMPLETED", "NOT_EVALUATED", "NO_CONNECTION", "NO_ANSWER", "CALL_DROPPED", "OUT_OF_FUNDS", "SYSTEM_ERROR", "CUSTOM_ERROR", "CANCELLED", "INCOMPLETED", "REJECTED", "INSUFFICIENT_FUNDS"]}, {"name": "multichannel_requested", "type": "boolean or null", "required": false, "description": ""}, {"name": "tool_calls", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "tool_name", "type": "string", "required": false, "description": "", "default": ""}, {"name": "start_offset_ms", "type": "integer", "required": false, "description": "", "default": 0}, {"name": "tool_input", "type": "object", "required": false, "description": ""}, {"name": "tool_output", "type": "string", "required": false, "description": "", "default": ""}]}, {"name": "initiation_direction", "type": "string or null", "required": false, "description": "Enum representing the direction of a call.", "values": ["INBOUND", "OUTBOUND"]}, {"name": "tags", "type": "string[] or null", "required": false, "description": ""}, {"name": "interface", "type": "string or null", "required": false, "description": "Enum representing the interface used for a call.", "default": "PHONE", "values": ["PHONE", "WEB"]}, {"name": "metadata", "type": "object or null", "required": false, "description": ""}, {"name": "events", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "title", "type": "string", "required": true, "description": "Title of the event"}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the event in milliseconds"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the event"}, {"name": "end_offset_ms", "type": "integer or null", "required": false, "description": "End offset of the event in milliseconds"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the event"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the event"}]}, {"name": "conversation_ended_by", "type": "string or null", "required": false, "description": "Role of a participant in a call or simulated conversation.", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "trace_ids", "type": "string[]", "required": false, "description": ""}, {"name": "start_time_utc", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "duration_ms", "type": "integer or null", "required": false, "description": ""}, {"name": "participants", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "role", "type": "string", "required": false, "description": "Role of a participant in a call or simulated conversation.", "default": "AGENT", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "name", "type": "string or null", "required": false, "description": ""}, {"name": "spoke_first", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "phone_number", "type": "string or null", "required": false, "description": ""}]}, {"name": "submitted_recording_url", "type": "string or null", "required": false, "description": ""}, {"name": "submitted_transcript_url", "type": "string or null", "required": false, "description": ""}, {"name": "submitted_transcript", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "start_offset_ms", "type": "integer", "required": true, "description": ""}, {"name": "end_offset_ms", "type": "integer", "required": true, "description": ""}, {"name": "speaker", "type": "string", "required": true, "description": ""}, {"name": "utterance", "type": "string", "required": true, "description": ""}, {"name": "filler_utterance", "type": "boolean or null", "required": false, "description": ""}]}, {"name": "bluejay_recording_filepath", "type": "string or null", "required": false, "description": ""}, {"name": "bluejay_transcript_filepath", "type": "string or null", "required": false, "description": ""}, {"name": "bluejay_transcript", "type": "object[] or null", "required": false, "description": ""}, {"name": "bluejay_translated_transcript", "type": "object[] or null", "required": false, "description": ""}, {"name": "bluejay_words_transcript", "type": "object[] or null", "required": false, "description": ""}, {"name": "bluejay_reference_transcript", "type": "object[] or null", "required": false, "description": ""}, {"name": "bluejay_translated_transcript_filepath", "type": "string or null", "required": false, "description": ""}, {"name": "bluejay_words_transcript_filepath", "type": "string or null", "required": false, "description": ""}, {"name": "bluejay_reference_transcript_filepath", "type": "string or null", "required": false, "description": ""}, {"name": "error_code", "type": "string or null", "required": false, "description": ""}, {"name": "error_message", "type": "string or null", "required": false, "description": ""}, {"name": "error_details", "type": "object or null", "required": false, "description": ""}, {"name": "metric_results", "type": "object[]", "required": false, "description": ""}]}, {"name": "breakdown", "type": "object[]", "required": false, "description": "", "children": [{"name": "group", "type": "string", "required": true, "description": "The grouped value, or the metric value when grouping by it"}, {"name": "count", "type": "integer", "required": true, "description": ""}, {"name": "avg_duration_ms", "type": "number or null", "required": false, "description": "Conversation groupings only"}, {"name": "edited_count", "type": "integer or null", "required": false, "description": "Metric groupings only"}]}, {"name": "groups_truncated", "type": "boolean", "required": false, "description": "True when more groups matched than were returned", "default": false}, {"name": "metric_name", "type": "string or null", "required": false, "description": ""}, {"name": "metric_type", "type": "string or null", "required": false, "description": ""}, {"name": "not_applicable", "type": "integer or null", "required": false, "description": ""}, {"name": "average", "type": "number or null", "required": false, "description": "Numeric metrics only"}, {"name": "page", "type": "integer or null", "required": false, "description": ""}, {"name": "page_size", "type": "integer or null", "required": false, "description": ""}, {"name": "unreadable_skipped", "type": "integer", "required": false, "description": "Rows on this page too incomplete to read, dropped rather than failing it", "default": 0}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/observability/conversations \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "total": 123,
+  "group_by": "<string>",
+  "data": [
+    {
+      "obs_conversation_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+      "created_at": "2026-01-01T00:00:00Z",
+      "organization_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+      "agent_id": 123,
+      "workspace_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+      "label_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+      "agent_version_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+      "status": "INITIALIZING",
+      "multichannel_requested": true,
+      "tool_calls": [
+        {
+          "tool_name": "",
+          "start_offset_ms": 0,
+          "tool_input": {},
+          "tool_output": ""
+        }
+      ],
+      "initiation_direction": "INBOUND",
+      "tags": [
+        "<string>"
+      ],
+      "interface": "PHONE",
+      "metadata": {},
+      "events": [
+        {
+          "title": "<string>",
+          "start_offset_ms": 123,
+          "description": "<string>",
+          "end_offset_ms": 123,
+          "tags": [
+            null
+          ],
+          "metadata": {}
+        }
+      ],
+      "conversation_ended_by": "AGENT",
+      "trace_ids": [
+        "<string>"
+      ],
+      "start_time_utc": "2026-01-01T00:00:00Z",
+      "duration_ms": 123,
+      "participants": [
+        {
+          "role": "AGENT",
+          "name": "<string>",
+          "spoke_first": false,
+          "phone_number": "<string>"
+        }
+      ],
+      "submitted_recording_url": "<string>",
+      "submitted_transcript_url": "<string>",
+      "submitted_transcript": [
+        {
+          "start_offset_ms": 123,
+          "end_offset_ms": 123,
+          "speaker": "<string>",
+          "utterance": "<string>",
+          "filler_utterance": true
+        }
+      ],
+      "bluejay_recording_filepath": "<string>",
+      "bluejay_transcript_filepath": "<string>",
+      "bluejay_transcript": [
+        {}
+      ],
+      "bluejay_translated_transcript": [
+        {}
+      ],
+      "bluejay_words_transcript": [
+        {}
+      ],
+      "bluejay_reference_transcript": [
+        {}
+      ],
+      "bluejay_translated_transcript_filepath": "<string>",
+      "bluejay_words_transcript_filepath": "<string>",
+      "bluejay_reference_transcript_filepath": "<string>",
+      "error_code": "<string>",
+      "error_message": "<string>",
+      "error_details": {},
+      "metric_results": [
+        {}
+      ]
+    }
+  ],
+  "breakdown": [
+    {
+      "group": "<string>",
+      "count": 123,
+      "avg_duration_ms": 1.5,
+      "edited_count": 123
+    }
+  ],
+  "groups_truncated": false,
+  "metric_name": "<string>",
+  "metric_type": "<string>",
+  "not_applicable": 123,
+  "average": 1.5,
+  "page": 123,
+  "page_size": 123,
+  "unreadable_skipped": 0
+}
+```
+
+{/* END GENERATED */}

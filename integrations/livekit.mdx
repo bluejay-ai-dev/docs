@@ -1,147 +1,278 @@
 ---
-title: "LiveKit Observability"
-description: "Send your production LiveKit calls to Bluejay for transcripts, recordings, and evals"
-icon: "/logo/livekit.svg"
+title: "LiveKit"
+description: "Test your LiveKit agent and score live calls."
+icon: '/logo/livekit.svg'
+sidebarTitle: "LiveKit"
 ---
 
-This guide walks you through how to connect your production LiveKit agents to Bluejay's observability software. Once connected, every call shows up in your logs view shortly after it ends.
+import { Code } from "/snippets/code.jsx";
 
-## Tutorial
+Connect an agent that runs as a LiveKit Agents worker.
+
+<img className="block dark:hidden" src="/images/connect-livekit.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
+<img className="hidden dark:block" src="/images/connect-livekit-dark.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
+
+## Connect
+
+<Steps>
+<Step title="Save the LiveKit keys">
+In LiveKit Cloud, open **Settings > API keys** and copy the API key, API secret, and server URL. The URL looks like `wss://your-project.livekit.cloud`. In Bluejay, open **Settings → Integrations** and choose the **LiveKit** tab. Paste them there. Skip this step if your server will issue room tokens through a [token webhook](#token-webhook).
+</Step>
+<Step title="Create the agent">
+Create a Voice agent with the **LiveKit** connection type:
+
+- **LiveKit Agent Name**: the name your worker registers with. Leave it empty only if your worker uses automatic dispatch, because Bluejay then dispatches no agent.
+- **LiveKit Customer Tool Topic (Optional)**: set it to record tool calls. See [Tool calls](#tool-calls).
+- **LiveKit Metadata (Optional JSON)**: Bluejay sends it as the job metadata when it dispatches your agent, with each Digital Human's `livekit_metadata` merged over it and the simulation IDs added, such as `X-Simulation-Result-Id`.
+</Step>
+<Step title="Choose how Bluejay joins the room">
+In the agent's **Connection Settings**, set **Authentication**:
+
+- **API Key**: Bluejay creates the room token with the keys you saved.
+- **Token Webhook**: your server creates the room token, so Bluejay stores no LiveKit keys. Put the full header value in **Authorization Header (Optional)**, scheme included, for example `Bearer <token>`. See [Token webhook](#token-webhook).
+</Step>
+</Steps>
+
+## Test
 
 <Tabs>
-<Tab title="API">
+<Tab title="Direct">
 
-This integration method enables Bluejay to observe every call per agent. Your agent POSTs the finished call to Bluejay's `/evaluate` endpoint when the session ends.
+Use this path to iterate on agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it, so you need no phone number. An agent with the **LiveKit** connection type, set up as in [Connect](#connect), uses this path.
 
-<Note>
-  If you already configured the **Web (No Code)** webhook in the same LiveKit project as the agent, set the `bluejay.bypass_webhook` attribute to `true` when the agent joins. Otherwise, the call will be ingested twice.
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/connection-settings.mp4"></video>
 
-  ```python
-  await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "true"}, ...)
-  ```
-</Note>
+</Tab>
+<Tab title="SIP">
 
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
+Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. The number does not need to be one you bought, as long as it matches your trunk.
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+<Steps>
+<Step title="Create an inbound trunk">
+Create the trunk in the project that owns the SIP host.
 
-## LiveKit Observability — POST /v1/evaluate
+```json trunk.json
+{ "trunk": { "name": "bluejay-inbound", "numbers": ["+15551230000"] } }
+```
 
-> **What this endpoint does:** Report a finished LiveKit call (transcript, tool calls, and optionally a recording) to Bluejay from your agent's shutdown callback, so it appears in the logs view with evals.
+```bash
+lk sip inbound create trunk.json
+```
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/evaluate`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+To read the result ID from your agent, for example to call [Update Simulation Result](/api-reference/endpoint/update-simulation-result), map the `X-Simulation-Result-Id` header to a participant attribute. Run `lk sip inbound update --id ST_your_trunk_id -` with:
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | string | Existing Bluejay agent to attribute the call to (the endpoint does not auto-create it). |
-| start_time_utc | string | Call start, ISO 8601 UTC, captured at call start. |
-| participants | array | Call roles, e.g. `[{"role": "AGENT"}, {"role": "USER"}]`. |
-| transcript / recording_url | array / string | Provide at least one: the transcript turns and/or a recording URL (a recording also unlocks audio-derived metrics). |
-| X-API-Key | string | API key required to authenticate requests. |
-
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/evaluate and include any optional parameters (e.g., `tool_calls`, `recording_url`, `metadata`, `label`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
-
-### Request Body
 ```json
+{ "headers_to_attributes": { "X-Simulation-Result-Id": "X-Simulation-Result-Id" } }
+```
+
+The ID then shows in `participant.attributes`. LiveKit sets the attribute asynchronously, so it can be missing at the moment the SIP participant joins.
+</Step>
+<Step title="Create a dispatch rule">
+Create the rule on the trunk, and set `agentName` to your worker name.
+
+```json dispatch.json
 {
-  "agent_id": "<your-bluejay-agent-id>",
-  "start_time_utc": "2026-01-01T00:00:00Z",
-  "participants": [{"role": "AGENT"}, {"role": "USER"}],
-  "transcript": [
-    {"start_offset_ms": 0, "end_offset_ms": 1500, "speaker": "AGENT", "utterance": "Hi, how can I help?"}
-  ],
-  "tool_calls": [
-    {"name": "lookup_order", "start_offset_ms": 4200, "parameters": {"id": "123"}, "output": "shipped"}
-  ],
-  "recording_url": "https://...optional..."
+  "name": "bluejay-dispatch",
+  "rule": { "dispatchRuleIndividual": { "roomPrefix": "sip-" } },
+  "trunkIds": ["ST_your_trunk_id"],
+  "roomConfig": { "agents": [{ "agentName": "your-agent" }] }
 }
 ```
 
-### Example
-**Register a shutdown callback that assembles the call and POSTs it:**
-```python
-import os, httpx
-from livekit.agents import JobContext
+```bash
+lk sip dispatch create dispatch.json
+```
+</Step>
+<Step title="Create the Bluejay agent">
+Create a Voice agent with the **SIP** connection type, and set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. Use the number exactly as it appears in the trunk `numbers`. See [SIP](/integrations/sip) for the other SIP fields.
+</Step>
+</Steps>
 
-async def entrypoint(ctx: JobContext):
-    # ... agent setup + session.start(...) ...
-    async def report_to_bluejay():
-        payload = {
-            "agent_id": os.environ["BLUEJAY_AGENT_ID"],
-            "start_time_utc": started_at_iso,  # ISO 8601, UTC, captured at call start
-            "participants": [{"role": "AGENT"}, {"role": "USER"}],
-            "transcript": transcript,   # [{start_offset_ms,end_offset_ms,speaker,utterance}, ...]
-            "tool_calls": tool_calls,   # [{name,parameters,output,start_offset_ms}, ...]
-        }
-        async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(
-                "https://api.getbluejay.ai/v1/evaluate",
-                json=payload,
-                headers={"X-API-Key": os.environ["BLUEJAY_API_KEY"]},
-            )
-            r.raise_for_status()
-    ctx.add_shutdown_callback(report_to_bluejay)
+Bluejay puts each custom SIP header from **Connection Settings** on the INVITE under the name you enter, and also sends all of them together as JSON in `X-Custom-Headers`. Your agent can read them with the `lk.sip.GetRemoteHeaders` RPC:
+
+```python
+import json
+from livekit import rtc
+
+participant = await ctx.wait_for_participant()
+if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+    response = await ctx.room.local_participant.perform_rpc(
+        destination_identity=participant.identity,
+        method="lk.sip.GetRemoteHeaders",
+        payload=json.dumps({}),
+    )
+    headers = json.loads(response)["headers"]
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Capture `start_time_utc` at call start (ISO 8601, UTC), and handle a 422 Validation Error from the endpoint.
-- If this LiveKit project also has the Bluejay Cloud webhook configured, set `attributes={"bluejay.bypass_webhook": "true"}` on `req.accept(...)` so the call isn't ingested twice.
+</Tab>
+<Tab title="Outbound">
 
-### Integration Checklist
-Before writing code, verify:
-1. Where does the agent build/track the transcript and tool calls during the session?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are the Bluejay API key and agent id available as config/env?
-
-Then implement the shutdown callback, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-**Prerequisites**
-
-- A Bluejay API key (Settings → API Keys)
-- Access to your agent's code
+To test an agent that places calls, your agent dials the Digital Humans. The **LiveKit** connection type is inbound only, so use the **Phone** connection type.
 
 <Steps>
-<Step title="Create a Bluejay agent">
-The `/evaluate` endpoint attributes each call to an existing Bluejay agent, so create one first.
-
-1. In Bluejay, create an agent (or open an existing one) and copy its **Agent ID**.
-2. In the agent's **Connection Settings** tab, choose the **LiveKit** tile under **Voice connection type**.
+<Step title="Create the agent">
+Create an Outbound Voice agent with the **Phone** connection type, and give each Digital Human a phone number.
 </Step>
+<Step title="Set a trigger">
+Set **Outbound Trigger Webhook URL** on the agent, or subscribe a [webhook](/api-reference/webhooks) to `outbound_simulation_started`. Without a trigger, your agent never learns that a run started, and the Digital Humans wait until the run times out.
+</Step>
+<Step title="Dial the Digital Humans">
+When the trigger fires, have your agent dial each `phone_number`, for example with `create_sip_participant`. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
+</Step>
+</Steps>
 
-<Step title="POST the finished call at shutdown">
-Register a shutdown callback that assembles the call and POSTs it to Bluejay. Include `tool_calls` for tool-adherence metrics, and `recording_url` for audio-derived metrics.
+</Tab>
+</Tabs>
+
+### Token webhook
+
+With **Token Webhook** authentication, Bluejay sends a `POST` to the **Token Webhook URL** before each call:
+
+```json
+{
+  "room_name": "test-room-812192",
+  "participant_identity": "digital-human-812192",
+  "agent_name": "your-agent-name",
+  "agent_metadata": { "any": "metadata you configured" },
+  "sim_conversation_id": 812192
+}
+```
+
+| Response field | Description |
+|---|---|
+| `token` | Required. A LiveKit token for the identity with `room_join`, `can_publish`, and <Code>can_subscribe</Code>. Add <Code>can_publish_data</Code> for tool call tracking. The TTL must cover the call. |
+| `livekit_url` | Replaces the server URL from the integration. Required if you saved no LiveKit integration. |
+| `room_name` | Optional. Replaces the room the Digital Human joins. |
+
+Make sure your agent is dispatched. Put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
+
+Bluejay waits 15 seconds for the response. If the request times out or returns `408`, `429`, or a `5xx` status, Bluejay tries again, up to 3 attempts in total. If your endpoint returns `401` or `403`, Bluejay does not try again, and the run fails with `NO_CONNECTION` and `LIVEKIT_SESSION_SETUP_FAILED`.
+
+### Tool calls
+
+To record your agent's tool calls in a simulation, set **LiveKit Customer Tool Topic**, then have your agent publish one data packet on that topic each time it calls a tool. Bluejay saves the packets when the simulation ends.
+
+```python
+import json
+
+async def report_tool_call(room, tool_name, parameters, output):
+    payload = json.dumps({"name": tool_name, "parameters": parameters, "output": output}).encode()
+    await room.local_participant.publish_data(payload, topic="customer.tool.calls")
+```
+
+| Field | Description |
+|---|---|
+| `name` | Required. The tool name. |
+| `parameters` | The tool input. |
+| `output` | The tool return value. |
+| <Code>start_offset_ms</Code> | Milliseconds from call start. |
+| `client_ts` | ISO 8601 time of the call. Bluejay uses it when <Code>start_offset_ms</Code> is not set. If you send neither, Bluejay uses the time it gets the packet. |
+| <Code>invocation_id</Code> | Bluejay drops a second packet with the same ID. |
+
+### Traces
+
+To see your agent's traces on a simulation result, export OpenTelemetry traces to Bluejay, then link them to the result when the call shuts down.
+
+```python
+import httpx
+from opentelemetry import context as otel_context
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from livekit.agents.telemetry import set_tracer_provider
+import opentelemetry.trace as otel_trace
+
+tracer_provider = trace_sdk.TracerProvider(resource=Resource.create({SERVICE_NAME: "my-agent"}))
+tracer_provider.add_span_processor(
+    SimpleSpanProcessor(
+        OTLPSpanExporter("https://otlp.getbluejay.ai/v1/traces", headers={"X-API-KEY": BLUEJAY_API_KEY})
+    )
+)
+set_tracer_provider(tracer_provider)
+otel_trace.set_tracer_provider(tracer_provider)
+
+# Before session.start():
+span = otel_trace.get_tracer("my-agent").start_span("call")
+otel_context.attach(otel_trace.set_span_in_context(span))
+trace_ids = [format(span.get_span_context().trace_id, "032x")]
+
+# simulation_result_id: the X-Simulation-Result-Id value from the job metadata
+# or, over SIP, from the participant attributes.
+
+async def on_shutdown():
+    span.end()
+    tracer_provider.force_flush()
+    if simulation_result_id:
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.post(
+                "https://api.getbluejay.ai/v1/update-simulation-result",
+                json={"simulation_result_id": simulation_result_id, "trace_ids": trace_ids},
+                headers={"X-API-Key": BLUEJAY_API_KEY},
+            )
+            res.raise_for_status()
+    tracer_provider.shutdown()
+
+ctx.add_shutdown_callback(on_shutdown)
+```
+
+Keep the order in `on_shutdown`: `span.end()`, then `force_flush()`, then the POST, then `shutdown()`. If you send the POST before the flush, the trace can be missing. See [Traces](/test/traces).
+
+## Monitor
+
+To score your live calls, send them with the LiveKit webhook or from your agent through the API. Use the API if you need tool calls.
+
+<Tabs>
+<Tab title="Webhook">
+
+LiveKit sends every call in the project to Bluejay. This path does not capture tool calls.
+
+<Warning>
+Cost risk. The LiveKit webhook streams call data to Bluejay. LiveKit can bill you for the egress.
+</Warning>
+
+<Steps>
+<Step title="Copy the webhook URL">
+In Bluejay, open **Settings → Integrations** and choose the **LiveKit** tab. Save your LiveKit keys, then copy the webhook URL from **Show configuration**.
+</Step>
+<Step title="Add the webhook in LiveKit Cloud">
+In LiveKit Cloud, go to **Settings > Webhooks** and add the URL, signed with your API key.
+</Step>
+<Step title="Set a dispatch name">
+Make sure your agent has a [dispatch name](https://docs.livekit.io/agents/build/dispatch/) (`agent_name` in `WorkerOptions`).
+</Step>
+</Steps>
+
+On the first call with a new dispatch name, Bluejay creates an agent for it. If you refresh the webhook URL in Bluejay, the old URL stops working, so update it in LiveKit Cloud too.
+
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/livekit-obs-full.mp4"></video>
+
+</Tab>
+<Tab title="API">
+
+Your agent sends each finished call to [`/v1/evaluate`](/api-reference/endpoint/evaluate) in a shutdown callback. This path captures tool calls and attributes each call to one Bluejay agent.
+
+<Steps>
+<Step title="Create the agent">
+Create an agent in Bluejay and copy its agent ID.
+</Step>
+<Step title="Add a shutdown callback">
+Add a shutdown callback that sends the call.
 
 ```python
 import os
 import httpx
 from livekit.agents import JobContext
 
-# ... your code ...
-
 async def entrypoint(ctx: JobContext):
-    # ... your code ...
-
     async def report_to_bluejay():
         payload = {
-            "agent_id": "<your-bluejay-agent-id>",
-            "start_time_utc": started_at_iso,  # ISO 8601, UTC, captured at call start
+            "agent_id": os.environ["BLUEJAY_AGENT_ID"],
+            "start_time_utc": started_at_iso,  # ISO 8601 UTC, captured at call start
             "participants": [{"role": "AGENT"}, {"role": "USER"}],
-            # [{"start_offset_ms", "end_offset_ms", "speaker", "utterance"}, ...]
-            "transcript": transcript,
-            # [{"name", "parameters", "output", "start_offset_ms"}, ...]
-            "tool_calls": tool_calls,
-            # Optional — audio-derived metrics (latency, talk ratio, WER):
-            # "recording_url": recording_url,
+            "transcript": transcript,  # [{start_offset_ms, end_offset_ms, speaker, utterance}]
+            "tool_calls": tool_calls,  # [{name, parameters, output, start_offset_ms}]
+            # "recording_url": recording_url,  # enables audio metrics
         }
         async with httpx.AsyncClient(timeout=10) as client:
             res = await client.post(
@@ -153,78 +284,32 @@ async def entrypoint(ctx: JobContext):
 
     ctx.add_shutdown_callback(report_to_bluejay)
 ```
-
-When the call ends, the callback submits it and the evaluated call appears in your logs view. See the [`/evaluate` API reference](/api-reference/endpoint/evaluate) for the full request shape.
 </Step>
 </Steps>
 
-</Tab>
+If the project also sends calls through the webhook, set `bluejay.bypass_webhook` when the agent joins, so Bluejay does not get each call twice:
 
-<Tab title="Web (No Code)">
-
-This integration enables Bluejay to observe every call for all agents in the project, using a webhook.
-
-<Warning>
-  This integration method cannot observe tool calls, and may incur additional costs from LiveKit for egress.
-</Warning>
-
-<video controls className="w-full aspect-video rounded-xl" src="/videos/livekit-obs-full.mp4"></video>
-
-**Prerequisites**
-
-- A LiveKit Cloud project (API Key, API Secret, and Server URL)
-- A Bluejay account
-
-<Steps>
-<Step title="Get your LiveKit credentials">
-1. In the **LiveKit Cloud** dashboard, open your project and go to **Settings → API keys**.
-2. Click **Create Key → Generate key**, then copy your **API Key**, **API Secret**, and **Server URL**.
-
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/livekit-obs-1.mp4"></video>
-</Step>
-
-<Step title="Add your LiveKit credentials in Bluejay">
-1. In Bluejay, click **Settings** in the bottom left corner.
-2. Select **Integrations** and open the **LiveKit** tab.
-3. Enter your **API Key**, **API Secret**, and **URL** from LiveKit, then click **Save**.
-4. Click **Show configuration** and copy your **webhook URL**.
-
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/livekit-obs-2.mp4"></video>
-</Step>
-
-<Step title="Add the webhook in LiveKit">
-1. In the **LiveKit Cloud** dashboard, go to **Settings → Webhooks**.
-2. Add the webhook URL you copied, signed with your **API Key**.
-
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/livekit-obs-3.mp4"></video>
-</Step>
-
-<Step title="Confirm your agent has a name">
-Your agent runs under a **dispatch name** in LiveKit. Bluejay will automatically create an agent under this name.
-
-Most agents already have one, and on the first call Bluejay automatically creates a matching agent for you. In most cases, there's nothing to do here.
-
-<Accordion title="Need to set or change the name? (for developers)">
-  In your agent code, set `agent_name` in your worker's `WorkerOptions`. Then redeploy:
-
-  ```python
-  from livekit.agents import WorkerOptions, cli
-
-  cli.run_app(
-      WorkerOptions(
-          agent_name="set-the-name-here",
-      )
-  )
-  ```
-</Accordion>
-</Step>
-</Steps>
+```python
+await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "true"})
+```
 
 </Tab>
 </Tabs>
 
-## Up Next
+## Troubleshooting
 
-<Card title="LiveKit Simulations" icon="flask-vial" href="/simulation-integrations/livekit">
-  Run Bluejay simulations against your LiveKit agents.
-</Card>
+| What you see | What to do |
+|---|---|
+| **No Connection** with <Code>LIVEKIT_SESSION_SETUP_FAILED</Code> | Bluejay could not join the room. If you use a token webhook, check that it accepts the **Authorization Header** and returns a working token. A `401` or `403` from the webhook is not retried. |
+| SIP `404 No trunk found` | The INVITE reached LiveKit, but no trunk matched. Create the trunk on the project in the SIP URI, and make its `numbers` match the URI. |
+| SIP `408 request timed out` | The trunk matched, but nothing answered. Add the dispatch rule, and check that a worker runs with that `agentName`. |
+| The call connects but the agent is silent | The agent joined but made no audio, for example because of a bad LLM or TTS key. Bluejay scores this as no answer. |
+| A SIP result stays running with no transcript | The SIP URI has no number. Use `sip:<number>@<host>`. |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [Logs](/monitor/logs)
+- [Traces](/monitor/traces)
+- [SIP](/integrations/sip)

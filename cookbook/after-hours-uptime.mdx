@@ -1,0 +1,42 @@
+---
+title: "Watch Your Agent After Hours"
+sidebarTitle: "After-Hours Uptime"
+description: "Get paged when your agent breaks after hours."
+icon: moon
+---
+
+Set up an [uptime monitor](/monitor/uptime/overview) that calls your agent every 10 minutes around the clock and pages your on-call team when it stops answering or starts stating errors.
+
+## Before you start
+
+- Connect PagerDuty or Better Stack, so the alert reaches whoever is on call. See [Alerts](/monitor/alerts#connect-a-channel).
+- If your agent only makes outbound calls, set it up to start a call when Bluejay asks. See [Outbound agents](/monitor/uptime/overview#outbound-agents).
+
+## Steps
+
+<Steps>
+  <Step title="Create an uptime monitor">
+    In **Observability → Uptime**, click **Create**. A monitor has one schedule, made of its days and one range of hours, so running it all the time is the only way to cover both nights and weekends.
+  </Step>
+  <Step title="Keep the health checks on">
+    Keep **Agent Malfunction** and **Agent Responds** on, so an agent that states an error or stops answering counts as a failure. See [Checks](/monitor/uptime/overview#checks).
+  </Step>
+  <Step title="Send failures to your on-call tool">
+    Turn on **PagerDuty Notifications** or **Better Stack Notifications**. Your escalation policy in that tool decides who gets paged. See [Incidents](/monitor/alerts#incidents). The first check starts right away.
+  </Step>
+</Steps>
+
+## Check the result
+
+Each run gets one of these verdicts:
+
+- **Up** means all checks passed.
+- **Down** means at least one check failed. Bluejay opens an incident in PagerDuty or Better Stack, and resolves it when the monitor recovers.
+
+If the first run is **Down**, open it to see which check failed, and read the transcript before you rely on the monitor overnight.
+
+## Related
+
+- [Uptime Monitoring](/monitor/uptime/overview)
+- [Alerts](/monitor/alerts)
+- [Uptime Monitoring API](/api-reference/endpoint/create-uptime-monitor)

@@ -1,70 +1,73 @@
 ---
-title: 'Create Schedule'
-description: ''
-openapi: 'POST /v1/create-schedule'
+title: "POST /v1/create-schedule"
+description: "Schedule a simulation."
+sidebarTitle: "/\u200bv1/\u200bcreate-schedule"
+api: "POST https://api.getbluejay.ai/v1/create-schedule"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Create Schedule — POST /v1/create-schedule
+Creates a schedule for a simulation. The response returns the schedule as `cron_expression`.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/create-schedule`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+`schedule.frequency` selects the shape of `schedule`: every N minutes, every N hours, daily, weekly, monthly, or cron. `timezone` is an IANA name. If it is null, the schedule uses UTC.
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| simulation_id | string | The unique identifier for the associated simulation. |
-| schedule | object | object | object | object | object | object | The schedule for the cron job. |
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/create-schedule and include any optional parameters (e.g., `enabled`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Headers
 
-### Request Body (required fields)
-```json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The unique identifier for the associated simulation."}, {"name": "schedule", "type": "object", "required": true, "description": "The schedule for the cron job.", "children": [{"name": "window", "type": "object or null", "required": false, "description": "Restricts a recurring schedule to certain days and/or a daily time range , \"Mondays and Fridays\", \"weekdays 9am-5pm\". Times are read in the schedule's timezone.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}]}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "interval", "type": "integer", "required": true, "description": "Repeat every N minutes (max 59)"}, {"name": "window", "type": "object or null", "required": false, "description": "Restricts a recurring schedule to certain days and/or a daily time range , \"Mondays and Fridays\", \"weekdays 9am-5pm\". Times are read in the schedule's timezone.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}]}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "interval", "type": "integer", "required": true, "description": "Repeat every N hours (max 23)"}, {"name": "time", "type": "string", "required": true, "description": "HH:MM 24hr time"}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "window", "type": "object or null", "required": false, "description": "Restricts a recurring schedule to certain days and/or a daily time range , \"Mondays and Fridays\", \"weekdays 9am-5pm\". Times are read in the schedule's timezone.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}]}, {"name": "time", "type": "string", "required": true, "description": "HH:MM 24hr time"}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "day_of_week", "type": "string", "required": true, "description": "", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "time", "type": "string", "required": true, "description": "HH:MM 24hr time"}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "day_of_month", "type": "integer", "required": true, "description": ""}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "expression", "type": "string", "required": true, "description": "Cron expression"}]}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "Whether the cron job should be enabled upon creation.", "default": true}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The unique identifier for the created cron job."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The unique identifier for the associated simulation."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The cron expression defining the job schedule."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "Whether the cron job is enabled."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/create-schedule \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "timezone": "<string>",
+    "simulation_id": "<string>",
+    "schedule": {
+      "window": {
+        "days": [
+          "monday"
+        ],
+        "start_time": "<string>",
+        "end_time": "<string>"
+      },
+      "frequency": "<string>",
+      "interval": 123
+    },
+    "enabled": true
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "simulation_id": "string",
-  "schedule": {
-    "frequency": "string",
-    "interval": 123
-  }
+  "id": "<string>",
+  "simulation_id": "<string>",
+  "cron_expression": "<string>",
+  "enabled": true,
+  "timezone": "<string>"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/create-schedule. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def create_schedule(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/create-schedule"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-This endpoint allows you to create a schedule to run your simulations on a recurring basis. Provide the schedule configuration in the request body, including the simulation ID. The endpoint returns the created schedule with its ID, simulation ID, cron expression, and enabled status.
+{/* END GENERATED */}

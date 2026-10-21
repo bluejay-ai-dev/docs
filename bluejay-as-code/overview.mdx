@@ -1,0 +1,154 @@
+---
+title: "Bluejay as Code"
+sidebarTitle: "Introduction"
+description: "Manage your Bluejay setup as code."
+icon: code-branch
+---
+
+import { Code } from "/snippets/code.jsx";
+import { DownloadFile } from "/snippets/download-file.jsx";
+
+<Warning>
+[JSON will be deprecated](#move-from-json-to-yaml) on November 20th, 2026.
+</Warning>
+
+Bluejay as Code saves your agents, simulations, Digital Humans, and custom metrics as a YAML file. Keep the file in your Git repository, and change your setup the same way you change your code:
+
+1. [Pull](#pull-the-payload) your current setup from Bluejay into a file.
+2. [Edit](#edit-the-payload) the file, and review the change in a pull request.
+3. [Push](#push-the-payload) the file back to Bluejay, by hand or from your CI pipeline.
+
+Each change then has a history and a reviewer.
+
+<iframe
+  src="https://www.youtube.com/embed/MnFCBV9PwMA"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
+
+## Pull the payload
+
+To pull, request the type and ID of the entity you start from, with `format=yaml` (without it, you get JSON). This example pulls a simulation:
+
+```bash
+curl "https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID?format=yaml" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -o simulation.yaml
+```
+
+To pull a different type, replace `simulation` in the URL. Supported root types include:
+
+- `simulation`
+- `agent`
+- `digital-human`
+- `custom-metric`
+
+For the ID, use either the entity ID or its `bluejay_as_code_id`. The payload holds that entity and the entities related to it, so pulling a simulation also returns its agent, Digital Humans, and custom metrics:
+
+```yaml simulation.yaml
+agents:
+- bluejay_as_code_id: f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33
+  name: Front Desk Scheduler
+  system_prompt: |
+    You are the front desk scheduling agent for Cedar Park Family Medicine.
+    Verify the caller's date of birth before you discuss patient information.
+simulations:
+- bluejay_as_code_id: b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09
+  name: Scheduling Coverage
+digital_humans:
+- bluejay_as_code_id: a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44
+  human_name: Maria Alvarez
+  description: New patient booking her first physical with Dr. Patel.
+  success_criteria: Agent books a Tuesday or Thursday morning slot with Dr. Patel.
+  simulations:
+  - b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09
+custom_metrics:
+- bluejay_as_code_id: 2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44
+  name: DOB Verified Before PHI
+  prompt: The agent verifies the caller's date of birth before it discusses patient information.
+```
+
+Long text like a system prompt comes back as a `|` block, so pull requests show prompt edits line by line.
+
+## Edit the payload
+
+- To update an entity, change its fields.
+- To add an entity, add an item with a new `bluejay_as_code_id` to its list. Generate the UUID one time (for example with `uuidgen`) and commit it.
+- To unlink a Digital Human or custom metric, remove it from the list that links it.
+
+Each entity takes the same fields as its API resource, except for a few Digital Human fields that have different names. The [Cookbook](/bluejay-as-code/cookbook) lists them, with an example of each entity.
+
+A simulation has no field for its agent, so Bluejay finds the agent from the payload. If the payload has one agent, Bluejay links the new simulation to it. If the payload has more than one agent, add the simulation's `bluejay_as_code_id` to the `simulations` list of the agent it belongs to.
+
+Quote hand-typed values that YAML would otherwise turn into numbers or booleans, such as `'+15551234567'` or `'no'`. Pulled files already quote them. YAML anchors and aliases (`&`, `*`) are not supported.
+
+## Push the payload
+
+Send the file with the `Content-Type: application/yaml` header, or Bluejay reads it as JSON and the push fails. Use `--data-binary`, since `--data` strips the line breaks YAML needs.
+
+```bash
+curl https://api.getbluejay.ai/v1/bluejay-as-code \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+```
+
+Bluejay replies with what it changed:
+
+```json response
+{
+  "valid": true,
+  "errors": [],
+  "actions": [
+    "Updated agent 'Front Desk Scheduler'",
+    "Created digital human 'Eleanor Pham'",
+    "Linked 1 existing digital human(s) to simulation"
+  ],
+  "simulation_id": 1284
+}
+```
+
+Bluejay matches each entity by `bluejay_as_code_id`:
+
+| Case | Result |
+|---|---|
+| New <Code>bluejay_as_code_id</Code> | Bluejay creates the entity. |
+| Known <Code>bluejay_as_code_id</Code> | Bluejay updates the entity. |
+| Digital Human missing from a simulation's links | Bluejay removes it from the simulation. The Digital Human stays. |
+| Custom metric missing from an agent's links | Bluejay detaches it from the agent. The metric stays. |
+
+Each link list in the payload replaces the current links on push, which is why removing an entry from a list unlinks it.
+
+<Warning>
+A push with errors still returns HTTP `200`, so it can fail without anything noticing. Check `valid` in the response after every push: when it is `false`, the `errors` list says what went wrong.
+</Warning>
+
+A push returns HTTP `400` if the YAML cannot be read, if a link points to a Digital Human or custom metric that is in neither the payload nor Bluejay, or if a new simulation does not have exactly one agent.
+
+## Move from JSON to YAML
+
+JSON will be deprecated on November 20th, 2026. To move a JSON file to YAML:
+
+1. If the JSON file has changes you have not pushed, push it one last time.
+2. Pull the same root again with `format=yaml`, as in [Pull the payload](#pull-the-payload).
+3. Commit the YAML file in place of the JSON file, and change your CI pipeline to push the YAML file with `Content-Type: application/yaml`.
+
+The `bluejay_as_code_id` values do not change, so your next push updates the same entities.
+
+## Claude Code skill
+
+Give Claude Code this skill to write and push payloads for you.
+
+<DownloadFile href="https://raw.githubusercontent.com/bluejay-ai-dev/docs/main/bluejay-as-code/skill.txt" filename="bluejay-as-code.skill.txt">
+  Download skill
+</DownloadFile>
+
+## Related
+
+- [Bluejay as Code API](/api-reference/endpoint/pull-bluejay-as-code)
+- [Bluejay as Code Cookbook](/bluejay-as-code/cookbook)
+- [CI/CD Integration](/api-reference/ci-cd)
+- [Metrics](/test/metrics)

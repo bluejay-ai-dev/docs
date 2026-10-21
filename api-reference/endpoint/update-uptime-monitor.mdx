@@ -1,9 +1,68 @@
 ---
-title: 'Update Uptime Monitor'
-description: 'Update an uptime monitor. Partial update: only the fields you pass are changed.'
-openapi: 'PUT /v1/uptime/monitors/{monitor_id}'
+title: "PUT /v1/uptime/monitors/{monitor_id}"
+description: "Update an uptime monitor."
+sidebarTitle: "/\u200bv1/\u200buptime/\u200bmonitors/\u200b{monitor_id}"
+api: "PUT https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}"
+playground: "none"
 ---
 
-`checks` replaces the whole array, so include every check you want to keep — the template checks plus any custom-metric or digital-human entries. See [Create Uptime Monitor](/api-reference/endpoint/create-uptime-monitor) for the check and notification shapes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-Changing `checks` or `agent_id` rebuilds the monitor's backing simulation; notification and pause/resume edits do not.
+Updates an uptime monitor. Only the fields you send change.
+
+- `checks` replaces the full list. Send every check you want to keep. For the shapes, see [Create Uptime Monitor](/api-reference/endpoint/create-uptime-monitor).
+- A change to `checks` or `agent_id` rebuilds the simulation of the monitor. Notification, pause, and resume changes do not.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": ""}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer or null", "required": false, "description": ""}, {"name": "frequency", "type": "string or null", "required": false, "description": ""}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days/hours the monitor may run, e.g. {\"days\": [\"monday\"], \"start_time\": \"09:00\", \"end_time\": \"17:00\", \"timezone\": \"America/Los_Angeles\"}. Null runs it around the clock.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]}, {"name": "checks", "type": "object[] or null", "required": false, "description": ""}, {"name": "notifications", "type": "object or null", "required": false, "description": ""}, {"name": "enabled", "type": "boolean or null", "required": false, "description": ""}, {"name": "start_at", "type": "string or null", "required": false, "description": "ISO 8601 first-check time; defaults to now()."}]} />
+
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "frequency": "<string>",
+    "active_window": {
+      "days": [
+        "monday"
+      ],
+      "start_time": "<string>",
+      "end_time": "<string>",
+      "timezone": "<string>"
+    },
+    "checks": [
+      {}
+    ],
+    "notifications": {},
+    "enabled": true,
+    "start_at": "<string>"
+  }'
+```
+
+{/* END GENERATED */}

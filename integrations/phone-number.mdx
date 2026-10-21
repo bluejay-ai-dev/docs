@@ -1,0 +1,66 @@
+---
+title: "Phone Number"
+sidebarTitle: "Phone Number"
+description: "Test an agent over phone calls or SMS."
+icon: phone
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Connect an agent that customers reach by calling or texting a phone number.
+
+<img className="block dark:hidden" src="/images/agent-phone-number.png" alt="The Phone connection type with the agent's phone number entered" />
+<img className="hidden dark:block" src="/images/agent-phone-number-dark.png" alt="The Phone connection type with the agent's phone number entered" />
+
+## Connect
+
+<Steps>
+<Step title="Create the agent">
+For calls, create a Voice agent with the **Phone** connection type. For texts, create a Text agent with the **SMS** connection type. Enter your agent's number in E.164 format, for example `+15551234567`. An Outbound Voice agent with an **Outbound Trigger Webhook URL** does not need a number.
+</Step>
+<Step title="Choose who starts the conversation">
+- **Inbound**: your agent answers. When a run starts, each Digital Human calls or texts your agent's number.
+- **Outbound**: your agent calls or texts each Digital Human first. Set up a trigger so your agent knows when to start, as described in [Outbound agents](#outbound-agents).
+</Step>
+<Step title="Give the Digital Humans numbers">
+Each Digital Human calls, texts, or answers on its own number, so give each one a number. See [Digital Human numbers](#digital-human-numbers).
+</Step>
+<Step title="Run a simulation">
+[Create a simulation](/test/simulations/create) for the agent and run it. Each test goes over the real carrier network, and Bluejay records, transcribes, and grades each conversation against your success criteria and custom metrics.
+</Step>
+</Steps>
+
+To start an SMS run from the API, use [Queue SMS Simulation Run](/api-reference/endpoint/queue-sms-simulation-run).
+
+## Outbound agents
+
+The Digital Humans wait on their lines until your agent reaches them or the run times out. Tell your agent when a run starts and which numbers to contact with one of these triggers:
+
+- **Outbound Trigger Webhook URL** on the agent. Bluejay sends one `POST` for each conversation, and your system then calls or texts the Digital Human. See [Outbound trigger webhook](/test/simulations/reference#outbound-trigger-webhook) for the body, headers, and retries.
+- The `outbound_simulation_started` event on a [webhook](/api-reference/webhooks). For a voice agent, Bluejay sends one event per run, and the [event payload](/api-reference/webhook/events-webhook) lists the numbers to call.
+
+<img className="block dark:hidden" src="/images/agent-phone-outbound.png" alt="The Connect Your Agent dialog for an Outbound Phone agent, with an Outbound Trigger Webhook URL entered and the Trigger Payload Template field below it" />
+<img className="hidden dark:block" src="/images/agent-phone-outbound-dark.png" alt="The Connect Your Agent dialog for an Outbound Phone agent, with an Outbound Trigger Webhook URL entered and the Trigger Payload Template field below it" />
+
+For an Outbound SMS agent, text from the number saved on the agent. Bluejay matches each message to its test by your agent's number and the Digital Human's number, so a text from another number is not part of the test.
+
+## Digital Human numbers
+
+Buy numbers in the [workspace](/administration/workspaces) where your Digital Humans live, because a number stays in the workspace you buy it in. Then add a number on each Digital Human's **Connection** tab. See [Connection](/test/simulations/digital-humans#connection).
+
+## Troubleshooting
+
+| What you see | What to do |
+|---|---|
+| The result shows <Code>SIP_DIAL_FAILED</Code> | The number is not valid. Check the agent's number. |
+| The result shows <Code>UNUSABLE_CALLER_ID</Code> | The caller ID is not verified. See [Error codes](/test/simulations/reference#error-codes). |
+| The result shows <Code>SIP_TRUNK_RECYCLED</Code> | A newer simulation reused the Digital Human's number while this test was running, so Bluejay stopped this test. Run it again when the other simulation ends. |
+| Tool calls or traces from your agent do not attach to the result | Bluejay sends the result ID in a SIP header, but the phone network usually drops custom SIP headers. Connect the agent over [SIP](/integrations/sip) or through your voice platform's integration page. |
+
+## Related
+
+- [SIP](/integrations/sip)
+- [Create a Simulation](/test/simulations/create)
+- [Digital Human Reference](/test/simulations/digital-humans)
+- [Uptime Monitoring](/monitor/uptime/overview)
+- [Agents API](/api-reference/endpoint/add-agent)

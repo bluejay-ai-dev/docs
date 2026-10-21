@@ -1,56 +1,65 @@
 ---
-title: 'List scenarios'
-description: 'List scenarios for your org; each item includes a typed React Flow definition (discriminated nodes and data).'
-openapi: 'GET /v1/scenario'
+title: "GET /v1/scenario"
+description: "List scenarios."
+sidebarTitle: "/\u200bv1/\u200bscenario"
+api: "GET https://api.getbluejay.ai/v1/scenario"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## List scenarios — GET /v1/scenario
+Returns `workflows` and `total_count`. The key `workflows` holds the scenarios. The name stays for backward compatibility. The agent filter applies only to agents in your organization.
 
-> **What this endpoint does:** Lists scenarios for the authenticated user's organization. Optional agent_id filters to scenarios linked to that agent (agent must be in your org). Each item includes a `definition` graph; node and `data` types are the same as in **GET**/**POST** `/v1/scenario` (see **components**).
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/scenario`
-**Auth:** `X-API-Key` header
+## Query parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "agent_id", "type": "integer or null", "required": false, "description": "If set, only workflows linked to this agent (agent must be in your org)."}]} />
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-scenarios and include any optional parameters (e.g., `agent_id`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Headers
 
-### Example
-**Simple GET:**
-```python
-import requests
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-def list_scenarios(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/scenario"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+## Response
+
+<FieldTable rows={[{"name": "workflows", "type": "object[]", "required": true, "description": "Workflows", "children": [{"name": "id", "type": "string", "required": true, "description": "Workflow ID"}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Owning organization ID (set by middleware on create)"}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "Linked agent ids when the workflow is agent-scoped"}, {"name": "name", "type": "string", "required": true, "description": "Name of the workflow"}, {"name": "description", "type": "string or null", "required": false, "description": "Description"}, {"name": "definition", "type": "object", "required": true, "description": "Stored React Flow graph (`start` / `single` / `options` nodes). Nodes and edges use top-level string `id` fields; edge `id` values are unique within the graph."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "Creation timestamp"}, {"name": "dh_sync_summary", "type": "object or null", "required": false, "description": "Present on PUT responses when the definition was updated. Keys: updated, created, marked_stale, skipped, errors."}, {"name": "warnings", "type": "string[]", "required": false, "description": "Non-blocking lint warnings emitted at save time (e.g. node text referencing an unknown ``{{trait_name}}``). Empty when the definition is clean or no agents are linked."}]}, {"name": "total_count", "type": "integer", "required": true, "description": "Number of workflows returned"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/scenario \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 401: Unauthorized; 422: Invalid query parameters; 500: Server error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "workflows": [
+    {
+      "id": "<string>",
+      "organization_id": "<string>",
+      "agent_ids": [],
+      "name": "<string>",
+      "description": "<string>",
+      "definition": {},
+      "created_at": "2026-01-01T00:00:00Z",
+      "dh_sync_summary": {},
+      "warnings": [
+        "<string>"
+      ]
+    }
+  ],
+  "total_count": 123
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-Returns `workflows` (the list of scenarios — the JSON key is `workflows` for backward compatibility) and `total_count`. Every element’s `definition.nodes` / `definition.edges` follow the discriminated schemas in the OpenAPI components (not a loose blob). The agent filter only applies when the agent belongs to your organization.
+{/* END GENERATED */}

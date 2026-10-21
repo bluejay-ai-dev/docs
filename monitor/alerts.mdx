@@ -1,0 +1,60 @@
+---
+title: "Alerts"
+sidebarTitle: "Alerts"
+description: "Get notified when your agent's quality drops in production."
+icon: bell
+---
+
+import AlertsShared from "/snippets/alerts-shared.mdx";
+
+Use an alert with a [metric](/monitor/metrics) to catch failures on your production conversations.
+
+To create alerts from code, use the [Alerts API](/api-reference/endpoint/create-alert).
+
+<img className="block dark:hidden" src="/images/alerts-list.png" alt="The Alerts list with one row for each alert, showing its status such as In Alert or Active, last triggered time, metric, condition, threshold interval, threshold events, and scope" />
+<img className="hidden dark:block" src="/images/alerts-list-dark.png" alt="The Alerts list with one row for each alert, showing its status such as In Alert or Active, last triggered time, metric, condition, threshold interval, threshold events, and scope" />
+
+<AlertsShared />
+
+## Create an alert
+
+<Steps>
+  <Step title="Open the dialog">
+    In the sidebar under **Observability**, open **Alerts** and click **Create Alert**.
+  </Step>
+  <Step title="Set the trigger and scope">
+    For a metric where one failure is too many, such as hallucination, set **for at least** to 1.
+
+    An alert watches only its own [workspace](/administration/workspaces), even when set to all agents, so create it in the workspace of the agents it should watch.
+  </Step>
+  <Step title="Choose who gets notified">
+    Send failures that need action now to PagerDuty or Better Stack, and quality drops to Slack or email. Only [connected channels](#connect-a-channel) can be turned on.
+
+    <img className="block dark:hidden" src="/images/integrations-slack-alarm-dialog.png" alt="Create Alert dialog with Name, Trigger, Scope, and Notify sections, Slack Notifications on, and a Slack preview with Send test notification" />
+    <img className="hidden dark:block" src="/images/integrations-slack-alarm-dialog-dark.png" alt="Create Alert dialog with Name, Trigger, Scope, and Notify sections, Slack Notifications on, and a Slack preview with Send test notification" />
+  </Step>
+</Steps>
+
+## How alerts evaluate
+
+An alert counts the production conversations that match its condition in the window. It enters alarm when at least N conversations match, where N is the **for at least** number, and recovers when the count drops below 80% of N (minimum 1).
+
+With a window such as the last 50 conversations, the alert does not fire until that many conversations exist.
+
+## Incidents
+
+PagerDuty and Better Stack receive incidents, and your escalation policy in that tool decides who gets the page.
+
+| Source | Opens an incident | Resolves the incident |
+|---|---|---|
+| Uptime monitor | When the monitor goes **Down** | When the monitor recovers |
+| Alert | When the alert triggers, in PagerDuty and Better Stack | When the alert recovers, in PagerDuty and Better Stack |
+
+## Related
+
+- [Alerts API](/api-reference/endpoint/create-alert)
+- [Alerts MCP tools](/mcp/monitoring-tools#monitor)
+- [Webhooks](/api-reference/webhooks)
+- [Uptime Monitoring](/monitor/uptime/overview)
+- [Issues](/monitor/issues)
+- [Dashboards](/monitor/dashboards)

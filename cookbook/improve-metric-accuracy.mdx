@@ -1,0 +1,45 @@
+---
+title: "Improve the Accuracy of a Metric"
+sidebarTitle: "Improve Metric Accuracy"
+description: "Make a custom metric agree with your verdicts."
+icon: bullseye
+---
+
+## Before you start
+
+- Create the metric as an LLM as a Judge metric with a Pass/Fail response type. See [Metrics](/test/metrics) and the [Prompting Guide](/test/metrics#prompting-guide).
+- Have at least 20 scored conversations (from simulated or production calls).
+
+## Steps
+
+<Steps>
+  <Step title="Create a lab">
+    Open **Metrics**, go to the **Lab** tab, and click **Create Lab**. See [Build a lab](/test/metrics#build-a-lab) for how to pick a good sample.
+
+    <img className="block dark:hidden" src="/images/metrics-lab-create-dialog.png" alt="The Create Lab dialog with the name, metrics, and conversations steps" />
+    <img className="hidden dark:block" src="/images/metrics-lab-create-dialog-dark.png" alt="The Create Lab dialog with the name, metrics, and conversations steps" />
+  </Step>
+  <Step title="Mark the correct answer for each conversation">
+    Set the **Human** verdict on each conversation to what the metric should have returned, and add your reasoning where the call is borderline. The alignment score then shows how often the metric agrees with you.
+  </Step>
+  <Step title="Find where the metric disagrees">
+    Read the rows where the **AI** verdict differs from the **Human** verdict, and compare the **AI reasoning** with yours. The difference usually points to a gap in the prompt, for example a metric that fails calls where the caller never asked for a human, when those calls should pass.
+  </Step>
+  <Step title="Create and test a new revision">
+    In the **Optimize** tab, click **Run** to score the conversations, then **Improve** to get a rewritten prompt. Click **Apply**, then **Run** again to save it as a new revision and score it. Repeat until the alignment stops improving.
+  </Step>
+  <Step title="Publish the best revision">
+    On the revision that agrees with you most, click **Publish**. This updates the custom metric itself, so every simulation and production evaluation uses the new prompt from then on.
+  </Step>
+</Steps>
+
+## Check the result
+
+If the alignment stays low after several revisions, the sample may be too small or one-sided: add conversations that cover the cases the metric gets wrong, label them, and run again. See [Metrics Lab](/test/metrics#metrics-lab).
+
+## Related
+
+- [Metrics Lab](/test/metrics#metrics-lab)
+- [Metrics](/test/metrics)
+- [Custom Metrics Prompting Guide](/test/metrics#prompting-guide)
+- [Find Which Check a Regression Broke](/cookbook/find-regression-step)

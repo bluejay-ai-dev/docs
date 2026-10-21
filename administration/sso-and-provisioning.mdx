@@ -1,12 +1,13 @@
 ---
 title: 'SSO and User Provisioning'
-description: 'Sign in with your identity provider over SAML, and let it add and remove your team automatically over SCIM'
+description: 'Sign in with SSO and sync your team with SCIM'
 icon: shield-check
 ---
 
-Enterprise organizations can sign in to Bluejay through their identity provider (IdP) with SAML single sign-on, and let that IdP add and remove people automatically with SCIM 2.0. Okta, Microsoft Entra ID, OneLogin, and any other SAML 2.0 and SCIM 2.0 provider work.
+SSO and SCIM are available to enterprise organizations, and an organization admin sets them up under **Settings → Security → Organization**. They work with Okta, Microsoft Entra ID, OneLogin, and any other SAML 2.0 and SCIM 2.0 identity provider (IdP).
 
-An organization admin sets up both under **Settings → Security → Organization**.
+<img className="block dark:hidden" src="/images/security-organization.png" alt="The Organization tab of the Security settings, with SSO turned on and the SCIM section below it" />
+<img className="hidden dark:block" src="/images/security-organization-dark.png" alt="The Organization tab of the Security settings, with SSO turned on and the SCIM section below it" />
 
 ## Single sign-on (SAML)
 
@@ -25,18 +26,21 @@ An organization admin sets up both under **Settings → Security → Organizatio
     Assign the app to everyone who should have Bluejay access.
   </Step>
   <Step title="Turn on SSO in Bluejay">
-    In **Settings → Security → Organization → Single Sign-On**, paste your IdP's metadata URL (or the metadata XML) and the email domains that should use SSO, then save.
+    In **Settings → Security → Organization → Single Sign-On (SSO)**, paste your IdP's metadata URL (or the metadata XML) and the email domains that should use SSO.
+
+    <img className="block dark:hidden" src="/images/sso-settings.png" alt="The Single Sign-On (SSO) settings with the toggle on, a SAML metadata URL, and example.com as the email domain" />
+    <img className="hidden dark:block" src="/images/sso-settings-dark.png" alt="The Single Sign-On (SSO) settings with the toggle on, a SAML metadata URL, and example.com as the email domain" />
   </Step>
   <Step title="Sign in">
-    Your team opens [app.getbluejay.ai](https://app.getbluejay.ai), clicks **Continue with SSO**, and enters their work email. Bluejay sends them to your IdP and back. Clicking the Bluejay tile in your IdP's dashboard works too.
+    Your team clicks **Continue with SSO** on [app.getbluejay.ai](https://app.getbluejay.ai) and enters their work email, or opens the Bluejay tile in your IdP.
   </Step>
 </Steps>
 
 <Note>
-Once SSO is on, everyone with an email on those domains signs in through your IdP.
+Once SSO is on, signing up with a password on those domains sends people to your IdP instead. Password and Google accounts that already exist keep working until you remove them.
 </Note>
 
-SSO signs people in; it does not decide who belongs to your organization. A person needs to be a member already, or have a pending invite, before their first SSO sign-in. Invite people from the **Team** page, or let your IdP do it with SCIM below.
+SSO signs people in; it does not decide who belongs to your organization. Before someone's first SSO sign-in, make sure they are already a member or have a pending invite. Invite people from the **Team** page, or let your IdP do it with SCIM below.
 
 A person's first SSO sign-in creates a new Bluejay account for them in your organization. If they also had a password or Google account, remove the old one from the **Team** page once SSO works for them.
 
@@ -44,11 +48,14 @@ A person's first SSO sign-in creates a new Bluejay account for them in your orga
 
 With SCIM, assigning someone to the Bluejay app in your IdP gives them access, and removing them takes it away. Nobody has to invite or remove people by hand.
 
-SSO must be turned on first.
+Turn on SSO first.
 
 <Steps>
   <Step title="Generate a token in Bluejay">
     In **Settings → Security → Organization → User provisioning (SCIM)**, click **Generate token**. Copy the base URL and the token. The token is shown once.
+
+    <img className="block dark:hidden" src="/images/scim-token.png" alt="The User provisioning (SCIM) settings showing the SCIM base URL and a Generate token button before any token exists" />
+    <img className="hidden dark:block" src="/images/scim-token-dark.png" alt="The User provisioning (SCIM) settings showing the SCIM base URL and a Generate token button before any token exists" />
 
     | Setting | Value |
     |---------|-------|
@@ -62,7 +69,7 @@ SSO must be turned on first.
     Turn on **Create users**, **Update user attributes**, and **Deactivate users**.
   </Step>
   <Step title="Assign people">
-    Assign people, or groups of people, to the Bluejay app. Each one is provisioned.
+    Assign people, or groups of people, to the Bluejay app.
   </Step>
 </Steps>
 
@@ -80,7 +87,7 @@ SSO must be turned on first.
 - Everyone provisioned joins as a **Member**. Change roles on the **Team** page.
 - Only emails on your organization's SSO domains can be provisioned.
 - Groups are not synced as Bluejay roles or workspaces. Assigning a group to the app provisions each person in it.
-- Clicking **Generate token** again replaces the token; the old one stops working right away, so update your IdP. **Revoke** stops syncing; people who already have access keep it.
+- **Regenerate token** replaces the token. The old one stops working right away, so update your IdP. **Revoke** stops syncing, and people who already have access keep it.
 
 ### Supported endpoints
 

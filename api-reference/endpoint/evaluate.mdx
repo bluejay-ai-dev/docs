@@ -1,136 +1,126 @@
 ---
-title: 'Evaluate'
-description: "Submit a call or chat for evaluation. Returns an eval ID that can be used to track evaluation status."
-openapi: 'POST /v1/evaluate'
+title: "POST /v1/evaluate"
+description: "Score a production conversation."
+sidebarTitle: "/\u200bv1/\u200bevaluate"
+api: "POST https://api.getbluejay.ai/v1/evaluate"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Evaluate — POST /v1/evaluate
+Sends one production conversation for evaluation. Identify the agent with `agent_id` or `external_agent_id`. `POST /v1/evaluate-call` is the same endpoint.
 
-> **What this endpoint does:** Submit a call or chat for evaluation. Returns an eval ID that can be used to track evaluation status.
+- Key-value pairs in `metadata` are available as [dynamic variables](/test/metrics#prompting-guide) in custom metrics.
+- If you omit `version`, Bluejay uses the version with the `production` label. An unknown `version` uses the production version and returns a `warning`.
+- An unknown `label` is created and attached to the production version. With `external_agent_id`, `label` defaults to `production`.
+- If the agent has no production version, the request succeeds and `warning` says so.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/evaluate`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+Rate limit: 100 requests per minute for each organization, or 500 for enterprise accounts.
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Request Body
-```json
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "body", "type": "object", "required": true, "children": [{"name": "agent_id", "type": "string", "required": true, "description": "ID of the agent associated with the call"}, {"name": "recording_url", "type": "string (uri) or null", "required": false, "description": "URL to the recording file (supported formats: .mp3, .mp4, .wav, .m4a)"}, {"name": "recording_base64", "type": "string or null", "required": false, "description": "Base64 encoded recording file in data URL format (supported formats: .mp3, .mp4, .wav, .m4a)"}, {"name": "start_time_utc", "type": "string (date-time)", "required": true, "description": "When the call started, in UTC ([python] log: datetime.now(timezone.utc) at call start)"}, {"name": "participants", "type": "object[]", "required": true, "description": "List of call participants", "children": [{"name": "role", "type": "string", "required": false, "description": "Role of a participant in a call or simulated conversation.", "default": "AGENT", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "name", "type": "string or null", "required": false, "description": ""}, {"name": "spoke_first", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "phone_number", "type": "string or null", "required": false, "description": ""}]}, {"name": "call_direction", "type": "string or null", "required": false, "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)", "default": "INBOUND", "values": ["INBOUND", "OUTBOUND"]}, {"name": "interface", "type": "string or null", "required": false, "description": "Interface used for the call", "default": "PHONE", "values": ["PHONE", "WEB"]}, {"name": "transcript_url", "type": "string (uri) or null", "required": false, "description": "URL to the transcript file (supported formats: .json)"}, {"name": "transcript", "type": "object[] or null", "required": false, "description": "Transcript of the call in text format", "children": [{"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the utterance in milliseconds"}, {"name": "end_offset_ms", "type": "integer", "required": true, "description": "End offset of the utterance in milliseconds"}, {"name": "speaker", "type": "string", "required": true, "description": "Identifier for the speaker (e.g., 'AGENT', 'USER')", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "utterance", "type": "string", "required": true, "description": "Transcribed text of the utterance"}, {"name": "filler_utterance", "type": "boolean or null", "required": false, "description": "Whether the utterance is a filler utterance"}]}, {"name": "tool_calls", "type": "object[] or null", "required": false, "description": "List of tool calls made during the call", "children": [{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "parameters", "type": "object or null", "required": false, "description": ""}, {"name": "output", "type": "any or null", "required": false, "description": ""}]}, {"name": "events", "type": "object[] or null", "required": false, "description": "List of events that occurred during the call", "children": [{"name": "title", "type": "string", "required": true, "description": "Title of the event"}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the event in milliseconds"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the event"}, {"name": "end_offset_ms", "type": "integer or null", "required": false, "description": "End offset of the event in milliseconds"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the event"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the event"}]}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the call"}, {"name": "trace_id", "type": "string or null", "required": false, "description": "Trace ID of the call"}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": "When this request was created (defaults to now in UTC)"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the evaluation"}, {"name": "webhook_tag", "type": "string or null", "required": false, "description": "Tag of the webhook to send the evaluation to"}, {"name": "custom_metrics", "type": "array of string (uuid) or null", "required": false, "description": "List of additional custom metrics to be used in the call"}, {"name": "custom_metric_tags", "type": "string[] or null", "required": false, "description": "Specify one or more tags to include all custom metrics associated with those tags. This allows you to run groups of related custom metrics without listing each individually."}, {"name": "label", "type": "string or null", "required": false, "description": "Label of the agent to use for the evaluation (determines which prompt and knowledge base to use and defaults to the `production` label if not provided). An unknown label is created and attached to the production version."}, {"name": "version", "type": "integer or null", "required": false, "description": "Agent version number the call ran against. When omitted, uses the version that currently has the production label. When set and the version exists, it wins over the label's pointer for the call's agent_version_id. An unknown version falls back to production (with a warning) instead of 404."}, {"name": "enable_phrase_latencies", "type": "boolean or null", "required": false, "description": "Deprecated; ignored."}, {"name": "conversation_ended_by", "type": "string or null", "required": false, "description": "Which participant role ended the conversation: 'USER' or 'AGENT'", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "multichannel", "type": "boolean or null", "required": false, "description": "Whether the participants of the call are on different audio channels", "default": false}, {"name": "external_agent_id", "type": "string", "required": true, "description": "The external ID of your agent to associate with the call"}, {"name": "recording_url", "type": "string (uri) or null", "required": false, "description": "URL to the recording file (supported formats: .mp3, .mp4, .wav, .m4a)"}, {"name": "recording_base64", "type": "string or null", "required": false, "description": "Base64 encoded recording file in data URL format (supported formats: .mp3, .mp4, .wav, .m4a)"}, {"name": "start_time_utc", "type": "string (date-time)", "required": true, "description": "When the call started, in UTC ([python] log: datetime.now(timezone.utc) at call start)"}, {"name": "participants", "type": "object[]", "required": true, "description": "List of call participants", "children": [{"name": "role", "type": "string", "required": false, "description": "Role of a participant in a call or simulated conversation.", "default": "AGENT", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "name", "type": "string or null", "required": false, "description": ""}, {"name": "spoke_first", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "phone_number", "type": "string or null", "required": false, "description": ""}]}, {"name": "call_direction", "type": "string or null", "required": false, "description": "Direction of the call from the Agent's perspective (INBOUND or OUTBOUND)", "default": "INBOUND", "values": ["INBOUND", "OUTBOUND"]}, {"name": "interface", "type": "string or null", "required": false, "description": "Interface used for the call", "default": "PHONE", "values": ["PHONE", "WEB"]}, {"name": "transcript_url", "type": "string (uri) or null", "required": false, "description": "URL to the transcript file (supported formats: .json)"}, {"name": "transcript", "type": "object[] or null", "required": false, "description": "Transcript of the call in text format", "children": [{"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the utterance in milliseconds"}, {"name": "end_offset_ms", "type": "integer", "required": true, "description": "End offset of the utterance in milliseconds"}, {"name": "speaker", "type": "string", "required": true, "description": "Identifier for the speaker (e.g., 'AGENT', 'USER')", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "utterance", "type": "string", "required": true, "description": "Transcribed text of the utterance"}, {"name": "filler_utterance", "type": "boolean or null", "required": false, "description": "Whether the utterance is a filler utterance"}]}, {"name": "tool_calls", "type": "object[] or null", "required": false, "description": "List of tool calls made during the call", "children": [{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "parameters", "type": "object or null", "required": false, "description": ""}, {"name": "output", "type": "any or null", "required": false, "description": ""}]}, {"name": "events", "type": "object[] or null", "required": false, "description": "List of events that occurred during the call", "children": [{"name": "title", "type": "string", "required": true, "description": "Title of the event"}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the event in milliseconds"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the event"}, {"name": "end_offset_ms", "type": "integer or null", "required": false, "description": "End offset of the event in milliseconds"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the event"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the event"}]}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the call"}, {"name": "trace_id", "type": "string or null", "required": false, "description": "Trace ID of the call"}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": "When this request was created (defaults to now in UTC)"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the evaluation"}, {"name": "webhook_tag", "type": "string or null", "required": false, "description": "Tag of the webhook to send the evaluation to"}, {"name": "custom_metrics", "type": "array of string (uuid) or null", "required": false, "description": "List of additional custom metrics to be used in the call"}, {"name": "custom_metric_tags", "type": "string[] or null", "required": false, "description": "Specify one or more tags to include all custom metrics associated with those tags. This allows you to run groups of related custom metrics without listing each individually."}, {"name": "label", "type": "string or null", "required": false, "description": "Label of the agent to use for the evaluation (determines which prompt and knowledge base to use). An unknown label is created and attached to the production version.", "default": "production"}, {"name": "version", "type": "integer or null", "required": false, "description": "Agent version number the call ran against. When omitted, uses the version that currently has the production label. When set and the version exists, it wins over the label's pointer for the call's agent_version_id. An unknown version falls back to production (with a warning) instead of 404."}, {"name": "enable_phrase_latencies", "type": "boolean or null", "required": false, "description": "Deprecated; ignored."}, {"name": "conversation_ended_by", "type": "string or null", "required": false, "description": "Which participant role ended the conversation: 'USER' or 'AGENT'", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "multichannel", "type": "boolean or null", "required": false, "description": "Whether the participants of the call are on different audio channels", "default": false}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string", "required": true, "description": ""}, {"name": "call_id", "type": "string or null", "required": false, "description": ""}, {"name": "message", "type": "string", "required": true, "description": ""}, {"name": "warning", "type": "string or null", "required": false, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/evaluate \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": "<string>",
+    "recording_url": "https://example.com",
+    "recording_base64": "<string>",
+    "start_time_utc": "2026-01-01T00:00:00Z",
+    "participants": [
+      {
+        "role": "AGENT",
+        "name": "<string>",
+        "spoke_first": false,
+        "phone_number": "<string>"
+      }
+    ],
+    "call_direction": "INBOUND",
+    "interface": "PHONE",
+    "transcript_url": "https://example.com",
+    "transcript": [
+      {
+        "start_offset_ms": 123,
+        "end_offset_ms": 123,
+        "speaker": "AGENT",
+        "utterance": "<string>",
+        "filler_utterance": true
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "<string>",
+        "start_offset_ms": 123,
+        "description": "<string>",
+        "parameters": {},
+        "output": null
+      }
+    ],
+    "events": [
+      {
+        "title": "<string>",
+        "start_offset_ms": 123,
+        "description": "<string>",
+        "end_offset_ms": 123,
+        "tags": [
+          "<string>"
+        ],
+        "metadata": {}
+      }
+    ],
+    "tags": [
+      "<string>"
+    ],
+    "trace_id": "<string>",
+    "created_at": "2026-01-01T00:00:00Z",
+    "metadata": {},
+    "webhook_tag": "<string>",
+    "custom_metrics": [
+      "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+    ],
+    "custom_metric_tags": [
+      "<string>"
+    ],
+    "label": "<string>",
+    "version": 123,
+    "enable_phrase_latencies": true,
+    "conversation_ended_by": "AGENT",
+    "multichannel": false
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "agent_id": "string",
-  "recording_url": "string",
-  "recording_base64": "string",
-  "start_time_utc": "2024-01-01T00:00:00Z",
-  "participants": [
-    {
-      "role": "AGENT",
-      "spoke_first": true,
-      "name": "string",
-      "phone_number": "string"
-    }
-  ],
-  "call_direction": "INBOUND",
-  "interface": "PHONE",
-  "transcript_url": "string",
-  "transcript": [
-    {
-      "start_offset_ms": 123,
-      "end_offset_ms": 123,
-      "speaker": "AGENT",
-      "utterance": "string",
-      "filler_utterance": true
-    }
-  ],
-  "tool_calls": [
-    {
-      "name": "example_name",
-      "start_offset_ms": 123,
-      "description": "string",
-      "parameters": {
-        "key": "value"
-      }
-    }
-  ],
-  "events": [
-    {
-      "title": "string",
-      "start_offset_ms": 123,
-      "description": "string",
-      "end_offset_ms": 123,
-      "tags": [
-        "string"
-      ],
-      "metadata": {
-        "key": "value"
-      }
-    }
-  ],
-  "tags": [
-    "string"
-  ],
-  "trace_id": "string",
-  "created_at": "string",
-  "metadata": {
-    "key": "value"
-  },
-  "webhook_tag": "string",
-  "custom_metrics": [
-    "string"
-  ],
-  "custom_metric_tags": [
-    "string"
-  ],
-  "label": "string",
-  "version": 1,
-  "enable_phrase_latencies": true,
-  "conversation_ended_by": "AGENT",
-  "multichannel": true
+  "status": "<string>",
+  "call_id": "<string>",
+  "message": "<string>",
+  "warning": "<string>"
 }
 ```
 
-### Example
-**POST with body:**
-```python
-import requests
-
-def evaluate(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/evaluate"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-<Tip>
-  Any key-value pairs passed in the `metadata` field can be referenced as [dynamic variables](/key-concepts/custom-metrics/dynamic-variables) in the custom metrics that run on this call.
-</Tip>
-
-<Note>
-  **Same as before:** `POST /v1/evaluate` and `POST /v1/evaluate-call`.
-
-  **New:** optional integer `version`. `label` still works. If you omit `version`, we use the version that currently has the `production` label. An unknown version uses the production version and returns a `warning`. An unknown label is created and attached to the production version. When both are sent, `version` is the one stored on the call if it exists; otherwise production is used. Omit `label` on the `agent_id` path to leave it unset. The `external_agent_id` path defaults `label` to `production`. If the agent has no production version either, the request still succeeds, `agent_version_id` can stay unset, and `warning` says so.
-</Note>
-
+{/* END GENERATED */}

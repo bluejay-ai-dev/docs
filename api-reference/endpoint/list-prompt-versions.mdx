@@ -1,62 +1,68 @@
 ---
-title: 'List Agent Versions'
-description: "List agent versions with optional filters (label, version)."
-openapi: 'GET /v1/agents/{agent_id}/versions'
+title: "GET /v1/agents/{agent_id}/versions"
+description: "List the versions of an agent."
+sidebarTitle: "/\u200bv1/\u200bagents/\u200b{agent_id}/\u200bversions"
+api: "GET https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## List Agent Versions — GET /v1/agents/{agent_id}/versions
+Returns the agent versions of an agent. Filter with `label` or `version`.
 
-> **What this endpoint does:** list agent versions with optional filters (label, version).
+`GET /v1/agents/{agent_id}/prompts/versions` is the deprecated path of this endpoint.
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/agents/{agent_id}/versions`
-**Auth:** `X-API-Key` header
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| agent_id | integer |  |
-| X-API-Key | string | API key required to authenticate requests. |
+## Path parameters
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/list-prompt-versions and include any optional parameters (e.g., `label`, `version`, `limit`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Query parameters
 
-def list_prompt_versions(agent_id: int, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+<FieldTable rows={[{"name": "label", "type": "string or null", "required": false, "description": ""}, {"name": "version", "type": "integer or null", "required": false, "description": ""}, {"name": "limit", "type": "integer", "required": false, "description": "", "default": 50}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "the id of the prompt"}, {"name": "prompt_text", "type": "string", "required": true, "description": "the prompt content"}, {"name": "commit_message", "type": "string or null", "required": false, "description": ""}, {"name": "labels", "type": "string[] or null", "required": false, "description": "labels associated with the prompt"}, {"name": "metadata", "type": "object or null", "required": false, "description": "arbitrary JSON metadata"}, {"name": "version", "type": "integer", "required": true, "description": "the version number of the prompt"}, {"name": "agent_id", "type": "integer", "required": true, "description": "id of the agent that owns this prompt"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+[
+  {
+    "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "prompt_text": "<string>",
+    "commit_message": "<string>",
+    "labels": [
+      "<string>"
+    ],
+    "metadata": {},
+    "version": 123,
+    "agent_id": 123
+  }
+]
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-<Note>
-  **New:** `GET /v1/agents/{agent_id}/versions`
-
-  **Deprecated:** `GET /v1/agents/{agent_id}/prompts/versions`. Old path, still works.
-</Note>
-
-Lists agent versions with optional filters (label, version).
+{/* END GENERATED */}

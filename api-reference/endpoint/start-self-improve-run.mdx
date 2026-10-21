@@ -1,0 +1,69 @@
+---
+title: "POST /v1/self-improve/runs"
+description: "Start a Self-Improve run."
+sidebarTitle: "/\u200bv1/\u200bself-improve/\u200bruns"
+api: "POST https://api.getbluejay.ai/v1/self-improve/runs"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Starts a loop that changes the agent prompt, pushes it to the provider, and runs the simulation to score it. At the end, Bluejay saves the best prompt as one new `latest` version. The previous version stays. The `production` label does not move.
+
+## Confirm the run
+
+1. Send the request without `confirmed`. The response has `needs_confirmation: true` and a `preview` text. Nothing runs.
+2. Send the same request with `confirmed: true`. The response has `run_id`.
+
+## Limits
+
+- The agent must be a Vapi, ElevenLabs, or Retell agent with a provider ID. Other agents return 400.
+- `max_iterations` is 5 by default and 20 at most.
+- `metric_count` is 5 by default and 20 at most.
+- One agent can have one active run. A second run returns 409.
+
+Rate limit: 30 requests per minute.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "VAPI, ElevenLabs, Retell, or Google CES agent to self-improve in place (prompt iterated; one new 'latest' version written at the end)."}, {"name": "simulation_id", "type": "integer", "required": true, "description": "Simulation (digital humans + metrics) to run each round against the agent."}, {"name": "target_pass_rate", "type": "number", "required": false, "description": "", "default": 0.9}, {"name": "max_iterations", "type": "integer", "required": false, "description": "", "default": 5}, {"name": "min_improvement", "type": "number", "required": false, "description": "Minimum pass-rate gain to keep an iteration; non-negative so worse prompts are never kept.", "default": 0.02}, {"name": "metric_count", "type": "integer", "required": false, "description": "", "default": 5}, {"name": "success_metric_ids", "type": "string[] or null", "required": false, "description": "Reuse these metrics instead of generating new ones."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "", "default": false}]} />
+
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/self-improve/runs \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "simulation_id": 123,
+    "target_pass_rate": 0.9,
+    "max_iterations": 5,
+    "min_improvement": 0.02,
+    "metric_count": 5,
+    "success_metric_ids": [
+      "<string>"
+    ],
+    "confirmed": false
+  }'
+```
+
+{/* END GENERATED */}

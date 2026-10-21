@@ -1,0 +1,50 @@
+---
+title: "Pipecat Simulations"
+description: "Test your Pipecat Cloud agent."
+icon: "/logo/pipecat.svg"
+sidebarTitle: "Pipecat"
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Connect an agent you deployed to Pipecat Cloud, then run simulated calls on it without a phone number.
+
+<img className="block dark:hidden" src="/images/connect-pipecat.png" alt="The Pipecat connection fields with a saved Pipecat API key and a Pipecat agent name" />
+<img className="hidden dark:block" src="/images/connect-pipecat-dark.png" alt="The Pipecat connection fields with a saved Pipecat API key and a Pipecat agent name" />
+
+## Connect
+
+<Steps>
+<Step title="Deploy the agent">
+Deploy your agent to Pipecat Cloud with the [Pipecat quickstart](https://docs.pipecat.ai/getting-started/quickstart). Note the agent name in `pcc-deploy.toml`.
+</Step>
+<Step title="Add a public API key">
+In the Pipecat dashboard, open **API Keys** and create a key on the **Public** tab. In Bluejay, open **Settings → Integrations** and choose the **Pipecat** tab. Paste the key there. A private key does not work: Bluejay needs a key that starts with `pk_`.
+</Step>
+<Step title="Create the agent">
+Create an Inbound Voice agent with the **Pipecat** connection type, and enter the agent name as **Pipecat Agent Name**. The **Pipecat** connection supports inbound agents only.
+</Step>
+</Steps>
+
+## Fields
+
+For each simulated call, Bluejay starts a session for your agent in a Daily room and joins the room as a Digital Human. After you create the agent, you can set two more fields in its **Connection Settings**:
+
+- **Pipecat Agent Configuration**: JSON that Bluejay sends to your agent as `body` on start.
+- **Pipecat Room Properties**: JSON that Bluejay merges into the Daily room properties.
+
+To report tool calls from a simulation, have your bot read its result ID from `args.body`. Bluejay adds the simulation IDs (`X-Simulation-Result-Id` and the other `X-` keys) to the `body` it sends on start. Then send the tool calls to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| **No Connection** with <Code>PIPECAT_CONNECTION_FAILED</Code> | The Pipecat session stopped before audio started. Make sure the saved key starts with `pk_`. |
+| Run fails at start | Save a Pipecat key, and set **Pipecat Agent Name** on the agent. |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [Agents](/test/simulations/create#connect-your-agent)
+- [Simulation](/test/simulations/create)

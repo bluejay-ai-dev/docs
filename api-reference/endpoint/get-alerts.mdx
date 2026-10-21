@@ -1,5 +1,85 @@
 ---
-title: 'List Alerts'
-description: 'List all alerts for your organization, optionally filtered by source scope (observability or simulation).'
-openapi: 'GET /v1/alerts'
+title: "GET /v1/alerts"
+description: "List alerts."
+sidebarTitle: "/\u200bv1/\u200balerts"
+api: "GET https://api.getbluejay.ai/v1/alerts"
+playground: "none"
 ---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Returns the alerts in your organization. Filter with `source_scope`.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Query parameters
+
+<FieldTable rows={[{"name": "source_scope", "type": "string or null", "required": false, "description": "Filter alerts by source scope", "values": ["all", "observability", "simulation"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Unique identifier for the alert"}, {"name": "name", "type": "string", "required": true, "description": "Name of the alert"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the alert"}, {"name": "is_enabled", "type": "boolean", "required": true, "description": "Whether the alert is enabled"}, {"name": "organization_id", "type": "string", "required": true, "description": "Organization ID"}, {"name": "entity_type", "type": "string", "required": true, "description": "Type of entity being monitored", "values": ["standard_metric", "custom_goal", "custom_metric", "metadata_field", "system_failure"]}, {"name": "entity_field", "type": "string", "required": true, "description": "The specific field/metric being monitored"}, {"name": "operator", "type": "string", "required": true, "description": "Comparison operator", "values": ["equals", "not_equals", "greater_than", "less_than", "greater_than_or_equal", "less_than_or_equal", "contains", "not_contains"]}, {"name": "comparison_value", "type": "string", "required": true, "description": "Value to compare against"}, {"name": "notification_channels", "type": "any[]", "required": true, "description": "Notification channels configuration"}, {"name": "last_triggered_at", "type": "string (date-time) or null", "required": false, "description": "When the alert was last triggered"}, {"name": "trigger_count", "type": "integer", "required": true, "description": "Number of times triggered"}, {"name": "created_by", "type": "string or null", "required": false, "description": "User who created the alert"}, {"name": "applies_to_all_agents", "type": "boolean", "required": true, "description": "Whether the alert applies to all agents"}, {"name": "agents", "type": "integer[] or null", "required": false, "description": "Associated agent IDs"}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "Optional experiments.id (simulation) this alert is scoped to"}, {"name": "evaluation_scope", "type": "string or null", "required": false, "description": "How this alert is evaluated. Only 'per_simulation_run' is supported."}, {"name": "aggregation", "type": "string or null", "required": false, "description": "Aggregation mode used to compute the per-run metric value from test results within the run."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the alert was created"}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "When the alert was last updated"}, {"name": "updated_by", "type": "string or null", "required": false, "description": "User who last updated the alert"}, {"name": "threshold_time_interval", "type": "integer or null", "required": true, "description": "For observability source_scope: time window in seconds. For simulation source_scope: K = number of recent completed runs."}, {"name": "min_events", "type": "integer or null", "required": true, "description": "The minimum number of events for the alert. NULL for simulation alerts."}, {"name": "min_events_type", "type": "string", "required": false, "description": "Whether min_events is an absolute count or a percentage", "default": "events"}, {"name": "in_alert", "type": "boolean", "required": true, "description": "Whether the alert is in alert"}, {"name": "source_scope", "type": "string", "required": false, "description": "Which data source fires this alert: 'all', 'observability', or 'simulation'", "default": "all"}, {"name": "simulation_name", "type": "string or null", "required": false, "description": "Name of the simulation (experiment) this alert is scoped to, if any"}, {"name": "sample_size", "type": "integer or null", "required": false, "description": "Most recent N conversations the alert is evaluated over; NULL = time window"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/alerts \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+[
+  {
+    "id": "<string>",
+    "name": "<string>",
+    "description": "<string>",
+    "is_enabled": true,
+    "organization_id": "<string>",
+    "entity_type": "standard_metric",
+    "entity_field": "<string>",
+    "operator": "equals",
+    "comparison_value": "<string>",
+    "notification_channels": [
+      null
+    ],
+    "last_triggered_at": "2026-01-01T00:00:00Z",
+    "trigger_count": 123,
+    "created_by": "<string>",
+    "applies_to_all_agents": true,
+    "agents": [
+      123
+    ],
+    "simulation_id": 123,
+    "evaluation_scope": "<string>",
+    "aggregation": "<string>",
+    "created_at": "2026-01-01T00:00:00Z",
+    "updated_at": "2026-01-01T00:00:00Z",
+    "updated_by": "<string>",
+    "threshold_time_interval": 123,
+    "min_events": 123,
+    "min_events_type": "events",
+    "in_alert": true,
+    "source_scope": "all",
+    "simulation_name": "<string>",
+    "sample_size": 123
+  }
+]
+```
+
+{/* END GENERATED */}

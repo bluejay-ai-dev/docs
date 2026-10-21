@@ -1,0 +1,144 @@
+---
+title: "POST /v1/widgets"
+description: "Create a widget."
+sidebarTitle: "/\u200bv1/\u200bwidgets"
+api: "POST https://api.getbluejay.ai/v1/widgets"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Creates a widget on a dashboard.
+
+- `metrics` is required unless `chart_type` is `table`.
+- `simulation_ids` must not be empty when `group_by` is `simulation`.
+- `color_overrides` maps a label to a `#rrggbb` color. Labels match without case.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "chart_type", "type": "string", "required": true, "description": "", "values": ["line", "bar", "pie", "table", "kpi", "pivot_table", "histogram"]}, {"name": "chart_mode", "type": "string or null", "required": false, "description": "", "values": ["time_series", "categorical"]}, {"name": "data_type", "type": "string", "required": false, "description": "", "default": "observability", "values": ["observability", "simulation"]}, {"name": "bar_mode", "type": "string or null", "required": false, "description": "", "values": ["stacked", "side_by_side"]}, {"name": "aggregation", "type": "string[]", "required": false, "description": "", "values": ["count", "average", "sum", "percent_of_total", "p50", "p90", "p95", "p99", "percentiles", "breakdown", "distribution"]}, {"name": "time_bucket", "type": "string or null", "required": false, "description": "", "values": ["hour", "day", "week", "month"]}, {"name": "group_by", "type": "string or null", "required": false, "description": ""}, {"name": "simulation_ids", "type": "integer[]", "required": false, "description": "Required (non-empty) when group_by='simulation'"}, {"name": "show_indeterminate", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "filters", "type": "any[] or null", "required": false, "description": ""}, {"name": "column_visibility", "type": "object or null", "required": false, "description": "", "children": [{"name": "{key}", "type": "boolean", "required": false, "description": "Any key.", "children": []}]}, {"name": "color_overrides", "type": "object or null", "required": false, "description": "Per-series/per-slice colours as {\"<label the chart draws>\": \"#rrggbb\"}. Labels are matched case-insensitively; omitted labels keep the default palette.", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "center_label", "type": "object or null", "required": false, "description": "Chart options: the pie donut hole, a benchmark line on numeric line and bar charts and histograms, a unit, and the KPI previous-period change", "children": [{"name": "slice", "type": "string or null", "required": false, "description": "Slice whose share fills the hole. Omit for the largest slice."}, {"name": "clamp_pct", "type": "number or null", "required": false, "description": "Collapses the rounding edges: 1 turns 99.6% into '>99%' and 0.4% into '<1%'. An exact 0 or 100 is left alone."}, {"name": "label", "type": "string or null", "required": false, "description": "Caption under the percentage"}, {"name": "benchmark", "type": "number or null", "required": false, "description": "Numeric line and bar charts and histograms: draws a dashed reference line at this value, e.g. a target score. 0 or more, since chart axes start at 0."}, {"name": "compare_previous", "type": "boolean or null", "required": false, "description": "KPI only: false hides the change against the previous period. Omit to show it."}, {"name": "unit", "type": "string or null", "required": false, "description": "Shown after values, e.g. \"pts\". Ignored for metrics with their own unit (latency, duration, %)."}]}, {"name": "show_legend", "type": "boolean", "required": false, "description": "Draw the colour key under the chart (pie, bar and line)", "default": true}, {"name": "metrics", "type": "object[]", "required": false, "description": "Metrics to plot; required unless chart_type='table'", "children": [{"name": "metric", "type": "string", "required": true, "description": "Metric key, e.g. 'call_count', 'latency', 'custom_metric', 'goal', 'tool_call', 'trace_attribute'"}, {"name": "custom_metric_id", "type": "string or null", "required": false, "description": "Required when metric='custom_metric': id from the custom metrics API"}, {"name": "goal", "type": "string or null", "required": false, "description": "Goal text when metric='goal'"}, {"name": "tool_call_id", "type": "string or null", "required": false, "description": "Required when metric='tool_call'"}, {"name": "metadata_path", "type": "string or null", "required": false, "description": "Trace attribute path when metric='trace_attribute'"}, {"name": "threshold_operator", "type": "string or null", "required": false, "description": "With threshold_value: graph the share of conversations meeting the condition instead of the metric's own value", "values": ["lt", "lte", "gt", "gte"]}, {"name": "threshold_value", "type": "number or null", "required": false, "description": "Compared against the metric's per-conversation value; set together with threshold_operator"}, {"name": "metadata_type", "type": "string or null", "required": false, "description": "Trace attribute value type when metric='trace_attribute'"}]}, {"name": "dashboard_id", "type": "string", "required": true, "description": "Dashboard the widget belongs to; a widget lives on exactly one dashboard"}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": ""}, {"name": "organization_id", "type": "string or null", "required": false, "description": ""}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string or null", "required": false, "description": ""}, {"name": "chart_type", "type": "string", "required": true, "description": ""}, {"name": "chart_mode", "type": "string or null", "required": false, "description": ""}, {"name": "data_type", "type": "string", "required": true, "description": ""}, {"name": "applies_to_all_agents", "type": "boolean", "required": false, "description": "", "default": true}, {"name": "bar_mode", "type": "string or null", "required": false, "description": ""}, {"name": "aggregation", "type": "string[] or null", "required": false, "description": ""}, {"name": "time_bucket", "type": "string or null", "required": false, "description": ""}, {"name": "group_by", "type": "string or null", "required": false, "description": ""}, {"name": "simulation_ids", "type": "integer[] or null", "required": false, "description": ""}, {"name": "show_indeterminate", "type": "boolean or null", "required": false, "description": ""}, {"name": "filters", "type": "any or null", "required": false, "description": "Extra conversation filters applied on top of the dashboard scope"}, {"name": "column_visibility", "type": "any or null", "required": false, "description": "Table (observability) widgets only: column visibility map"}, {"name": "color_overrides", "type": "object or null", "required": false, "description": "The colour the chart draws each series or slice in, keyed by its label lowercased. Written whole when a widget is saved, so it names every label rather than only the ones a person changed.", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "center_label", "type": "object or null", "required": false, "description": "Chart options: the pie donut hole, a benchmark line on numeric line and bar charts and histograms, a unit, and the KPI previous-period change", "children": [{"name": "slice", "type": "string or null", "required": false, "description": "Slice whose share fills the hole. Omit for the largest slice."}, {"name": "clamp_pct", "type": "number or null", "required": false, "description": "Collapses the rounding edges: 1 turns 99.6% into '>99%' and 0.4% into '<1%'. An exact 0 or 100 is left alone."}, {"name": "label", "type": "string or null", "required": false, "description": "Caption under the percentage"}, {"name": "benchmark", "type": "number or null", "required": false, "description": "Numeric line and bar charts and histograms: draws a dashed reference line at this value, e.g. a target score. 0 or more, since chart axes start at 0."}, {"name": "compare_previous", "type": "boolean or null", "required": false, "description": "KPI only: false hides the change against the previous period. Omit to show it."}, {"name": "unit", "type": "string or null", "required": false, "description": "Shown after values, e.g. \"pts\". Ignored for metrics with their own unit (latency, duration, %)."}]}, {"name": "show_legend", "type": "boolean", "required": false, "description": "Whether the chart draws its colour key", "default": true}, {"name": "created_by", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string or null", "required": false, "description": ""}, {"name": "updated_at", "type": "string or null", "required": false, "description": ""}, {"name": "widget_metrics", "type": "object[]", "required": false, "description": "", "children": [{"name": "metric", "type": "string", "required": true, "description": "Metric key, e.g. 'call_count', 'latency', 'custom_metric', 'goal', 'tool_call', 'trace_attribute'"}, {"name": "custom_metric_id", "type": "string or null", "required": false, "description": "Required when metric='custom_metric': id from the custom metrics API"}, {"name": "goal", "type": "string or null", "required": false, "description": "Goal text when metric='goal'"}, {"name": "tool_call_id", "type": "string or null", "required": false, "description": "Required when metric='tool_call'"}, {"name": "metadata_path", "type": "string or null", "required": false, "description": "Trace attribute path when metric='trace_attribute'"}, {"name": "threshold_operator", "type": "string or null", "required": false, "description": "With threshold_value: graph the share of conversations meeting the condition instead of the metric's own value", "values": ["lt", "lte", "gt", "gte"]}, {"name": "threshold_value", "type": "number or null", "required": false, "description": "Compared against the metric's per-conversation value; set together with threshold_operator"}, {"name": "metadata_type", "type": "string or null", "required": false, "description": "Trace attribute value type when metric='trace_attribute'"}, {"name": "id", "type": "string or null", "required": false, "description": ""}, {"name": "widget_id", "type": "string or null", "required": false, "description": ""}]}, {"name": "layout", "type": "object or null", "required": false, "description": "Only populated when returned as part of a dashboard", "children": [{"name": "x", "type": "integer", "required": true, "description": "Row, 1-based, top to bottom"}, {"name": "y", "type": "integer", "required": true, "description": "Column within the row, 1..6"}, {"name": "w", "type": "integer", "required": true, "description": "Width in columns, 1..6"}, {"name": "h", "type": "integer", "required": true, "description": "Height in 50px steps, 2..18 (100px..900px)"}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/widgets \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "description": "<string>",
+    "chart_type": "line",
+    "chart_mode": "time_series",
+    "data_type": "observability",
+    "bar_mode": "stacked",
+    "aggregation": [
+      "count"
+    ],
+    "time_bucket": "hour",
+    "group_by": "agent",
+    "simulation_ids": [
+      123
+    ],
+    "show_indeterminate": false,
+    "filters": [
+      null
+    ],
+    "column_visibility": {
+      "key": true
+    },
+    "color_overrides": {
+      "key": "<string>"
+    },
+    "center_label": {
+      "slice": "<string>",
+      "clamp_pct": 1.5,
+      "label": "<string>",
+      "benchmark": 1.5,
+      "compare_previous": true,
+      "unit": "<string>"
+    },
+    "show_legend": true,
+    "metrics": [
+      {
+        "metric": "<string>",
+        "custom_metric_id": "<string>",
+        "goal": "<string>",
+        "tool_call_id": "<string>",
+        "metadata_path": "<string>",
+        "threshold_operator": "lt",
+        "threshold_value": 1.5,
+        "metadata_type": "<string>"
+      }
+    ],
+    "dashboard_id": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "organization_id": "<string>",
+  "name": "<string>",
+  "description": "<string>",
+  "chart_type": "<string>",
+  "chart_mode": "<string>",
+  "data_type": "<string>",
+  "applies_to_all_agents": true,
+  "bar_mode": "<string>",
+  "aggregation": [
+    "<string>"
+  ],
+  "time_bucket": "<string>",
+  "group_by": "<string>",
+  "simulation_ids": [
+    123
+  ],
+  "show_indeterminate": true,
+  "filters": null,
+  "column_visibility": null,
+  "color_overrides": {
+    "key": "<string>"
+  },
+  "center_label": {
+    "slice": "<string>",
+    "clamp_pct": 1.5,
+    "label": "<string>",
+    "benchmark": 1.5,
+    "compare_previous": true,
+    "unit": "<string>"
+  },
+  "show_legend": true,
+  "created_by": "<string>",
+  "created_at": "<string>",
+  "updated_at": "<string>",
+  "widget_metrics": [],
+  "layout": {
+    "x": 123,
+    "y": 123,
+    "w": 123,
+    "h": 123
+  }
+}
+```
+
+{/* END GENERATED */}

@@ -1,0 +1,109 @@
+---
+title: "Chat Completions"
+sidebarTitle: "Chat Completions"
+description: "Test a chat agent with an OpenAI-style API."
+icon: message-bot
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Connect a chat agent that answers `POST /chat/completions` in the OpenAI format, as agents behind LiteLLM, vLLM, Ollama, or the OpenAI SDK do. This is the wire format, not a ChatGPT agent from OpenAI.
+
+<img className="block dark:hidden" src="/images/connect-openai-compatible.png" alt="The OpenAI-compatible connection fields with an API base URL, an API key, and a model" />
+<img className="hidden dark:block" src="/images/connect-openai-compatible-dark.png" alt="The OpenAI-compatible connection fields with an API base URL, an API key, and a model" />
+
+## Connect
+
+<Steps>
+<Step title="Create the agent">
+Create a Text agent with the **OpenAI-compatible** connection type:
+
+- **API base URL**: for example `https://your-agent.example.com/v1`. Bluejay adds `/chat/completions` itself, so leave that part off.
+- **API key**: Bluejay sends it as `Authorization: Bearer <key>` and stores it encrypted. Leave it empty if your agent needs no key.
+- **Model**: the `model` value in each request. If you leave it empty, Bluejay sends `default`. Many agents ignore this value.
+
+To create the agent from the API, call [Add Agent](/api-reference/endpoint/add-agent) with `connection_type` set to `OPENAI_CHAT`, and set `openai_base_url`, `openai_api_key`, and `openai_model`.
+</Step>
+<Step title="Run a simulation">
+Add the agent to a [simulation](/test/simulations/create) and run it. Your agent needs no webhook or callback to Bluejay. To queue runs from the API, use [`/v1/queue-http-text-simulation-run`](/api-reference/endpoint/queue-http-text-simulation-run).
+</Step>
+</Steps>
+
+## How a conversation runs
+
+Bluejay sends each Digital Human message to your endpoint and reads your agent's reply from the response. The Digital Human always sends the first message. Each request holds the whole conversation so far, because the chat completions format keeps no state between requests. Digital Human messages have the `user` role and your agent's earlier replies have the `assistant` role. Bluejay sends no `system` message, so your agent uses its own instructions.
+
+```json
+{
+  "model": "support-agent",
+  "stream": false,
+  "messages": [
+    { "role": "user", "content": "Hi, I need help with a refund." },
+    { "role": "assistant", "content": "Sure. What is your order number?" },
+    { "role": "user", "content": "It's ORD-2024-001." }
+  ]
+}
+```
+
+Bluejay sends `"stream": false`, so return the whole reply in one response. Bluejay reads the reply from `choices[0].message.content`, as a string or as a list of text parts. The Digital Human then answers, and the loop continues until one side ends the conversation.
+
+- **Your agent ends it**: return `"finish_reason": "stop_conversation"` on the reply. Bluejay then ends and evaluates the conversation right away.
+- **The Digital Human ends it**: Bluejay ends the conversation and sends no further requests.
+
+Bluejay saves the last response `id` in the conversation's metadata, so you can match a result to your own logs.
+
+### Tool calls
+
+Your agent runs its own tools. Bluejay does not run them and does not send tool results back. To have the tools that your agent ran show up in the conversation, list them in `tool_calls` on the reply message. Bluejay reads each call's `function.name` and `function.arguments`, and also an `output` field next to the call if you add one, so [custom metrics](/test/metrics#tool-calls-events-and-metadata) can check what the tool returned.
+
+```json
+{
+  "id": "chatcmpl-123",
+  "choices": [{
+    "finish_reason": "stop",
+    "message": {
+      "role": "assistant",
+      "content": "Your order shipped yesterday.",
+      "tool_calls": [{
+        "type": "function",
+        "function": { "name": "lookup_order", "arguments": "{\"order_id\": \"ORD-2024-001\"}" },
+        "output": { "status": "shipped" }
+      }]
+    }
+  }]
+}
+```
+
+Return the final reply text in the same response as the tool calls. A response with tool calls and no text gets no Digital Human reply.
+
+### Traces
+
+Each request carries a W3C `traceparent` header with a new trace ID, and Bluejay saves that ID on the conversation. If your agent uses OpenTelemetry and [sends its traces to Bluejay](/test/traces), its spans continue that trace and appear next to the conversation, so you do not need to link them yourself.
+
+## Monitor
+
+This connection runs tests only. To score your agent's production conversations, send them to Bluejay as described in [Logs](/monitor/logs).
+
+## Limits
+
+- The connection is inbound only, because the Digital Human always sends the first message. An agent created as Outbound through the API never starts a conversation.
+- Bluejay waits 10 seconds to connect and up to 10 minutes for each reply.
+- A failed turn is not retried. If your endpoint cannot be reached, returns a `4xx` or `5xx` status, or returns a body that is not JSON, the conversation waits and then ends after the simulation's inactivity timeout, 5 minutes by default.
+
+## Troubleshooting
+
+| What you see | What to do |
+|---|---|
+| **Enter the base URL only, without /chat/completions** | Remove <Code>/chat/completions</Code> from the end of the **API base URL**. Bluejay adds that path itself. |
+| **API base URL must be a valid http(s) URL** | Enter the full URL, starting with `http://` or `https://`. |
+| `400`: `OPENAI_CHAT connection_type requires openai_base_url` | Set <Code>openai_base_url</Code> in the API request. |
+| `400`: `OPENAI_CHAT is a text connection type and has no voice transport` | The run was queued with <Code>/v1/queue-simulation-run</Code>. Use <Code>/v1/queue-http-text-simulation-run</Code>. |
+| The conversation stops partway and ends after the inactivity timeout | Your endpoint failed on that turn, or it returned tool calls with no reply text. Check your endpoint's logs for that turn, and return reply text with every response. |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [HTTP Webhook (Chat)](/integrations/http-webhooks)
+- [Simulation](/test/simulations/create)
+- [Traces](/test/traces)
+- [Metrics](/test/metrics)

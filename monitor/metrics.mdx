@@ -1,0 +1,60 @@
+---
+title: "Metrics"
+description: "Grade production conversations on your own rules."
+icon: gauge-high
+sidebarTitle: "Metrics"
+---
+
+import { MetricExamples } from "/snippets/metric-examples.jsx";
+import MetricsShared from "/snippets/metrics-shared.mdx";
+import MetricsReference from "/snippets/metrics-reference.mdx";
+
+If you are setting up custom metrics for simulation results, see [Metrics](/test/metrics).
+
+<img className="block dark:hidden" src="/images/metrics-page.png" alt="The Metrics page with custom metrics grouped by category, each showing its summary and how many agents it runs on" />
+<img className="hidden dark:block" src="/images/metrics-page-dark.png" alt="The Metrics page with custom metrics grouped by category, each showing its summary and how many agents it runs on" />
+
+<MetricExamples />
+
+## Set up a metric
+
+On the **Metrics** page, click **Create**, then **Create automatically**. Review the drafts and save the ones you want.
+
+For a hand-written metric, choose **Create manually** and use the [prompting guide](#prompting-guide).
+
+<img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+<img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+
+<MetricsShared />
+
+## Tool calls, events, and metadata
+
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](#dynamic-variables).
+
+### Send tool calls
+
+Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording, because you cannot add them later.
+
+```json
+{
+  "agent_id": "123",
+  "start_time_utc": "2026-07-16T18:00:00Z",
+  "participants": [
+    { "role": "AGENT", "spoke_first": true },
+    { "role": "USER", "spoke_first": false }
+  ],
+  "recording_url": "https://storage.example.com/call.mp3",
+  "tool_calls": [
+    {
+      "name": "check_order_status",
+      "start_offset_ms": 2000,
+      "description": "Look up order status by order ID",
+      "parameters": { "order_id": "ORD-2024-001" },
+      "output": { "status": "in_transit" }
+    }
+  ],
+  "metadata": { "customer_tier": "premium" }
+}
+```
+
+<MetricsReference />

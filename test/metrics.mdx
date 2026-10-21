@@ -1,0 +1,64 @@
+---
+title: "Metrics"
+description: "Grade conversations on your own rules."
+icon: gauge-high
+sidebarTitle: "Metrics"
+---
+
+import { MetricExamples } from "/snippets/metric-examples.jsx";
+import MetricsShared from "/snippets/metrics-shared.mdx";
+import MetricsReference from "/snippets/metrics-reference.mdx";
+
+If you are setting up custom metrics for production calls, see [Metrics](/monitor/metrics).
+
+<img className="block dark:hidden" src="/images/metrics-page.png" alt="The Metrics page with custom metrics grouped by category, each showing its summary and how many agents it runs on" />
+<img className="hidden dark:block" src="/images/metrics-page-dark.png" alt="The Metrics page with custom metrics grouped by category, each showing its summary and how many agents it runs on" />
+
+<MetricExamples />
+
+## Set up a metric
+
+On the **Metrics** page, click **Create**, then **Create automatically**. Review the drafts and save the ones you want.
+
+For a hand-written metric, choose **Create manually** and use the [prompting guide](#prompting-guide).
+
+<img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+<img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+
+New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in its **Custom Metrics** tab.
+
+<MetricsShared />
+
+## Tool calls, events, and metadata
+
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](#dynamic-variables).
+
+### Send tool calls
+
+Bluejay sends an `X-Simulation-Result-Id` with each simulated call, and the [integration page](/integrations/phone-number) for your connection says where it arrives. Have your agent read the ID, record its tool calls during the call, and send them with the ID after the call ends.
+
+If your agent cannot read the ID, leave out `simulation_result_id` and send `start_time`, `end_time`, and `duration` so Bluejay can find the call.
+
+After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
+
+```json
+{
+  "simulation_result_id": "1234",
+  "tool_calls": [
+    {
+      "name": "transfer_funds",
+      "parameters": { "from": "12345", "to": "67890", "amount": 500 },
+      "output": { "transaction_id": "txn_abc123", "status": "completed" },
+      "start_offset_ms": 120000
+    }
+  ],
+  "events": [
+    { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
+  ],
+  "metadata": { "resolution_status": "resolved" }
+}
+```
+
+Check your platform's integration page first: some integrations collect tool calls without this API call.
+
+<MetricsReference />

@@ -1,0 +1,131 @@
+---
+title: "Digital Human Reference"
+description: "Master your tests with Digital Humans."
+icon: users
+sidebarTitle: "Digital Human Reference"
+---
+
+A Digital Human is a simulated customer that can call, text, or email your agent. Each one has a goal, and Bluejay grades whether your agent handled it.
+
+<img className="block dark:hidden" src="/images/digital-human-card-edit.png" style={{ maxWidth: "min(493px, 100%)" }} alt="A Digital Human card open for editing on the Persona tab, with a description, success criteria, and one scripted response" />
+<img className="hidden dark:block" src="/images/digital-human-card-edit-dark.png" style={{ maxWidth: "min(493px, 100%)" }} alt="A Digital Human card open for editing on the Persona tab, with a description, success criteria, and one scripted response" />
+
+## Persona
+
+Persona settings decide what each conversation is about and how Bluejay grades it.
+
+| Setting | Write |
+|---|---|
+| Description / Intent | What the caller wants, in one or two sentences. |
+| Success Criteria | One or two agent outcomes the transcript can show. |
+| Personality | Who the caller is, in one short line, for example "retiree on a family plan". |
+| Scripted Responses | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
+| Tool Adherence | The tool calls the agent must make. |
+
+Keep agent behavior and "if X, do Y" rules out of the intent. The model treats them only as suggestions, so use the fields in [Make runs repeatable](#make-runs-repeatable) instead.
+
+## Behavior
+
+Use behavior settings to test whether your agent copes with harder callers, for example a fast talker on a bad connection.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/dh-behavior-levers.mp4"></video>
+
+- **Patience (seconds)** is how long the caller waits before it replies.
+- **No Response Timeout (seconds)** must be 15 seconds or more.
+- **Speaks First**: the Digital Human speaks first unless you change it. Some voice platform connections start with the agent.
+
+There is no emotion setting. To make the caller angry, rushed, or confused, write that attitude into **Personality**.
+
+## Traits
+
+A trait is a fact that the caller knows and says when the agent asks, for example a member ID or date of birth. Use a trait when the value must be the same on each run. If you write the value in the intent instead, the caller can say a different value on each run.
+
+Define a trait for one agent on the **Customer Traits** page, then set its value on each of that agent's Digital Humans.
+
+A trait can also go out as a SIP header on the call. The header name is the trait name with an `X-` prefix.
+
+When you change a trait, select **Update Existing Digital Humans** to apply the change to all Digital Humans of the agent. Otherwise only new Digital Humans get the change.
+
+## Tools
+
+- **End Conversation (On Trigger Phrases)** ends the call when the agent says one of the phrases.
+- **Default Number Submission Mode** applies when the agent does not say how to enter a number.
+
+## Connection
+
+- **Phone number** must be a number your organization owns.
+- **Extension** is the keys the Digital Human presses after the call connects to an inbound agent, for example `1,2`. A comma adds a short pause.
+- **Always On** makes the Digital Human answer calls on its phone number.
+
+Buy numbers under **Settings → Phone Numbers** in the [workspace](/administration/workspaces) where your Digital Humans live. A number stays in the workspace you bought it in, and the app lists only the current workspace's numbers.
+
+With the API, list numbers with [Get Phone Numbers](/api-reference/endpoint/phone-numbers). Your AI assistant can list, buy, and release numbers through the [workspace MCP tools](/mcp/workspace-tools#phone-numbers).
+
+## Scripted responses
+
+A scripted response makes a reply the same on each run. Each one pairs a line the agent says with the caller's reply: words, keypad tones, silence, or an audio clip.
+
+- Under **When the agent says**, write a line the agent says, for example "Can I have your account number?". A description of agent behavior never matches.
+- Matching on context also catches lines with the same meaning, not only the exact words.
+- If **How scripted responses fire** runs them in order, each one fires once, in list order.
+
+## Personalities
+
+A Personality configures how Digital Humans behave. Use Personalities when you want to test the same goal with different callers.
+
+When you select Personalities on a simulation, each Digital Human in the run calls once as itself and once for each Personality.
+
+A Personality changes only the fields that you set on it, for example the **Personality** text, voice, background noise, or the [behavior fields](#behavior). All other fields come from the Digital Human. A Personality never changes the intent or the success criteria, so each call still tests the same goal.
+
+The simulation saves its Personality selection, so the next run uses the same set.
+
+### Limits
+
+- A [customer journey](/test/simulation-types/customer-journeys) does not run once for each Personality.
+- A change to a Personality applies to future runs only.
+- If you delete a Personality, Bluejay removes it from each simulation that selects it.
+
+## Communities
+
+A Community is a saved group of Digital Humans that you can reuse in any simulation, which makes it a test suite for an agent or a flow.
+
+Group the Digital Humans that cover one agent or one flow into a Community. Select the Community when you create a simulation, so each agent version runs against the same callers and the results compare directly.
+
+When an agent fails on a real conversation, create a Digital Human that recreates the failure and add it to the Community. The next run then tests for that failure again.
+
+## Write a good Digital Human
+
+- Test one goal in each Digital Human. Booking, rescheduling, and cancelling are three Digital Humans.
+- Write **Description / Intent** as what the caller wants. If you write "correctly" or "successfully", that text describes the agent, so move it to **Success Criteria**.
+- Write **Success Criteria** as an agent outcome that the transcript can show.
+- Put grading that applies to every call in a [custom metric](/test/metrics), not in **Success Criteria**.
+
+| Setting | Do | Do not |
+|---|---|---|
+| Description / Intent | "You want to move your dentist appointment to next week." | "Make sure the agent correctly reschedules. If it asks for your date of birth, say March 3, 1980." |
+| Success Criteria | "The agent moved the appointment and confirmed the new date." | "The caller gives the date of birth and stays polite." |
+
+### Make runs repeatable
+
+An "if the agent says X, the caller does Y" rule in the intent is only a suggestion to the model, so the caller may not follow it on every run. Move it to the setting that fixes it:
+
+| Need | Setting |
+|---|---|
+| A fixed value, for example a date of birth | **Traits** |
+| A fixed line, keypad entry, or pause | **Scripted Responses** |
+| A fixed opening line | **Speaks First** |
+| The same call on each run | **Creativity** from 0.0 to 0.3 |
+
+Before you create a batch, create one Digital Human, run it, and read the transcript. Bluejay accepts a configuration that has no effect, for example a scripted response that never matches, so the transcript is where you see whether each setting worked.
+
+To test a phone tree, draw an IVR Flow on the **Scenario Builder** page and run it with the [IVR Flow](/test/simulation-types/ivr-flow) simulation type.
+
+## Related
+
+- [Digital Humans API](/api-reference/endpoint/create-digital-humans)
+- [Digital Humans MCP tools](/mcp/testing-tools#digital-humans)
+- [Personalities API](/api-reference/endpoint/create-personalities)
+- [Communities API](/api-reference/endpoint/create-community)
+- [Communities MCP tools](/mcp/testing-tools#digital-humans)
+- [Create a Simulation](/test/simulations/create)
+- [Customer Journeys](/test/simulation-types/customer-journeys)

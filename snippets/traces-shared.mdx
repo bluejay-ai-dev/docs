@@ -1,0 +1,40 @@
+## Export traces to Bluejay
+
+Bluejay accepts traces from any OpenTelemetry-compatible library, for example OpenInference, OpenLLMetry, or Langfuse. Using a voice framework? Its [integration page](/integrations/phone-number) can show a framework-specific setup.
+
+<Steps>
+  <Step title="Get an API key">
+    Create one as described in [Get an API key](/api-reference/introduction#make-your-first-request).
+  </Step>
+  <Step title="Install the packages">
+    ```bash
+    pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http opentelemetry-instrumentation-openai
+    ```
+  </Step>
+  <Step title="Point the exporter at Bluejay">
+    Send spans over OTLP HTTP to `https://otlp.getbluejay.ai/v1/traces`, with your API key in the `X-API-KEY` header:
+
+    ```python
+    from opentelemetry.sdk import trace as trace_sdk
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+
+    tracer_provider = trace_sdk.TracerProvider(
+        resource=Resource.create({SERVICE_NAME: "<your_service_name>"})
+    )
+    tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(
+        "https://otlp.getbluejay.ai/v1/traces",
+        headers={"X-API-KEY": "<BLUEJAY_API_KEY>"},
+    )))
+    ```
+  </Step>
+  <Step title="Instrument your LLM client">
+    For example, the OpenAI client:
+
+    ```python
+    from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+    OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+    ```
+  </Step>
+</Steps>
