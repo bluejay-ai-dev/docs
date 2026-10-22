@@ -7,34 +7,73 @@ icon: shield-halved
 
 Run a [Red Teaming](/test/red-teaming/overview) test, fix what breaks, and run it again, so you end up with a passing report to share with your security or compliance reviewer.
 
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/red-team-walkthrough.mp4"></video>
+
 ## Before you start
 
-- A voice or chat agent in Bluejay. Red Teaming does not support email agents. See [Connect your agent](/test/simulations/create#connect-your-agent).
+- A voice, chat, or SMS agent in Bluejay. Red Teaming does not support email agents. See [Connect your agent](/test/simulations/create#connect-your-agent).
 - For **Custom** intensity, the Growth, Scale, or Enterprise plan.
 
 ## Steps
 
 <Steps>
   <Step title="Launch a red team">
-    Open **Red Teaming** and click **Launch red team**. **Quick** is a smoke test and **Thorough** goes deepest, while **Custom** sets the number of attempts for each attack family. See [Red Teaming](/test/red-teaming/overview#launch-a-run).
+    Open **Red Teaming** and click **Launch red team**. Choose the target agent, then an **Intensity**.
+
+    <img className="block dark:hidden" src="/images/cookbook-red-team-launch-dialog.png" alt="The Launch red team dialog with a target agent selected and the Quick, Standard, Thorough, and Custom intensity cards" />
+    <img className="hidden dark:block" src="/images/cookbook-red-team-launch-dialog-dark.png" alt="The Launch red team dialog with a target agent selected and the Quick, Standard, Thorough, and Custom intensity cards" />
+
+    - Use **Quick** for a smoke test while you iterate, and **Thorough** for the run you share, because it escalates deepest.
+    - **Custom** sets the number of attempts for each attack family, and a family set to 0 is skipped. Launch stays disabled until at least one family is above 0.
   </Step>
   <Step title="Give the attacker partial account details">
-    To test your verification steps, add to **Attacker knowledge** what a real attacker might already know about the customer, for example a date of birth or the last four digits of a card. Only the social engineering callers use it.
+    To test your verification steps, open the **Attacker knowledge** tab and add what a real attacker might already know about the customer, for example a date of birth or the last four digits of a card. Only the social engineering callers use it.
+
+    <img className="block dark:hidden" src="/images/cookbook-red-team-attacker-knowledge.png" alt="The Attacker knowledge tab with one trait, Date of Birth, filled in" />
+    <img className="hidden dark:block" src="/images/cookbook-red-team-attacker-knowledge-dark.png" alt="The Attacker knowledge tab with one trait, Date of Birth, filled in" />
+
+    If the attackers dial into an inbound agent that needs an extension, enter it on the **Connection** tab.
+  </Step>
+  <Step title="Start the run and wait for it to finish">
+    Click **Launch red team**. The callers first learn what data and tools your agent has, then push harder with the tactics that work. The run ends when it reaches its call limit, or when you stop it.
+
+    <img className="block dark:hidden" src="/images/cookbook-red-team-swarm.png" alt="The Swarm tab showing the target agent and the attackers, with breached and held attacks and one still evaluating" />
+    <img className="hidden dark:block" src="/images/cookbook-red-team-swarm-dark.png" alt="The Swarm tab showing the target agent and the attackers, with breached and held attacks and one still evaluating" />
   </Step>
   <Step title="Read the verdict for each category">
-    Start with the [OWASP categories](/test/red-teaming/overview#owasp-coverage) and [content-harm categories](/test/red-teaming/overview#content-harm) that did not hold. See [Read the results](/test/red-teaming/overview#read-the-results) for what each verdict means.
+    On the **Report** tab, start with the verdict and the categories listed under **Breached**. Then check **Conceded ground**, where the agent resisted but gave up some ground. Categories under **Not assessed** did not run, so a higher intensity is the way to cover them. See [Read the results](/test/red-teaming/overview#read-the-results) for what each verdict means.
+
+    <img className="block dark:hidden" src="/images/red-teaming-report.png" alt="A Red Teaming report with the Breached verdict, attack and breach counts, and the OWASP categories that were breached and not assessed" />
+    <img className="hidden dark:block" src="/images/red-teaming-report-dark.png" alt="A Red Teaming report with the Breached verdict, attack and breach counts, and the OWASP categories that were breached and not assessed" />
+
+    Content-harm categories are in the same report. A content-harm failure alone fails the run. See [OWASP coverage](/test/red-teaming/overview#owasp-coverage) and [content harm](/test/red-teaming/overview#content-harm).
+  </Step>
+  <Step title="Open each breach">
+    On the **Swarm** tab, click an attacker marked **Breached**, then open **Transcript** to read the conversation that breached the agent. Read the words that worked and find the gate that was missing or bypassed.
+
+    <img className="block dark:hidden" src="/images/cookbook-red-team-breach-conversation.png" alt="The Transcript tab of a breached attack, with the recording player and the conversation between the agent and the attacker" />
+    <img className="hidden dark:block" src="/images/cookbook-red-team-breach-conversation-dark.png" alt="The Transcript tab of a breached attack, with the recording player and the conversation between the agent and the attacker" />
   </Step>
   <Step title="Fix each breach">
-    For each **Breached** attack, read the words that worked and the gate that was missing or bypassed. Fix the agent's prompt, add or tighten the verification step, or remove tool access the agent does not need.
+    Pick the fix that matches the gap:
+
+    - The agent said something it should not have: tighten its prompt.
+    - The agent acted without checking who was calling: add or tighten the verification step.
+    - The agent took an action the caller should not reach: remove tool access the agent does not need.
   </Step>
   <Step title="Run the same intensity again">
-    Launch again with the same intensity and attacker knowledge.
+    Launch again with the same intensity and attacker knowledge, so the two reports are comparable. Changing either one makes a better score hard to trust.
+
+    <img className="block dark:hidden" src="/images/cookbook-red-team-runs-list.png" alt="Two completed Red Teaming runs for the same agent, a later run that passed and an earlier run that failed" />
+    <img className="hidden dark:block" src="/images/cookbook-red-team-runs-list-dark.png" alt="Two completed Red Teaming runs for the same agent, a later run that passed and an earlier run that failed" />
   </Step>
 </Steps>
 
 ## Check the result
 
-The fix worked when the categories that showed **FAIL** now show **PASS**. **Held under pressure** means the agent resisted but conceded ground on some attacks, so read those attacks before you call the agent ready. When the report is clean, click **Download PDF** to save a copy for your reviewer.
+The fix worked when the categories that showed **FAIL** now show **PASS**. **Held under pressure** means the agent resisted but conceded ground on some attacks, so read those attacks before you call the agent ready. If a category is still breached, go back to the conversation, because the fix may have closed one path and left another.
+
+When the report is clean, click **Download PDF** to save a copy for your reviewer. **Download CSV** gives the same results as a spreadsheet.
 
 ## Related
 

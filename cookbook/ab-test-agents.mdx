@@ -10,28 +10,53 @@ Use this when you have two agents for the same job, for example on two voice pla
 ## Before you start
 
 - Connect both agents to Bluejay. See [Connect your agent](/test/simulations/create#connect-your-agent).
-- Create the [custom metrics](/test/metrics) you want to compare the agents on, and select both agents in each metric's **Agents** field.
+- Create the [custom metrics](/test/metrics) you want to compare the agents on. In each metric's **Agents** field, select both agents. A metric that does not include an agent is not scored for it, so the comparison has nothing to show for that agent.
 
-## Steps
+<img className="block dark:hidden" src="/images/cookbook-ab-test-metric-agents.png" alt="The Create Metric dialog with a Pass/Fail metric and two agents selected in the Agents field" />
+<img className="hidden dark:block" src="/images/cookbook-ab-test-metric-agents-dark.png" alt="The Create Metric dialog with a Pass/Fail metric and two agents selected in the Agents field" />
+
+## Run both agents
 
 <Steps>
   <Step title="Run agent A">
-    Open **Simulations** and create a simulation for the first agent with any [simulation type](/test/simulations/create#create-a-simulation). In **Custom Metric Settings**, select the metrics you want to compare, and run it.
+    On **Simulations**, create a simulation for the first agent with any [simulation type](/test/simulations/create#create-a-simulation). Under **Custom Metric Settings**, select the metrics you want to compare, then run it.
+
+    <img className="block dark:hidden" src="/images/cookbook-ab-test-agent-a-metrics.png" alt="The Custom Metric Settings tab of the Create Simulation dialog, with the Select all and Clear all buttons and the count of selected metrics" />
+    <img className="hidden dark:block" src="/images/cookbook-ab-test-agent-a-metrics-dark.png" alt="The Custom Metric Settings tab of the Create Simulation dialog, with the Select all and Clear all buttons and the count of selected metrics" />
   </Step>
   <Step title="Run agent B on the same Digital Humans">
-    Create a second simulation for the other agent and choose the **Use Previous Digital Humans** type. Select the Digital Humans from the first simulation, so that both agents face the same callers. In **Custom Metric Settings**, select the same metrics as in the first simulation, and run it.
-  </Step>
-  <Step title="Compare the two runs">
-    In each simulation's **Run History**, select the run and click **Compare Runs**. The tray keeps the runs while you move between simulations, so when it holds both, click **Compare**.
+    Create a second simulation for the other agent and select the **Use Previous Digital Humans** type. Pick the Digital Humans from agent A's simulation, or the Community that holds them, so both agents face the same callers. Bluejay runs them as they are and does not generate new ones.
+
+    <img className="block dark:hidden" src="/images/create-simulation-card-previous-digital-humans.png" alt="Use Previous Digital Humans card in the Create Simulation type picker" />
+    <img className="hidden dark:block" src="/images/create-simulation-card-previous-digital-humans-dark.png" alt="Use Previous Digital Humans card in the Create Simulation type picker" />
+
+    Under **Custom Metric Settings**, select the same metrics as for agent A, then run it. Different metrics make the runs impossible to compare.
   </Step>
 </Steps>
 
-## Check the result
+## Compare the runs
 
-Set **Compare by** to one custom metric at a time to see which agent fails which check. A metric with a free-text or JSON result does not appear in **Compare by**, because its results have no value to compare. The tray lives in memory, so a full page reload clears it. If that happens, select the runs again.
+<Steps>
+  <Step title="Stage the run from each simulation">
+    Open the first simulation, select its run in **Run History**, and click **Compare Runs**. Do the same in the second simulation. Compare is unavailable until at least 2 runs are staged.
+
+    <img className="block dark:hidden" src="/images/cookbook-ab-test-run-history.png" alt="Run History with one run checked and the Compare Runs button enabled" />
+    <img className="hidden dark:block" src="/images/cookbook-ab-test-run-history-dark.png" alt="Run History with one run checked and the Compare Runs button enabled" />
+
+    The tray at the bottom of the screen keeps staged runs while you move between simulations. A full page reload clears it, so select the runs again if that happens.
+  </Step>
+  <Step title="Open the comparison">
+    Expand the tray to check that it holds one run per agent, then click **Compare**. Bluejay opens **Compare Runs Across Agents**.
+  </Step>
+  <Step title="Read it one metric at a time">
+    Set **Compare by** to one custom metric to see which agent fails which check. Start with **Custom metrics passed (summary)** to see which agent passes more overall. A metric with a free-text or JSON result does not appear in **Compare by**, because its results have no value to compare.
+
+  </Step>
+</Steps>
 
 ## Related
 
+- [Previous Digital Humans](/test/simulation-types/previous-digital-humans)
 - [Create a Simulation](/test/simulations/create)
 - [Simulation Results](/test/simulations/create#read-the-results)
 - [Digital Human Reference](/test/simulations/digital-humans)
