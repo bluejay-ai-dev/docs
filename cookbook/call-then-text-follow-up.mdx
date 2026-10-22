@@ -7,6 +7,8 @@ icon: comment-sms
 
 Use a [Customer Journey](/test/simulation-types/customer-journeys) when your voice agent sends a text after a call, for example a booking confirmation.
 
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/cookbook-call-then-text-walkthrough.mp4"></video>
+
 ## Before you start
 
 - A voice agent saved with its phone number. See [Phone Number](/integrations/phone-number).
@@ -16,24 +18,38 @@ Use a [Customer Journey](/test/simulation-types/customer-journeys) when your voi
 
 <Steps>
   <Step title="Add the call step">
-    [Create a simulation](/test/simulations/create#create-a-simulation) for the agent and select the **Customer Journeys** card. Add a **Call** step with the intent the customer has on the call, for example "Book a cleaning for next week".
+    [Create a simulation](/test/simulations/create#create-a-simulation) for the agent and select the **Customer Journeys** card. Add a step and write the intent the customer has on the call, for example "Book a cleaning for next week". Leave the step on **Call**.
+
+    <img className="block dark:hidden" src="/images/journey-config-panel.png" alt="Journey steps editor with a call step, a second step, and a preview of the Digital Human running them in order" />
+    <img className="hidden dark:block" src="/images/journey-config-panel-dark.png" alt="Journey steps editor with a call step, a second step, and a preview of the Digital Human running them in order" />
   </Step>
   <Step title="Add the text step">
-    Add an **SMS** step set to **Outbound**, so the Digital Human waits for your agent to text first. Write the intent as what the customer does with the text, for example "Confirm the appointment" or "Ask to move it one hour later". One step covers the agent's text and the customer's replies.
+    Add a second step and switch it to **SMS**, then set it to **Outbound** so the Digital Human waits for your agent to text first. Write the intent as what the customer does with the text, for example "Confirm the appointment" or "Ask to move it one hour later". One step covers the agent's text and the customer's replies.
 
-    In the success criteria, describe what the agent's text must do, for example "The agent texts the appointment date, time, and address." The Digital Human ends the text conversation as soon as the agent does this, and Bluejay grades the step against it. If you leave it blank, Bluejay writes one from the intent.
+    <img className="block dark:hidden" src="/images/cookbook-call-then-text-sms-step.png" alt="Journey steps with a call step, then a second step set to Outbound and SMS with its intent and success criteria filled in" />
+    <img className="hidden dark:block" src="/images/cookbook-call-then-text-sms-step-dark.png" alt="Journey steps with a call step, then a second step set to Outbound and SMS with its intent and success criteria filled in" />
+
+    Describe what the agent's text must do in the success criteria, for example "The agent texts the appointment date, time, and address." The Digital Human ends the text conversation as soon as the agent does this, and Bluejay grades the step against it. If you leave it blank, Bluejay writes one from the intent.
 
     - The Digital Human knows what was agreed on the call, such as the date and time booked, so it replies as the same customer.
+    - If the **SMS** option is locked, the agent's phone number cannot send text messages. Check the number, then save the agent again.
     - If your agent texts from a different number than the one saved on the agent, add **Different phone number** to the step with that number. Bluejay only matches texts from the step's number.
   </Step>
-  <Step title="Give the agent enough time, then run">
+  <Step title="Give the agent enough time">
     Add **Response timeout** to the text step if your agent texts more than a few minutes after the call. Without it, the step lasts at most 15 minutes. The timeout covers the whole text conversation, not only the first text, and can be up to 72 hours.
 
+    <img className="block dark:hidden" src="/images/cookbook-call-then-text-timeout.png" alt="The plus menu on the SMS step open, listing Delay before this step, Response timeout, Different phone number, and Digital Human stays silent" />
+    <img className="hidden dark:block" src="/images/cookbook-call-then-text-timeout-dark.png" alt="The plus menu on the SMS step open, listing Delay before this step, Response timeout, Different phone number, and Digital Human stays silent" />
+  </Step>
+  <Step title="Generate and run">
     Click **Generate Digital Humans**, then run the simulation.
   </Step>
 </Steps>
 
 ## What to check
+
+<img className="block dark:hidden" src="/images/journey-runs-grouped.png" alt="A journey row on the run page that expands into one row per step, each with its own status" />
+<img className="hidden dark:block" src="/images/journey-runs-grouped-dark.png" alt="A journey row on the run page that expands into one row per step, each with its own status" />
 
 - Bluejay grades the call and the text as separate steps, each against its own success criteria. See [Simulation Results](/test/simulations/create#read-the-results).
 - A text step where your agent never texted ends as **No Answer** with the code `STEP_NO_ACTIVITY`. Check that the agent texts from the number Bluejay expects, then check the timeout.

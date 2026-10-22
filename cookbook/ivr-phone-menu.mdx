@@ -16,28 +16,59 @@ Build a copy of the business's phone menu in Bluejay, have your agent call into 
 
 <Steps>
   <Step title="Create an IVR Flow">
-    In the **Scenario Builder**, create an IVR Flow. In an IVR Flow, the Digital Human plays the business's phone system and your agent is the caller.
+    On the **Scenario Builder** page, open the **IVR Flows** tab and click **New IVR Flow**. Bluejay opens an empty flow named **New IVR Flow** in the builder.
+
+    In an IVR Flow, the Digital Human plays the business's phone system and your agent is the caller. The left panel groups the nodes by who they belong to: **Message** and **DTMF** are your agent's actions, and **IVR Menu**, **Hold**, and **Human Agent** are the business's side.
+
+    <img className="block dark:hidden" src="/images/cookbook-ivr-create-flow.png" alt="The IVR Flows tab of the Scenario Builder with the New IVR Flow button" />
+    <img className="hidden dark:block" src="/images/cookbook-ivr-create-flow-dark.png" alt="The IVR Flows tab of the Scenario Builder with the New IVR Flow button" />
   </Step>
-  <Step title="Add the menus and hold steps">
-    Add an **IVR Menu** node for each menu the caller hears, with one option for each choice, for example "press 2 for billing". Add a **Hold** node wherever the real line plays hold music.
+  <Step title="Add the IVR Menu">
+    Add an **IVR Menu** node and connect it to **Start**. Add one option per key the real menu offers, and write what the caller hears for that option, for example "press 1 for billing". Give your agent the same wording the business uses, because the agent decides which key to press from what it hears.
+
+    Two settings change how the call behaves:
+
+    - **Allow early input** lets your agent press a key before the menu finishes reading.
+    - **Max retries** is how many times the menu replays when your agent says nothing. It runs from 0 to 10, and 0 means no replay. With a value above 0, a **Silence timeout** of 5 seconds to 2 minutes sets how long the menu waits before it replays.
+
+    <img className="block dark:hidden" src="/images/cookbook-ivr-menu-panel.png" alt="The IVR Menu panel with three options that each have a phrase, Allow early input checked, Max retries set to 2, and the Silence timeout slider" />
+    <img className="hidden dark:block" src="/images/cookbook-ivr-menu-panel-dark.png" alt="The IVR Menu panel with three options that each have a phrase, Allow early input checked, Max retries set to 2, and the Silence timeout slider" />
   </Step>
   <Step title="Add the key presses your agent should make">
-    For each option, add a **DTMF** node with the key your agent should press, connect the option to it, and continue the flow from there to the next menu or hold step.
+    Add a **DTMF** node under each option and enter the key your agent should press. Connect the option to its DTMF node, then continue from there to the next menu or step.
+
+    Press the key that matches the goal of your test, not always the first option. To test more than one route, draw a path for each key.
+  </Step>
+  <Step title="Add hold time and the person who answers">
+    After the last key press, add a **Hold** node wherever the real line plays hold music. The hold runs from 0 to 2 minutes, so match the wait your agent sees in production. Your agent should stay on the line through it.
+
+    End the path with a **Human Agent** node. Its intent is who answers, for example "Billing representative", and its success criteria is what counts as a good answer.
 
     <img className="block dark:hidden" src="/images/ivr-flow-builder.png" alt="Scenario Builder with an IVR Menu that offers options 1 and 2, an Agent DTMF node for each key, a 10-second Hold, and a Human Agent with an intent and success criteria" />
     <img className="hidden dark:block" src="/images/ivr-flow-builder-dark.png" alt="Scenario Builder with an IVR Menu that offers options 1 and 2, an Agent DTMF node for each key, a 10-second Hold, and a Human Agent with an intent and success criteria" />
+
+    Click **Save**. A path that does not start from **Start** cannot be tested, and a flow with no linked agent cannot be tested either, so link your agent in the editor.
   </Step>
   <Step title="Grade the outcome you care about">
     Add an LLM as a Judge [custom metric](/test/metrics) for your agent that checks the result of the call, for example "The agent reached the billing department and stated the reason for the call". New simulations run all of the agent's metrics, so the first run is scored on it.
+
+    <img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+    <img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
   </Step>
   <Step title="Run it as a simulation">
-    Click **Test** and run the simulation. See [IVR Flow](/test/simulation-types/ivr-flow).
+    In the builder, click **Test** to run the flow, or [create a simulation](/test/simulations/create#create-a-simulation) and select the **IVR Flow** card to run several flows at once. Each IVR Flow becomes one Digital Human that goes through the whole menu in one call. See [IVR Flow](/test/simulation-types/ivr-flow).
+
+    <img className="block dark:hidden" src="/images/create-simulation-card-ivr-flow.png" alt="IVR Flow card in the Create Simulation type picker" />
+    <img className="hidden dark:block" src="/images/create-simulation-card-ivr-flow-dark.png" alt="IVR Flow card in the Create Simulation type picker" />
   </Step>
 </Steps>
 
 ## Check the result
 
-See [Simulation Results](/test/simulations/create#read-the-results). A **Completed** call with a passing metric means your agent pressed the right keys and stayed on through hold. If the metric fails, read the call to find the menu where the agent went wrong, then change the agent's prompt and click **Rerun**.
+A **Completed** call with a passing metric means your agent pressed the right keys and stayed on through hold. If the metric fails, open the conversation and read the call to find the menu where the agent went wrong. Then change the agent's prompt and click **Rerun**. See [Simulation Results](/test/simulations/create#read-the-results).
+
+<img className="block dark:hidden" src="/images/simulation-results.png" alt="A run's results page with the success rate chart and conversation rows, and a failed conversation's details panel open showing its success criteria and failure reason" />
+<img className="hidden dark:block" src="/images/simulation-results-dark.png" alt="A run's results page with the success rate chart and conversation rows, and a failed conversation's details panel open showing its success criteria and failure reason" />
 
 ## Related
 

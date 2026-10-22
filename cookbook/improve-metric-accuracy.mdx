@@ -5,6 +5,10 @@ description: "Make a custom metric agree with your verdicts."
 icon: bullseye
 ---
 
+Use a Metrics Lab to test prompt revisions of a custom metric against conversations you have graded, and publish the one that agrees with you most.
+
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/cookbook-metric-accuracy-walkthrough.mp4"></video>
+
 ## Before you start
 
 - Create the metric as an LLM as a Judge metric with a Pass/Fail response type. See [Metrics](/test/metrics) and the [Prompting Guide](/test/metrics#prompting-guide).
@@ -14,28 +18,62 @@ icon: bullseye
 
 <Steps>
   <Step title="Create a lab">
-    Open **Metrics**, go to the **Lab** tab, and click **Create Lab**. See [Build a lab](/test/metrics#build-a-lab) for how to pick a good sample.
+    Open **Metrics**, go to the **Lab** tab, and click **Create Lab**. Name the lab, select the metric to tune, then select conversations from **Logs** (production) or **Simulations**.
+
+    Pick 20 to 50 conversations that include clear passes, clear fails, and the unclear cases the metric gets wrong. The result is only as good as this sample. See [Build a lab](/test/metrics#build-a-lab).
+
+    <img className="block dark:hidden" src="/images/metrics-lab-landing.png" alt="The Lab tab on the Metrics page with lab cards and the Create Lab button" />
+    <img className="hidden dark:block" src="/images/metrics-lab-landing-dark.png" alt="The Lab tab on the Metrics page with lab cards and the Create Lab button" />
 
     <img className="block dark:hidden" src="/images/metrics-lab-create-dialog.png" alt="The Create Lab dialog with the name, metrics, and conversations steps" />
     <img className="hidden dark:block" src="/images/metrics-lab-create-dialog-dark.png" alt="The Create Lab dialog with the name, metrics, and conversations steps" />
   </Step>
   <Step title="Mark the correct answer for each conversation">
-    Set the **Human** verdict on each conversation to what the metric should have returned, and add your reasoning where the call is borderline. The alignment score then shows how often the metric agrees with you.
+    On the **Annotate** tab, set the **Human** verdict to what the metric should have returned. Where a call is borderline, click the Human cell and write your reasoning, so you remember why later.
+
+    When many rows share a verdict, select them and apply one value, with optional reasoning, to all of them.
+
+    Label every conversation before you read the alignment score. It compares only rows that have a **Human** verdict.
+
+    <img className="block dark:hidden" src="/images/metrics-lab-annotate-table.png" alt="The Annotate tab with AI and Human columns, two rows labeled Pass and one not yet labeled" />
+    <img className="hidden dark:block" src="/images/metrics-lab-annotate-table-dark.png" alt="The Annotate tab with AI and Human columns, two rows labeled Pass and one not yet labeled" />
+
+    <img className="block dark:hidden" src="/images/cookbook-metric-accuracy-bulk-annotate.png" alt="The Bulk Annotate dialog with Role Appropriateness as the metric, Pass as the value, and a reasoning note filled in" />
+    <img className="hidden dark:block" src="/images/cookbook-metric-accuracy-bulk-annotate-dark.png" alt="The Bulk Annotate dialog with Role Appropriateness as the metric, Pass as the value, and a reasoning note filled in" />
   </Step>
   <Step title="Find where the metric disagrees">
-    Read the rows where the **AI** verdict differs from the **Human** verdict, and compare the **AI reasoning** with yours. The difference usually points to a gap in the prompt, for example a metric that fails calls where the caller never asked for a human, when those calls should pass.
+    On the **Annotate** rows, compare the **AI reasoning** with yours wherever the **AI** verdict differs from the **Human** verdict. The difference usually points to a gap in the prompt. In the example above, you passed a call where the agent confirmed the time in its closing message, so the prompt needs to say that counts as repeating the time back.
+
+    Then open the **Optimize** tab. The **Alignment** badge on **Published** is your baseline score. Green is 80% or higher, yellow is 50 to 79%, and red is below 50%.
+
+    <img className="block dark:hidden" src="/images/cookbook-metric-accuracy-optimize-baseline.png" alt="The Optimize tab with Published selected, an Alignment badge of 50%, and the metric prompt below" />
+    <img className="hidden dark:block" src="/images/cookbook-metric-accuracy-optimize-baseline-dark.png" alt="The Optimize tab with Published selected, an Alignment badge of 50%, and the metric prompt below" />
   </Step>
   <Step title="Create and test a new revision">
-    In the **Optimize** tab, click **Run** to score the conversations, then **Improve** to get a rewritten prompt. Click **Apply**, then **Run** again to save it as a new revision and score it. Repeat until the alignment stops improving.
+    Click **Improve** above the prompt to get a rewrite based on the disagreements. Read the highlighted changes, then click **Apply** to keep them or **Discard** to drop them. You can also edit the prompt yourself.
+
+    Click **Run**. Bluejay saves the prompt as a new revision and scores every conversation in the lab with it. Use the arrows next to the revision name to compare scores between revisions. Repeat until the alignment stops improving.
+
+    <img src="/images/metrics-lab-optimize-table.png" alt="The Optimize tab with an Improve rewrite highlighted in the prompt and the Apply and Discard buttons below it" />
+
+    <img className="block dark:hidden" src="/images/cookbook-metric-accuracy-run-revision.png" alt="The Optimize tab with Revision 2 selected, an Alignment badge of 53%, and the blue Publish button" />
+    <img className="hidden dark:block" src="/images/cookbook-metric-accuracy-run-revision-dark.png" alt="The Optimize tab with Revision 2 selected, an Alignment badge of 53%, and the blue Publish button" />
   </Step>
   <Step title="Publish the best revision">
-    On the revision that agrees with you most, click **Publish**. This updates the custom metric itself, so every simulation and production evaluation uses the new prompt from then on.
+    Select the revision that agrees with you most and click **Publish**. This updates the custom metric itself, so every simulation and production evaluation uses the new prompt from then on.
+
+    <img className="block dark:hidden" src="/images/cookbook-metric-accuracy-published.png" alt="The Optimize tab after publishing, with Revision 1 selected, an Alignment badge of 100%, and the Publish button greyed out" />
+    <img className="hidden dark:block" src="/images/cookbook-metric-accuracy-published-dark.png" alt="The Optimize tab after publishing, with Revision 1 selected, an Alignment badge of 100%, and the Publish button greyed out" />
+
+    If you edited the prompt and did not click **Run**, **Publish** still saves it as a revision and updates the metric, but it does not score the lab, so you will not see an alignment score for that prompt.
   </Step>
 </Steps>
 
 ## Check the result
 
-If the alignment stays low after several revisions, the sample may be too small or one-sided: add conversations that cover the cases the metric gets wrong, label them, and run again. See [Metrics Lab](/test/metrics#metrics-lab).
+If the alignment stays low after several revisions, the sample may be too small or one-sided. Add conversations that cover the cases the metric gets wrong with **Add Conversations**, label them, and run again.
+
+For a metric that returns a number, turn on fuzzy alignment in the lab **Settings** so scores within the threshold count as agreeing.
 
 ## Related
 
