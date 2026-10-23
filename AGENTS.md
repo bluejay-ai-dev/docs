@@ -28,3 +28,7 @@ PR body is four sections, 2-3 sentences each:
 - Why: how this is a customer need.
 - What: summary of the change.
 - Notable: what a reviewer would otherwise miss.
+
+## Secrets
+
+Infisical is the only place secret values live, for this repo and for every new project, so each value has one copy to rotate and every read is logged. Add a new secret to Infisical in each environment the code runs in (usually dev and prod), and load secrets with `infisical run --env=<env> -- <command>`. Never keep a secret value in a commit, a `.env` file, Railway variables, Vercel, GitHub Actions, or a host console.
