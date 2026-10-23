@@ -6,6 +6,8 @@ icon: list
 keywords: ["observability", "logs", "conversations", "production calls", "evaluate"]
 ---
 
+import EmailChecks from "/snippets/email-checks.mdx";
+
 <img className="block dark:hidden" src="/images/logs-page.png" alt="The Logs page with one row for each production conversation, showing its date and time, agent, status, and duration" />
 <img className="hidden dark:block" src="/images/logs-page-dark.png" alt="The Logs page with one row for each production conversation, showing its date and time, agent, status, and duration" />
 
@@ -18,6 +20,32 @@ Logs shows your production conversations. They can arrive from three sources:
 | Voice platform | Each ended call arrives after you [connect the platform](/integrations/vapi#monitor). |
 | [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) | Your backend sends each conversation after it ends. |
 | **Upload** | Upload **Audio Call** files or a **Chat/Transcript** from the Logs page. |
+
+### Send conversations with the API
+
+Send each conversation to `/v1/evaluate` once it has ended. To update one later, put your own id for it in `metadata` as `external_conversation_id`. A request for the same agent with the same id replaces that conversation and evaluates it again, so always send the whole conversation. If `metadata` also has a provider call id, such as `vapi_call_id`, Bluejay uses that id instead. A request identical to the last one is ignored.
+
+<Tip>Every request that changes a conversation is evaluated and billed. Forwarding a conversation once it has ended costs the least.</Tip>
+
+#### Voice
+
+Send `recording_url`, a `transcript`, or both. Calls from a [connected voice platform](/integrations/vapi#monitor) arrive on their own, and the platform's call id links repeat sends to one conversation.
+
+#### Text and SMS
+
+Send a `transcript`. There is no audio, so latency comes from each entry's `start_offset_ms`. Send real offsets to see how long your agent takes to reply.
+
+#### Email
+
+Send the thread in `emails`, oldest first. Each email has a `speaker` and `raw`, the full source of the email with its headers, as **Show original** shows it in Gmail. When you leave out `transcript`, Bluejay builds it from the emails, so set `start_time_utc` to the time of the first email. It also checks each of your agent's emails for SPF, DKIM, DMARC, and spam.
+
+<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/email-obs-checks.mp4"></video>
+
+<Accordion title="What the email checks mean">
+<EmailChecks />
+
+SPF and spam come from a receiving mail server's headers. On a copy that no server received, both show **N/A**. Bluejay verifies DKIM itself and checks DMARC itself when no server recorded a verdict.
+</Accordion>
 
 ## Find a conversation
 
