@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## Docs content
 
-- The Integrations pages (`integrations/`) are the only place that lists the integrations and connection types. They change often, so other pages link to the first Integrations page, [Phone Number](/integrations/phone-number), instead of naming them. A page can still name the providers that one feature supports, for example which platforms can pull a workflow. The API reference can also list connection types with their request fields, as Add Agent does, because API users need the field names.
+- The Integrations pages (`integrations/`) are the only place that lists the integrations and connection types. They change often, so other pages link to the first Integrations page, [Connect Your Agent](/integrations/overview), instead of naming them. A page can still name the providers that one feature supports, for example which platforms can pull a workflow. The API reference can also list connection types with their request fields, as Add Agent does, because API users need the field names.
 - Headings are sentence case. Page titles in frontmatter are Title Case, because the sidebar shows them.
 - Capitalize product names: Bluejay AI, Bluejay as Code, Digital Human, Knowledge Base, Red Teaming, Metrics Lab, Self-Improve, and simulation type names. Generic nouns stay lowercase in running text: agent, simulation, custom metric, issue, alert, dashboard, conversation, trace, webhook, integration.
 - App UI labels are bold and keep the app's exact capitalization.
