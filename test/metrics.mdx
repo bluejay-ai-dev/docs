@@ -1,64 +1,201 @@
 ---
-title: "Metrics"
+title: "Create a Metric"
 description: "Grade conversations on your own rules."
-icon: gauge-high
-sidebarTitle: "Metrics"
+icon: gauge-circle-plus
+sidebarTitle: "Create a Metric"
 ---
 
 import { MetricExamples } from "/snippets/metric-examples.jsx";
-import MetricsShared from "/snippets/metrics-shared.mdx";
+import MetricsConditional from "/snippets/metrics-conditional.mdx";
 import MetricsReference from "/snippets/metrics-reference.mdx";
 
 If you are setting up custom metrics for production calls, see [Metrics](/monitor/metrics).
-
-<img className="block dark:hidden" src="/images/metrics-page.png" alt="The Metrics page with custom metrics grouped by category, each showing its summary and how many agents it runs on" />
-<img className="hidden dark:block" src="/images/metrics-page-dark.png" alt="The Metrics page with custom metrics grouped by category, each showing its summary and how many agents it runs on" />
 
 <MetricExamples />
 
 ## Set up a metric
 
-On the **Metrics** page, click **Create**, then **Create automatically**. Review the drafts and save the ones you want.
+<Tabs>
+  <Tab title="Manual">
+<Steps>
+  <Step title="Open the form">
+    On the **Metrics** page, click **Create**, then **Create manually**.
 
-For a hand-written metric, choose **Create manually** and use the [prompting guide](#prompting-guide).
+    <img className="block dark:hidden" src="/images/metrics-page.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+    <img className="hidden dark:block" src="/images/metrics-page-dark.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+  </Step>
+  <Step title="Write the rule">
+    Choose a [metric type](#metric-types). For LLM as a Judge, pick the response type and write the prompt with the [prompting guide](/test/metrics/llm-as-a-judge#prompting-guide).
 
-<img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
-<img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+    <img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+    <img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+  </Step>
+  <Step title="Choose where it runs">
+    Select the agents to grade. **Runs on** decides whether the metric grades simulations, production conversations, or both. To grade only some conversations, [add metric conditions](#add-metric-conditions). Then click **Create**.
+  </Step>
+  <Step title="Run it in simulations">
+    New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in the simulation's **Custom Metrics** tab.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="Automatic">
+<Steps>
+  <Step title="Open the generator">
+    On the **Metrics** page, click **Create**, then **Create automatically**.
 
-New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in its **Custom Metrics** tab.
+    <img className="block dark:hidden" src="/images/metrics-page.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+    <img className="hidden dark:block" src="/images/metrics-page-dark.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+  </Step>
+  <Step title="Pick the agent">
+    Bluejay reads the agent's context, such as its system prompt, to write the drafts. It writes 1 to 10 metrics at a time. To steer them, open **Generation instructions (optional)**, for example "Focus on compliance and escalation."
 
-<MetricsShared />
+    <img className="block dark:hidden" src="/images/metric-autogenerate-dialog.png" alt="The Auto-generate Metrics dialog with an agent selected, the number of metrics, and the optional generation instructions" />
+    <img className="hidden dark:block" src="/images/metric-autogenerate-dialog-dark.png" alt="The Auto-generate Metrics dialog with an agent selected, the number of metrics, and the optional generation instructions" />
+  </Step>
+  <Step title="Review and save">
+    Click **Generate**, review the drafts, and save the ones you want.
+  </Step>
+  <Step title="Run it in simulations">
+    New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in the simulation's **Custom Metrics** tab.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="Library">
+The metrics library holds metrics tuned for your best use case.
+
+<Steps>
+  <Step title="Open the library">
+    On the **Metrics** page, open the **Library** tab.
+
+    <img className="block dark:hidden" src="/images/metrics-library.png" alt="The Library tab on the Metrics page with ready-made metrics grouped by category, each with an Add button" />
+    <img className="hidden dark:block" src="/images/metrics-library-dark.png" alt="The Library tab on the Metrics page with ready-made metrics grouped by category, each with an Add button" />
+  </Step>
+  <Step title="Add a metric">
+    Click a metric to read its prompt and settings, then click **Add**. Bluejay adds it to all of your agents.
+  </Step>
+  <Step title="Run it in simulations">
+    New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in the simulation's **Custom Metrics** tab.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="API">
+<Steps>
+  <Step title="Get an API key">
+    Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
+  </Step>
+  <Step title="Send the metric">
+    Send it to [`POST /v1/create-metric`](/api-reference/endpoint/create-custom-metric). Use `agent_ids` to choose the agents it grades.
+
+    ```bash
+    curl https://api.getbluejay.ai/v1/create-metric \
+      -H "X-API-Key: $BLUEJAY_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "DOB Verified Before PHI",
+        "prompt": "The agent verifies the caller'"'"'s date of birth before it discusses patient information.",
+        "metric_type": "llm_judge",
+        "response_type": "pass_fail",
+        "scope": "simulations",
+        "agent_ids": [123]
+      }'
+    ```
+  </Step>
+  <Step title="Run it in simulations">
+    New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in the simulation's **Custom Metrics** tab.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="Bluejay as Code">
+<Steps>
+  <Step title="Get an API key">
+    Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
+  </Step>
+  <Step title="Pull the agent">
+    [Pull](/bluejay-as-code/overview#pull-the-payload) the agent's payload. It includes the custom metrics linked to the agent.
+  </Step>
+  <Step title="Add the metric">
+    Add an item to `custom_metrics` with a new `bluejay_as_code_id`, and add that ID to the agent's `custom_metrics` list.
+
+    ```yaml
+    agents:
+    - bluejay_as_code_id: f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33
+      custom_metrics:
+      - 2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44
+    custom_metrics:
+    - bluejay_as_code_id: 2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44
+      name: DOB Verified Before PHI
+      prompt: The agent verifies the caller's date of birth before it discusses patient information.
+      metric_type: llm_judge
+      response_type: pass_fail
+      scope: simulations
+    ```
+  </Step>
+  <Step title="Push the file">
+    [Push](/bluejay-as-code/overview#push-the-payload) the file, and check that `valid` is `true` in the response.
+  </Step>
+  <Step title="Run it in simulations">
+    New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in the simulation's **Custom Metrics** tab.
+  </Step>
+</Steps>
+  </Tab>
+</Tabs>
+
+## Metric types
+
+| Type | How it scores |
+|---|---|
+| [LLM as a Judge](/test/metrics/llm-as-a-judge) | An LLM scores the conversation against your prompt. |
+| [Phrase Match](/test/metrics/deterministic) | Checks whether specific words were said. |
+| [Tool Call](/test/metrics/deterministic) | Passes when the agent called the tools you name. |
+| [Transfer Landed](/test/metrics/deterministic) | Passes when the Digital Human you choose answers the transfer in time. |
+| [Composite](/test/metrics/composite) | Combines the results of other metrics into one score or label. |
+
+## Add metric conditions
+
+<MetricsConditional />
 
 ## Tool calls, events, and metadata
 
-A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](#dynamic-variables).
+If a metric grades something the transcript does not show, such as which tools your agent called, send that data to Bluejay after each simulated call. Check your connection's [integration page](/integrations/phone-number) first, because some integrations send tool calls for you.
+
+You can send:
+
+- **Tool calls**: the tools your agent called, with their inputs and outputs. A [Tool Call](/test/metrics/deterministic#tool-call) metric needs them.
+- **Events**: moments in the conversation, such as an escalation or a hold.
+- **Metadata**: a JSON object about the whole conversation, such as the customer's name. Each key fills a [dynamic variable](/test/metrics/llm-as-a-judge#dynamic-variables) in a metric prompt.
 
 ### Send tool calls
 
-Bluejay sends an `X-Simulation-Result-Id` with each simulated call, and the [integration page](/integrations/phone-number) for your connection says where it arrives. Have your agent read the ID, record its tool calls during the call, and send them with the ID after the call ends.
+<Steps>
+  <Step title="Read the result ID">
+    Bluejay sends an `X-Simulation-Result-Id` with each simulated call, and the integration page for your connection says where it arrives. Have your agent read it.
 
-If your agent cannot read the ID, leave out `simulation_result_id` and send `start_time`, `end_time`, and `duration` so Bluejay can find the call.
+    If your agent cannot read the ID, leave out `simulation_result_id` and send `start_time`, `end_time`, and `duration`, so Bluejay can find the call.
+  </Step>
+  <Step title="Record the data">
+    During the call, have your agent record its tool calls, and any events and metadata you want to grade.
+  </Step>
+  <Step title="Send it after the call">
+    After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
 
-After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
-
-```json
-{
-  "simulation_result_id": "1234",
-  "tool_calls": [
+    ```json
     {
-      "name": "transfer_funds",
-      "parameters": { "from": "12345", "to": "67890", "amount": 500 },
-      "output": { "transaction_id": "txn_abc123", "status": "completed" },
-      "start_offset_ms": 120000
+      "simulation_result_id": "1234",
+      "tool_calls": [
+        {
+          "name": "transfer_funds",
+          "parameters": { "from": "12345", "to": "67890", "amount": 500 },
+          "output": { "transaction_id": "txn_abc123", "status": "completed" },
+          "start_offset_ms": 120000
+        }
+      ],
+      "events": [
+        { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
+      ],
+      "metadata": { "resolution_status": "resolved" }
     }
-  ],
-  "events": [
-    { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
-  ],
-  "metadata": { "resolution_status": "resolved" }
-}
-```
-
-Check your platform's integration page first: some integrations collect tool calls without this API call.
+    ```
+  </Step>
+</Steps>
 
 <MetricsReference />
