@@ -1,14 +1,6 @@
 import { Code } from "/snippets/code.jsx";
 
-## Metric types
-
-| Type | How it scores |
-|---|---|
-| LLM as a Judge | An LLM scores the conversation against your prompt. |
-| Composite | Combines the results of other metrics into one score or label. |
-| Tool Call | Passes when the agent called the tools you name. |
-| Phrase Match | Checks whether specific words were said. |
-| Transfer Landed | Passes when the Digital Human you choose answers the transfer within a time limit counted from the start of the call. The default is 180 seconds and the maximum is 900. |
+Use an LLM as a Judge metric to grade a conversation on a rule that you write in plain language.
 
 ## Response types
 
@@ -117,7 +109,7 @@ An LLM as a Judge metric sends your prompt and the conversation to the judge, th
   </Tab>
 </Tabs>
 
-### Dynamic variables
+## Dynamic variables
 
 To put a call-specific value into a metric, such as the customer's name, use a dynamic variable. Write `{{key}}` in the metric's **Prompt**. Before the judge runs, Bluejay replaces each `{{key}}` with the value of `key` in the conversation `metadata`.
 
@@ -128,33 +120,10 @@ metadata:  { "customer_name": "Sarah", "account_last_four": "4821" }
 Judge sees: Did the agent confirm the account ending in 4821 for Sarah?
 ```
 
-Each top-level key in the conversation `metadata` is a variable. If you send conversation data through the API, put the keys in the request's `metadata` object, as in the [example request](#send-tool-calls). If a voice platform sends your calls to Bluejay, the integration page for that platform says if its call metadata is included.
+Each top-level key in the conversation `metadata` is a variable. If you send conversation data through the API, put the keys in the request's `metadata` object, as in the example request on the Overview page. If a voice platform sends your calls to Bluejay, the integration page for that platform says if its call metadata is included.
 
 A key can contain only letters, digits, and underscores, and is case-sensitive, so `{{customer name}}` and `{{order.id}}` stay as written.
 
 <Warning>
 If a key is missing, the judge sees `undefined` in the prompt and can give a wrong verdict. Make sure each key in the prompt is in the `metadata` of every conversation that the metric evaluates.
 </Warning>
-
-## Composite metrics
-
-Use a composite metric to roll several metrics into one score or label. For example, combine a clarity score and a Pass/Fail check into one Scheduling Quality score. A composite metric reads results that the other metrics already produced, so it makes no LLM call.
-
-Set **Output** to one of these:
-
-- **Numerical**: write a formula over the metrics.
-- **Categorical**: add an option for each label, with the conditions that select it.
-
-In YAML, see the [composite metric example](/bluejay-as-code/cookbook#composite-metrics).
-
-## Conditional metrics
-
-Use a conditional metric when a rule applies only to some conversations. For example, check the refund policy wording only when the agent called the refund tool. On other conversations, the metric does not run and has no result. A condition can check that:
-
-- The conversation reached a node of the agent [workflow](/test/simulations/reference#workflow). You pick the node from the workflow, so the metric must grade one agent. In YAML, find node IDs with [Get Workflow Summary](/api-reference/endpoint/get-workflow-summary).
-- The agent called a given tool.
-- Another metric has a given result, for example Fail.
-
-In YAML, see the [conditional metric example](/bluejay-as-code/cookbook#conditional-metrics).
-
-A composite or conditional metric can read only metrics that always run.

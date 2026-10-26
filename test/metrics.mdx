@@ -2,11 +2,10 @@
 title: "Metrics"
 description: "Grade conversations on your own rules."
 icon: gauge-high
-sidebarTitle: "Metrics"
+sidebarTitle: "Overview"
 ---
 
 import { MetricExamples } from "/snippets/metric-examples.jsx";
-import MetricsShared from "/snippets/metrics-shared.mdx";
 import MetricsReference from "/snippets/metrics-reference.mdx";
 
 If you are setting up custom metrics for production calls, see [Metrics](/monitor/metrics).
@@ -20,18 +19,28 @@ If you are setting up custom metrics for production calls, see [Metrics](/monito
 
 On the **Metrics** page, click **Create**, then **Create automatically**. Review the drafts and save the ones you want.
 
-For a hand-written metric, choose **Create manually** and use the [prompting guide](#prompting-guide).
+For a hand-written metric, choose **Create manually** and use the [prompting guide](/test/metrics/llm-as-a-judge#prompting-guide).
 
 <img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
 <img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
 
 New simulations run all of their agent's metrics. For an existing simulation, turn the metric on in its **Custom Metrics** tab.
 
-<MetricsShared />
+## Metric types
+
+| Type | How it scores |
+|---|---|
+| [LLM as a Judge](/test/metrics/llm-as-a-judge) | An LLM scores the conversation against your prompt. |
+| [Composite](/test/metrics/composite) | Combines the results of other metrics into one score or label. |
+| [Tool Call](/test/metrics/rule-based) | Passes when the agent called the tools you name. |
+| [Phrase Match](/test/metrics/rule-based) | Checks whether specific words were said. |
+| [Transfer Landed](/test/metrics/rule-based) | Passes when the Digital Human you choose answers the transfer in time. |
+
+To run a metric on only some conversations, make it [conditional](/test/metrics/conditional).
 
 ## Tool calls, events, and metadata
 
-A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](#dynamic-variables).
+A transcript does not show which tools your agent called. To grade tool calls, send them to Bluejay with the conversation. You can send events and metadata in the same way. `metadata` is a free-form JSON object for the whole conversation, and its keys fill a metric's [dynamic variables](/test/metrics/llm-as-a-judge#dynamic-variables).
 
 ### Send tool calls
 
