@@ -156,7 +156,9 @@ The metrics library holds metrics tuned for your best use case.
 
 ## Tool calls, events, and metadata
 
-Send tool calls, events, and metadata with each conversation, so metrics can grade what the transcript does not show:
+If a metric grades something the transcript does not show, such as which tools your agent called, send that data to Bluejay after each simulated call. Check your connection's [integration page](/integrations/phone-number) first, because some integrations send tool calls for you.
+
+You can send:
 
 - **Tool calls**: the tools your agent called, with their inputs and outputs. A [Tool Call](/test/metrics/deterministic#tool-call) metric needs them.
 - **Events**: moments in the conversation, such as an escalation or a hold.
@@ -164,30 +166,36 @@ Send tool calls, events, and metadata with each conversation, so metrics can gra
 
 ### Send tool calls
 
-Bluejay sends an `X-Simulation-Result-Id` with each simulated call, and the [integration page](/integrations/phone-number) for your connection says where it arrives. Have your agent read the ID, record its tool calls during the call, and send them with the ID after the call ends.
+<Steps>
+  <Step title="Read the result ID">
+    Bluejay sends an `X-Simulation-Result-Id` with each simulated call, and the integration page for your connection says where it arrives. Have your agent read it.
 
-If your agent cannot read the ID, leave out `simulation_result_id` and send `start_time`, `end_time`, and `duration` so Bluejay can find the call.
+    If your agent cannot read the ID, leave out `simulation_result_id` and send `start_time`, `end_time`, and `duration`, so Bluejay can find the call.
+  </Step>
+  <Step title="Record the data">
+    During the call, have your agent record its tool calls, and any events and metadata you want to grade.
+  </Step>
+  <Step title="Send it after the call">
+    After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
 
-After the call ends, send the data to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result):
-
-```json
-{
-  "simulation_result_id": "1234",
-  "tool_calls": [
+    ```json
     {
-      "name": "transfer_funds",
-      "parameters": { "from": "12345", "to": "67890", "amount": 500 },
-      "output": { "transaction_id": "txn_abc123", "status": "completed" },
-      "start_offset_ms": 120000
+      "simulation_result_id": "1234",
+      "tool_calls": [
+        {
+          "name": "transfer_funds",
+          "parameters": { "from": "12345", "to": "67890", "amount": 500 },
+          "output": { "transaction_id": "txn_abc123", "status": "completed" },
+          "start_offset_ms": 120000
+        }
+      ],
+      "events": [
+        { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
+      ],
+      "metadata": { "resolution_status": "resolved" }
     }
-  ],
-  "events": [
-    { "title": "Customer verified", "start_offset_ms": 30000, "tags": ["verification"] }
-  ],
-  "metadata": { "resolution_status": "resolved" }
-}
-```
-
-Check your platform's integration page first: some integrations collect tool calls without this API call.
+    ```
+  </Step>
+</Steps>
 
 <MetricsReference />
