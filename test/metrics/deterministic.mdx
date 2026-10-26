@@ -1,6 +1,6 @@
 ---
 title: "Deterministic Metrics"
-description: "Check tool calls, phrases, and transfers."
+description: "Check tool calls, traces, phrases, and transfers."
 icon: list-check
 sidebarTitle: "Deterministic"
 ---
@@ -29,6 +29,18 @@ Passes when the agent called every tool you list.
 
 - Under **Tool name(s)**, add each tool by the name your agent sends in `tool_calls`.
 - A transcript does not show tool calls, so send them to Bluejay with the conversation, as in [Tool calls, events, and metadata](/test/metrics#tool-calls-events-and-metadata).
+
+## Trace
+
+Passes when the OpenTelemetry trace linked to the conversation contains every span you list, or, with the condition set to **does not contain**, none of them.
+
+- Set **Condition** to **Trace contains all of these spans** or **Trace does not contain any of these spans**.
+- Under **Span name(s)**, add each span by its name. Names seen in your organization's recent traces appear as you type, and matching ignores case.
+- The result's reasoning lists the spans that matched or were missing, and the spans the trace holds.
+- A conversation with no linked trace fails. Turn on **Allow "Not Applicable"** to get Not Applicable instead.
+- A transcript does not show spans, so link the trace to the conversation, as in [Traces](/test/traces).
+
+Through the API, send `metric_type` `trace_span` with `settings.span_names` (an array) and `settings.condition` (`contains`, the default, or `does_not_contain`) to [Create Custom Metric](/api-reference/endpoint/create-custom-metric).
 
 ## Transfer Landed
 
