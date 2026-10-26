@@ -1,72 +1,127 @@
 ---
-title: 'Generate Digital Humans'
-description: "Given an agent this endpoint generates Digital Humans to test that agent based on varying simulation types."
-openapi: 'POST /v1/generate-digital-humans'
+title: "POST /v1/generate-digital-humans"
+description: "Generate Digital Humans from an agent prompt."
+sidebarTitle: "/\u200bv1/\u200bgenerate-digital-humans"
+api: "POST https://api.getbluejay.ai/v1/generate-digital-humans"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Generate Digital Humans — POST /v1/generate-digital-humans
+Generates Digital Humans for an agent and links them to the simulation. To generate from a graph, see [Create Scenario](/api-reference/endpoint/create-scenario).
 
-> **What this endpoint does:** Given an agent this endpoint generates Digital Humans to test that agent based on varying simulation types.
+This request does not accept `allow_silence_tool` or `silence_tool_instructions`. To set them, use [Update Digital Human](/api-reference/endpoint/update-digital-human).
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/generate-digital-humans`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+`success_criteria` in the response is one string with a bullet per line.
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| agent_id | string | ID of the agent to be used to generate the Digital Humans |
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/generate-digital-humans and include any optional parameters (e.g., `simulation_id`, `agent_version_id` (or the deprecated alias `prompt_id`), `knowledge_base_id`, `goal_adherence`, `workflow_adherence`, `workflow_adherence_v2`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Headers
 
-### Request Body (required fields)
-```json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": "ID of the agent to be used to generate the digital humans"}, {"name": "simulation_id", "type": "string or null", "required": false, "description": "Optionally attach the digital humans to a simulation"}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Deprecated. Use agent_version_id. Same uuid, still works."}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": "Agent version UUID to generate from (defaults to latest)"}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": "Knowledge base UUID associated with the simulation"}, {"name": "goal_adherence", "type": "object[] or null", "required": false, "description": "List of goal adherence scenarios", "children": [{"name": "goal", "type": "string", "required": true, "description": "Description of the goal"}, {"name": "num_calls", "type": "integer", "required": true, "description": "Number of calls that adhered to the goal"}]}, {"name": "workflow_adherence", "type": "object or null", "required": false, "description": "Dictionary of workflow IDs and their counts", "children": [{"name": "{key}", "type": "integer", "required": false, "description": "Any key.", "children": []}]}, {"name": "workflow_adherence_v2", "type": "object or null", "required": false, "description": "Dictionary of workflow_v2 IDs and their counts (uses new graph definition format)", "children": [{"name": "{key}", "type": "integer", "required": false, "description": "Any key.", "children": []}]}, {"name": "replay_transcript", "type": "object[] or null", "required": false, "description": "List of transcript replays to generate digital humans from"}, {"name": "customer_personas", "type": "object[] or null", "required": false, "description": "List of customer personas to be used in the simulation", "children": [{"name": "name", "type": "string", "required": true, "description": "Name of the customer persona"}, {"name": "description", "type": "string", "required": true, "description": "Description of the customer persona"}, {"name": "goal", "type": "string", "required": true, "description": "What this persona is calling to accomplish, in one or two sentences. Caller-side only; do not describe what the agent should do."}, {"name": "num_calls", "type": "integer", "required": true, "description": "Number of calls that matched the customer persona"}]}, {"name": "system_prompt", "type": "integer or null", "required": false, "description": "Number of digital humans to generate from the agent version's locked system-prompt rules. Each rule is tested from both sides, so this is two per rule and must be even: one caller the agent must help, one it must push back on. A lower number covers fewer rules rather than half-testing every rule.", "default": 0}, {"name": "load_testing", "type": "integer or null", "required": false, "description": "Number of load testing calls", "default": 0}, {"name": "red_teaming", "type": "integer or null", "required": false, "description": "Number of red teaming calls", "default": 0}, {"name": "red_team_attacks", "type": "object or null", "required": false, "description": "Red-team attack matrix (intent x vector x available information). When set, supersedes the legacy red_teaming int. Persisted onto test_cases: free-text intent → intent_summary, attack_vector → attack_vector column, available information → customer_trait_values rows with completeness.", "children": [{"name": "batches", "type": "object[]", "required": false, "description": "", "children": [{"name": "intent", "type": "string", "required": true, "description": "Free-text attacker goal (e.g. 'force a credential reset without proper auth'). Persisted to test_cases.intent_summary - the same column goal-adherence DHs use. FE may seed from preset templates but value is editable."}, {"name": "vector_id", "type": "string", "required": true, "description": "Attack tactic - key in VECTOR_CATALOG. Catalog-bound (not editable). Drives attack_type derivation."}, {"name": "traits", "type": "object[]", "required": false, "description": "Free-form customer traits the attacker possesses; missing fields = attacker doesn't have them.", "children": [{"name": "name", "type": "string", "required": true, "description": "Free-form trait label, e.g. 'SSN', 'Date of Birth'."}, {"name": "data_type", "type": "string", "required": true, "description": "Data type of the trait value.", "values": ["string", "number", "boolean", "date"]}, {"name": "value", "type": "any or null", "required": false, "description": "Concrete value. '__random__' = LLM fabricates full value. '__partial_random__' = BE applies name-based heuristic and stamps completeness."}, {"name": "completeness", "type": "string or null", "required": false, "description": "e.g. 'last_4', 'year_only', 'full'. May be stamped by partial-autogen heuristic server-side."}]}, {"name": "count", "type": "integer", "required": true, "description": "Number of scenarios to generate for this batch."}, {"name": "custom_success_criteria", "type": "string or null", "required": false, "description": "Override the LLM-generated success criteria."}]}]}, {"name": "traits", "type": "object[] or null", "required": false, "description": "Case facts applied to EVERY generated digital human , the fixtures the whole batch shares (e.g. a test account number). Per-caller facts belong on the individual digital human, and neither place takes internal or agent-side information: a trait is always something a real caller could recite.", "children": [{"name": "trait_name", "type": "string", "required": true, "description": "Name of the fact, as the agent would ask for it: 'member_id', 'date_of_birth', 'order_number'. Traits are org-level, so reuse the existing name across the suite rather than coining a variant. A trait is always something the CALLER knows and can say out loud , never internal or agent-side information (CRM contents, what the agent should look up or say, grader notes)."}, {"name": "trait_data_type", "type": "string", "required": true, "description": "BOOLEAN, STRING, DATE (ISO 8601 string) or NUMBER. Must match `value`, which is coerced to this type.", "values": ["BOOLEAN", "STRING", "DATE", "NUMBER"]}, {"name": "value", "type": "object", "required": true, "description": "The concrete value this caller gives (stored as JSONB). Fixing it here is what makes the call repeatable , leave it out of `intent` prose, where the model would improvise a different one each run."}, {"name": "is_sip_header", "type": "boolean", "required": false, "description": "Send this trait as a SIP header on the call instead of as something the caller says. Leave false for ordinary case facts.", "default": false}]}, {"name": "num_runs", "type": "integer or null", "required": false, "description": "Number of runs per digital human per simulation run (run count).", "default": 1}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "digital_humans", "type": "any[]", "required": false, "description": "List of digital humans created for the simulation"}, {"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "200"}, {"name": "success", "type": "boolean", "required": false, "description": "Whether the generation succeeded", "default": true}, {"name": "test_scenarios", "type": "any[] or null", "required": false, "description": "Scenario view of created digital humans (includes original_transcript and formatted_transcript for transcript replays)"}, {"name": "warning", "type": "string or null", "required": false, "description": "Warning message if the request was modified (e.g. truncated due to exceeding the max limit)"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/generate-digital-humans \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": "<string>",
+    "simulation_id": "<string>",
+    "prompt_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "agent_version_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "knowledge_base_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "goal_adherence": [
+      {
+        "goal": "<string>",
+        "num_calls": 123
+      }
+    ],
+    "workflow_adherence": {
+      "key": 123
+    },
+    "workflow_adherence_v2": {
+      "key": 123
+    },
+    "replay_transcript": [
+      {
+        "transcript": "<string>",
+        "success_criteria": "<string>",
+        "mode": "strict"
+      }
+    ],
+    "customer_personas": [
+      {
+        "name": "<string>",
+        "description": "<string>",
+        "goal": "<string>",
+        "num_calls": 123
+      }
+    ],
+    "system_prompt": 0,
+    "load_testing": 0,
+    "red_teaming": 0,
+    "red_team_attacks": {
+      "batches": [
+        {
+          "intent": "<string>",
+          "vector_id": "<string>",
+          "traits": [
+            {
+              "name": null,
+              "data_type": "string",
+              "value": null,
+              "completeness": null
+            }
+          ],
+          "count": 123,
+          "custom_success_criteria": "<string>"
+        }
+      ]
+    },
+    "traits": [
+      {
+        "trait_name": "<string>",
+        "trait_data_type": "BOOLEAN",
+        "value": null,
+        "is_sip_header": false
+      }
+    ],
+    "num_runs": 1
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "agent_id": "string"
+  "digital_humans": [
+    null
+  ],
+  "status": "200",
+  "success": true,
+  "test_scenarios": [
+    null
+  ],
+  "warning": "<string>"
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/generate-digital-humans. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def generate_digital_humans(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/generate-digital-humans"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 400: Request or generation constraint violation; 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-Given the simulation ID and generation options, this endpoint creates Digital Humans from scenarios. Payload shape and validation rules (including scenario-based generation) are documented in the OpenAPI schema on this page. For graph-based paths, see [Create scenario](/api-reference/endpoint/create-scenario) and the [Scenario Builder cookbook](/cookbook/scenario-builder).
-
-<Note>
-`success_criteria` on this `/v1` response is a newline-joined **string**. Generate writes itemized bullets to the database. There is no public `/v2` generate route yet — do not expect an array from this endpoint. See [Success Criteria](/key-concepts/digital-humans/success-criteria).
-</Note>
-
-The generate request does not accept `allow_silence_tool` or `silence_tool_instructions`; those are set when you create or update a Digital Human explicitly. Generated or returned `digital_human` objects in responses may still include those fields at model defaults (`allow_silence_tool` false, `silence_tool_instructions` `"default"`). Whether the silence tool runs in voice simulations is determined by the execution layer that reads stored test-case data, not by this API alone.
+{/* END GENERATED */}

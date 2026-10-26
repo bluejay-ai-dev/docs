@@ -1,68 +1,74 @@
 ---
-title: 'Queue SMS Simulation Run'
-description: ''
-openapi: 'POST /v1/queue-sms-simulation-run'
+title: "POST /v1/queue-sms-simulation-run"
+description: "Run an SMS simulation."
+sidebarTitle: "/\u200bv1/\u200bqueue-sms-simulation-run"
+api: "POST https://api.getbluejay.ai/v1/queue-sms-simulation-run"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Queue SMS Simulation Run — POST /v1/queue-sms-simulation-run
+Queues an SMS run of a simulation.
 
-**Endpoint:** POST `https://api.getbluejay.ai/v1/queue-sms-simulation-run`
-**Auth:** `X-API-Key` header
-**Content-Type:** application/json
+- If `terminate_overlapping_simulations` is `true`, Bluejay ends running conversations that use the same pair of phone numbers.
+- `runs_per_digital_human` overrides the simulation setting for this run. The default is 1.
+- `prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
-| simulation_id | string | ID of the simulation to be run |
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-Review the full parameter list at https://docs.getbluejay.ai/api-reference/endpoint/queue-sms-simulation-run and include any optional parameters (e.g., `agent_version_id`, `knowledge_base_id`, `digital_human_ids`, `terminate_overlapping_simulations`) that serve your integration's use case and align with Bluejay's testing and monitoring capabilities.
+## Headers
 
-### Request Body (required fields)
-```json
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "simulation_id", "type": "string", "required": true, "description": "ID of the simulation to be run"}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Deprecated. Use agent_version_id. Same uuid, still works."}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": "Agent version UUID associated with this run"}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": "Knowledge base UUID associated with this run"}, {"name": "digital_human_ids", "type": "string[] or null", "required": false, "description": "Digital human IDs to be used in the simulation"}, {"name": "terminate_overlapping_simulations", "type": "boolean or null", "required": false, "description": "If true, all overlapping conversations with same pair of phone numbers will be ended", "default": false}, {"name": "runs_per_digital_human", "type": "integer or null", "required": false, "description": "Optional per-run override for how many conversations to spawn per selected digital human. Falls back to experiments.settings.runs_per_digital_human, then to 1."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulation_run_id", "type": "string", "required": true, "description": "ID of the created simulation run"}, {"name": "simulation_result_ids", "type": "string[]", "required": true, "description": "IDs of the created simulation results (test results)"}, {"name": "agent_id", "type": "string", "required": true, "description": "ID of the agent associated with the simulation run"}, {"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "success"}, {"name": "terminated_conversations", "type": "object[] or null", "required": false, "description": "List of conversations that were terminated due to overlapping phone numbers"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/queue-sms-simulation-run \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_id": "<string>",
+    "prompt_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "agent_version_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "knowledge_base_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "digital_human_ids": [
+      "<string>"
+    ],
+    "terminate_overlapping_simulations": false,
+    "runs_per_digital_human": 123
+  }'
+```
+
+## Example response
+
+```json 200
 {
-  "simulation_id": "string"
+  "simulation_run_id": "<string>",
+  "simulation_result_ids": [
+    "<string>"
+  ],
+  "agent_id": "<string>",
+  "status": "success",
+  "terminated_conversations": [
+    {}
+  ]
 }
 ```
 
-Refer to the full schema at https://docs.getbluejay.ai/api-reference/endpoint/queue-sms-simulation-run. Include optional fields that serve the goal of setting up for testing and monitoring on Bluejay.
-
-### Example
-**POST with body:**
-```python
-import requests
-
-def queue_sms_simulation_run(payload: dict, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/queue-sms-simulation-run"
-    headers = {"X-API-Key": api_key}
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
-```
-
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
-
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
-
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-<Note>
-  **New:** `agent_version_id`
-
-  **Deprecated:** `prompt_id`. Same uuid, still works. If both are sent and they differ, the request is 400.
-</Note>
+{/* END GENERATED */}

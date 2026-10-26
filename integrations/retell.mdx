@@ -1,80 +1,107 @@
 ---
-title: 'Retell Observability'
-description: 'Integrating Retell with Bluejay Observability'
+title: "Retell"
+description: "Test your Retell agents and score live calls."
 icon: '/logo/retell.svg'
+sidebarTitle: "Retell"
 ---
 
+import { Code } from "/snippets/code.jsx";
 
-This guide walks you through how to connect your Retell voice agents to Bluejay's observability software. Once connected, every Retell call streams into Bluejay so you can monitor live conversations, evaluate transcripts against your custom metrics, and trigger alerts in real time. You connect an agent to Retell from its Connection Settings tab.
+Connect your Retell account to bring your agents into Bluejay, edit their graphs here, and send each Retell call to Bluejay.
 
-<video controls className="w-full aspect-video rounded-xl" src="/videos/retell-walk-through.mp4"></video>
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/retell-walk-through.mp4"></video>
 
+## Connect
 
-### Prerequisites
+<Steps>
+<Step title="Save a webhook API key">
+In Retell, open **Settings > API Keys** and create an API key with the **Webhook** badge. Bluejay verifies webhook signatures with this key, so a key without the badge does not work. In Bluejay, open **Settings → Integrations** and choose the **Retell** tab. Paste the key there.
+</Step>
+<Step title="Sync the agents">
+Click **Sync Agents from Retell** to import every Retell voice agent. To keep Bluejay current when you change agents in Retell, turn on **Autosync from Retell**.
+</Step>
+<Step title="Send each call to Bluejay">
+In Retell, open each agent and click **Webhook Settings**. Set **Agent Level Webhook URL** to `https://api.getbluejay.ai/v1/integrations/retell`, keep the `call_analyzed` event on, then save and publish the agent.
 
-- A Retell API Key
-- Your Retell Agent ID
-- A Bluejay account
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/retell-sim-3.mp4"></video>
+</Step>
+</Steps>
 
-### 1. Configure Organization Settings
+To connect one agent by hand instead of syncing, give it the **Retell** connection type and set **Retell Agent ID**. To score its live calls, run Outbound tests, and use Self-Improve, also set **Voice AI Provider** to **Retell** and **Assistant ID** to the same ID in its **Observability Settings**.
 
-Open the Bluejay integrations area where your Retell API key will be stored.
+## Edit an agent
 
-1. Log into your **Bluejay Dashboard**.
-2. Click on **Settings** in the bottom left corner.
-3. Select the **Integrations** option.
+<Steps>
+<Step title="Pull the graph">
+On the synced agent's **Workflow** tab, pull the agent's graph from Retell.
+</Step>
+<Step title="Edit and push">
+Push your edits back to Retell. A push publishes a new version of the Retell agent, so callers hear your edits on their next call.
+</Step>
+</Steps>
 
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-bluejay-home.mp4"></video>
+## Test
 
-### 2. Adding Your Retell Key
+The agent type decides the path.
 
-Connect Bluejay to your Retell account so your agents sync over and call events start flowing in.
+<Tabs>
+<Tab title="Inbound">
 
-1. Select the **Retell** tab in the Integrations panel.
-2. Paste your Retell API key into the **API Key** field. The key must include the blue **Webhook** tag in Retell.
-3. Click **Save** to store the key.
-4. Click **Sync Agents from Retell** to import your Retell agents into Bluejay.
+Bluejay calls the agent through the Retell web-call bridge, so no phone number is necessary. Use this path to iterate on agent logic and tool calls.
 
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-integrations-tab.mp4"></video>
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/retell-sim-6.mp4"></video>
 
-### 3. Configuring Your Agent in Retell
+</Tab>
+<Tab title="Outbound">
 
-Point your Retell agent at Bluejay so every call delivers events to your account.
+Bluejay tells Retell to place the call from the agent's number to each Digital Human.
 
-1. In Retell, open your Agent's dashboard and click the **Webhook Settings** tab.
-2. Paste this webhook URL into the **Agent Level Webhook URL** field:
+<Steps>
+<Step title="Assign the agent to a number">
+In Retell, open **Phone Numbers**, select your number, and set **Outbound Call Agent** to your agent. Without it, the call fails, because Bluejay has no fallback number. A sync makes the agent Outbound only if no number has it as its **Inbound Call Agent**.
+</Step>
+<Step title="Give each Digital Human a phone number">
+Retell calls each Digital Human at its number.
+</Step>
+</Steps>
 
-```
-https://api.getbluejay.ai/v1/integrations/retell
-```
+</Tab>
+<Tab title="Phone">
 
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-api-key-sync.mp4"></video>
+Bluejay dials the Retell phone number like a real caller. Use this path to test carrier audio, DTMF, and the real number. Tool calls are not linked to the result.
 
-### 4. Configuring Your Agent in Bluejay
+Use an Inbound Voice agent with the [Phone connection type](/test/simulations/create#connect-your-agent) and the Retell number.
 
-Link a Bluejay agent to the Retell agent it should mirror.
+Each sync sets the connection type of a synced agent back to **Retell**. Use an agent that you did not sync, or set the connection type to **Phone** again after each sync.
 
-1. In Bluejay, open your Agent's **Settings** page.
-2. Open the **Connection Settings** tab.
-3. Choose the **Retell** tile under **Voice connection type**.
-4. Enter your Retell Agent ID in the **Retell Agent ID** field.
-5. Click **Save Changes**.
+</Tab>
+</Tabs>
 
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-connection-settings.mp4"></video>
+[Self-Improve](/improve/self-improve) supports agents that use the **Retell** connection type.
 
-### Quick Sync from the Plus Menu
+## Monitor
 
-For a faster path, you can sync your Retell agents directly from the quick add menu inside Bluejay.
+The webhook you set in [Connect](#connect) also sends each ended call to Bluejay. The call metadata that you set in Retell becomes conversation `metadata`, so custom metrics can use it as [dynamic variables](/monitor/metrics/llm-as-a-judge#dynamic-variables).
 
-1. Click the **+** button in the top left corner.
-2. Select **Retell**.
-3. Paste your Retell API key.
-4. Click **Save and Sync** to import your Retell agents into Bluejay.
+For an [uptime monitor](/monitor/uptime/overview) on an Outbound agent, Bluejay tells Retell to place each check call. You do not need an outbound trigger webhook.
 
-<video autoPlay muted loop playsInline className="w-full rounded-xl" src="/videos/retell-quick-sync.mp4"></video>
+## Troubleshooting
 
-### Up Next
+| What you see | What to do |
+|---|---|
+| Outbound call fails with <Code>UNUSABLE_CALLER_ID</Code> | In Retell, set the agent as the **Outbound Call Agent** of a number. |
+| Webhook returns 401 | Save a key with the **Webhook** badge, and check that a Bluejay agent has the Retell agent ID as its **Assistant ID**. |
+| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Retell returned `429`. Lower the max concurrency in Bluejay. |
+| Tool calls missing on a test | Save a Retell key, and set **Retell Agent ID** on the agent. |
+| Tool calls missing on a live call | Set the agent webhook in Retell, and check that a Bluejay agent has the Retell agent ID as its **Assistant ID**. |
+| **No Connection** with <Code>RETELL_AUTH_FAILED</Code>, <Code>MISSING_RETELL_INTEGRATION</Code>, or <Code>MISSING_RETELL_AGENT_ID</Code> | Save a valid key, or set **Retell Agent ID** on the agent. |
+| **No Connection** with <Code>RETELL_BRIDGE_CONNECT_FAILED</Code> or <Code>RETELL_SESSION_SETUP_FAILED</Code> | Retell rejected the call, or the connection did not open. Run the call again. |
+| **Call Dropped** with <Code>RETELL_AGENT_ERROR</Code>, <Code>RETELL_AGENT_START_FAILED</Code>, or <Code>RETELL_MONITORING_ERROR</Code> | The call failed after it connected. Run the call again, and check your Retell call logs. |
+| Older call fails with **System Error** and <Code>SIP_TRUNK_RECYCLED</Code> | Concurrent outbound runs use the same Digital Human number. Give each run different numbers. |
 
-<Card title="Retell Simulations" icon="flask-vial" href="/simulation-integrations/retell">
-  Run Bluejay simulations against your Retell agents.
-</Card>
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [Agents](/test/simulations/create#connect-your-agent)
+- [Logs](/monitor/logs)

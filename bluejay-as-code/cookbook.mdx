@@ -1,0 +1,504 @@
+---
+title: "Bluejay as Code Cookbook"
+icon: book
+sidebarTitle: "Cookbook"
+---
+
+<Warning>
+[JSON will be deprecated](/bluejay-as-code/overview#move-from-json-to-yaml) on November 20th, 2026.
+</Warning>
+
+Each example below is one item of a list in your payload file, shown under the name of its list so you can paste it in place. For the full field lists, see [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), [update-simulation](/api-reference/endpoint/update-simulation), and [create-custom-metric](/api-reference/endpoint/create-custom-metric).
+
+## Renamed fields
+
+A few fields have a different name in the payload than in the [API](/api-reference/introduction):
+
+| Payload field | API field | Entity |
+|---|---|---|
+| `description` | `intent` | Digital Human |
+| `human_name` | `name` | Digital Human |
+| `temperature` | `creativity` | Digital Human |
+| `description` | `prompt` | Custom metric (old files only) |
+
+When you push a Digital Human, you can also set its voice in one field, in the form `language_accent_gender`, for example `accent: en_american_masculine`. Bluejay splits it into `language`, `accent`, and `gender`, and a pull always returns those three fields.
+
+## Digital Human types
+
+The `tag` field sets the type of a Digital Human, except for a Customer Journey, which uses `journey_steps` instead. To keep the examples short, they leave out `simulations`.
+
+<AccordionGroup>
+  <Accordion title="Base">
+    <CodeGroup>
+    ```yaml YAML
+    digital_humans:
+    - bluejay_as_code_id: a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44
+      human_name: Maria Alvarez
+      description: New patient booking her first physical with Dr. Patel.
+      success_criteria: Agent books a Tuesday or Thursday morning slot with Dr. Patel.
+    ```
+
+    ```json JSON (deprecated)
+    {
+      "digital_humans": [
+        {
+          "bluejay_as_code_id": "a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44",
+          "human_name": "Maria Alvarez",
+          "description": "New patient booking her first physical with Dr. Patel.",
+          "success_criteria": "Agent books a Tuesday or Thursday morning slot with Dr. Patel."
+        }
+      ]
+    }
+    ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Voicemail">
+    To write the greeting yourself, set `tag` to `voicemail-custom` and put the greeting in `message`, as in the example. To have Bluejay generate the greeting, set `tag` to `voicemail-ai-generated`, set `speaks_first_config.mode` to `ai_generated`, and leave out `message`. A voicemail Digital Human needs no `description` or `success_criteria`.
+
+    <CodeGroup>
+    ```yaml YAML
+    digital_humans:
+    - bluejay_as_code_id: 9b3c7d5e-2a41-4a0f-8c6b-3e2d1f9a7c50
+      human_name: Voicemail Line
+      tag: voicemail-custom
+      speaks_first_config:
+        speaks_first: true
+        mode: custom
+        message: Hi, you have reached Maria. Leave a message after the tone.
+    ```
+
+    ```json JSON (deprecated)
+    {
+      "digital_humans": [
+        {
+          "bluejay_as_code_id": "9b3c7d5e-2a41-4a0f-8c6b-3e2d1f9a7c50",
+          "human_name": "Voicemail Line",
+          "tag": "voicemail-custom",
+          "speaks_first_config": {
+            "speaks_first": true,
+            "mode": "custom",
+            "message": "Hi, you have reached Maria. Leave a message after the tone."
+          }
+        }
+      ]
+    }
+    ```
+    </CodeGroup>
+
+    <Note>
+      If `tag` has more than one label, put the voicemail label first, because Bluejay checks only the first label.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Transcript replay">
+    To replay a real call, use `formatted_transcript` in place of `description` and `success_criteria`. If you have the call only as raw text, put it in `original_transcript` instead, and Bluejay uses an LLM to split it into turns.
+
+    <CodeGroup>
+    ```yaml YAML
+    digital_humans:
+    - bluejay_as_code_id: 6f1a9c3e-7b2d-4e11-9a5f-3c8d2b1e6a90
+      human_name: Replayed Caller
+      formatted_transcript:
+      - role: USER
+        utterance: Hi, I need to reschedule my appointment.
+      - role: AGENT
+        utterance: Sure, what day works better for you?
+    ```
+
+    ```json JSON (deprecated)
+    {
+      "digital_humans": [
+        {
+          "bluejay_as_code_id": "6f1a9c3e-7b2d-4e11-9a5f-3c8d2b1e6a90",
+          "human_name": "Replayed Caller",
+          "formatted_transcript": [
+            {
+              "role": "USER",
+              "utterance": "Hi, I need to reschedule my appointment."
+            },
+            {
+              "role": "AGENT",
+              "utterance": "Sure, what day works better for you?"
+            }
+          ]
+        }
+      ]
+    }
+    ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Customer Journey">
+    Each step becomes one call, and Bluejay makes the calls in step order. To learn how journeys work, see [Customer Journeys](/test/simulation-types/customer-journeys).
+
+    <CodeGroup>
+    ```yaml YAML
+    digital_humans:
+    - bluejay_as_code_id: d4f8a2c1-6b3e-4a09-8f27-1c5e9b0d3a76
+      human_name: Returning Caller
+      journey_steps:
+      - step: 1
+        intent: Book a Tuesday morning physical with Dr. Patel
+        success_criteria: Appointment booked and confirmation number read back
+      - step: 2
+        intent: Call back to cancel the appointment
+        success_criteria: Appointment cancelled
+    ```
+
+    ```json JSON (deprecated)
+    {
+      "digital_humans": [
+        {
+          "bluejay_as_code_id": "d4f8a2c1-6b3e-4a09-8f27-1c5e9b0d3a76",
+          "human_name": "Returning Caller",
+          "journey_steps": [
+            {
+              "step": 1,
+              "intent": "Book a Tuesday morning physical with Dr. Patel",
+              "success_criteria": "Appointment booked and confirmation number read back"
+            },
+            {
+              "step": 2,
+              "intent": "Call back to cancel the appointment",
+              "success_criteria": "Appointment cancelled"
+            }
+          ]
+        }
+      ]
+    }
+    ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Scenario Builder">
+    [Scenario Builder](/test/simulation-types/scenario-adherence) generates Digital Humans with the `Scenario` tag, `workflow_v2_id`, `workflow_path_index`, and `enriched_playback`. Do not write `enriched_playback` by hand, because it does not stay in sync with the scenario graph.
+  </Accordion>
+
+  <Accordion title="Red Teaming">
+    [Red Teaming](/test/red-teaming/overview) generates Digital Humans with `attack_vector`, `attack_type`, and `attack_plan`. Start these from a [Red Teaming run](/test/red-teaming/overview#launch-a-run), not from Bluejay as Code.
+  </Accordion>
+</AccordionGroup>
+
+## Agents
+
+<CodeGroup>
+```yaml YAML
+agents:
+- bluejay_as_code_id: f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33
+  name: Front Desk Scheduler
+  system_prompt: You are the front desk scheduling agent for Cedar Park Family Medicine.
+  type: INBOUND
+  goals:
+  - Verify caller identity
+  - Book, reschedule, or cancel the appointment
+```
+
+```json JSON (deprecated)
+{
+  "agents": [
+    {
+      "bluejay_as_code_id": "f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33",
+      "name": "Front Desk Scheduler",
+      "system_prompt": "You are the front desk scheduling agent for Cedar Park Family Medicine.",
+      "type": "INBOUND",
+      "goals": [
+        "Verify caller identity",
+        "Book, reschedule, or cancel the appointment"
+      ]
+    }
+  ]
+}
+```
+</CodeGroup>
+
+## Simulations
+
+<CodeGroup>
+```yaml YAML
+simulations:
+- bluejay_as_code_id: b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09
+  name: Scheduling Coverage
+  max_concurrent: 5
+  max_call_duration: 10
+  max_call_duration_units: minutes
+  hangup_on_transfer: true
+```
+
+```json JSON (deprecated)
+{
+  "simulations": [
+    {
+      "bluejay_as_code_id": "b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09",
+      "name": "Scheduling Coverage",
+      "max_concurrent": 5,
+      "max_call_duration": 10,
+      "max_call_duration_units": "minutes",
+      "hangup_on_transfer": true
+    }
+  ]
+}
+```
+</CodeGroup>
+
+Push cannot move an existing simulation to a different agent.
+
+## Custom metrics
+
+<CodeGroup>
+```yaml YAML
+custom_metrics:
+- bluejay_as_code_id: 2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44
+  name: DOB Verified Before PHI
+  prompt: The agent verifies the caller's date of birth before it discusses patient information.
+  metric_type: llm_judge
+  eval_segment: agent
+  scope: all
+  response_type: pass_fail
+```
+
+```json JSON (deprecated)
+{
+  "custom_metrics": [
+    {
+      "bluejay_as_code_id": "2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44",
+      "name": "DOB Verified Before PHI",
+      "prompt": "The agent verifies the caller's date of birth before it discusses patient information.",
+      "metric_type": "llm_judge",
+      "eval_segment": "agent",
+      "scope": "all",
+      "response_type": "pass_fail"
+    }
+  ]
+}
+```
+</CodeGroup>
+
+`metric_type` decides which other fields the metric uses. For the metric types, see [custom metrics](/test/metrics#metric-types). For the rules, see [metric conditions](/test/metrics#add-metric-conditions) and [composite metrics](/test/metrics/composite).
+
+### Conditional metrics
+
+This metric checks the copay only on conversations that reach one node of the agent workflow:
+
+<CodeGroup>
+```yaml YAML
+custom_metrics:
+- bluejay_as_code_id: e6b0d419-2c7a-4f35-8d91-5a3f7c2e0b18
+  name: Copay Explained
+  prompt: Did the agent state the copay amount for the visit?
+  metric_type: llm_judge
+  response_type: pass_fail
+  settings:
+    fire_conditions:
+      groups:
+      - conditions:
+        - type: workflow_node
+          node_id: node_4a71c9e2b83d5f60
+```
+
+```json JSON (deprecated)
+{
+  "custom_metrics": [
+    {
+      "bluejay_as_code_id": "e6b0d419-2c7a-4f35-8d91-5a3f7c2e0b18",
+      "name": "Copay Explained",
+      "prompt": "Did the agent state the copay amount for the visit?",
+      "metric_type": "llm_judge",
+      "response_type": "pass_fail",
+      "settings": {
+        "fire_conditions": {
+          "groups": [
+            {
+              "conditions": [
+                {
+                  "type": "workflow_node",
+                  "node_id": "node_4a71c9e2b83d5f60"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+</CodeGroup>
+
+`fire_conditions` holds a list of `groups`, and each group holds a list of `conditions`. The `join` inside a group says how its conditions combine, and the `join` on `fire_conditions` says how the groups combine. Set `join` to `and` (the default) or `or`. A metric can have 10 conditions at most.
+
+Each condition has a `type`, and each type needs its own fields:
+
+| `type` | Fields |
+|---|---|
+| `workflow_node` | `node_id` |
+| `tool_call` | `tool_name` |
+| `metric` | `metric_id`, `operator`, `value` |
+
+Supported values for `operator` include:
+
+- `equals`
+- `not_equals`
+- `greater_than`
+- `less_than`
+- `greater_than_or_equal`
+- `less_than_or_equal`
+- `contains`
+- `not_contains`
+
+### Composite metrics
+
+To give a number, combine the input metrics in `master_formula`:
+
+<CodeGroup>
+```yaml YAML
+custom_metrics:
+- bluejay_as_code_id: 3d1f8b60-9a4c-4e27-b5d3-0c6e2a7f4193
+  name: Scheduling Quality Score
+  prompt: Weighted 1-5 score from scheduling clarity and confirmed details.
+  metric_type: composite
+  response_type: quantitative
+  min_value: 1
+  max_value: 5
+  settings:
+    composite:
+      output_type: quantitative
+      variables:
+      - metric_id: 7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37
+      - metric_id: 9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21
+        value_map:
+          pass: 5
+          fail: 1
+      master_formula: round("7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37" * 0.6 + "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21" * 0.4)
+```
+
+```json JSON (deprecated)
+{
+  "custom_metrics": [
+    {
+      "bluejay_as_code_id": "3d1f8b60-9a4c-4e27-b5d3-0c6e2a7f4193",
+      "name": "Scheduling Quality Score",
+      "prompt": "Weighted 1-5 score from scheduling clarity and confirmed details.",
+      "metric_type": "composite",
+      "response_type": "quantitative",
+      "min_value": 1,
+      "max_value": 5,
+      "settings": {
+        "composite": {
+          "output_type": "quantitative",
+          "variables": [
+            {
+              "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37"
+            },
+            {
+              "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21",
+              "value_map": {
+                "pass": 5,
+                "fail": 1
+              }
+            }
+          ],
+          "master_formula": "round(\"7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37\" * 0.6 + \"9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21\" * 0.4)"
+        }
+      }
+    }
+  ]
+}
+```
+</CodeGroup>
+
+To give a label instead, set `output_type` to `categorical` and `response_type` to `enum`, and write `rules` in place of `master_formula`:
+
+<CodeGroup>
+```yaml YAML
+rules:
+- output: Clean
+  conditions:
+    groups:
+    - join: and
+      conditions:
+      - metric_id: 7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37
+        operator: greater_than_or_equal
+        value: 4
+      - metric_id: 9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21
+        operator: equals
+        value: 1
+- output: Poor
+  conditions:
+    groups:
+    - conditions:
+      - metric_id: 7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37
+        operator: less_than
+        value: 4
+```
+
+```json JSON (deprecated)
+{
+  "rules": [
+    {
+      "output": "Clean",
+      "conditions": {
+        "groups": [
+          {
+            "join": "and",
+            "conditions": [
+              {
+                "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37",
+                "operator": "greater_than_or_equal",
+                "value": 4
+              },
+              {
+                "metric_id": "9f3a1c7e-5b2d-4e88-a4f1-0c7b3d6a9e21",
+                "operator": "equals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "output": "Poor",
+      "conditions": {
+        "groups": [
+          {
+            "conditions": [
+              {
+                "metric_id": "7c4e2a10-3f8b-4d95-8e62-1a9d5c0b4f37",
+                "operator": "less_than",
+                "value": 4
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+</CodeGroup>
+
+- List the input metrics in `variables`. For a metric whose result is not a number, such as Pass/Fail, add a `value_map` that turns each result into a number, for example `pass: 5` and `fail: 1`.
+- In `master_formula`, refer to a metric by its ID in double quotes. Supported operators include:
+  - `+`
+  - `-`
+  - `*`
+  - `/`
+  - `%`
+  - `**`
+- Supported functions include:
+  - `min`
+  - `max`
+  - `abs`
+  - `round`
+  - `floor`
+  - `ceil`
+- Bluejay checks `rules` in order and uses the first match. If no rule matches, the result is Not Applicable.
+- A composite metric can have 10 rules at most, each with 10 conditions at most. A rule can read only the metrics listed in `variables`, and its conditions use the same operators as [conditional metrics](#conditional-metrics).
+
+## Related
+
+- [Bluejay as Code API](/api-reference/endpoint/push-bluejay-as-code)
+- [Bluejay as Code](/bluejay-as-code/overview)
+- [Digital Humans](/test/simulations/digital-humans)
+- [Metrics](/test/metrics)

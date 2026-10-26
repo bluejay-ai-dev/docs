@@ -1,55 +1,65 @@
 ---
-title: 'Get Issue'
-description: ''
-openapi: 'GET /v1/issues/{issue_id}'
+title: "GET /v1/observability/issues/{issue_id}"
+description: "Get an issue."
+sidebarTitle: "/\u200bv1/\u200bobservability/\u200bissues/\u200b{issue_id}"
+api: "GET https://api.getbluejay.ai/v1/observability/issues/{issue_id}"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Issue — GET /v1/issues/{issue_id}
+Returns one issue. `GET /v1/issues/{issue_id}` is the deprecated path of this endpoint.
 
-> **What this endpoint does:** fetch one issue by id.
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/issues/{issue_id}`
-**Auth:** `X-API-Key` header
+## Path parameters
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| issue_id | string (uuid) | The issue to fetch. |
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "issue_id", "type": "string (uuid)", "required": true, "description": ""}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Headers
 
-def get_issue(issue_id: str, api_key: str) -> dict:
-    url = f"https://api.getbluejay.ai/v1/issues/{issue_id}"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "type", "type": "string", "required": true, "description": "non_deterministic if clustered from similar failures, deterministic if recognised from a known error"}, {"name": "title", "type": "string", "required": true, "description": ""}, {"name": "description", "type": "string", "required": true, "description": ""}, {"name": "status", "type": "string", "required": true, "description": "open, in_progress, resolved or ignored"}, {"name": "priority", "type": "string or null", "required": false, "description": "low, medium, high or urgent. Null until someone sets it."}, {"name": "assignee_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "due_date", "type": "string (date) or null", "required": false, "description": "null when nobody has set one"}, {"name": "error_source", "type": "string", "required": true, "description": "where the failure was recorded, e.g. tool_call"}, {"name": "error_code", "type": "string or null", "required": false, "description": "deterministic error code when known"}, {"name": "error_signature", "type": "string or null", "required": false, "description": "hash or text that identifies this failure"}, {"name": "cluster_id", "type": "string (uuid) or null", "required": false, "description": "cluster this issue was minted from"}, {"name": "first_seen_at", "type": "string (date-time)", "required": true, "description": ""}, {"name": "last_seen_at", "type": "string (date-time)", "required": true, "description": ""}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": ""}, {"name": "updated_at", "type": "string (date-time)", "required": true, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/observability/issues/{issue_id} \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 404: Issue not found.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+{
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "type": "<string>",
+  "title": "<string>",
+  "description": "<string>",
+  "status": "<string>",
+  "priority": "<string>",
+  "assignee_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "due_date": "2026-01-01",
+  "error_source": "<string>",
+  "error_code": "<string>",
+  "error_signature": "<string>",
+  "cluster_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "first_seen_at": "2026-01-01T00:00:00Z",
+  "last_seen_at": "2026-01-01T00:00:00Z",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-
-Fetch one issue by id. Returns 404 if the issue does not belong to your organization.
+{/* END GENERATED */}

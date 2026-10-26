@@ -1,0 +1,64 @@
+---
+title: "Watch Your Agent After Hours"
+sidebarTitle: "After-Hours Uptime"
+description: "Get paged when your agent breaks after hours."
+icon: moon
+---
+
+Set up an [uptime monitor](/monitor/uptime/overview) that calls your agent every 10 minutes around the clock and pages your on-call team when it stops answering or starts stating errors.
+
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/cookbook-after-hours-uptime-walkthrough.mp4"></video>
+
+## Before you start
+
+- Connect PagerDuty or Better Stack, so the alert reaches whoever is on call. See [Alerts](/monitor/alerts#connect-a-channel).
+- If your agent only makes outbound calls, set it up to start a call when Bluejay asks. See [Outbound agents](/monitor/uptime/overview#outbound-agents).
+
+## Steps
+
+<Steps>
+  <Step title="Open the create dialog">
+    In **Observability → Uptime**, click **Create**.
+
+    <img className="block dark:hidden" src="/images/cookbook-after-hours-create-dialog.png" alt="The New Uptime Monitor dialog with an agent chosen, Frequency set to Every 10 minutes, Runs on set to Always, and the health checks listed" />
+    <img className="hidden dark:block" src="/images/cookbook-after-hours-create-dialog-dark.png" alt="The New Uptime Monitor dialog with an agent chosen, Frequency set to Every 10 minutes, Runs on set to Always, and the health checks listed" />
+  </Step>
+  <Step title="Run it around the clock">
+    Pick your agent, then set **Frequency** to **Every 10 minutes**. The default is every 5 minutes, and checking more often than that can significantly raise your costs.
+
+    Leave **Runs on** at **Always**. A monitor has one schedule, made of its days and one range of hours, so **Always** is the only way to cover both nights and weekends.
+  </Step>
+  <Step title="Keep the health checks on">
+    Keep **Agent Malfunction** and **Agent Responds** on, so an agent that states an error or stops answering counts as a failure. See [Checks](/monitor/uptime/overview#checks).
+  </Step>
+  <Step title="Send failures to your on-call tool">
+    Click **Next**, then turn on **PagerDuty Notifications** or **Better Stack Notifications**. A channel that is not connected cannot be turned on, and the dialog links to its setup. Your escalation policy in that tool decides who gets paged. See [Incidents](/monitor/alerts#incidents).
+
+    <img className="block dark:hidden" src="/images/cookbook-after-hours-notifications.png" alt="Step 2 of 2 of the New Uptime Monitor dialog with PagerDuty Notifications turned on and Slack, Better Stack, and email off" />
+    <img className="hidden dark:block" src="/images/cookbook-after-hours-notifications-dark.png" alt="Step 2 of 2 of the New Uptime Monitor dialog with PagerDuty Notifications turned on and Slack, Better Stack, and email off" />
+  </Step>
+  <Step title="Create the monitor">
+    Click **Create**. The first check starts right away.
+
+    <img className="block dark:hidden" src="/images/uptime-monitors-list.png" alt="The Uptime page with fleet uptime, active monitors, and incidents for the last 7 days, above one row for each monitor showing its agent, status such as Operational, Down, or Paused, uptime, frequency, incidents, and last check" />
+    <img className="hidden dark:block" src="/images/uptime-monitors-list-dark.png" alt="The Uptime page with fleet uptime, active monitors, and incidents for the last 7 days, above one row for each monitor showing its agent, status such as Operational, Down, or Paused, uptime, frequency, incidents, and last check" />
+  </Step>
+</Steps>
+
+## Check the result
+
+Each run gets one of these verdicts:
+
+- **Up** means all checks passed.
+- **Down** means at least one check failed. Bluejay opens an incident in PagerDuty or Better Stack, and resolves it when the monitor recovers.
+
+If the first run is **Down**, open it to see which check failed, and read the transcript before you rely on the monitor overnight.
+
+<img className="block dark:hidden" src="/images/cookbook-after-hours-uptime-down-run.png" alt="A Down check run with Agent Responds marked Down because the agent did not connect, Latency marked Unknown, and the run's completion time" />
+<img className="hidden dark:block" src="/images/cookbook-after-hours-uptime-down-run-dark.png" alt="A Down check run with Agent Responds marked Down because the agent did not connect, Latency marked Unknown, and the run's completion time" />
+
+## Related
+
+- [Uptime Monitoring](/monitor/uptime/overview)
+- [Alerts](/monitor/alerts)
+- [Uptime Monitoring API](/api-reference/endpoint/create-uptime-monitor)

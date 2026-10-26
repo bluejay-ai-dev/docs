@@ -1,0 +1,177 @@
+---
+title: "WebSocket Simulations"
+description: "Test a voice agent over WebSocket."
+icon: arrow-right-arrow-left
+sidebarTitle: "WebSocket"
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Build the WebSocket server that Bluejay connects to for each test call.
+
+<img className="block dark:hidden" src="/images/connect-websocket.png" alt="The Websocket connection fields with a Websocket URL, a username, and a password filled in" />
+<img className="hidden dark:block" src="/images/connect-websocket-dark.png" alt="The Websocket connection fields with a Websocket URL, a username, and a password filled in" />
+
+## Connect
+
+<Steps>
+<Step title="Run a WebSocket server">
+At minimum, your server accepts the upgrade, checks the credentials, and reads and writes binary [audio](#audio) frames. You can ignore [text events](#text-events) at first. Each example below echoes the audio back. Replace the echo with your agent's audio.
+
+<CodeGroup>
+
+```python Python (websockets)
+# pip install websockets
+import asyncio, base64, os
+from http import HTTPStatus
+from websockets.asyncio.server import serve
+
+EXPECTED = "Basic " + base64.b64encode(
+    f"{os.environ['CHIRP_USER']}:{os.environ['CHIRP_PASS']}".encode()).decode()
+
+def check_auth(connection, request):
+    if request.headers.get("Authorization") != EXPECTED:
+        return connection.respond(HTTPStatus.UNAUTHORIZED, "unauthorized\n")
+
+async def handler(ws):
+    async for msg in ws:
+        if isinstance(msg, bytes):
+            await ws.send(msg)  # replace the echo with your agent audio
+
+async def main():
+    async with serve(handler, "0.0.0.0", 8080, process_request=check_auth):
+        await asyncio.Future()
+
+asyncio.run(main())
+```
+
+```typescript TypeScript (ws)
+// npm i ws
+import { createServer } from 'http'
+import { WebSocketServer } from 'ws'
+
+const { CHIRP_USER, CHIRP_PASS } = process.env
+const expected = 'Basic ' + Buffer.from(`${CHIRP_USER}:${CHIRP_PASS}`).toString('base64')
+
+const server = createServer()
+const wss = new WebSocketServer({ noServer: true })
+
+server.on('upgrade', (req, socket, head) => {
+  if (req.headers.authorization !== expected) {
+    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n'); socket.destroy(); return
+  }
+  wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req))
+})
+
+wss.on('connection', (ws) => {
+  ws.on('message', (data, isBinary) => {
+    if (isBinary) ws.send(data, { binary: true }) // replace the echo with your agent audio
+  })
+})
+
+server.listen(8080)
+```
+
+```go Go (gorilla/websocket)
+package main
+
+import (
+    "crypto/subtle"
+    "encoding/base64"
+    "net/http"
+    "os"
+
+    "github.com/gorilla/websocket"
+)
+
+var up = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
+
+func main() {
+    expected := "Basic " + base64.StdEncoding.EncodeToString(
+        []byte(os.Getenv("CHIRP_USER")+":"+os.Getenv("CHIRP_PASS")))
+    http.HandleFunc("/voice", func(w http.ResponseWriter, r *http.Request) {
+        if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), []byte(expected)) != 1 {
+            http.Error(w, "unauthorized", 401); return
+        }
+        c, err := up.Upgrade(w, r, nil)
+        if err != nil { return }
+        defer c.Close()
+        for {
+            mt, msg, err := c.ReadMessage()
+            if err != nil { return }
+            if mt == websocket.BinaryMessage {
+                _ = c.WriteMessage(websocket.BinaryMessage, msg)
+            }
+        }
+    })
+    http.ListenAndServe(":8080", nil)
+}
+```
+
+</CodeGroup>
+</Step>
+<Step title="Create the agent">
+Create a Voice agent with the **Websocket** connection type. The **Websocket URL** starts with `ws://` or `wss://`, for example `wss://your-host/voice`. If you set both **Websocket Username** and **Websocket Password**, Bluejay sends them as `Authorization: Basic <base64(user:pass)>` on the upgrade request.
+</Step>
+<Step title="Link tool calls and traces">
+Bluejay sends `X-Simulation-Result-Id` on the upgrade request. To report tool calls or traces for the call, send them with this ID to [`/v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+</Step>
+</Steps>
+
+## Audio
+
+Bluejay and your server talk over the CHIRP protocol. Binary frames carry audio in both directions, in this format:
+
+| Property | Value |
+|---|---|
+| Encoding | `pcm_s16le` (signed 16-bit little-endian) |
+| Sample rate | 16000 Hz |
+| Channels | 1 (mono) |
+| Frame size | Any even byte length. 20 ms (640 bytes) is a good size. |
+
+Every binary frame from Bluejay is the Digital Human's audio, including any background noise, so play it to your agent as it arrives. Send your agent's audio back in the same format. To end a call, close the WebSocket.
+
+## Text events
+
+Text frames carry events, such as when speech starts and stops. Each one is UTF-8 JSON with the envelope below. If you omit `id`, `ts_ms`, or `data`, Bluejay fills them in.
+
+```json
+{ "type": "speech.started", "id": "c0e1a39f-...", "ts_ms": 1729123456789, "data": { "utterance_id": "u_abc123" } }
+```
+
+| `type` | `data` | Bluejay sends it when | If you send it |
+|---|---|---|---|
+| `speech.started` | <Code>utterance_id</Code> | The Digital Human starts to speak. | If the Digital Human is speaking, Bluejay interrupts it and sends `speech.completed` for that utterance. |
+| `speech.completed` | <Code>utterance_id</Code> | The Digital Human stops speaking. | Bluejay logs it and takes no other action. |
+| `session.error` | `code`, `message` | Your frame is not valid. Bluejay drops the frame and the session continues. | Bluejay logs it in the result metadata under <Code>customer_session_errors</Code>. |
+| `mark` | `name` | Only as an echo of your `mark`. | Bluejay echoes the same `name` after all audio you sent before it has played to the Digital Human. |
+
+Some audio frames can arrive after `speech.completed`, so do not stop playback when you receive it.
+
+To match a `mark` echo, use `data.name`, because the echo has a new `id` and `ts_ms`.
+
+`session.error` codes:
+
+| Code | Meaning |
+|---|---|
+| <Code>INVALID_MESSAGE</Code> | The JSON is not valid, `type` is unknown, or `data` is not an object. |
+| <Code>MISSING_FIELD</Code> | `type`, <Code>utterance_id</Code>, or `name` is missing. |
+| <Code>INVALID_AUDIO_FRAME</Code> | The binary frame is empty or has an odd byte length. |
+
+To interrupt the Digital Human (barge-in), send `speech.started`. There is no separate interrupt event.
+
+## Troubleshooting
+
+| What you see | What to do |
+|---|---|
+| **No Connection** with <Code>WEBSOCKET_AUTH_FAILED</Code> | Your server returned HTTP 401 or 403 on the upgrade, and Bluejay does not retry. Check the username and password on the agent. |
+| **No Connection** with <Code>CUSTOMER_CONCURRENCY_LIMIT</Code> | Your server returned HTTP 429, and Bluejay does not retry. Lower the simulation concurrency. |
+| **No Connection** with <Code>BRIDGE_PRE_START_FAILED</Code> | The connection failed before the call started, after 3 tries 2 seconds apart. Check that your server is running and reachable. |
+| A `session.error` text event | Bluejay dropped one of your frames, and the session continues. Fix the frame using the [error code](#text-events). |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [HTTP Webhook (Chat)](/integrations/http-webhooks)
+- [Simulation](/test/simulations/create)

@@ -1,92 +1,101 @@
 ---
-title: 'Uptime Monitoring'
-description: 'Run a health check against a live agent on a schedule and get paged when it stops answering'
+title: "Uptime Monitoring"
+description: "Know your live agent is down before customers do."
 icon: heart-pulse
+sidebarTitle: "Uptime"
 ---
 
-An uptime monitor calls, texts, or emails one of your live agents on a fixed interval, grades what happened, and records UP or DOWN. When the verdict flips, it notifies Slack, email, or PagerDuty.
+import { Code } from "/snippets/code.jsx";
 
-It works on voice, SMS, and email agents, inbound and outbound.
+Bluejay runs a test conversation with your agent on a schedule and notifies you when it stops working. It works for voice, SMS, and email agents.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/cookbook-after-hours-uptime-walkthrough.mp4"></video>
+
+<img className="block dark:hidden" src="/images/uptime-monitors-list.png" alt="The Uptime page with fleet uptime, active monitors, and incidents for the last 7 days, above one row for each monitor showing its agent, status such as Operational, Down, or Paused, uptime, frequency, incidents, and last check" />
+<img className="hidden dark:block" src="/images/uptime-monitors-list-dark.png" alt="The Uptime page with fleet uptime, active monitors, and incidents for the last 7 days, above one row for each monitor showing its agent, status such as Operational, Down, or Paused, uptime, frequency, incidents, and last check" />
+
+## Create a monitor
+
+<Steps>
+  <Step title="Pick the caller">
+    On the **Uptime** page, click **Create**. Under **Custom Caller**, pick a Digital Human that talks like your real customers, so the test conversation follows a path they take.
+
+    The default caller, **Health Checker**, acts as a customer asking one short question that your agent handles, written from the agent's description. It ends the conversation after the first real answer.
+  </Step>
+  <Step title="Choose who hears about it">
+    [Connect a channel](/monitor/alerts#connect-a-channel) first if it is not set up yet.
+  </Step>
+</Steps>
 
 ## Checks
 
-A monitor grades one or more checks. Every monitor needs at least one check that names what to grade, otherwise there is nothing to measure and the monitor is rejected.
+Checks decide whether a run passes. Give each monitor at least one check that grades something, or Bluejay rejects it.
 
-| Check | What it measures |
-|-------|------------------|
-| **Agent Responds** | The call connected and the agent spoke |
-| **Agent Malfunction** | The agent stated an error during the conversation |
-| **Latency** | Average response time stayed under a threshold |
-| **Custom metric** | Any of your custom metrics, scored against a condition |
+| Check | Passes when |
+|-------|-------------|
+| **Agent Responds** | The call connected and the agent kept answering the caller. On a voice call, a silence of more than 15 seconds after the caller speaks fails the check. |
+| **Agent Malfunction** | The agent did not state an error during the conversation. |
+| **Latency** | The average response time stayed under the threshold. |
+| **Custom metric** | One of your custom metrics met its condition. |
 
-You can also point a check at one of your own Digital Humans so the probe uses that persona instead of the default. A Digital Human on its own is not gradable, so pair it with one of the checks above.
+Email monitors also include these checks:
 
-Email monitors grade a different set: **Agent Responds** (the agent replied), **Authentication** (the reply passed SPF, DKIM, and DMARC), **Spam** (it cleared spam filtering), **Bounced** (it was delivered, not bounced), and **Latency** (send to reply, under a threshold).
+| Check | Passes when |
+|-------|-------------|
+| **Authentication** | The reply passed SPF, DKIM, and DMARC. |
+| **Spam** | The reply was not marked as spam. |
+| **Bounced** | The probe email was delivered. |
 
-For email monitors, the agent's inbox must allowlist our sending domain, `mail.bluejaysims.com`. Corporate mail (Google Workspace, Microsoft 365) quarantines an unrecognized sender, so without the allowlist the probe email is held and never reaches the agent.
-
-## Managing monitors via the API
-
-Everything the UI does — create, update, pause and resume, delete — is available over the [REST API](/api-reference/endpoint/create-uptime-monitor) and as [MCP tools](/mcp/overview#uptime-monitors), so tooling that updates your agent can update its monitor in the same step. Updates are partial: pass only the fields you change.
-
-### Custom caller
-
-The custom caller is one entry in the monitor's `checks` array:
-
-```json
-{
-  "id": "dh-1234",
-  "label": "Impatient repeat customer",
-  "description": "Digital Human check.",
-  "enabled": true,
-  "isTemplate": false,
-  "digitalHumanId": "1234"
-}
-```
-
-Send it alongside the template checks with [Update Uptime Monitor](/api-reference/endpoint/update-uptime-monitor). `checks` replaces the whole array, and the Digital Human only picks who places the probe, so keep at least one enabled check with a `checkType` or `customMetricId` in the payload. To go back to the default caller, resend the checks without the `digitalHumanId` entry.
-
-## How latency is measured
-
-Latency is the gap between your caller finishing and your agent starting to speak, averaged across the conversation.
-
-The agent's opening greeting is not included. The first measured gap is the agent's first real answer. Time to greeting is covered by Agent Responds instead.
-
-SMS and webchat monitors measure the same gap, between your message and the agent's reply. Text replies take far longer than voice, so the default threshold there is 60000 ms instead of 3000 ms. Set `latency_threshold_ms` to whatever your agent should beat.
-
-Email monitors measure latency, from the probe email being sent to the agent's reply arriving. Mail is asynchronous, so the default threshold is far higher; set `latency_threshold_ms` to your agent's expected reply time.
-
-## Alerting after repeated failures
-
-Latency is an average over a single conversation and Agent Malfunction is a judgment call, so one bad result is not always a real problem. Set `alert_after_failures` on a check and it only counts toward DOWN once it has failed that many checks in a row. A single pass resets the count.
-
-```json
-{
-  "id": "latency",
-  "checkType": "latency",
-  "enabled": true,
-  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
-}
-```
-
-Leave Agent Responds at the default of 1. An agent that cannot be reached is not ambiguous and should page immediately.
+<Warning>
+  For email monitors, allowlist `mail.bluejaysims.com` in the agent's inbox. If you do not, Google Workspace or Microsoft 365 can quarantine the probe email, and the agent never receives it.
+</Warning>
 
 ## Verdicts
 
 | Verdict | Meaning |
 |---------|---------|
-| **UP** | Every measurable check passed |
-| **DOWN** | At least one check failed |
-| **UNKNOWN** | Nothing could be measured |
+| **Up** | All measurable checks passed. |
+| **Down** | At least one check failed. |
 
-Uptime percentage is UP divided by UP plus DOWN. UNKNOWN is excluded, so it never counts for or against you.
+Bluejay sends a notification only when the verdict changes between **Up** and **Down**.
 
-Alerts fire only on a measurable flip between UP and DOWN. UNKNOWN never pages.
+## Latency
 
-## Frequency
+Latency is the average time from the end of the caller's turn to the start of the agent's reply. The greeting is not included.
 
-Pick an interval that comfortably exceeds how long a conversation takes. SMS conversations run for minutes, so use 10 minutes or more; a check that has not finished in five minutes is recorded as UNKNOWN.
+| Channel | Default <Code>latency_threshold_ms</Code> |
+|---------|--------------------------------|
+| Voice | 3000 |
+| SMS and webchat | 60000 |
+| Email | No threshold. Bluejay reports the time from send to reply. |
+
+## Alert after repeated failures
+
+To ignore one-off failures, set how many failures in a row the **Latency** or **Agent Malfunction** check needs before it counts toward **Down**. You can set 1 to 50.
+
+Keep **Agent Responds** at 1, so you hear at once when your agent stops answering.
+
+In the [API](/api-reference/endpoint/create-uptime-monitor), this is `alert_after_failures` in the check's `config`.
+
+## Timeouts
+
+If a run does not finish within its timeout, Bluejay checks the agent again through a backup path when one exists. A timeout alone never makes the monitor **Down**.
+
+| Monitor | Timeout |
+|---------|---------|
+| Voice | 5 minutes |
+| Voice with a custom Digital Human | 10 minutes |
+| SMS | 15 minutes |
+| Email | 15 minutes |
 
 ## Outbound agents
 
-Bluejay never dials your outbound agent. Something on your side has to start the conversation, which is either Vapi or Retell placing the call automatically, or your own outbound trigger webhook. An outbound agent with neither is rejected, because every check would time out.
+Bluejay does not call an outbound agent, so add an [outbound trigger webhook](/test/simulations/reference#outbound-trigger-webhook) that starts the call, or Bluejay rejects the monitor. If your voice platform places the call for Bluejay, you can skip the webhook; its integration page says so.
+
+For an outbound email agent, you only need its inbox address, because it sends the first email.
+
+## Related
+
+- [Uptime Monitoring API](/api-reference/endpoint/create-uptime-monitor)
+- [Uptime Monitoring MCP tools](/mcp/monitoring-tools#uptime-monitors)
+- [Alerts](/monitor/alerts)

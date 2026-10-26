@@ -1,53 +1,55 @@
 ---
-title: 'Get Phone Numbers'
-description: "Return phone number under an org."
-openapi: 'GET /v1/phone-numbers'
+title: "GET /v1/phone-numbers"
+description: "List your phone numbers."
+sidebarTitle: "/\u200bv1/\u200bphone-numbers"
+api: "GET https://api.getbluejay.ai/v1/phone-numbers"
+playground: "none"
 ---
-<div className="ai-prompt-box">
-<div className="ai-prompt-box-header">Integration Prompt for AI Agents</div>
-````
-# Bluejay — Testing & Monitoring Platform for Conversational AI Agents
 
-You are a senior backend engineer integrating the Bluejay API. Think step-by-step: first understand the endpoint, then plan the integration, then implement with minimal changes.
+import { FieldTable } from "/snippets/field-table.jsx";
 
-## Get Phone Numbers — GET /v1/phone-numbers
+Returns the phone numbers in your organization.
 
-> **What this endpoint does:** Return phone number under an org
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-**Endpoint:** GET `https://api.getbluejay.ai/v1/phone-numbers`
-**Auth:** `X-API-Key` header
+## Headers
 
-### Required Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| X-API-Key | string | API key required to authenticate requests. |
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
 
-### Example
-**Simple GET:**
-```python
-import requests
+## Response
 
-def get_phone_numbers(api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/phone-numbers"
-    headers = {"X-API-Key": api_key}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "integer", "required": true, "description": "Unique identifier for the phone number record"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "Timestamp when the record was created"}, {"name": "phone_number", "type": "string", "required": true, "description": "The phone number in text format"}, {"name": "purchase_date", "type": "string (date)", "required": true, "description": "Date when the phone number was purchased"}, {"name": "price", "type": "integer", "required": true, "description": "Price of the phone number in cents or smallest currency unit"}, {"name": "organization_id", "type": "string (uuid)", "required": true, "description": "Organization ID"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/phone-numbers \
+  --header 'X-API-Key: <api-key>'
 ```
 
-### Constraints
-- Minimal changes — only add/change files needed for this integration.
-- Match existing codebase patterns (naming, file structure, error handling).
-- Include error handling for 422: Validation Error.
+## Example response
 
-### Integration Checklist
-Before writing code, verify:
-1. Which module/service owns this API domain in the codebase?
-2. What HTTP client and error-handling patterns does the project use?
-3. Are there existing types/interfaces to extend?
+```json 200
+[
+  {
+    "id": 123,
+    "created_at": "2026-01-01T00:00:00Z",
+    "phone_number": "<string>",
+    "purchase_date": "2026-01-01",
+    "price": 123,
+    "organization_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+  }
+]
+```
 
-Then implement the integration, export it, and confirm it compiles/passes lint.
-````
-</div>
-
-This endpoint allows you to get all phone numbers from your organization
+{/* END GENERATED */}

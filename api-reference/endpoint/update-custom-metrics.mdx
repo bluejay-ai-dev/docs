@@ -1,0 +1,75 @@
+---
+title: "PUT /v1/update-metrics"
+description: "Update several custom metrics."
+sidebarTitle: "/\u200bv1/\u200bupdate-metrics"
+api: "PUT https://api.getbluejay.ai/v1/update-metrics"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Applies the same `updates` to each metric in `metric_ids`. Only the keys you send change. A key with `null` is set to null.
+
+`PUT /v1/update-custom-metrics` is the deprecated path of this endpoint.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "metric_ids", "type": "string[]", "required": true, "description": "UUIDs of custom metrics to update"}, {"name": "updates", "type": "object", "required": true, "description": "Fields to update (only present keys are applied; value including null is written)", "children": [{"name": "tags", "type": "string[] or null", "required": false, "description": ""}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": ""}, {"name": "eval_modality", "type": "string or null", "required": false, "description": "Enum representing the evaluation route of a call.", "values": ["AUDIO", "TEXT", "AUTO"]}, {"name": "eval_segment", "type": "string or null", "required": false, "description": "", "values": ["agent", "user", "all"]}, {"name": "scope", "type": "string or null", "required": false, "description": "", "values": ["observability", "simulations", "all"]}, {"name": "model", "type": "string or null", "required": false, "description": ""}, {"name": "audio_model", "type": "string or null", "required": false, "description": ""}, {"name": "temperature", "type": "number or null", "required": false, "description": ""}, {"name": "allow_not_applicable", "type": "boolean or null", "required": false, "description": ""}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "success", "type": "boolean", "required": false, "description": "Whether the operation succeeded", "default": true}, {"name": "message", "type": "string or null", "required": false, "description": "Human-readable summary; frontend falls back to 'Updated N custom metric(s)' if missing"}, {"name": "updated", "type": "integer or null", "required": false, "description": "Number of metrics updated"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/update-metrics \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "metric_ids": [
+      "<string>"
+    ],
+    "updates": {
+      "tags": [
+        "<string>"
+      ],
+      "agent_ids": [
+        123
+      ],
+      "eval_modality": "AUDIO",
+      "eval_segment": "agent",
+      "scope": "observability",
+      "model": "<string>",
+      "audio_model": "<string>",
+      "temperature": 1.5,
+      "allow_not_applicable": true
+    }
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "success": true,
+  "message": "<string>",
+  "updated": 123
+}
+```
+
+{/* END GENERATED */}

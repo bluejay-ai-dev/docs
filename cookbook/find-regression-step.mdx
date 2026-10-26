@@ -1,0 +1,75 @@
+---
+title: "Find Which Check a Regression Broke"
+sidebarTitle: "Find a Regression"
+description: "Find the step that broke after an agent change."
+icon: magnifying-glass-chart
+---
+
+A run gives each call one pass or fail. Give each step of the call its own [custom metric](/test/metrics), so every run also shows which step failed and on which calls.
+
+
+## Before you start
+
+- Create a simulation that covers the flow you want to protect. See [Create a Simulation](/test/simulations/create).
+- Save the current agent prompt as an [agent version](/test/simulations/reference#agent-versions), so that you have a baseline to compare against.
+
+## Steps
+
+<Steps>
+  <Step title="Write one metric for each check">
+    Create a [custom metric](/test/metrics) for each step you always care about, for example that the agent quoted the right price, booked the appointment, and captured a callback number. Give each metric a single question and the **Pass/Fail** response type, so a failure points to one step. Write the prompt so it names what counts as a pass and what counts as a fail.
+
+    <img className="block dark:hidden" src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a Pass/Fail metric that checks whether the agent books the appointment" />
+    <img className="hidden dark:block" src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a Pass/Fail metric that checks whether the agent books the appointment" />
+
+    Open the simulation and add the metrics in its **Custom Metrics** tab.
+
+    <img className="block dark:hidden" src="/images/cookbook-find-regression-sim-custom-metrics.png" alt="The Custom Metrics tab of a simulation with three Pass/Fail metrics enabled: Stays polite, Verifies identity first, and Greets the caller" />
+    <img className="hidden dark:block" src="/images/cookbook-find-regression-sim-custom-metrics-dark.png" alt="The Custom Metrics tab of a simulation with three Pass/Fail metrics enabled: Stays polite, Verifies identity first, and Greets the caller" />
+
+  </Step>
+  <Step title="Check the important metrics in Metrics Lab">
+    A metric that judges wrongly makes a regression look real or hides one. Run your key metrics in Metrics Lab against calls you have already judged yourself, and fix any that disagree. See [Improve the Accuracy of a Metric](/cookbook/improve-metric-accuracy).
+
+    <img className="block dark:hidden" src="/images/metrics-lab-landing.png" alt="The Lab tab on the Metrics page, listing labs with their conversation and metric counts" />
+    <img className="hidden dark:block" src="/images/metrics-lab-landing-dark.png" alt="The Lab tab on the Metrics page, listing labs with their conversation and metric counts" />
+  </Step>
+  <Step title="Run the simulation after each prompt change">
+    Save each prompt change as a new [agent version](/test/simulations/reference#agent-versions). On the simulation, click **Create New Run** and choose that version in **Agent version**, so each run belongs to one known version of the agent. Change one thing per version, so a regression points to one change.
+
+    <img className="block dark:hidden" src="/images/cookbook-find-regression-create-run.png" alt="The Create New Run dialog on the Version Settings tab with the Agent version list open, showing Version 7 as Production and earlier versions" />
+    <img className="hidden dark:block" src="/images/cookbook-find-regression-create-run-dark.png" alt="The Create New Run dialog on the Version Settings tab with the Agent version list open, showing Version 7 as Production and earlier versions" />
+  </Step>
+  <Step title="Compare the metrics across runs">
+    In **Run History**, select the run before the change and the run after it. Click **Compare Runs**, then **Compare**.
+
+    <img className="block dark:hidden" src="/images/cookbook-find-regression-run-history.png" alt="Run History with two runs checked and the Compare Runs button enabled, one run on Version 3 and one on Version 5" />
+    <img className="hidden dark:block" src="/images/cookbook-find-regression-run-history-dark.png" alt="Run History with two runs checked and the Compare Runs button enabled, one run on Version 3 and one on Version 5" />
+
+    In the dialog, **Compare by** starts on **Digital human outcomes**. The header counts the regressed Digital Humans, and the matrix marks each one that went from Pass to Fail.
+
+    <img className="block dark:hidden" src="/images/cookbook-find-regression-compare-dialog.png" alt="The Compare Runs dialog comparing two runs by Digital human outcomes, with 3 regressed and the Digital Humans that went from Pass to Fail marked with a down arrow" />
+    <img className="hidden dark:block" src="/images/cookbook-find-regression-compare-dialog-dark.png" alt="The Compare Runs dialog comparing two runs by Digital human outcomes, with 3 regressed and the Digital Humans that went from Pass to Fail marked with a down arrow" />
+
+    Then set **Compare by** to **Custom metrics passed (summary)** to see which runs dropped, and to each metric in turn. The metric whose calls went from Pass to Fail is the step that broke.
+  </Step>
+  <Step title="Open a failing call">
+    Open a Digital Human that regressed and read the failure reason, then the transcript, to see what the agent said at that step. Use that to decide the prompt fix, save it as a new agent version, and repeat from the run step.
+
+    <img className="block dark:hidden" src="/images/simulation-results.png" alt="A simulation run with the Conversation Details panel open on a failed call, showing the success criteria and the failure reason" />
+    <img className="hidden dark:block" src="/images/simulation-results-dark.png" alt="A simulation run with the Conversation Details panel open on a failed call, showing the success criteria and the failure reason" />
+  </Step>
+</Steps>
+
+## Check the result
+
+When the setup works, a drop in the pass rate traces to one or two metrics that regressed, and you can open the failing calls to see what the agent said at that step. If every metric still passes while the pass rate drops, the failure is in a step that no metric checks yet, so add a metric for it.
+
+Some checks apply only to some calls, for example a callback number only matters when the agent offered a callback. Make that metric conditional, so it runs only when the agent called a given tool or the call reached a given [workflow](/test/simulations/reference#workflow) node. On other calls it does not run and has no result, so it does not drag down the comparison. See [Conditional metrics](/test/metrics#add-metric-conditions).
+
+## Related
+
+- [Metrics](/test/metrics)
+- [Metrics Lab](/test/metrics/metrics-lab)
+- [Simulation Results](/test/simulations/create#read-the-results)
+- [A/B Test Two Agents](/cookbook/ab-test-agents)

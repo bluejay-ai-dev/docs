@@ -1,0 +1,78 @@
+---
+title: "Upload CSV"
+description: "Make Digital Humans from a spreadsheet."
+icon: upload
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Use this type when your test cases are already in a spreadsheet.
+
+## Set it up
+
+<Steps>
+  <Step title="Select the card">
+    [Create a simulation](/test/simulations/create#create-a-simulation) and select the **Upload Digital Humans** card.
+
+    <img className="block dark:hidden" src="/images/create-simulation-card-upload-digital-humans.png" alt="Upload Digital Humans card in the Create Simulation type picker" />
+    <img className="hidden dark:block" src="/images/create-simulation-card-upload-digital-humans-dark.png" alt="Upload Digital Humans card in the Create Simulation type picker" />
+  </Step>
+  <Step title="Fill in the CSV">
+    Download the **Sample CSV** and write one Digital Human in each row, with the [columns](#columns) below. Bluejay creates each row exactly as you wrote it and does not generate anything.
+  </Step>
+  <Step title="Upload the CSV">
+    Check any error before you go on, because Bluejay imports a row without the fields that are not valid.
+
+    <img className="block dark:hidden" src="/images/upload-digital-humans.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
+    <img className="hidden dark:block" src="/images/upload-digital-humans-dark.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
+  </Step>
+</Steps>
+
+## Columns
+
+- Column headers are not case-sensitive.
+- Bluejay ignores columns that it does not know.
+- A blank behavior cell uses the values on the **Default Generation Settings** tab.
+
+| Column | Values |
+|---|---|
+| `Name` | Text. If blank, Bluejay generates a name. |
+| `Intent` | Text |
+| `Success Criteria` | Text. Put each bullet on its own line in the cell. |
+| `Role Description` | Text |
+| `Phone Number` | A number your organization owns. If the number is not owned or cannot be read, Bluejay skips the row. If blank, Bluejay assigns a number. |
+| `Scripted Responses` | A JSON object or array |
+| `Scripted Responses In Order` | `true` or `false` |
+| `Creativity` | 0 to 1 |
+| `Patience` | Seconds |
+| `No Response Timeout` | Seconds |
+| `Voice` | A voice key, for example <Code>en_british_feminine</Code> |
+| `Interruptions` | JSON, see below |
+| `Speaks First` | JSON, for example `{"speaks_first": true, "mode": "custom", "message": "Hi, I am calling about my bill."}` |
+| `TC_<tool>` | An expected tool call. A string is the expected output. |
+| `CT_<trait>` | The value of a [trait](/test/simulations/digital-humans#traits) |
+
+These columns take the same values as the [behavior fields](/test/simulations/digital-humans#behavior):
+
+- `Voice Speed`
+- `Background Noise`
+- `Background Noise Volume`
+- `Audio Quality`
+- `Verbosity`
+- `Fluency`
+
+The `Interruptions` cell is a JSON object with `interruptions_type`:
+
+- `{"interruptions_type": "none"}`
+- `{"interruptions_type": "probabilistic", "probability_of_default_interrupt": 0.5}`, with a value from 0 to 1
+- `{"interruptions_type": "keyword", "keyword_responses": {"refund": {"response": "Yes, the refund!", "probability": 0.8}}}`
+- `{"interruptions_type": "llm", "llm_prompt": {"user_prompt": "Interrupt when the agent talks too long."}}`
+
+<Warning>
+  If a JSON cell has unescaped quotes, Bluejay repairs it and shows an "Auto-corrected" message. A repaired cell can have the wrong value. Check those Digital Humans before you run the simulation.
+</Warning>
+
+## Related
+
+- [Digital Human Reference](/test/simulations/digital-humans)
+- [Digital Humans API](/api-reference/endpoint/create-digital-humans)
