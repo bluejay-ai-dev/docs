@@ -17,20 +17,12 @@ Persona settings decide what each conversation is about and how Bluejay grades i
 | Setting | Write |
 |---|---|
 | Description / Intent | What the caller wants, in one or two sentences. |
-| Success Criteria | Agent outcomes the transcript can show, one per bullet. See [Success criteria](#success-criteria). |
+| Success Criteria | One or two agent outcomes the transcript can show. |
 | Personality | Who the caller is, in one short line, for example "retiree on a family plan". |
 | Scripted Responses | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
 | Tool Adherence | The tool calls the agent must make. |
 
 Keep agent behavior and "if X, do Y" rules out of the intent. The model treats them only as suggestions, so use the fields in [Make runs repeatable](#make-runs-repeatable) instead.
-
-## Success criteria
-
-Bluejay grades each bullet on its own. A conversation passes only when every bullet passes, so a call that meets three of four bullets fails with a 75% pass rate.
-
-- To correct a grade, override the one bullet that is wrong. The conversation's pass or fail follows it.
-- When you change the bullets, later conversations are graded against the new list. Past conversations keep their grades.
-- In the API, `/v1` reads and writes success criteria as one string with a bullet per line. The grade of each bullet and `criteria_pass_rate` are on [`/v2` retrieve](/api-reference/endpoint/retrieve-simulation-results-v2).
 
 ## Behavior
 
@@ -105,7 +97,7 @@ When an agent fails on a real conversation, create a Digital Human that recreate
 
 - Test one goal in each Digital Human. Booking, rescheduling, and cancelling are three Digital Humans.
 - Write **Description / Intent** as what the caller wants. If you write "correctly" or "successfully", that text describes the agent, so move it to **Success Criteria**.
-- Write **Success Criteria** as agent outcomes that the transcript can show, one per bullet.
+- Write **Success Criteria** as an agent outcome that the transcript can show.
 - Put grading that applies to every call in a [custom metric](/test/metrics), not in **Success Criteria**.
 
 | Setting | Do | Do not |
