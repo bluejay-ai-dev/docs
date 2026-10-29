@@ -96,7 +96,7 @@ curl https://api.getbluejay.ai/v1/bluejay-as-code \
   --data-binary @simulation.yaml
 ```
 
-Bluejay replies with what it changed:
+Bluejay replies with what it did to every entity in the payload:
 
 ```json response
 {
@@ -104,29 +104,89 @@ Bluejay replies with what it changed:
   "errors": [],
   "actions": [
     "Updated agent 'Front Desk Scheduler'",
+    "Unchanged simulation 'Scheduling Coverage'",
     "Created digital human 'Eleanor Pham'",
-    "Linked 1 existing digital human(s) to simulation"
+    "Linked digital human 'Eleanor Pham' to simulation 'Scheduling Coverage'"
   ],
   "simulation_id": 1284
 }
 ```
+
+Each line starts with `Created`, `Updated`, `Unchanged`, `Linked`, `Unlinked`, `Deleted` (with `prune`), or `Would delete` (dry run with `prune`).
 
 Bluejay matches each entity by `bluejay_as_code_id`:
 
 | Case | Result |
 |---|---|
 | New <Code>bluejay_as_code_id</Code> | Bluejay creates the entity. |
-| Known <Code>bluejay_as_code_id</Code> | Bluejay updates the entity. |
+| Known <Code>bluejay_as_code_id</Code> | Bluejay updates the entity, or leaves it unchanged if nothing differs. |
 | Digital Human missing from a simulation's links | Bluejay removes it from the simulation. The Digital Human stays. |
 | Custom metric missing from an agent's links | Bluejay detaches it from the agent. The metric stays. |
+| Entity left with no links, and <Code>prune=true</Code> | Bluejay deletes the entity. Without `prune`, nothing is deleted. |
 
 Each link list in the payload replaces the current links on push, which is why removing an entry from a list unlinks it.
 
-<Warning>
-A push with errors still returns HTTP `200`, so it can fail without anything noticing. Check `valid` in the response after every push: when it is `false`, the `errors` list says what went wrong.
-</Warning>
+### Plan a push
+
+Add `dry_run=true` to see what a push would do. Bluejay returns the same response with `dry_run: true` and writes nothing:
+
+```bash
+curl "https://api.getbluejay.ai/v1/bluejay-as-code?dry_run=true" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+```
+
+The `actions` list is the plan. Add `prune=true` as well to see which entities a push with `prune` would delete, as `Would delete ...` lines.
+
+### Prune
+
+Add `prune=true` to delete the entities the push leaves with no links at all: a Digital Human in no simulation, a custom metric on no agent, or a simulation removed from its agent's `simulations` list. Plan the push first with `dry_run=true` and read the `Would delete` lines before you run it.
+
+### Errors
+
+A push whose payload fails validation returns HTTP `422`. The body is the same as before: `valid` is `false` and `errors` says what went wrong. The status code lets `curl -f` and a CI step fail on their own, so you no longer have to check `valid` yourself, though it still says the same thing.
 
 A push returns HTTP `400` if the YAML cannot be read, if a link points to a Digital Human or custom metric that is in neither the payload nor Bluejay, or if a new simulation does not have exactly one agent.
+
+If a step fails after Bluejay has started writing, Bluejay rolls the push back: it deletes the entities the push created, restores the entities it updated, and restores the links. The response lists the applied lines and repeats the ones it undid under `rolled_back`:
+
+```json response
+{
+  "detail": {
+    "error": "...",
+    "applied": ["Created digital human 'Eleanor Pham'"],
+    "rolled_back": ["Created digital human 'Eleanor Pham'"],
+    "rollback_failed": []
+  }
+}
+```
+
+`rollback_failed` lists anything Bluejay could not restore. When it is not empty, check those entities in the app.
+
+## Push from CI
+
+Plan on the pull request, push on merge, and let the status code decide whether the step passes. `--fail-with-body` makes curl exit with an error on `4xx` and `5xx` and still print the response. On curl older than 7.76, use `-f`, which hides the body.
+
+On a pull request:
+
+```bash
+curl --fail-with-body "https://api.getbluejay.ai/v1/bluejay-as-code?dry_run=true" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+```
+
+On merge:
+
+```bash
+curl --fail-with-body https://api.getbluejay.ai/v1/bluejay-as-code \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+```
+
+A `422` fails the step and prints the `errors` list, so a bad payload stops on the pull request before it reaches Bluejay.
 
 ## Move from JSON to YAML
 
@@ -140,7 +200,7 @@ The `bluejay_as_code_id` values do not change, so your next push updates the sam
 
 ## Claude Code skill
 
-Give Claude Code this skill to write and push payloads for you.
+Give Claude Code this skill to write and push payloads for you. The [Bluejay MCP server](/mcp/testing-tools#bluejay-as-code) now exposes pull, plan, and push as tools, so an assistant connected to it can do the same without the skill.
 
 <DownloadFile href="https://raw.githubusercontent.com/bluejay-ai-dev/docs/main/bluejay-as-code/skill.txt" filename="bluejay-as-code.skill.txt">
   Download skill
