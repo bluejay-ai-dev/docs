@@ -31,10 +31,10 @@ Each change then has a history and a reviewer.
 
 ## Pull the payload
 
-To pull, request the type and ID of the entity you start from, with `format=yaml` (without it, you get JSON). This example pulls a simulation:
+To pull, request the type and ID of the entity you start from. The response is YAML. Until JSON is deprecated, add `format=json` to get JSON. This example pulls a simulation:
 
 ```bash
-curl "https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID?format=yaml" \
+curl "https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID" \
   -H "X-API-Key: $BLUEJAY_API_KEY" \
   -o simulation.yaml
 ```
@@ -133,7 +133,7 @@ A push returns HTTP `400` if the YAML cannot be read, if a link points to a Digi
 JSON will be deprecated on November 20th, 2026. To move a JSON file to YAML:
 
 1. If the JSON file has changes you have not pushed, push it one last time.
-2. Pull the same root again with `format=yaml`, as in [Pull the payload](#pull-the-payload).
+2. Pull the same root again, as in [Pull the payload](#pull-the-payload).
 3. Commit the YAML file in place of the JSON file, and change your CI pipeline to push the YAML file with `Content-Type: application/yaml`.
 
 The `bluejay_as_code_id` values do not change, so your next push updates the same entities.
