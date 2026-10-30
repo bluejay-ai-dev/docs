@@ -1,25 +1,69 @@
 ---
 title: "CI/CD Integration"
 sidebarTitle: "CI/CD Integration"
-description: "Fail a build when your agent's pass rate drops."
+description: "Fail a build when your agent's score drops."
 icon: code-branch
 ---
 
 import { Code } from "/snippets/code.jsx";
 
-Add the Bluejay action to a GitHub workflow to run a simulation from CI.
+Connect your deployment pipeline to Bluejay simulations.
 
-## Prerequisites
+<Tabs>
+<Tab title="GitHub">
 
-1. A Bluejay [API key](/api-reference/introduction#make-your-first-request).
-2. An agent connected to your assistant.
-3. A simulation on that agent, with the Digital Humans you want to run.
+## Set up the GitHub App
 
-However your agent connects to Bluejay, you only pass `api_key` and `simulation_id` to the CI workflow.
+<Steps>
+  <Step title="Connect GitHub">
+    Go to **Settings > Developers > Integrations**, open the **CI/CD** tab, select **GitHub**, click **Connect**, and approve the Bluejay GitHub App on the repositories you want to test.
+  </Step>
+  <Step title="Add a trigger">
+    Open a simulation, click **CI/CD**, and add a trigger with a repository, an environment name, and a minimum score. The environment name must match the deployment environment your host reports to GitHub, for example `Production`.
+  </Step>
+</Steps>
 
-## Test an existing agent
+The host must report deployments to GitHub. Vercel, Netlify, Railway and Render do. If yours does not, [use the GitHub Action](#use-the-github-action-instead).
 
-Use this option unless CI makes a preview deployment for each PR. All runs go to the same simulation, so you can compare them.
+Each run uses credits.
+
+## Production and preview triggers
+
+A **Production** trigger runs the simulation against the saved agent after a successful production deploy.
+
+A preview trigger runs against the preview deployment, for that one run only. The saved agent is not changed. Set an endpoint template, and Bluejay fills in the placeholders from the deployment:
+
+| Placeholder | Value |
+|-------------|-------|
+| <Code>{"{environment_url}"}</Code> | Full URL of the deployment |
+| <Code>{"{environment_url_host}"}</Code> | Host of the deployment URL |
+| <Code>{"{sha}"}</Code> | Commit SHA |
+| <Code>{"{short_sha}"}</Code> | First 7 characters of the SHA |
+| <Code>{"{pr_number}"}</Code> | Pull request number. The run fails to queue if the commit has no pull request |
+| <Code>{"{environment}"}</Code> | Environment name |
+
+Examples:
+
+- WebSocket agent: `wss://{environment_url_host}/ws`
+- LiveKit agent: `my-agent-pr-{pr_number}`, used as the LiveKit agent name
+
+Preview runs work for agents that connect by WebSocket, HTTP webhook, OpenAI chat, OpenAI Realtime, LiveKit or Pipecat. Phone and SIP agents, and agents hosted on builders such as Vapi, Retell and ElevenLabs, only support Production triggers.
+
+Set a **Preview domain** such as `vercel.app` when the template uses <Code>{"{environment_url}"}</Code> or <Code>{"{environment_url_host}"}</Code>. It is required for those templates. The host of the rendered URL must end with it. Only `https` and `wss` URLs are allowed, and private addresses are blocked.
+
+If previews are protected, for example by Vercel Deployment Protection, add a bypass header to the trigger so Bluejay can reach the deployment.
+
+## See the result
+
+Bluejay adds a check to the commit and its pull request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, make the check required in your branch protection rules.
+
+## Use the GitHub Action instead
+
+Use the Action when your host does not report deployments to GitHub, or when you want the run inside your own workflow. You need a Bluejay [API key](/api-reference/introduction#make-your-first-request), an agent, and a simulation with the Digital Humans you want to run.
+
+### Test an existing agent
+
+All runs go to the same simulation, so you can compare them.
 
 <Steps>
   <Step title="Add your API key and variables">
@@ -28,7 +72,7 @@ Use this option unless CI makes a preview deployment for each PR. All runs go to
 | Variable name | Value | Required |
 |--------------|-------|----------|
 | <Code>BLUEJAY_SIMULATION_ID</Code> | Your simulation ID (e.g., `12345`) | Yes |
-| <Code>BLUEJAY_MIN_SCORE</Code> | Minimum passing score (e.g., `80`) | No |
+| <Code>BLUEJAY_MIN_SCORE</Code> | Minimum score (e.g., `80`) | No |
 | <Code>BLUEJAY_PROMPT_ID</Code> | Agent version override ID (the action input is `prompt_id`) | No |
 | <Code>BLUEJAY_KB_ID</Code> | Knowledge Base override ID | No |
 | <Code>BLUEJAY_DIGITAL_HUMAN_IDS</Code> | Comma-separated Digital Human IDs | No |
@@ -50,7 +94,7 @@ on:
         required: false
         type: string
       min_score:
-        description: 'Minimum required score (0–100)'
+        description: 'Minimum score (0-100)'
         required: false
         type: string
         default: '80'
@@ -83,17 +127,17 @@ jobs:
   </Step>
 
   <Step title="Trigger a simulation">
-    Open a pull request. The action runs the simulation on each PR and shows the status and score in the PR checks.
+    Open a pull request. The action runs the simulation on each PR and shows pass or fail in the PR checks. The score is in the job logs.
 
 ![GitHub Action Check](/images/trigger_github_action.png)
   </Step>
 </Steps>
 
-## Test a preview deployment
+### Test a preview deployment
 
 Use this option if CI makes a preview deployment for each PR. For each PR, the workflow creates an agent and a simulation, runs the test, and then deletes both. Your Digital Humans are not deleted, because they are your test suite and every PR reuses them.
 
-In the `add-agent` payload, replace `<your connection field>` with the field that tells Bluejay how to reach your preview deployment. [Add Agent](/api-reference/endpoint/add-agent) lists the connection fields.
+The example uses a `WEBSOCKET` agent. Set `PREVIEW_WEBSOCKET_URL` to the URL of the preview deployment. For other connection types, send that type's fields instead. [Add Agent](/api-reference/endpoint/add-agent) lists them.
 
 For this option, set `BLUEJAY_DIGITAL_HUMAN_IDS`, for example `101,102`, because a new simulation has no Digital Humans and the run fails without them.
 
@@ -107,6 +151,7 @@ on:
 env:
   BLUEJAY_API: https://api.getbluejay.ai/v1
   BLUEJAY_API_KEY: ${{ secrets.BLUEJAY_API_KEY }}
+  PREVIEW_WEBSOCKET_URL: wss://pr-${{ github.event.number }}.preview.example.com/ws
 
 jobs:
   run-bluejay-tests:
@@ -117,12 +162,13 @@ jobs:
         run: |
           payload=$(jq -n \
             --arg name "ci-pr-${{ github.event.number }}-run-${{ github.run_id }}" \
-            --arg connection "<how Bluejay reaches this PR's preview deployment>" \
+            --arg ws_url "$PREVIEW_WEBSOCKET_URL" \
             '{
               name: $name,
               system_prompt: "Customer support assistant under test",
               goals: ["Resolve the customer issue"],
-              "<your connection field>": $connection
+              connection_type: "WEBSOCKET",
+              websocket_url: $ws_url
             }')
           resp=$(curl -s --fail-with-body -X POST "$BLUEJAY_API/add-agent" \
             -H "X-API-Key: $BLUEJAY_API_KEY" \
@@ -176,7 +222,8 @@ jobs:
   The cleanup step deletes the agent and the simulation, and the run history with them. To keep results, remove the cleanup step or [test an existing agent](#test-an-existing-agent).
 </Warning>
 
-## Pin to a commit SHA
+
+### Pin to a commit SHA
 
 Some organizations require every third-party action to be pinned to a full-length commit SHA. If yours does, the workflow fails with *"all actions must be pinned to a full-length commit SHA"*. To find the commit for `v1`, run:
 
@@ -194,7 +241,7 @@ uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7
   A SHA pin does not follow updates to `v1`. To get fixes, run the command again and update the pin.
 </Note>
 
-## Inputs
+### Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
@@ -206,21 +253,21 @@ uses: bluejay-ai-dev/bluejay-github-actions@c28260e8bd21f29e3841c712131a0ae979c7
 | <Code>phone_number</Code> | No | None | Phone number to use for this run. |
 | `sip_uri` | No | None | SIP URI to use for this run. |
 | <Code>wait_for_results</Code> | No | `true` | If `true`, wait for the run to end and fail CI on the score. |
-| `min_score` | No | `80` | Required pass rate (0–100). |
+| `min_score` | No | `80` | Minimum score (0-100). |
 | <Code>poll_interval_seconds</Code> | No | `10` | Polling frequency in seconds. |
 | <Code>timeout_seconds</Code> | No | `1500` | Maximum wait in seconds (25 minutes). |
 
-The step fails if the run does not complete, if the pass rate is below `min_score`, or if `timeout_seconds` passes first. To only queue the run without checking the score, set `wait_for_results` to `false`.
+The step fails if the run does not complete, if the score is below `min_score`, or if `timeout_seconds` passes first. To only queue the run without checking the score, set `wait_for_results` to `false`.
 
-## Outputs
+### Outputs
 
 | Output | Description |
 |--------|-------------|
 | `simulation-run-id` | The ID of the queued simulation run. |
 | `final-status` | The final run status from the API, for example `completed`. |
-| `score` | Pass rate of the run: `tests_passed / total_tests × 100`. |
+| `score` | Score of the run: `tests_passed / total_tests × 100`. |
 
-## Triggers
+### Triggers
 
 To run the tests on a different event, change only the `on:` section. Any [GitHub Actions trigger](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows) works. For example, to run daily at 09:00 UTC:
 
@@ -229,6 +276,73 @@ on:
   schedule:
     - cron: '0 9 * * *'
 ```
+
+</Tab>
+<Tab title="GitLab">
+
+Add a job to `.gitlab-ci.yml` that queues a run through the API, waits for it to finish, and fails when the score is below your minimum.
+
+<Steps>
+  <Step title="Add variables">
+    In GitLab, under **Settings > CI/CD > Variables**, add:
+
+| Variable | Value | Masked |
+|----------|-------|--------|
+| <Code>BLUEJAY_API_KEY</Code> | Your Bluejay [API key](/api-reference/introduction#make-your-first-request) | Yes |
+| <Code>BLUEJAY_SIMULATION_ID</Code> | Your simulation ID | No |
+| <Code>MIN_SCORE</Code> | Minimum score, 0-100 (e.g., `80`) | No |
+
+The simulation ID is in the simulation's **General Settings** tab.
+  </Step>
+
+  <Step title="Add the job">
+```yaml
+bluejay-tests:
+  stage: .post
+  image: alpine:3.20
+  timeout: 30m
+  variables:
+    BLUEJAY_API: https://api.getbluejay.ai/v1
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      set -eu
+      body=$(jq -n --arg id "$BLUEJAY_SIMULATION_ID" '{simulation_id: $id}')
+      resp=$(curl -sS --fail-with-body -X POST "$BLUEJAY_API/queue-simulation-run" \
+        -H "X-API-Key: $BLUEJAY_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d "$body")
+      run_id=$(echo "$resp" | jq -r '.simulation_run_id')
+      echo "Queued run $run_id"
+
+      status=""
+      for _ in $(seq 1 150); do
+        resp=$(curl -sS --fail-with-body "${BLUEJAY_API%/v1}/v2/retrieve-simulation-results/$run_id" \
+          -H "X-API-Key: $BLUEJAY_API_KEY")
+        status=$(echo "$resp" | jq -r '.simulation_run.status' | tr 'A-Z' 'a-z')
+        case "$status" in completed|failed|cancelled|success|error) break ;; esac
+        sleep 10
+      done
+
+      score=$(echo "$resp" | jq -r '.simulation_run | if .success_rate != null then .success_rate elif (.total_tests // 0) > 0 then (.tests_passed // 0) / .total_tests * 100 else 0 end')
+      echo "Status: $status, score: $score, minimum: $MIN_SCORE"
+      awk -v m="$MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "MIN_SCORE must be 0-100"; exit 1; }
+      case "$status" in completed|success) ;; *) echo "Run did not complete"; exit 1 ;; esac
+      awk -v s="$score" -v m="$MIN_SCORE" 'BEGIN { exit !(s >= m) }'
+```
+  </Step>
+</Steps>
+
+The score is the run's `success_rate` from the v2 results endpoint, the share of graded tests that passed. The job polls every 10 seconds for up to 25 minutes. The `.post` stage runs after every other stage, so the job tests the version your deploy jobs shipped. Add `rules` to run it only on the pipelines you want. Each run uses credits.
+
+</Tab>
+<Tab title="Azure DevOps">
+
+Add the Bluejay task to an Azure Pipelines pipeline and require it as a build validation policy on your target branch. See [Azure Pipelines](/api-reference/azure-pipelines) for the extension setup and a plain YAML step for organizations that cannot install extensions.
+
+</Tab>
+</Tabs>
 
 ## Related
 
