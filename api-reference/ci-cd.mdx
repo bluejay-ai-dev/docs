@@ -308,8 +308,9 @@ bluejay-tests:
   script:
     - |
       set -eu
-      body=$(jq -n --arg id "$BLUEJAY_SIMULATION_ID" '{simulation_id: $id}')
-      resp=$(curl -sS --fail-with-body -X POST "$BLUEJAY_API/queue-simulation-run" \
+      awk -v m="$MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "MIN_SCORE must be 0-100"; exit 1; }
+      body=$(jq -n --arg id "$BLUEJAY_SIMULATION_ID" '{simulation_id: $id, ci: ({provider: "gitlab_ci", repository: env.CI_PROJECT_PATH, commit_sha: env.CI_COMMIT_SHA, branch: (env.CI_COMMIT_BRANCH // env.CI_COMMIT_REF_NAME), pull_request: env.CI_MERGE_REQUEST_IID, pipeline_run_url: env.CI_PIPELINE_URL} | with_entries(select(.value != null)))}')
+      resp=$(curl -sS --max-time 60 --fail-with-body -X POST "$BLUEJAY_API/queue-simulation-run" \
         -H "X-API-Key: $BLUEJAY_API_KEY" \
         -H "Content-Type: application/json" \
         -d "$body")
@@ -318,16 +319,15 @@ bluejay-tests:
 
       status=""
       for _ in $(seq 1 150); do
-        resp=$(curl -sS --fail-with-body "${BLUEJAY_API%/v1}/v2/retrieve-simulation-results/$run_id" \
+        resp=$(curl -sS --max-time 60 --fail-with-body "${BLUEJAY_API%/v1}/v2/retrieve-simulation-results/$run_id" \
           -H "X-API-Key: $BLUEJAY_API_KEY")
-        status=$(echo "$resp" | jq -r '.simulation_run.status' | tr 'A-Z' 'a-z')
+        status=$(echo "$resp" | jq -r '.simulation_run.status // ""' | tr 'A-Z' 'a-z')
         case "$status" in completed|failed|cancelled|success|error) break ;; esac
         sleep 10
       done
 
       score=$(echo "$resp" | jq -r '.simulation_run | if .success_rate != null then .success_rate elif (.total_tests // 0) > 0 then (.tests_passed // 0) / .total_tests * 100 else 0 end')
       echo "Status: $status, score: $score, minimum: $MIN_SCORE"
-      awk -v m="$MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "MIN_SCORE must be 0-100"; exit 1; }
       case "$status" in completed|success) ;; *) echo "Run did not complete"; exit 1 ;; esac
       awk -v s="$score" -v m="$MIN_SCORE" 'BEGIN { exit !(s >= m) }'
 ```

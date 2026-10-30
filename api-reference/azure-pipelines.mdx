@@ -5,7 +5,7 @@ description: "Fail an Azure Pipelines build when your agent's pass rate drops."
 icon: code-branch
 ---
 
-Run a Bluejay simulation from Azure Pipelines and fail the build when the pass rate is below your minimum. It works the same way as the [GitHub Action](/api-reference/ci-cd): the pipeline queues a run, waits for it, and compares the run's pass rate with your minimum.
+Run your agent's simulations in Azure Pipelines and block pull requests that drop below your minimum pass rate.
 
 There are two ways to set it up. Use the Bluejay extension if your organization can install Marketplace extensions. Otherwise, use the plain YAML step, which needs nothing installed.
 
@@ -86,6 +86,7 @@ variables:
 steps:
   - bash: |
       set -euo pipefail
+      awk -v m="$BLUEJAY_MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "##vso[task.logissue type=error]BLUEJAY_MIN_SCORE must be a number from 0 to 100"; exit 1; }
       api="${BLUEJAY_API_URL:-https://api.getbluejay.ai}/v1"
       ci=$(jq -n '{
         provider: "azure_pipelines",
@@ -95,15 +96,15 @@ steps:
         pull_request: (env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER // env.SYSTEM_PULLREQUEST_PULLREQUESTID),
         pipeline_run_url: "\(env.SYSTEM_COLLECTIONURI | rtrimstr("/"))/\(env.SYSTEM_TEAMPROJECT | @uri)/_build/results?buildId=\(env.BUILD_BUILDID)"
       } | with_entries(select(.value != null))')
-      queued=$(curl -sS --fail-with-body -X POST "$api/queue-simulation-run" \
+      queued=$(curl -sS --max-time 60 --fail-with-body -X POST "$api/queue-simulation-run" \
         -H "X-API-Key: $BLUEJAY_API_KEY" -H "Content-Type: application/json" \
         -d "$(jq -n --arg id "$BLUEJAY_SIMULATION_ID" --argjson ci "$ci" '{simulation_id: $id, ci: $ci}')")
       run_id=$(jq -r .simulation_run_id <<<"$queued")
       echo "Queued simulation run $run_id $(jq -r '.run_url // empty' <<<"$queued")"
       deadline=$((SECONDS + ${BLUEJAY_TIMEOUT_SECONDS:-1500}))
       while true; do
-        run=$(curl -sS --fail-with-body "${api%/v1}/v2/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
-        status=$(jq -r '.status | ascii_downcase' <<<"$run")
+        run=$(curl -sS --max-time 60 --fail-with-body "${api%/v1}/v2/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
+        status=$(jq -r '(.status // "") | ascii_downcase' <<<"$run")
         passed=$(jq -r '.tests_passed // 0' <<<"$run")
         total=$(jq -r '.total_tests // 0' <<<"$run")
         rate=$(jq -r 'if .success_rate != null then .success_rate elif .total_tests > 0 then 100 * (.tests_passed // 0) / .total_tests else 0 end' <<<"$run")
@@ -112,7 +113,7 @@ steps:
         if [ "$SECONDS" -ge "$deadline" ]; then echo "##vso[task.logissue type=error]Timed out waiting for run $run_id"; exit 1; fi
         sleep "${BLUEJAY_POLL_SECONDS:-10}"
       done
-      echo "##vso[task.setvariable variable=bluejayReportUrl]$(jq -r '.run_url // empty' <<<"$run")"
+      echo "##vso[task.setvariable variable=bluejayReportUrl]$(jq -r '.run_url // empty' <<<"$queued")"
       case "$status" in completed|success) ;; *) echo "##vso[task.logissue type=error]Run $run_id ended with status $status"; exit 1 ;; esac
       if awk -v r="$rate" -v m="$BLUEJAY_MIN_SCORE" 'BEGIN { exit !(r < m) }'; then
         echo "##vso[task.logissue type=error]Pass rate $rate% is below the minimum of $BLUEJAY_MIN_SCORE%"
