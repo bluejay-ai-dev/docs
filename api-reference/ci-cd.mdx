@@ -7,7 +7,7 @@ icon: code-branch
 
 import { Code } from "/snippets/code.jsx";
 
-Run a simulation after each deploy and fail the build when the score is below your minimum.
+Connect your deployment pipeline to Bluejay simulations.
 
 <Tabs>
 <Tab title="GitHub">
@@ -298,7 +298,7 @@ The simulation ID is in the simulation's **General Settings** tab.
   <Step title="Add the job">
 ```yaml
 bluejay-tests:
-  stage: test
+  stage: .post
   image: alpine:3.20
   timeout: 30m
   variables:
@@ -327,13 +327,14 @@ bluejay-tests:
 
       score=$(echo "$resp" | jq -r '.simulation_run | if (.total_tests // 0) > 0 then (.tests_passed // 0) / .total_tests * 100 else 0 end')
       echo "Status: $status, score: $score, minimum: $MIN_SCORE"
+      awk -v m="$MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "MIN_SCORE must be 0-100"; exit 1; }
       case "$status" in completed|success) ;; *) echo "Run did not complete"; exit 1 ;; esac
       awk -v s="$score" -v m="$MIN_SCORE" 'BEGIN { exit !(s >= m) }'
 ```
   </Step>
 </Steps>
 
-The score is `tests_passed / total_tests * 100`, the same as the GitHub Action. The job polls every 10 seconds for up to 25 minutes. Add `rules` to run it only on the pipelines you want, for example after a deploy job. Each run uses credits.
+The score is `tests_passed / total_tests * 100`, the same as the GitHub Action. The job polls every 10 seconds for up to 25 minutes. The `.post` stage runs after every other stage, so the job tests the version your deploy jobs shipped. Add `rules` to run it only on the pipelines you want. Each run uses credits.
 
 </Tab>
 </Tabs>
