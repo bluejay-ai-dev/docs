@@ -103,7 +103,8 @@ steps:
       echo "Queued simulation run $run_id $(jq -r '.run_url // empty' <<<"$queued")"
       deadline=$((SECONDS + ${BLUEJAY_TIMEOUT_SECONDS:-1500}))
       while true; do
-        run=$(curl -sS --max-time 60 --fail-with-body "${api%/v1}/v2/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
+        left=$((deadline - SECONDS)); [ "$left" -lt 1 ] && left=1; [ "$left" -gt 60 ] && left=60
+        run=$(curl -sS --max-time "$left" --fail-with-body "${api%/v1}/v2/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
         status=$(jq -r '(.status // "") | ascii_downcase' <<<"$run")
         passed=$(jq -r '.tests_passed // 0' <<<"$run")
         total=$(jq -r '.total_tests // 0' <<<"$run")
