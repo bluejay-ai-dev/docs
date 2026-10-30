@@ -103,48 +103,126 @@ Applies a BaC payload to Bluejay. Each entity is matched by `bluejay_as_code_id`
 **Body:** the YAML file contents, sent as raw bytes. With curl use `--data-binary @file.yaml`, never `--data`, which strips line breaks.
 **Response:** always JSON.
 
+**Query parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| dry_run | boolean | Optional. `true` returns the plan with `dry_run: true` and writes nothing. |
+| prune | boolean | Optional. `true` deletes entities the push leaves with no links at all: a Digital Human in no simulation, a custom metric on no agent, a simulation removed from its agent's `simulations` list. Default `false`: nothing is deleted. |
+
 **Diffing behavior:**
 | Scenario | Result |
 |----------|--------|
 | `bluejay_as_code_id` not found in Bluejay | Entity is created |
-| Found, fields unchanged | No-op |
+| Found, fields unchanged | No-op (`Unchanged ...`) |
 | Found, fields changed | Entity is updated |
 | Digital Human absent from payload | Detached from simulation (not deleted) |
 | Digital Human exists on another simulation | Re-linked, not duplicated |
+| Entity left with no links, and `prune=true` | Entity is deleted. Without `prune`, nothing is deleted. |
 
 **Response:**
 | Field | Type | Description |
 |-------|------|-------------|
-| valid | boolean | True iff the payload passed validation. Always check this before treating a push as successful. |
+| valid | boolean | True iff the payload passed validation. |
 | errors | EntityValidationError[] | Per-entity validation errors. Empty when `valid` is true. |
-| actions | string[] | Human-readable lines describing every create/update/link/detach Bluejay performed. |
+| dry_run | boolean | True when the request was a dry run and nothing was written. |
+| actions | string[] | One line per entity. Each starts with `Created`, `Updated`, `Unchanged`, `Linked`, `Unlinked`, `Deleted` (push with `prune=true`), or `Would delete` (dry run with `prune=true`). |
 | simulation_id | integer \| null | Resolved Bluejay ID of the simulation in the bundle (when present). |
 
 ```json
 {
   "valid": true,
   "errors": [],
+  "dry_run": true,
   "actions": [
     "Updated agent 'Front Desk Scheduler'",
-    "Created digital human 'Eleanor Pham'"
+    "Unchanged simulation 'Scheduling Coverage'",
+    "Created digital human 'Eleanor Pham'",
+    "Would delete digital human 'Maria Alvarez'"
   ],
   "simulation_id": 1284
 }
 ```
 
+**Status codes:**
+| Code | Meaning |
+|------|---------|
+| 200 | Applied, or planned when `dry_run=true`. |
+| 400 | The YAML cannot be read, a link points to an entity that is in neither the payload nor Bluejay, or a new simulation does not have exactly one agent. |
+| 422 | The payload failed validation. Same body as a 200: `valid` is `false` and `errors` lists the problems. `curl -f` and `raise_for_status()` fail on it, so a CI step fails on its own. |
+
+**Rollback:** if a step fails after writes began, Bluejay rolls the push back. Entities it created are deleted, entities it updated are restored, links are restored. The error body is:
+
+```json
+{
+  "detail": {
+    "error": "...",
+    "applied": ["Created digital human 'Eleanor Pham'"],
+    "rolled_back": ["Created digital human 'Eleanor Pham'"],
+    "rollback_failed": []
+  }
+}
+```
+
+`rollback_failed` lists anything that could not be restored. Surface it to the user when it is not empty.
+
+**Always plan first.** Before any push that writes, call the endpoint with `dry_run=true`, show the user the `actions` list, and push only after they confirm. Never push with `prune=true` without showing the `Would delete` lines first.
+
 ```python
 import requests
 
-def push_bluejay_as_code(payload_yaml: str, api_key: str) -> dict:
-    url = "https://api.getbluejay.ai/v1/bluejay-as-code"
+BASE_URL = "https://api.getbluejay.ai/v1/bluejay-as-code"
+
+
+def plan_bluejay_as_code(payload_yaml: str, api_key: str, prune: bool = False) -> list[str]:
+    # Returns the actions a push would perform. Writes nothing.
+    return _post(payload_yaml, api_key, dry_run=True, prune=prune)["actions"]
+
+
+def push_bluejay_as_code(payload_yaml: str, api_key: str, prune: bool = False) -> dict:
+    return _post(payload_yaml, api_key, dry_run=False, prune=prune)
+
+
+def _post(payload_yaml: str, api_key: str, dry_run: bool, prune: bool) -> dict:
     headers = {"X-API-Key": api_key, "Content-Type": "application/yaml"}
-    response = requests.post(url, headers=headers, data=payload_yaml.encode("utf-8"))
-    response.raise_for_status()
-    result = response.json()
-    if not result["valid"]:
-        raise ValueError(f"Push failed: {result['errors']}")
-    return result
+    params = {"dry_run": str(dry_run).lower(), "prune": str(prune).lower()}
+    response = requests.post(BASE_URL, headers=headers, params=params, data=payload_yaml.encode("utf-8"))
+    if response.status_code == 422:
+        raise ValueError(f"Push failed validation: {response.json()['errors']}")
+    if response.status_code >= 400:
+        detail = response.json().get("detail", response.text)
+        raise RuntimeError(f"Push failed: {detail}")  # detail may hold applied / rolled_back / rollback_failed
+    return response.json()
 ```
+
+**CI pattern:** run the plan on the pull request and the push on merge. Check the status code, not `valid`.
+
+```bash
+# Pull request: plan only, nothing is written
+curl --fail-with-body "https://api.getbluejay.ai/v1/bluejay-as-code?dry_run=true" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" -H "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+
+# Merge: push
+curl --fail-with-body https://api.getbluejay.ai/v1/bluejay-as-code \
+  -H "X-API-Key: $BLUEJAY_API_KEY" -H "Content-Type: application/yaml" \
+  --data-binary @simulation.yaml
+```
+
+`--fail-with-body` needs curl 7.76 or later. Older curl: use `-f`, which hides the body.
+
+---
+
+## MCP tools
+
+When the Bluejay MCP server is connected, prefer its tools over hand-written HTTP calls:
+
+| Tool | Arguments | Does |
+|------|-----------|------|
+| `pull_bluejay_as_code` | `root_type`, `root_id`, `format` | Pull the payload for one root entity. |
+| `plan_bluejay_as_code` | `payload` | Return the plan. Writes nothing. |
+| `push_bluejay_as_code` | `payload`, `prune` | Push the payload. `prune=true` deletes entities left with no links. |
+
+Same rule as the HTTP API: call `plan_bluejay_as_code`, show the user the plan, then call `push_bluejay_as_code` only after they confirm.
 
 ---
 
@@ -180,20 +258,30 @@ payload["digital_humans"].append({
     "simulations": [payload["simulations"][0]["bluejay_as_code_id"]],
 })
 
-# 4. Push — single unified endpoint regardless of which root_type you pulled from
+# 4. Plan — dry run, writes nothing. Show these lines to the user before pushing.
 #    In a real project, edit the committed YAML file instead and push its contents.
 body = yaml.safe_dump(payload, sort_keys=False, allow_unicode=True)
+headers = {"X-API-Key": API_KEY, "Content-Type": "application/yaml"}
+
+plan = requests.post(
+    f"{BASE_URL}/bluejay-as-code",
+    headers=headers,
+    params={"dry_run": "true"},
+    data=body.encode("utf-8"),
+)
+plan.raise_for_status()  # 422 means the payload failed validation; the body has `errors`
+for action in plan.json()["actions"]:
+    print(action)
+
+# 5. Push — only after the user has confirmed the plan.
+#    Single unified endpoint regardless of which root_type you pulled from.
 result = requests.post(
     f"{BASE_URL}/bluejay-as-code",
-    headers={"X-API-Key": API_KEY, "Content-Type": "application/yaml"},
+    headers=headers,
     data=body.encode("utf-8"),
-).json()
-
-if not result["valid"]:
-    raise ValueError(result["errors"])
-
-for action in result["actions"]:
-    print(action)
+)
+result.raise_for_status()
+result = result.json()
 
 # result["simulation_id"] is the resolved Bluejay ID of the simulation in the bundle
 ```
@@ -205,8 +293,9 @@ for action in result["actions"]:
 - **Minimal changes:** only add or modify files required for this integration.
 - **Match existing patterns:** follow the project's naming conventions, file structure, and error-handling style.
 - **Stable IDs:** `bluejay_as_code_id` values must be hardcoded UUIDs in your config file, never generated dynamically at push time.
-- **Always check `valid`:** inspect `result["valid"]` and surface `result["errors"]` before treating a push as successful.
-- **Handle 422:** include error handling for HTTP 422 Validation Error.
+- **Plan first:** run a dry run (`dry_run=true` or `plan_bluejay_as_code`) and show the user the `actions` list before any push that writes. Never push with `prune=true` without showing the `Would delete` lines.
+- **Check the status code:** a push that fails validation returns HTTP 422 with `valid: false` and `errors`. Surface `errors` to the user. `valid` in a 200 body is always `true`.
+- **Handle rollback:** on any other 4xx/5xx, read `detail.applied`, `detail.rolled_back`, and `detail.rollback_failed`. Tell the user about anything in `rollback_failed`.
 
 ---
 
