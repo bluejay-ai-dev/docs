@@ -5,7 +5,7 @@ description: "Fail an Azure Pipelines build when your agent's pass rate drops."
 icon: code-branch
 ---
 
-Run a Bluejay simulation from Azure Pipelines and fail the build when the pass rate is below your minimum. It works the same way as the [GitHub Action](/api-reference/ci-cd): the pipeline queues a run, waits for it, and compares `tests_passed / total_tests × 100` with your minimum.
+Run a Bluejay simulation from Azure Pipelines and fail the build when the pass rate is below your minimum. It works the same way as the [GitHub Action](/api-reference/ci-cd): the pipeline queues a run, waits for it, and compares the run's pass rate with your minimum.
 
 There are two ways to set it up. Use the Bluejay extension if your organization can install Marketplace extensions. Otherwise, use the plain YAML step, which needs nothing installed.
 
@@ -102,22 +102,23 @@ steps:
       echo "Queued simulation run $run_id $(jq -r '.run_url // empty' <<<"$queued")"
       deadline=$((SECONDS + ${BLUEJAY_TIMEOUT_SECONDS:-1500}))
       while true; do
-        run=$(curl -sS --fail-with-body "$api/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
+        run=$(curl -sS --fail-with-body "${api%/v1}/v2/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
         status=$(jq -r '.status | ascii_downcase' <<<"$run")
         passed=$(jq -r '.tests_passed // 0' <<<"$run")
         total=$(jq -r '.total_tests // 0' <<<"$run")
-        echo "Status $status, passed $passed/$total"
+        rate=$(jq -r 'if .success_rate != null then .success_rate elif .total_tests > 0 then 100 * (.tests_passed // 0) / .total_tests else 0 end' <<<"$run")
+        echo "Status $status, passed $passed/$total ($rate%)"
         case "$status" in completed|success|failed|cancelled|error) break ;; esac
         if [ "$SECONDS" -ge "$deadline" ]; then echo "##vso[task.logissue type=error]Timed out waiting for run $run_id"; exit 1; fi
         sleep "${BLUEJAY_POLL_SECONDS:-10}"
       done
       echo "##vso[task.setvariable variable=bluejayReportUrl]$(jq -r '.run_url // empty' <<<"$run")"
       case "$status" in completed|success) ;; *) echo "##vso[task.logissue type=error]Run $run_id ended with status $status"; exit 1 ;; esac
-      if [ $((passed * 100)) -lt $((BLUEJAY_MIN_SCORE * total)) ] || { [ "$total" -eq 0 ] && [ "$BLUEJAY_MIN_SCORE" -gt 0 ]; }; then
-        echo "##vso[task.logissue type=error]Pass rate $passed/$total is below the minimum of $BLUEJAY_MIN_SCORE%"
+      if awk -v r="$rate" -v m="$BLUEJAY_MIN_SCORE" 'BEGIN { exit !(r < m) }'; then
+        echo "##vso[task.logissue type=error]Pass rate $rate% is below the minimum of $BLUEJAY_MIN_SCORE%"
         exit 1
       fi
-      echo "Pass rate $passed/$total meets the minimum of $BLUEJAY_MIN_SCORE%"
+      echo "Pass rate $rate% meets the minimum of $BLUEJAY_MIN_SCORE%"
     displayName: Run Bluejay simulation
     env:
       BLUEJAY_API_KEY: $(BLUEJAY_API_KEY)
@@ -150,7 +151,7 @@ The task sets these output variables. Give the step a `name:` to read them in la
 |--------|-------------|
 | `simulationRunId` | ID of the queued simulation run. |
 | `finalStatus` | Final run status, for example `COMPLETED`. |
-| `score` | Pass rate of the run: `tests_passed / total_tests × 100`. |
+| `score` | Pass rate of the run: `success_rate` from the v2 results endpoint, the share of graded tests that passed. |
 | `reportUrl` | Link to the run in Bluejay. |
 
 ## Pipeline details on the run
@@ -161,4 +162,4 @@ Both options send the pipeline's repository, commit, branch, pull request and a 
 
 - [GitHub Actions](/api-reference/ci-cd)
 - [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run)
-- [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results)
+- [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results-v2)
