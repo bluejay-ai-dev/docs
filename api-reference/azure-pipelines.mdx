@@ -87,7 +87,8 @@ steps:
   - bash: |
       set -euo pipefail
       awk -v m="$BLUEJAY_MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "##vso[task.logissue type=error]BLUEJAY_MIN_SCORE must be a number from 0 to 100"; exit 1; }
-      api="${BLUEJAY_API_URL:-https://api.getbluejay.ai}/v1"
+      api="${BLUEJAY_API_URL:-https://api.getbluejay.ai}"
+      api="${api%/}/v1"
       ci=$(jq -n '{
         provider: "azure_pipelines",
         repository: env.BUILD_REPOSITORY_NAME,
