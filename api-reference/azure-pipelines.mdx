@@ -1,0 +1,168 @@
+---
+title: "Azure Pipelines"
+sidebarTitle: "Azure Pipelines"
+description: "Fail an Azure Pipelines build when your agent's pass rate drops."
+icon: code-branch
+---
+
+Run your agent's simulations in Azure Pipelines and block pull requests that drop below your minimum pass rate.
+
+There are two ways to set it up. Use the Bluejay extension if your organization can install Marketplace extensions. Otherwise, use the plain YAML step, which needs nothing installed.
+
+## Prerequisites
+
+1. A Bluejay API key. Create one in the app under **Settings > Integrations > CI/CD**, or on the [Developers page](https://app.getbluejay.ai/developers).
+2. An agent connected to your assistant.
+3. A simulation on that agent, with the Digital Humans you want to run.
+
+The **CI/CD** tab also builds the YAML below for the simulation and minimum you pick.
+
+## Use the Bluejay extension
+
+<Steps>
+  <Step title="Install the extension">
+    Search for **Bluejay** in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/search?term=bluejay&target=AzureDevOps) and install it in your organization. Installing needs a Project Collection Administrator. Anyone else can request it, and the administrator gets an email to approve it.
+  </Step>
+
+  <Step title="Add a Bluejay service connection">
+    In your project, go to **Project settings > Service connections > New service connection > Bluejay**. Paste your API key, name the connection `Bluejay`, and save.
+
+    The first pipeline run that uses the connection stops with *"This pipeline needs permission to access a resource"*. Select **Permit** once. To skip this, grant the pipeline access in the connection's **Security** settings.
+  </Step>
+
+  <Step title="Add the task to your pipeline">
+    Add the task to `azure-pipelines.yml`. In the classic editor, **Simulation** lists the simulations the key can see.
+
+```yaml
+trigger:
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main]
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: BluejaySimulation@1
+    inputs:
+      bluejayConnection: Bluejay
+      simulationId: '12345'
+      minScore: '80'
+```
+  </Step>
+
+  <Step title="Require it on pull requests">
+    For Azure Repos, go to **Repos > Branches**, open the branch policies of `main`, and add the pipeline under **Build validation** as **Required**. A pull request then can't complete until the simulation passes.
+
+    For GitHub repos built in Azure Pipelines, the `pr:` trigger runs it, and you make it required with GitHub branch protection.
+  </Step>
+</Steps>
+
+After the run, the pipeline's **Extensions** tab shows the pass rate and a link to the run in Bluejay.
+
+## Use a plain YAML step
+
+This step does the same with `curl` and `jq`, which Microsoft-hosted Ubuntu agents already have. Add your API key as a secret pipeline variable named `BLUEJAY_API_KEY`. Secret variables are not passed to scripts automatically, so the step maps it with `env:`.
+
+```yaml
+trigger:
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  BLUEJAY_SIMULATION_ID: '12345'
+  BLUEJAY_MIN_SCORE: '80'
+
+steps:
+  - bash: |
+      set -euo pipefail
+      awk -v m="$BLUEJAY_MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "##vso[task.logissue type=error]BLUEJAY_MIN_SCORE must be a number from 0 to 100"; exit 1; }
+      api="${BLUEJAY_API_URL:-https://api.getbluejay.ai}"
+      api="${api%/}/v1"
+      ci=$(jq -n '{
+        provider: "azure_pipelines",
+        repository: env.BUILD_REPOSITORY_NAME,
+        commit_sha: (env.SYSTEM_PULLREQUEST_SOURCECOMMITID // env.BUILD_SOURCEVERSION),
+        branch: (env.SYSTEM_PULLREQUEST_SOURCEBRANCH // env.BUILD_SOURCEBRANCH),
+        pull_request: (env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER // env.SYSTEM_PULLREQUEST_PULLREQUESTID),
+        pipeline_run_url: "\(env.SYSTEM_COLLECTIONURI | rtrimstr("/"))/\(env.SYSTEM_TEAMPROJECT | @uri)/_build/results?buildId=\(env.BUILD_BUILDID)"
+      } | with_entries(select(.value != null))')
+      queued=$(curl -sS --max-time 60 --fail-with-body -X POST "$api/queue-simulation-run" \
+        -H "X-API-Key: $BLUEJAY_API_KEY" -H "Content-Type: application/json" \
+        -d "$(jq -n --arg id "$BLUEJAY_SIMULATION_ID" --argjson ci "$ci" '{simulation_id: $id, ci: $ci}')")
+      run_id=$(jq -r .simulation_run_id <<<"$queued")
+      echo "Queued simulation run $run_id $(jq -r '.run_url // empty' <<<"$queued")"
+      deadline=$((SECONDS + ${BLUEJAY_TIMEOUT_SECONDS:-1500}))
+      while true; do
+        left=$((deadline - SECONDS)); [ "$left" -lt 1 ] && left=1; [ "$left" -gt 60 ] && left=60
+        run=$(curl -sS --max-time "$left" --fail-with-body "${api%/v1}/v2/retrieve-simulation-results/$run_id?limit=1" -H "X-API-Key: $BLUEJAY_API_KEY" | jq .simulation_run)
+        status=$(jq -r '(.status // "") | ascii_downcase' <<<"$run")
+        passed=$(jq -r '.tests_passed // 0' <<<"$run")
+        total=$(jq -r '.total_tests // 0' <<<"$run")
+        rate=$(jq -r 'if .success_rate != null then .success_rate elif .total_tests > 0 then 100 * (.tests_passed // 0) / .total_tests else 0 end' <<<"$run")
+        echo "Status $status, passed $passed/$total ($rate%)"
+        case "$status" in completed|success|failed|cancelled|error) break ;; esac
+        if [ "$SECONDS" -ge "$deadline" ]; then echo "##vso[task.logissue type=error]Timed out waiting for run $run_id"; exit 1; fi
+        sleep "${BLUEJAY_POLL_SECONDS:-10}"
+      done
+      echo "##vso[task.setvariable variable=bluejayReportUrl]$(jq -r '.run_url // empty' <<<"$queued")"
+      case "$status" in completed|success) ;; *) echo "##vso[task.logissue type=error]Run $run_id ended with status $status"; exit 1 ;; esac
+      if awk -v r="$rate" -v m="$BLUEJAY_MIN_SCORE" 'BEGIN { exit !(r < m) }'; then
+        echo "##vso[task.logissue type=error]Pass rate $rate% is below the minimum of $BLUEJAY_MIN_SCORE%"
+        exit 1
+      fi
+      echo "Pass rate $rate% meets the minimum of $BLUEJAY_MIN_SCORE%"
+    displayName: Run Bluejay simulation
+    env:
+      BLUEJAY_API_KEY: $(BLUEJAY_API_KEY)
+```
+
+It fails the step when the run does not complete, when the pass rate is below `BLUEJAY_MIN_SCORE`, or after 25 minutes. Set `BLUEJAY_TIMEOUT_SECONDS` to change the wait.
+
+## Inputs
+
+| Input | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `bluejayConnection` | One of these two | None | Bluejay service connection. |
+| `apiKey` | One of these two | None | API key, as a secret variable such as `$(BLUEJAY_API_KEY)`. Used only without a service connection. |
+| `simulationId` | Yes | None | ID of the simulation to run. |
+| `minScore` | No | `80` | Required pass rate (0–100). |
+| `waitForResults` | No | `true` | If `false`, queue the run and pass without waiting. |
+| `agentVersionId` | No | None | Agent version UUID to use for this run. `promptId` also works. |
+| `knowledgeBaseId` | No | None | Knowledge Base override for this run. |
+| `digitalHumanIds` | No | None | Comma-separated Digital Human IDs. Defaults to all of them. |
+| `phoneNumber` | No | None | Phone number to use for this run. |
+| `sipUri` | No | None | SIP URI to use for this run. |
+| `pollIntervalSeconds` | No | `10` | Polling frequency in seconds. |
+| `timeoutSeconds` | No | `1500` | Maximum wait in seconds (25 minutes). |
+
+## Outputs
+
+The task sets these output variables. Give the step a `name:` to read them in later steps, for example `$(bluejay.score)`.
+
+| Output | Description |
+|--------|-------------|
+| `simulationRunId` | ID of the queued simulation run. |
+| `finalStatus` | Final run status, for example `COMPLETED`. |
+| `score` | Pass rate of the run: `success_rate` from the v2 results endpoint, the share of graded tests that passed. |
+| `reportUrl` | Link to the run in Bluejay. |
+
+## Pipeline details on the run
+
+Both options send the pipeline's repository, commit, branch, pull request and a link back to the pipeline run with the queued run. The **CI/CD** tab in **Settings > Integrations** lists the latest runs started from a pipeline, with their pass rate and both links.
+
+## Related
+
+- [GitHub Actions](/api-reference/ci-cd)
+- [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run)
+- [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results-v2)
