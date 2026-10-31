@@ -136,6 +136,14 @@ The metrics library holds metrics tuned for your best use case.
 | [Transfer Landed](/monitor/metrics/deterministic) | Passes when the Digital Human you choose answers the transfer in time. |
 | [Composite](/monitor/metrics/composite) | Combines the results of other metrics into one score or label. |
 
+## Predicted WER
+
+Predicted WER estimates how many words your agent's transcript got wrong. When you send a production conversation with both `recording_url` and a transcript, Bluejay transcribes the recording itself and compares the two. A value of `0.12` means about 12% of words differ.
+
+To turn it on, add **Predicted WER** from the metrics library, then turn on **Enable Predicted Word Error Rate Evaluations** under **Settings** > **Observability**. Each conversation is transcribed one extra time, which counts toward your speech-to-text usage. Conversations sent with only a transcript, or only a recording, get no value.
+
+Read it in the `metrics` array of [GET /v1/retrieve-call-log/{call_id}](/api-reference/endpoint/retrieve-call-log) and of the `observability_call_evaluated` [webhook](/api-reference/webhooks), as the entry with `metric_name` set to `predicted_wer`.
+
 ## Add metric conditions
 
 <MetricsConditional />
