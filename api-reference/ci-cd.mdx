@@ -339,7 +339,24 @@ The score is the run's `success_rate` from the v2 results endpoint, the share of
 </Tab>
 <Tab title="Azure DevOps">
 
-Add the Bluejay task to an Azure Pipelines pipeline and require it as a build validation policy on your target branch. See [Azure Pipelines](/api-reference/azure-pipelines) for the extension setup and a plain YAML step for organizations that cannot install extensions.
+## Connect Azure DevOps
+
+<Steps>
+  <Step title="Create a personal access token">
+    In Azure DevOps, open **User settings > Personal access tokens** and create a token for your organization with **Code (Read, Status)**, **Project and Team (Read)** and **Service Hooks (Read & write)**. The token owner needs permission to edit service hook subscriptions in the project.
+  </Step>
+  <Step title="Connect">
+    Go to **Settings > Developers > Integrations**, open the **CI/CD** tab, select **Azure DevOps**, click **Connect**, and enter your organization and the token.
+  </Step>
+  <Step title="Add a trigger">
+    Open a simulation, click **CI/CD**, and add a trigger with a repository, a target branch such as `main`, and a minimum score.
+  </Step>
+  <Step title="Require it on pull requests">
+    Bluejay runs the simulation on every pull request into that branch and posts the score as the `bluejay/simulation` status. In **Repos > Branches > Branch policies > Status checks**, add that status and set it to required.
+  </Step>
+</Steps>
+
+Each run uses credits. To run Bluejay from a pipeline instead, see [Azure Pipelines](/api-reference/azure-pipelines) for the extension and a plain YAML step.
 
 </Tab>
 </Tabs>
