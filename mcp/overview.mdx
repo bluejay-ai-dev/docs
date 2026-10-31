@@ -10,10 +10,72 @@ Ask an AI assistant such as Claude Code or Cursor to create simulations, run the
 ## Connect
 
 <Steps>
+  <Step title="Add the server to your client">
+    <Tabs>
+    <Tab title="Claude Code">
+
+    ```bash
+    claude mcp add --transport http bluejay https://api.getbluejay.ai/mcp
+    ```
+
+    Then run `/mcp` in Claude Code, pick `bluejay`, and choose **Authenticate**.
+    </Tab>
+    <Tab title="Claude">
+    In Claude Desktop or claude.ai, open **Settings → Connectors**, choose **Add custom connector**, and enter `https://api.getbluejay.ai/mcp` as the URL.
+    </Tab>
+    <Tab title="Cursor">
+    Add this to `~/.cursor/mcp.json` or `.cursor/mcp.json` in your project, then choose **Connect** next to `bluejay` in Cursor's MCP settings.
+
+    ```json
+    {
+      "mcpServers": {
+        "bluejay": {
+          "url": "https://api.getbluejay.ai/mcp"
+        }
+      }
+    }
+    ```
+
+    </Tab>
+    <Tab title="VS Code">
+    Add this to `.vscode/mcp.json`, then choose **Start** above the server.
+
+    ```json
+    {
+      "servers": {
+        "bluejay": {
+          "type": "http",
+          "url": "https://api.getbluejay.ai/mcp"
+        }
+      }
+    }
+    ```
+
+    </Tab>
+    <Tab title="Other clients">
+    Add a remote MCP server with the URL `https://api.getbluejay.ai/mcp`. If your client cannot sign in to MCP servers, [use an API key](#use-an-api-key-instead).
+    </Tab>
+    </Tabs>
+  </Step>
+  <Step title="Sign in and choose a workspace">
+    Your browser opens Bluejay. Sign in, pick the organization and workspace, and choose **Authorize**.
+
+    The assistant can only see and change that workspace. To disconnect, remove Bluejay from your client.
+  </Step>
+  <Step title="Test the connection">
+    Ask your assistant: "List my agents." It should return the agents in the workspace you picked.
+  </Step>
+</Steps>
+
+## Use an API key instead
+
+For CI, scripts, or clients that cannot sign in, connect with an API key.
+
+<Steps>
   <Step title="Get an API key">
     Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
   </Step>
-  <Step title="Add the server to your client">
+  <Step title="Add the server with your key">
     Replace `<your_api_key>` with your API key.
 
     <Tabs>
@@ -79,9 +141,6 @@ Ask an AI assistant such as Claude Code or Cursor to create simulations, run the
     If your client cannot set a custom header, send `Authorization: Bearer <your_api_key>` instead.
     </Tab>
     </Tabs>
-  </Step>
-  <Step title="Test the connection">
-    Ask your assistant: "List my agents." It should return the agents in your organization.
   </Step>
 </Steps>
 
