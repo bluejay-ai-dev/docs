@@ -286,7 +286,7 @@ on:
   <Step title="Connect GitLab">
     Go to **Settings > Integrations**, open the **CI/CD** tab, and select **GitLab**. On gitlab.com, click **Connect** and approve Bluejay on GitLab. It asks for the `api` scope. You return to Bluejay with the account listed.
 
-    For self-managed GitLab, click **Use an access token**. Enter your instance URL and a personal, group or project access token with the `api` scope.
+    For self-managed GitLab, click **Use an access token**. Enter your instance URL and a personal, group or project access token with the `api` scope. The instance must be reachable over https from the internet, and the token needs the Maintainer role on your projects.
   </Step>
   <Step title="Add a trigger">
     Open a simulation, click **CI/CD**, and add a trigger with a project, an environment name, and a minimum score. The environment name must match the `environment:` name of your deploy job, for example `production`.
@@ -301,11 +301,13 @@ Each run uses credits.
 
 ## Review app triggers
 
-A trigger on a review app environment runs against that deployment, for that one run only. The saved agent is not changed. Set an endpoint template, and Bluejay fills it in from the deployment's environment URL. Templates use the same placeholders, preview domain and bypass header as GitHub. See [Production and preview triggers](#production-and-preview-triggers) in the GitHub tab. In GitLab, <Code>{"{pr_number}"}</Code> is the merge request IID.
+To cover every review app, set the trigger's environment to `review/*`. It matches any environment that starts with `review/`, such as `review/$CI_COMMIT_REF_SLUG`. The deploy job must set `environment: url:`, since Bluejay calls that URL.
+
+A review app trigger runs against that deployment, for that one run only. The saved agent is not changed. Set an endpoint template, and Bluejay fills it in from the deployment's environment URL. Templates use the same placeholders, preview domain and bypass header as GitHub. See [Production and preview triggers](#production-and-preview-triggers) in the GitHub tab. In GitLab, <Code>{"{pr_number}"}</Code> is the merge request IID.
 
 ## See the result in GitLab
 
-Bluejay adds a commit status named **Bluejay: &lt;simulation&gt;** to the commit, and it shows on the commit's merge request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, turn on **Pipelines must succeed** under **Settings &gt; Merge requests**. The status runs as a job in the commit's pipeline.
+Bluejay adds a commit status named **Bluejay: &lt;simulation&gt; (&lt;environment&gt;)** to the commit, and it shows on the commit's merge request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, turn on **Pipelines must succeed** under **Settings &gt; Merge requests**. The status runs as a job in the commit's pipeline.
 
 ## Use the API job instead
 
