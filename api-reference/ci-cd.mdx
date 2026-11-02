@@ -284,16 +284,16 @@ on:
 
 <Steps>
   <Step title="Connect GitLab">
-    Go to **Settings > Integrations**, open the **CI/CD** tab, and select **GitLab**. On gitlab.com, click **Connect** and approve Bluejay on GitLab. It asks for the `api` scope. You return to Bluejay with the account listed.
+    Go to **Settings > Integrations**, open the **CI/CD** tab, and select **GitLab**. On gitlab.com, click **Connect** and approve Bluejay with the `api` scope. You return to Bluejay with the account listed.
 
-    For self-managed GitLab, click **Use an access token**. Enter your instance URL and a personal, group or project access token with the `api` scope. The instance must be reachable over https from the internet, and the token needs the Maintainer role on your projects.
+    For self-managed GitLab, click **Use an access token**. Enter your instance URL and a personal, group or project access token with the `api` scope. The instance must be reachable over https from the internet.
   </Step>
   <Step title="Add a trigger">
     Open a simulation, click **CI/CD**, and add a trigger with a project, an environment name, and a minimum score. The environment name must match the `environment:` name of your deploy job, for example `production`.
   </Step>
 </Steps>
 
-Bluejay creates the project webhook for you, with only Deployment events turned on. You must be a Maintainer on the project.
+Bluejay creates the project webhook for you, with only Deployment events turned on, so you need the Maintainer role on the project.
 
 A run starts when a deploy job with an `environment:` succeeds. If your pipeline does not deploy with GitLab environments, [use the API job](#use-the-api-job-instead).
 
@@ -303,7 +303,7 @@ Each run uses credits.
 
 To cover every review app, set the trigger's environment to `review/*`. It matches any environment that starts with `review/`, such as `review/$CI_COMMIT_REF_SLUG`. The deploy job must set `environment: url:`, since Bluejay calls that URL.
 
-A review app trigger runs against that deployment, for that one run only. The saved agent is not changed. Set an endpoint template, and Bluejay fills it in from the deployment's environment URL. Templates use the same placeholders, preview domain and bypass header as GitHub. See [Production and preview triggers](#production-and-preview-triggers) in the GitHub tab. In GitLab, <Code>{"{pr_number}"}</Code> is the merge request IID.
+A review app trigger runs against that deployment and does not change the saved agent. Set an endpoint template, and Bluejay fills it in from the deployment's environment URL. Templates use the same placeholders, preview domain and bypass header as [GitHub preview triggers](#production-and-preview-triggers). In GitLab, <Code>{"{pr_number}"}</Code> is the merge request IID.
 
 ## See the result in GitLab
 
