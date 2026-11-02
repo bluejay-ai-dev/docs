@@ -16,7 +16,7 @@ Connect your deployment pipeline to Bluejay simulations.
 
 <Steps>
   <Step title="Connect GitHub">
-    Go to **Settings > Developers > Integrations**, open the **CI/CD** tab, select **GitHub**, click **Connect**, and approve the Bluejay GitHub App on the repositories you want to test.
+    Go to **Settings > Integrations**, open the **CI/CD** tab, select **GitHub**, click **Connect**, and approve the Bluejay GitHub App on the repositories you want to test.
   </Step>
   <Step title="Add a trigger">
     Open a simulation, click **CI/CD**, and add a trigger with a repository, an environment name, and a minimum score. The environment name must match the deployment environment your host reports to GitHub, for example `Production`.
@@ -279,6 +279,37 @@ on:
 
 </Tab>
 <Tab title="GitLab">
+
+## Set up GitLab
+
+<Steps>
+  <Step title="Connect GitLab">
+    Go to **Settings > Integrations**, open the **CI/CD** tab, and select **GitLab**. On gitlab.com, click **Connect** and approve Bluejay with the `api` scope. You return to Bluejay with the account listed.
+
+    For self-managed GitLab, click **Use an access token**. Enter your instance URL and a personal, group or project access token with the `api` scope. The instance must be reachable over https from the internet.
+  </Step>
+  <Step title="Add a trigger">
+    Open a simulation, click **CI/CD**, and add a trigger with a project, an environment name, and a minimum score. The environment name must match the `environment:` name of your deploy job, for example `production`.
+  </Step>
+</Steps>
+
+Bluejay creates the project webhook for you, with only Deployment events turned on, so you need the Maintainer role on the project.
+
+A run starts when a deploy job with an `environment:` succeeds. If your pipeline does not deploy with GitLab environments, [use the API job](#use-the-api-job-instead).
+
+Each run uses credits.
+
+## Review app triggers
+
+To cover every review app, set the trigger's environment to `review/*`. It matches any environment that starts with `review/`, such as `review/$CI_COMMIT_REF_SLUG`. The deploy job must set `environment: url:`, since Bluejay calls that URL.
+
+A review app trigger runs against that deployment and does not change the saved agent. Set an endpoint template, and Bluejay fills it in from the deployment's environment URL. Templates use the same placeholders, preview domain and bypass header as [GitHub preview triggers](#production-and-preview-triggers). In GitLab, <Code>{"{pr_number}"}</Code> is the merge request IID.
+
+## See the result in GitLab
+
+Bluejay adds a commit status named **Bluejay: &lt;simulation&gt; (&lt;environment&gt;)** to the commit, and it shows on the commit's merge request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, turn on **Pipelines must succeed** under **Settings &gt; Merge requests**. The status runs as a job in the commit's pipeline.
+
+## Use the API job instead
 
 Add a job to `.gitlab-ci.yml` that queues a run through the API, waits for it to finish, and fails when the score is below your minimum.
 
