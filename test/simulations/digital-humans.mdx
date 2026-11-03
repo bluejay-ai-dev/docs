@@ -54,6 +54,16 @@ A trait can also go out as a SIP header on the call. The header name is the trai
 
 When you change a trait, select **Update Existing Digital Humans** to apply the change to all Digital Humans of the agent. Otherwise only new Digital Humans get the change.
 
+## Agent variables
+
+Use an agent variable for a value that every Digital Human of one agent shares, for example a business name or a plan. Set them in **Agent Variables** on the agent's **Simulation Settings** tab. They work for every connection type.
+
+Bluejay reads agent variables when each run starts, so a change applies to existing Digital Humans on their next run. When names match, a Digital Human's trait overrides the agent variable, and the **Send-call variables** on its Digital Human card override both. The Digital Human knows agent variables like traits and says them when the agent asks. Unlike a trait, an agent variable never goes out as a SIP header.
+
+### Variables in the text
+
+Write `{{name}}` in the success criteria, intent, description, or personality text, and Bluejay fills in the Digital Human's value for that name before the run, for both voice and text. The grader sees the same filled-in success criteria, so `The agent confirmed account {{account_number}}` is graded against the real number. For a nested value, join the keys with dots, for example `{{investor_information.first_name}}`. A name with no value stays as written.
+
 ## Tools
 
 - **End Conversation (On Trigger Phrases)** ends the call when the agent says one of the phrases.
@@ -120,6 +130,7 @@ An "if the agent says X, the caller does Y" rule in the intent is only a suggest
 | Need | Setting |
 |---|---|
 | A fixed value, for example a date of birth | **Traits** |
+| A fixed value for every Digital Human of an agent | **Agent Variables** |
 | A fixed line, keypad entry, or pause | **Scripted Responses** |
 | A fixed opening line | **Speaks First** |
 | The same call on each run | **Creativity** from 0.0 to 0.3 |
