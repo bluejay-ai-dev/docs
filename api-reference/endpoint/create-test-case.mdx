@@ -1,0 +1,103 @@
+---
+title: "POST /v1/test-cases"
+description: "Create a test case."
+sidebarTitle: "/\u200bv1/\u200btest-cases"
+api: "POST https://api.getbluejay.ai/v1/test-cases"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Creates a test case. `name` and `intent` are required. `success_criteria` takes one string with a check per line, or a list of checks.
+
+To make Digital Humans from it, pass its `id` as `test_case_id` to [Create Digital Humans](/api-reference/endpoint/create-digital-humans).
+
+Returns the new test case with its `id`.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "name", "type": "string or null", "required": false, "description": "Test name, required on create"}, {"name": "intent", "type": "string or null", "required": false, "description": "What the caller tries to do, required on create"}, {"name": "agent_id", "type": "integer or null", "required": false, "description": ""}, {"name": "success_criteria", "type": "string or array of string or object or null", "required": false, "description": "Pass/fail checks: a string with one check per line, or a list of checks. Stored as [{id, text}]"}, {"name": "expected_tool_calls", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "name", "type": "string", "required": true, "description": "Name of the expected tool call"}, {"name": "parameters", "type": "object or null", "required": false, "description": "Expected parameters passed to the tool call"}, {"name": "output", "type": "any or null", "required": false, "description": "Expected output returned by the tool call"}]}, {"name": "traits", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "trait_name", "type": "string", "required": true, "description": "Name of the fact, as the agent would ask for it: 'member_id', 'date_of_birth', 'order_number'. Traits are org-level, so reuse the existing name across the suite rather than coining a variant. A trait is always something the CALLER knows and can say out loud , never internal or agent-side information (CRM contents, what the agent should look up or say, grader notes)."}, {"name": "trait_data_type", "type": "string", "required": true, "description": "BOOLEAN, STRING, DATE (ISO 8601 string) or NUMBER. Must match `value`, which is coerced to this type.", "values": ["BOOLEAN", "STRING", "DATE", "NUMBER"]}, {"name": "value", "type": "object", "required": true, "description": "The concrete value this caller gives (stored as JSONB). Fixing it here is what makes the call repeatable , leave it out of `intent` prose, where the model would improvise a different one each run."}, {"name": "is_sip_header", "type": "boolean", "required": false, "description": "Send this trait as a SIP header on the call instead of as something the caller says. Leave false for ordinary case facts.", "default": false}]}, {"name": "trait_input_method", "type": "string or null", "required": false, "description": ""}, {"name": "follow_up_sms_success_criteria", "type": "string or null", "required": false, "description": ""}, {"name": "original_transcript", "type": "string or null", "required": false, "description": ""}, {"name": "formatted_transcript", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "enriched_playback", "type": "object[] or null", "required": false, "description": ""}, {"name": "workflow_v2_id", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "workflow_path_index", "type": "integer or null", "required": false, "description": ""}, {"name": "tested_path", "type": "string[] or null", "required": false, "description": ""}, {"name": "attack_type", "type": "string or null", "required": false, "description": ""}, {"name": "attack_vector", "type": "string or null", "required": false, "description": ""}, {"name": "attack_plan", "type": "object or null", "required": false, "description": ""}, {"name": "intent_summary", "type": "string or null", "required": false, "description": ""}, {"name": "objectives", "type": "string or null", "required": false, "description": ""}, {"name": "system_prompt_rule_ids", "type": "string[] or null", "required": false, "description": ""}, {"name": "system_prompt_rule_quotes", "type": "string[] or null", "required": false, "description": ""}, {"name": "tags", "type": "string[] or null", "required": false, "description": ""}, {"name": "allow_end_call_tool", "type": "boolean or null", "required": false, "description": ""}, {"name": "allow_silence_tool", "type": "boolean or null", "required": false, "description": ""}, {"name": "silence_tool_instructions", "type": "string or null", "required": false, "description": ""}, {"name": "allow_dtmf_tool", "type": "boolean or null", "required": false, "description": ""}, {"name": "default_dtmf_or_voiced", "type": "string or null", "required": false, "description": "Enum for DTMF vs voiced input mode.", "values": ["voiced", "dtmf"]}]} />
+
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/test-cases \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "intent": "<string>",
+    "agent_id": 123,
+    "success_criteria": "<string>",
+    "expected_tool_calls": [
+      {
+        "name": "<string>",
+        "parameters": {},
+        "output": null
+      }
+    ],
+    "traits": [
+      {
+        "trait_name": "<string>",
+        "trait_data_type": "BOOLEAN",
+        "value": null,
+        "is_sip_header": false
+      }
+    ],
+    "trait_input_method": "<string>",
+    "follow_up_sms_success_criteria": "<string>",
+    "original_transcript": "<string>",
+    "formatted_transcript": [
+      {
+        "key": "<string>"
+      }
+    ],
+    "enriched_playback": [
+      {}
+    ],
+    "workflow_v2_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "workflow_path_index": 123,
+    "tested_path": [
+      "<string>"
+    ],
+    "attack_type": "<string>",
+    "attack_vector": "<string>",
+    "attack_plan": {},
+    "intent_summary": "<string>",
+    "objectives": "<string>",
+    "system_prompt_rule_ids": [
+      "<string>"
+    ],
+    "system_prompt_rule_quotes": [
+      "<string>"
+    ],
+    "tags": [
+      "<string>"
+    ],
+    "allow_end_call_tool": true,
+    "allow_silence_tool": true,
+    "silence_tool_instructions": "<string>",
+    "allow_dtmf_tool": true,
+    "default_dtmf_or_voiced": "voiced"
+  }'
+```
+
+{/* END GENERATED */}
