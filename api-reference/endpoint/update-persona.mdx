@@ -1,0 +1,106 @@
+---
+title: "PATCH /v1/personas/{persona_id}"
+description: "Update a persona."
+sidebarTitle: "/\u200bv1/\u200bpersonas/\u200b{persona_id}"
+api: "PATCH https://api.getbluejay.ai/v1/personas/{persona_id}"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Updates the fields you send and leaves the rest. Every Digital Human that runs as this persona uses the change from its next run on.
+
+Returns the updated persona.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "persona_id", "type": "string (uuid)", "required": true, "description": ""}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "name", "type": "string or null", "required": false, "description": "Persona name, required on create"}, {"name": "role_description", "type": "string or null", "required": false, "description": "Who the caller is and how they behave"}, {"name": "gender", "type": "string or null", "required": false, "description": "Enum for gender options.", "values": ["male", "female"]}, {"name": "language", "type": "string or null", "required": false, "description": "Enum for supported language types.", "values": ["en", "es", "pt", "ja", "tr", "hi", "ar", "he", "ru", "zh", "ml", "fr", "yue", "vi", "de", "ko", "ur", "te", "ta", "mal", "kn", "mr", "gu", "tl", "el", "ad"]}, {"name": "accent", "type": "string or null", "required": false, "description": "Enum for accent options.", "values": ["multilingual", "american", "american2", "mature", "southern", "italian", "indian", "british", "australian", "scottish", "irish", "welsh", "mexican", "spanish", "portuguese", "french", "turkish", "japanese", "hindi", "arabic", "egyptian", "levantine", "hebrew", "russian", "chinese", "german", "korean", "urdu", "telugu", "tamil", "malayalam", "kannada", "marathi", "gujarati", "vietnamese", "cantonese", "tagalog", "greek", "autodetect", "watson", "watsonbritish", "watsonaustralian", "watsoncanadian"]}, {"name": "custom_voice_id", "type": "string or null", "required": false, "description": ""}, {"name": "voice_speed", "type": "string or null", "required": false, "description": "Enum for voice speed options.", "values": ["slowest", "slow", "normal", "fast", "fastest"]}, {"name": "emotion_map", "type": "object or null", "required": false, "description": ""}, {"name": "temperature", "type": "number or null", "required": false, "description": "Model temperature for the digital human's own speech. Named creativity in the UI, and accepted under either name."}, {"name": "verbosity", "type": "string or null", "required": false, "description": "Enum for verbosity level options.", "values": ["low", "medium", "high"]}, {"name": "fluency", "type": "string or null", "required": false, "description": "Enum for fluency level options.", "values": ["beginner", "intermediate", "native"]}, {"name": "endpointing_delay", "type": "number or null", "required": false, "description": "Seconds the digital human waits before it replies. Named patience in the UI, and accepted under either name."}, {"name": "silence_timeout", "type": "integer or null", "required": false, "description": "Silence timeout in seconds"}, {"name": "interruption_configs", "type": "object or null", "required": false, "description": ""}, {"name": "speaks_first", "type": "boolean or null", "required": false, "description": ""}, {"name": "speaks_first_config", "type": "object or null", "required": false, "description": "Configuration for whether the digital human speaks first and how. Stored as JSONB in Supabase (speaks_first_config).", "children": [{"name": "speaks_first", "type": "boolean", "required": true, "description": "Whether the digital human speaks first in the call"}, {"name": "mode", "type": "string or null", "required": false, "description": "When speaks_first is true: 'custom' (user-provided message) or 'ai_generated' (no message)", "values": ["custom", "ai_generated"]}, {"name": "message", "type": "string or null", "required": false, "description": "When mode is 'custom', the message the digital human says first"}, {"name": "dynamic", "type": "boolean", "required": false, "description": "When speaks_first is true: wait up to 5s for the agent to open; speak first only if it stays quiet. If the agent does open, the digital human yields and a mode='custom' message is DISCARDED, not spoken after the greeting, so on any agent that greets callers, a dynamic custom opener is never heard. Set false to speak it every time, at the top of the call and possibly over the greeting. Defaults on, so configs saved before this field existed become dynamic", "default": true}]}, {"name": "background_noise", "type": "string or null", "required": false, "description": "Enum for background noise options.", "values": ["none", "office", "talking", "traffic", "cafe", "park", "tv", "noisy_restaurant", "hospital", "airport", "birdsong", "bus_station", "car_interior", "city_night", "city_traffic", "construction", "driving", "factory", "hotel_lobby", "hotel_restaurant", "keyboard_typing", "light_rain", "night_insects", "office_open_plan", "playground", "pub", "quiet_home", "rain", "restaurant_busy", "restaurant_party", "road_traffic", "school", "shopping_centre", "street", "subway_station", "subway_train", "supermarket", "thunderstorm", "train_station", "urban", "urban_park", "wind", "kitchen", "living_room", "meeting_room", "small_office", "cafeteria", "restaurant", "town_square", "bus_ride", "babble_light", "babble_crowd", "custom"]}, {"name": "background_noise_volume", "type": "number or null", "required": false, "description": ""}, {"name": "custom_background_noise_url", "type": "string or null", "required": false, "description": ""}, {"name": "audio_quality", "type": "string or null", "required": false, "description": "Enum for audio quality options.", "values": ["high", "medium", "low", "horrible"]}, {"name": "hangup_phrases", "type": "string[] or null", "required": false, "description": ""}, {"name": "hangup_instructions", "type": "string or null", "required": false, "description": ""}, {"name": "scripted_responses", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "match_type", "type": "string", "required": true, "description": "How match_phrase is compared to the agent's turn. 'exact' is a fuzzy string comparison. Use it when you have the agent's literal line from a transcript, since it is stricter and costs no LLM call. 'context' asks an LLM whether the two utterances mean the same thing. Use it when the agent could phrase the same intent several ways.", "values": ["exact", "context"]}, {"name": "match_phrase", "type": "string", "required": true, "description": "An utterance the AGENT would say, which releases this response, e.g. 'Can I have your account number?'. Matching compares utterance to utterance, so a description of what the agent is doing ('the agent finished answering and is inviting another question') never matches anything: the rule saves and silently never fires. Write the line you expect to hear. Empty string is only meaningful when the digital human has scripted_responses_ordered set, where it fires on the digital human's next turn regardless of what the agent said."}, {"name": "response_type", "type": "string", "required": true, "description": "Type of response: 'phrase', 'silence', 'dtmf', or 'audio'", "values": ["phrase", "silence", "dtmf", "audio"]}, {"name": "response_value", "type": "string or null", "required": false, "description": "The response text (required for 'phrase' and 'dtmf', optional for 'silence', unused for 'audio')"}, {"name": "scripted_response_audio_snippet_url", "type": "string or null", "required": false, "description": "Skywatch bucket path of an uploaded audio file. AUDIO rows only , the agent downloads and plays this verbatim."}, {"name": "occurrence_mode", "type": "string", "required": true, "description": "When to apply: 'always' or 'first_n'. Ignored when the digital human has scripted_responses_ordered set, where every step fires exactly once regardless.", "values": ["always", "first_n"]}, {"name": "occurrence_n", "type": "integer or null", "required": false, "description": "Number of times to apply (required if occurrence_mode is 'first_n', must be > 0)"}, {"name": "silence_duration", "type": "integer or null", "required": false, "description": "Duration in seconds for silence period (only used when response_type is 'silence', must be > 0 if provided)"}]}, {"name": "scripted_responses_ordered", "type": "boolean or null", "required": false, "description": ""}, {"name": "journey_steps", "type": "object[] or null", "required": false, "description": "", "children": [{"name": "step", "type": "integer", "required": true, "description": ""}, {"name": "intent", "type": "string", "required": false, "description": "", "default": ""}, {"name": "success_criteria", "type": "string", "required": false, "description": "", "default": ""}, {"name": "modality", "type": "string", "required": false, "description": "", "default": "voice", "values": ["voice", "sms"]}, {"name": "direction", "type": "string or null", "required": false, "description": "", "values": ["inbound", "outbound"]}, {"name": "wait_seconds", "type": "integer or null", "required": false, "description": ""}, {"name": "response_window_seconds", "type": "integer or null", "required": false, "description": ""}, {"name": "unresponsive", "type": "boolean", "required": false, "description": "", "default": false}, {"name": "phone_number", "type": "string or null", "required": false, "description": ""}]}]} />
+
+## Response
+
+A `200` response has no body.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PATCH \
+  --url https://api.getbluejay.ai/v1/personas/{persona_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "role_description": "<string>",
+    "gender": "male",
+    "language": "en",
+    "accent": "multilingual",
+    "custom_voice_id": "<string>",
+    "voice_speed": "slowest",
+    "emotion_map": {},
+    "temperature": 1.5,
+    "verbosity": "low",
+    "fluency": "beginner",
+    "endpointing_delay": 1.5,
+    "silence_timeout": 123,
+    "interruption_configs": {},
+    "speaks_first": true,
+    "speaks_first_config": {
+      "speaks_first": true,
+      "mode": "custom",
+      "message": "<string>",
+      "dynamic": true
+    },
+    "background_noise": "none",
+    "background_noise_volume": 1.5,
+    "custom_background_noise_url": "<string>",
+    "audio_quality": "high",
+    "hangup_phrases": [
+      "<string>"
+    ],
+    "hangup_instructions": "<string>",
+    "scripted_responses": [
+      {
+        "match_type": "exact",
+        "match_phrase": "<string>",
+        "response_type": "phrase",
+        "response_value": "<string>",
+        "scripted_response_audio_snippet_url": "<string>",
+        "occurrence_mode": "always",
+        "occurrence_n": 123,
+        "silence_duration": 123
+      }
+    ],
+    "scripted_responses_ordered": true,
+    "journey_steps": [
+      {
+        "step": 123,
+        "intent": "",
+        "success_criteria": "",
+        "modality": "voice",
+        "direction": "inbound",
+        "wait_seconds": 123,
+        "response_window_seconds": 123,
+        "unresponsive": false,
+        "phone_number": "<string>"
+      }
+    ]
+  }'
+```
+
+{/* END GENERATED */}
