@@ -1,0 +1,80 @@
+---
+title: "Mock tools on custom agents"
+description: "Return a test case's canned tool result in your own LiveKit, Pipecat, phone or SIP agent."
+sidebarTitle: "Mock tools (custom agents)"
+---
+
+A digital human's **Expected Output** on the Tools tab can be returned to your agent as the tool result during a simulation, instead of your real tool running. Turn on **Mock tool results** for the agent first, from the digital human's Tools tab or with the `set_agent_mock_tools` MCP tool.
+
+When your tools run in your own code, wrap each tool with Bluejay's helper. During a Bluejay call it returns the canned result. On any other call it runs your real tool.
+
+## Install
+
+```bash
+pip install bluejay-sdk
+export BLUEJAY_API_KEY=<your Bluejay API key>
+```
+
+## LiveKit
+
+Add `@mockable` under `@function_tool`, and call `bind_livekit(ctx)` at the start of your entrypoint.
+
+```python
+from bluejay.helpers.tool_mocks import bind_livekit, mockable
+
+class Scheduler(Agent):
+    @function_tool
+    @mockable
+    async def check_availability(self, day: str) -> str:
+        return await my_calendar.slots(day)
+
+async def entrypoint(ctx: JobContext):
+    bind_livekit(ctx)
+    ...
+```
+
+## Pipecat
+
+Bind the call when the bot starts, then wrap the handler body.
+
+```python
+from bluejay.helpers.tool_mocks import bind, mock_or_call
+
+async def bot(args):
+    bind(test_result_id=args.body.get("X-Simulation-Result-Id"))
+    ...
+
+async def check_availability(params):
+    result = await mock_or_call("check_availability", params.arguments, lambda: my_calendar.slots(**params.arguments))
+    await params.result_callback(result)
+```
+
+## How the call is identified
+
+Bluejay sends the test id as `X-Simulation-Result-Id` on every simulated call. The helper reads it from:
+
+- LiveKit dispatch metadata, for LiveKit agents Bluejay dispatches.
+- Participant attributes, for SIP calls into LiveKit. Map the header with `headers_to_attributes` on your inbound trunk.
+- The Pipecat start body.
+- For any other server, pass it yourself with `bind(test_result_id=...)`.
+
+Plain phone calls drop SIP headers, so the helper falls back to the caller's number (`sip.phoneNumber`), or you can pass `bind(caller_number=...)`. Bluejay matches it to the digital human calling from that number right now.
+
+## Safe for production traffic
+
+- A call with no Bluejay test id and no caller number never contacts Bluejay.
+- A lookup that fails or takes more than 1.5 seconds runs your real tool.
+- An id from another organization or workspace answers "no mock".
+
+## Any other language
+
+Call the API directly from your tool handler:
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/tool-mocks/resolve \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -d '{"tool_name": "check_availability", "arguments": {"day": "Friday"}, "test_result_id": 125145}'
+# {"mocked": true, "result": {"slots": ["Friday 8:20 AM", "Friday 3:55 PM"]}}
+```
+
+Return `result` when `mocked` is true. Otherwise, or on any error, run your real tool.
