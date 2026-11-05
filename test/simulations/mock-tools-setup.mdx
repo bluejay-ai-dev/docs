@@ -1,0 +1,181 @@
+---
+title: "Mock Tool Calls: Setup"
+description: "Set up mock tool calls for your agent's platform."
+sidebarTitle: "Mock Tool Calls Setup"
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Find your agent's platform below to see what Bluejay mocks for you and what your tool server must do. Set the canned results first, as shown in [Mock tool calls](/test/simulations/mock-tools).
+
+| Platform | Web or chat simulations | Phone or SIP simulations |
+|---|---|---|
+| ElevenLabs | Native | Your tool server asks Bluejay |
+| Google CES, Dialogflow CX | Native for tools Bluejay runs | Not supported natively |
+| Retell, Vapi | Your tool server asks Bluejay | Your tool server asks Bluejay |
+| Bland | Not supported natively | Your tool server asks Bluejay |
+| LiveKit, Pipecat, your own code | Bluejay SDK helper | Bluejay SDK helper |
+
+"Native" means you only turn on **Mock tool results**. "Your tool server asks Bluejay" means your tool handler calls the [resolver](#retell-vapi-and-other-platforms) before it runs the real tool.
+
+## Turn on mocking
+
+Do this for every platform. Turn on **Mock tool results** on any Digital Human's **Tools** tab. The setting belongs to the agent, so it applies to all of the agent's Digital Humans.
+
+With the API, call [`PUT /v1/agents/{agent_id}/mock-tools`](/test/simulations/mock-tools-reference#turn-mocking-on-or-off). With MCP, ask your assistant to use `set_agent_mock_tools`.
+
+## ElevenLabs
+
+Bluejay mocks ElevenLabs agents natively on web simulations. Your agent needs versioning turned on in ElevenLabs.
+
+{/* TODO(video): mock-tools-elevenlabs-toggle.mp4, about 5s. On an ElevenLabs agent's Digital Human, open the Tools tab and turn on Mock tool results. Then uncomment:
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-toggle.mp4"></video>
+*/}
+
+When you turn mocking on, Bluejay creates a branch named `bluejay-mocks` on the agent in your ElevenLabs workspace.
+
+- The branch is a copy of your live version. It has a client tool in place of each webhook tool, with the same name and schema.
+- The branch takes 0% of traffic. Live callers and your main version are never touched.
+- Bluejay reuses the branch for every run. When you publish a new live version, Bluejay rebuilds the branch the next time you queue a run.
+- Don't edit the branch. Bluejay overwrites it.
+
+In a simulation, Bluejay connects to the branch, and each tool call comes back to Bluejay instead of your server.
+
+- A tool with a canned result gets that result.
+- A tool with no canned result on that Digital Human gets an error, "No mock result is configured for this tool in this test." Your real tool never runs, including calls the agent makes early or drops after an interruption.
+- A Digital Human with no canned results at all calls your live version, and your real tools run.
+
+{/* TODO(video): mock-tools-elevenlabs-output.mp4, about 8s. Under Tool Adherence, add check_availability with Expected Parameters {"day": "Tuesday"} and Expected Output {"slots": []}, then save. Then uncomment:
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-output.mp4"></video>
+*/}
+
+{/* TODO(video): mock-tools-elevenlabs-run.mp4, about 10s. Run the simulation, open the finished conversation, and show the check_availability tool call with the canned {"slots": []} result next to the agent saying Tuesday is full. Then uncomment:
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-run.mp4"></video>
+*/}
+
+To turn mocking off, turn off **Mock tool results**. Bluejay archives the branch and deletes its tool copies. Turning it on again creates a new branch.
+
+ElevenLabs phone and SIP agents use the [resolver](#retell-vapi-and-other-platforms), because ElevenLabs can't route a phone call to a branch. Bluejay sends `X-Simulation-Result-Id` on every SIP call. Pass it to your tool webhook as a dynamic variable.
+
+## Google CES and Dialogflow CX
+
+When Google hands a tool call to Bluejay during a simulation, Bluejay answers it with the canned result. This works for voice and chat. Turn on mocking. Nothing else is needed.
+
+- A tool with no canned result gets `{"status": "ok"}`.
+- A canned result that is not a JSON object arrives as `{"result": <value>}`.
+- Tools that Google runs itself, such as OpenAPI tools, still call your real system. Bluejay can't mock them yet.
+
+## Retell, Vapi and other platforms
+
+Retell and Vapi are not yet supported natively. Instead, your tool server asks Bluejay for the mock before it runs the real tool.
+
+1. Read the Bluejay test id from the call.
+2. Call `POST /v1/tool-mocks/resolve` with your Bluejay API key.
+3. If `mocked` is true, return `result` and skip the real tool. Otherwise run the real tool.
+
+Where to find the test id:
+
+| How Bluejay reaches your agent | Test id |
+|---|---|
+| Retell or Vapi web call | The call's metadata, <Code>metadata.test_result_id</Code>. Retell and Vapi include the call in tool requests. |
+| SIP | The `X-Simulation-Result-Id` header. |
+| Phone number | No id. Send the Digital Human's phone number as `caller_number`. |
+
+```bash
+curl -X POST https://api.getbluejay.ai/v1/tool-mocks/resolve \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"tool_name": "check_availability", "arguments": {"day": "Tuesday"}, "test_result_id": 125145}'
+```
+
+```json
+{"mocked": true, "result": {"slots": []}}
+```
+
+A Retell custom function with FastAPI:
+
+```python
+import os, httpx
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.post("/check_availability")
+def check_availability(body: dict):
+    test_id = (body["call"].get("metadata") or {}).get("test_result_id")
+    if test_id:
+        try:
+            r = httpx.post("https://api.getbluejay.ai/v1/tool-mocks/resolve", timeout=1.5,
+                headers={"X-API-Key": os.environ["BLUEJAY_API_KEY"]},
+                json={"tool_name": "check_availability", "arguments": body["args"], "test_result_id": int(test_id)}).json()
+            if r.get("mocked"):
+                return r["result"]
+        except Exception:
+            pass
+    return my_calendar.slots(**body["args"])
+```
+
+- Only call Bluejay when the call has a test id or comes from a Bluejay number. Real callers then never wait on Bluejay.
+- On `mocked: false`, an error or a timeout, run the real tool.
+- A tool with no canned result on that Digital Human answers `mocked: false`, so your real tool runs. Give each Digital Human a canned result for every tool that writes data.
+
+## Custom agents (LiveKit, Pipecat)
+
+When your tools run in your own code, wrap each tool with the Bluejay SDK helper. During a Bluejay simulation it returns the canned result. On any other call it runs your real tool.
+
+```bash
+pip install bluejay-sdk
+export BLUEJAY_API_KEY=<your Bluejay API key>
+```
+
+### LiveKit
+
+Add `@mockable` under `@function_tool`, and call `bind_livekit(ctx)` at the start of your entrypoint.
+
+```python
+from bluejay.helpers.tool_mocks import bind_livekit, mockable
+
+class Scheduler(Agent):
+    @function_tool
+    @mockable
+    async def check_availability(self, day: str) -> str:
+        return await my_calendar.slots(day)
+
+async def entrypoint(ctx: JobContext):
+    bind_livekit(ctx)
+    ...
+```
+
+The mock is looked up by the function name. If your tool has a different name in Bluejay, use `@mockable(name="check_availability")`.
+
+### Pipecat
+
+Bind the call when the bot starts, then wrap the handler body with `mock_or_call`.
+
+```python
+from bluejay.helpers.tool_mocks import bind, mock_or_call
+
+async def bot(args):
+    bind(test_result_id=args.body.get("X-Simulation-Result-Id"))
+    ...
+
+async def check_availability(params):
+    result = await mock_or_call("check_availability", params.arguments, lambda: my_calendar.slots(**params.arguments))
+    await params.result_callback(result)
+```
+
+### How the helper finds the call
+
+- `bind_livekit` reads `X-Simulation-Result-Id` from the dispatch metadata, then from participant attributes. For SIP calls into LiveKit, map the header with `headers_to_attributes` on your inbound trunk.
+- On plain phone calls the header is dropped, so `bind_livekit` falls back to the caller's number, `sip.phoneNumber`.
+- In any other server, call `bind(test_result_id=...)` or `bind(caller_number=...)` yourself.
+
+A mocked result is returned as a string. Objects are JSON-encoded. Timeouts and the environment variables are in the [reference](/test/simulations/mock-tools-reference#sdk-helper).
+
+## Phone
+
+No platform routes a Bluejay caller to a test version on its own, so phone tests always need your tool server to ask Bluejay. Use the [resolver](#retell-vapi-and-other-platforms) or the [SDK helper](#custom-agents-livekit-pipecat).
+
+- SIP calls carry `X-Simulation-Result-Id`. Send it as `test_result_id`.
+- Phone calls drop SIP headers. Send the Digital Human's phone number as `caller_number`, in E.164 form. Bluejay matches it to the Digital Human calling from that number right now.
+- When your agent calls the Digital Human, the Digital Human's number is the number your agent dialed.

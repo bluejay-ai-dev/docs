@@ -1,0 +1,74 @@
+---
+title: "Mock Tool Calls"
+description: "Give your agent canned tool results in simulations."
+icon: flask-vial
+sidebarTitle: "Mock Tool Calls"
+---
+
+Use mock tool calls to test how your agent handles a tool result you choose, such as "no slots available" or "order not found". During a simulation, the tool returns the Digital Human's canned result and your real system is never called, so runs are repeatable and touch no production data.
+
+{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool results on a Digital Human's Tools tab, set Expected Output for check_availability to {"slots": []}, run the simulation, and stop on the transcript where the agent says nothing is open. Then uncomment:
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-overview.mp4"></video>
+*/}
+
+## How it works
+
+1. Turn on **Mock tool results** for the agent. It applies to every Digital Human on that agent.
+2. On each Digital Human, set the **Expected Output / Mock Result** of a tool under **Tool Adherence**. That output is the canned result.
+3. Run the simulation. When the agent calls the tool, it gets the canned result.
+
+How the canned result reaches your agent depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
+
+## Set the canned result
+
+In the app, open a Digital Human's **Tools** tab. Under **Tool Adherence**, add the tool, then fill in:
+
+- **Expected Parameters**: the arguments this mock is for. Leave it empty to match any call.
+- **Expected Output / Mock Result**: the result your agent gets back. JSON or plain text.
+
+With the API or MCP, set `expected_tool_calls` when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human. Each entry has `name`, `parameters` and `output`.
+
+```json
+{
+  "expected_tool_calls": [
+    {
+      "name": "check_availability",
+      "parameters": {"day": "Tuesday"},
+      "output": {"slots": []}
+    }
+  ]
+}
+```
+
+An entry without `output` is graded for tool adherence but never mocked.
+
+## Which mock wins
+
+A Digital Human can have several entries for one tool.
+
+- Bluejay picks the first entry whose parameters all match the call's arguments. Values match as text, ignoring case and surrounding spaces. Arguments that the entry does not list are ignored.
+- If no entry matches, Bluejay uses the first entry for that tool. Put a catch-all entry first.
+- If the Digital Human has no entry for the tool, what happens depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
+
+## Example
+
+Your scheduling agent has a `check_availability` tool. You want to test the "fully booked" path.
+
+1. Turn on **Mock tool results** for the agent.
+2. Create a Digital Human who asks for a Tuesday appointment.
+3. Give it two entries for `check_availability`:
+
+| Expected Parameters | Expected Output |
+|---|---|
+| `{}` | `{"slots": ["Wed 09:00"]}` |
+| `{"day": "Tuesday"}` | `{"slots": []}` |
+
+4. Add the success criterion "The agent says Tuesday is full and offers Wednesday at 9:00."
+
+When the agent checks Tuesday, it gets no slots. When it checks any other day, it gets Wednesday at 9:00. Every run sees the same results, and no real calendar is read.
+
+## Related
+
+- [Setup by provider](/test/simulations/mock-tools-setup)
+- [Mock tool calls reference](/test/simulations/mock-tools-reference)
+- [Digital Human reference](/test/simulations/digital-humans)
