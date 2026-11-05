@@ -6,27 +6,51 @@ icon: upload
 
 import { Code } from "/snippets/code.jsx";
 
-Use this type when your test cases are already in a spreadsheet.
+Upload your test cases when they already live in a spreadsheet. This is the quickest way to start: each row becomes a Digital Human exactly as you wrote it, and nothing is generated or rewritten.
 
 ## Set it up
 
 <Steps>
-  <Step title="Select the card">
-    [Create a simulation](/test/simulations/create#create-a-simulation) and select the **Upload Digital Humans** card.
+  <Step title="Write the files">
+    Write a test cases CSV. To run each test case with several callers, also write a personas CSV: every test case then runs once as each persona, so 5 test cases and 2 personas make 10 calls per run.
 
-    <img className="block dark:hidden" src="/images/create-simulation-card-upload-digital-humans.png" alt="Upload Digital Humans card in the Create Simulation type picker" />
-    <img className="hidden dark:block" src="/images/create-simulation-card-upload-digital-humans-dark.png" alt="Upload Digital Humans card in the Create Simulation type picker" />
-  </Step>
-  <Step title="Fill in the CSV">
-    Download the **Sample CSV** and write one Digital Human in each row, with the [columns](#columns) below. Bluejay creates each row exactly as you wrote it and does not generate anything.
-  </Step>
-  <Step title="Upload the CSV">
-    Check any error before you go on, because Bluejay imports a row without the fields that are not valid.
+    ```csv test_cases.csv
+    name,intent,success_criteria
+    Reschedule appointment,Caller wants to move their Tuesday appointment to Friday,Agent confirms the new Friday slot
+    Cancel subscription,Caller wants to cancel and asks about a refund,Agent cancels and explains the refund policy
+    ```
 
-    <img className="block dark:hidden" src="/images/upload-digital-humans.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
-    <img className="hidden dark:block" src="/images/upload-digital-humans-dark.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
+    ```csv personas.csv
+    name,personality_description,language,accent,verbosity,background_noise,background_noise_volume
+    Rushed commuter,In a hurry on a train. Short answers and asks the agent to speed up.,en,american,low,traffic,0.6
+    Careful retiree,Polite and slow. Asks the agent to repeat numbers.,en,british,high,none,0
+    ```
+  </Step>
+  <Step title="Drop them in">
+    [Create a simulation](/test/simulations/create#bring-your-test-cases) and drop or attach the files in the request box. Bluejay skips the planning and goes straight to the Digital Humans, which you review before you run.
   </Step>
 </Steps>
+
+Bluejay tells the files apart by their header row. A file with `intent` is test cases, and a file with `name` and a persona column such as `personality_description` is personas. A file with both is a [Digital Humans CSV](#digital-humans-csv).
+
+Each test case becomes a Digital Human on your **Test Cases** tab, and the personas are saved to your **Personas** tab. A persona with the same name as one you have updates that persona.
+
+## Test cases columns
+
+`name` and `intent` are required. `success_criteria` takes one check per line in the cell. The `TC_<tool>` and `CT_<trait>` columns below work here too.
+
+## Personas columns
+
+`name` is required. The other columns are `personality_description`, `language`, `accent`, `voice_speed`, `verbosity`, `background_noise` and `background_noise_volume`. They take the values listed for the same fields in [Create Persona](/api-reference/endpoint/create-persona#request-body). `accent` is an accent such as `american` or `british`, not a voice key.
+
+## Digital Humans CSV
+
+The older format still works: one file, one Digital Human in each row, with every column below. Bluejay creates each row exactly as you wrote it.
+
+Check any error before you go on, because Bluejay imports a row without the fields that are not valid.
+
+<img className="block dark:hidden" src="/images/upload-digital-humans.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
+<img className="hidden dark:block" src="/images/upload-digital-humans-dark.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
 
 ## Columns
 
@@ -52,7 +76,7 @@ Use this type when your test cases are already in a spreadsheet.
 | `TC_<tool>` | An expected tool call. A string is the expected output. |
 | `CT_<trait>` | The value of a [trait](/test/simulations/digital-humans#traits) |
 
-These columns take the same values as the [behavior fields](/test/simulations/digital-humans#behavior):
+These columns take the same values as the [behavior fields](/test/simulations/personas#behavior):
 
 - `Voice Speed`
 - `Background Noise`
@@ -74,5 +98,6 @@ The `Interruptions` cell is a JSON object with `interruptions_type`:
 
 ## Related
 
+- [Personas](/test/simulations/personas)
 - [Digital Human Reference](/test/simulations/digital-humans)
 - [Digital Humans API](/api-reference/endpoint/create-digital-humans)
