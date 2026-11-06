@@ -7,48 +7,35 @@ sidebarTitle: "Mock Tool Calls"
 
 Use mock tool calls to test how your agent handles a tool result you choose, such as "two slots open on Thursday" or "order not found". During a simulation, the tool returns the Digital Human's canned result and your real system is never called, so runs are repeatable and touch no production data.
 
-{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool results in the agent's Simulation Settings, set a Digital Human's Expected Output for check_availability to {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, run the simulation, and stop on the transcript where the agent reads back the Thursday times. Then uncomment:
+{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool results in the agent's Simulation Settings, set a Digital Human's Tool responses entry for check_availability to {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, run the simulation, and stop on the transcript where the agent reads back the Thursday times. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-overview.mp4"></video>
 */}
 
 ## How it works
 
 1. Turn on **Mock tool results** in the agent's **Simulation Settings**. It applies to every Digital Human on that agent.
-2. On each Digital Human, set the **Expected Output / Mock Result** of a tool under **Tool Adherence**. That output is the canned result.
-3. Run the simulation. When the agent calls the tool, it gets the canned result.
+2. On each Digital Human, fill in **Tool responses** with the result each tool should return.
+3. Run the simulation. When the agent calls the tool, it gets that result.
 
-How the canned result reaches your agent depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
+How the result reaches your agent depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
 
-## Set the canned result
+## Set tool responses
 
-In the app, edit a Digital Human. Under **Tool Adherence**, add the tool, then fill in:
+In the app, edit a Digital Human. **Tool responses** lists the agent's tools, each with a box for its response, JSON or plain text. Leave a box empty and that tool runs for real. If the agent's tools aren't synced, type a tool name and click **Add Tool**.
 
-- **Expected Parameters**: the arguments this mock is for. Leave it empty to match any call.
-- **Expected Output / Mock Result**: the result your agent gets back. JSON or plain text.
+Tool responses are separate from **Tool Adherence**. Tool Adherence grades which tools the agent calls; Tool responses only decide what the tools return. You can mock a tool without requiring it to be called.
 
-With the API or MCP, set `expected_tool_calls` when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human. Each entry has `name`, `parameters` and `output`.
+With the API or MCP, set `tool_responses` when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human. It maps each tool name to its response.
 
 ```json
 {
-  "expected_tool_calls": [
-    {
-      "name": "check_availability",
-      "parameters": {"day": "Thursday"},
-      "output": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}
-    }
-  ]
+  "tool_responses": {
+    "check_availability": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}
+  }
 }
 ```
 
-An entry without `output` is graded for tool adherence but never mocked.
-
-## Which mock wins
-
-A Digital Human can have several entries for one tool.
-
-- Bluejay picks the first entry whose parameters all match the call's arguments. Values match as text, ignoring case and surrounding spaces. Arguments that the entry does not list are ignored.
-- If no entry matches, Bluejay uses the first entry for that tool. Put a catch-all entry first.
-- If the Digital Human has no entry for the tool, what happens depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
+A tool without an entry is not mocked. What happens then depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
 
 ## Example
 
@@ -56,7 +43,7 @@ Your scheduling agent has a `check_availability` tool. You want to test that it 
 
 1. Turn on **Mock tool results** in the agent's **Simulation Settings**.
 2. Create a Digital Human who asks for a Thursday appointment.
-3. Under **Tool Adherence**, add `check_availability` with Expected Output `{"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}`.
+3. Under **Tool responses**, set `check_availability` to `{"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}`.
 4. Add the success criterion "The agent reads back the Thursday times that check_availability returned."
 
 When the agent checks availability, it gets Thursday at 7:40 AM and 4:05 PM, and says those times to the caller. Every run sees the same result, and no real calendar is read.
