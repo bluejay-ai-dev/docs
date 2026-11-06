@@ -54,7 +54,7 @@ ElevenLabs phone and SIP agents use the [resolver](#retell-vapi-and-other-platfo
 
 When Google hands a tool call to Bluejay during a simulation, Bluejay answers it. This works for voice and chat. Turn on mocking. Nothing else is needed.
 
-- A tool set to **Real backend** gets `{"status": "ok"}`, since Bluejay runs these tools.
+- A tool set to **Real backend** gets an error result, since nothing can run your real tool on this path.
 - A result that is not a JSON object arrives as `{"result": <value>}`.
 - Tools that Google runs itself, such as OpenAPI tools, still call your real system. Bluejay can't mock them yet.
 
@@ -64,7 +64,7 @@ Retell and Vapi are not yet supported natively. Instead, your tool server asks B
 
 1. Read the Bluejay test id from the call.
 2. Call `POST /v1/tool-mocks/resolve` with your Bluejay API key.
-3. If `mocked` is true, return `result` and skip the real tool. Otherwise run the real tool.
+3. If `mocked` is true, return `result` and skip the real tool. On `mocked: false`, run the real tool.
 
 Where to find the test id:
 
@@ -98,18 +98,21 @@ def check_availability(body: dict):
     test_id = (body["call"].get("metadata") or {}).get("test_result_id")
     if test_id:
         try:
-            r = httpx.post("https://api.getbluejay.ai/v1/tool-mocks/resolve", timeout=1.5,
+            r = httpx.post("https://api.getbluejay.ai/v1/tool-mocks/resolve", timeout=10,
                 headers={"X-API-Key": os.environ["BLUEJAY_API_KEY"]},
-                json={"tool_name": "check_availability", "arguments": body["args"], "test_result_id": int(test_id)}).json()
-            if r.get("mocked"):
-                return r["result"]
+                json={"tool_name": "check_availability", "arguments": body["args"], "test_result_id": int(test_id)})
+            r.raise_for_status()
+            data = r.json()
         except Exception:
-            pass
+            return {"error": "This tool is unavailable in this test."}
+        if data.get("mocked"):
+            return data["result"]
     return my_calendar.slots(**body["args"])
 ```
 
 - Only call Bluejay when the call has a test id or comes from a Bluejay number. Real callers then never wait on Bluejay.
-- On `mocked: false`, an error or a timeout, run the real tool.
+- On `mocked: false`, run the real tool. When the call has a test id and Bluejay errors or times out, return an error result instead, so a test never reaches your real backend. Generated results can take a few seconds, so wait up to 10.
+- When Bluejay can't produce a result for a test, it answers `mocked: true` with an error result.
 - A tool set to **Real backend** answers `mocked: false`, so your real tool runs. Every other tool is mocked, generated unless you set it to **Fixed**.
 
 ## Custom agents (LiveKit, Pipecat)
