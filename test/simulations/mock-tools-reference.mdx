@@ -55,7 +55,7 @@ For each tool call in a simulation, Bluejay uses the first of:
 1. The Digital Human's `tool_responses` entry for the tool.
 2. The agent's `fixed` response for the tool.
 3. A generated result, unless the tool is set to `real`.
-4. Your real tool.
+4. Your real tool. On Google CES and Dialogflow CX, a tool set to `real` gets an error result instead, since nothing can run your real tool on that path.
 
 ## Resolve a mock
 
@@ -90,9 +90,9 @@ The helpers are in `bluejay.helpers.tool_mocks` in the `bluejay-sdk` Python pack
 | Name | What it does |
 |---|---|
 | `mockable` | Decorator for a tool. Pass `name=` when the Bluejay tool name differs from the function name. |
-| `bind_livekit(ctx)` | Identifies the call from a LiveKit `JobContext`. |
-| `bind(test_result_id=, caller_number=)` | Identifies the call yourself, in any server. |
-| `mock_or_call(tool_name, arguments, real_fn)` | Returns the mocked result, or the result of `real_fn()`. |
+| <Code>bind_livekit(ctx)</Code> | Identifies the call from a LiveKit `JobContext`. |
+| <Code>bind(test_result_id=, caller_number=)</Code> | Identifies the call yourself, in any server. |
+| <Code>mock_or_call(tool_name, arguments, real_fn)</Code> | Returns the mocked result, or the result of `real_fn()`. |
 
 | Environment variable | Default | Meaning |
 |---|---|---|
@@ -111,7 +111,8 @@ The helper fails closed on tests:
 
 | Platform | Mocked tool | Tool set to Real backend |
 |---|---|---|
-| ElevenLabs, native | Mocked result | Real tool runs |
+| ElevenLabs web or chat, native | Mocked result | Real tool runs |
+| ElevenLabs phone or SIP, resolver | Mocked result | Real tool runs |
 | Google CES, Dialogflow CX | Mocked result | Error result |
 | Resolver or SDK helper | Mocked result | Real tool runs |
 
