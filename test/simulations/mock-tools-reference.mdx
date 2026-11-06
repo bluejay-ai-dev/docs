@@ -1,0 +1,121 @@
+---
+title: "Mock Tool Calls Reference"
+description: "Endpoints, limits and settings for mock tool calls."
+sidebarTitle: "Mock Tool Calls Reference"
+---
+
+import { Code } from "/snippets/code.jsx";
+
+The endpoints authenticate with your Bluejay API key in the `X-API-Key` header. They only see agents and simulations in the [workspaces](/administration/workspaces) your key can access.
+
+## Turn mocking on or off
+
+`PUT https://api.getbluejay.ai/v1/agents/{agent_id}/mock-tools`
+
+Needs write access to the agent's workspace.
+
+```json
+{"enabled": true, "tools": {"check_availability": {"mode": "fixed", "response": {"slots": ["Thursday 7:40 AM"]}}}}
+```
+
+| Request field | Type | Meaning |
+|---|---|---|
+| `enabled` | boolean | Mock tool calls in every simulation on this agent. Required. |
+| `tools` | object | Per-tool settings keyed by tool name. Replaces the stored set. Leave it out to keep the stored set. Tools not listed are generated. |
+
+Each tool setting:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `mode` | string | `generated` (default), `fixed` or `real`. |
+| `response` | any | For `fixed`, the result returned every time. |
+| <Code>response_schema</Code> | object | JSON Schema the result must match. A `fixed` tool with a schema and no response gets a generated value that matches it. |
+
+| Response field | Type | Meaning |
+|---|---|---|
+| `agent_id` | integer | The agent. |
+| `enabled` | boolean | Whether mocking is now on. |
+| `tools` | object | The stored per-tool settings. |
+| <Code>eleven_labs_branch_id</Code> | string or null | The `bluejay-mocks` branch, for ElevenLabs agents turned on. |
+
+For ElevenLabs agents, turning it on creates the `bluejay-mocks` branch, or reuses it when mocking is already on, and turning it off archives the branch and deletes its tool copies. A 400 means the ElevenLabs agent has no versions, so turn on versioning in ElevenLabs first. A 502 means a call to the ElevenLabs API failed, and mocking stays as it was. Queuing a voice run also updates the branch to match the live agent and its tools. If that update fails, the run is not queued and the queue request answers 502.
+
+The MCP tool is `set_agent_mock_tools`, with `agent_id` and `enabled`. It returns the same fields.
+
+## Set one tool
+
+`PUT https://api.getbluejay.ai/v1/agents/{agent_id}/mock-tools/{tool_name}`
+
+The body is one tool setting, such as `{"mode": "fixed", "response": {"slots": []}}`. It also turns mocking on for the agent, and returns the same fields as above. The MCP tool is `set_agent_tool_mock`.
+
+## Order
+
+For each tool call in a simulation, Bluejay uses the first of:
+
+1. The Digital Human's `tool_responses` entry for the tool.
+2. The agent's `fixed` response for the tool.
+3. A generated result, unless the tool is set to `real`.
+4. Your real tool. On Google CES and Dialogflow CX, a tool set to `real` gets an error result instead, since nothing can run your real tool on that path.
+
+## Resolve a mock
+
+`POST https://api.getbluejay.ai/v1/tool-mocks/resolve`
+
+Call it from your tool server before you run the real tool.
+
+| Request field | Type | Meaning |
+|---|---|---|
+| `tool_name` | string | The tool the agent called. Required. |
+| `arguments` | object | The arguments the agent passed. Default `{}`. |
+| <Code>test_result_id</Code> | integer | The Bluejay test id, from `X-Simulation-Result-Id` or <Code>metadata.test_result_id</Code>. |
+| <Code>caller_number</Code> | string | The Digital Human's phone number in E.164 form, for phone calls. Used only when `test_result_id` is missing. |
+
+| Response field | Type | Meaning |
+|---|---|---|
+| `mocked` | boolean | True when this is a Bluejay test, the agent has mocking on, and the tool is not set to `real`. |
+| `result` | any | The result. Return it as the tool result. |
+
+When the call is a Bluejay simulation and Bluejay can't produce a result, the answer is `mocked: true` with the result `{"error": "This tool is unavailable in this test."}`.
+
+`caller_number` matches the Digital Human with that number whose conversation is running now. If none is running, the answer is `mocked: false`.
+
+An unknown id, an id from another organization, and an id from a workspace your key can't read all answer `mocked: false`. Bluejay never reveals whether the id exists.
+
+The limit is 600 requests per minute per organization. Over it, the endpoint answers 429. Treat a 429 like any other error: return an error result when the call has a test id, otherwise run the real tool.
+
+## SDK helper
+
+The helpers are in `bluejay.helpers.tool_mocks` in the `bluejay-sdk` Python package.
+
+| Name | What it does |
+|---|---|
+| `mockable` | Decorator for a tool. Pass `name=` when the Bluejay tool name differs from the function name. |
+| <Code>bind_livekit(ctx)</Code> | Identifies the call from a LiveKit `JobContext`. |
+| <Code>bind(test_result_id=, caller_number=)</Code> | Identifies the call yourself, in any server. |
+| <Code>mock_or_call(tool_name, arguments, real_fn)</Code> | Returns the mocked result, or the result of `real_fn()`. |
+
+| Environment variable | Default | Meaning |
+|---|---|---|
+| <Code>BLUEJAY_API_KEY</Code> | none | Required. Without it, calls with a test id get the error result and other calls run the real tool. |
+| <Code>BLUEJAY_MOCK_TIMEOUT_SECONDS</Code> | `1.5` | How long the helper waits for Bluejay on calls identified only by caller number. Calls with a test id wait 10 seconds. |
+| <Code>BLUEJAY_API_URL</Code> | <Code>https://api.getbluejay.ai/v1</Code> | The Bluejay API base URL. |
+
+The helper fails closed on tests:
+
+- A call with no test id and no caller number never contacts Bluejay.
+- With a test id, a lookup that fails, times out, or answers 429 returns `{"error": "This tool is unavailable in this test."}`. Your real tool never runs.
+- With only a caller number, the call may be a real caller, so a failed lookup runs your real tool.
+- A mocked result is returned as a string. Objects are JSON-encoded.
+
+## Which calls reach your real tool
+
+| Platform | Mocked tool | Tool set to Real backend |
+|---|---|---|
+| ElevenLabs web or chat, native | Mocked result | Real tool runs |
+| ElevenLabs phone or SIP, resolver | Mocked result | Real tool runs |
+| Google CES, Dialogflow CX | Mocked result | Error result |
+| Resolver or SDK helper | Mocked result | Real tool runs |
+
+Generated results usually take a second or two. If generation fails, the tool gets an error result on every platform, and your real tool does not run.
+
+On ElevenLabs, every tool call in the simulation goes to Bluejay, so calls the agent makes early or drops after an interruption never reach your real tool. With the resolver, every call that your handler checks first gets the mock in the same way.
