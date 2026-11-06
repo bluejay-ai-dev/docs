@@ -7,9 +7,7 @@ sidebarTitle: "Mock Tool Calls"
 
 Mock tool calls let your agent's tools answer during simulations without calling your real systems. Runs touch no production data, and you choose what each tool returns, such as "two slots open on Thursday" or "order not found".
 
-{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool calls in the agent's Simulation Settings, set check_availability to Fixed with {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, run the simulation, and stop on the transcript where the agent reads back the Thursday times. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-overview.mp4"></video>
-*/}
 
 ## How it works
 
@@ -18,6 +16,8 @@ Mocking is set on the agent and applies to every simulation on that agent. Live 
 1. Open the agent's **Simulation Settings** and turn on **Mock tool calls**. Every tool the agent has is listed.
 2. Pick a mode for each tool. Tools start on **Generated**.
 3. Run a simulation. Each tool call gets its answer from Bluejay.
+
+<img src="/images/mock-tools-toggle.png" alt="The agent's Simulation Settings with Mock tool calls on and each tool set to Generated" />
 
 | Mode | What the agent gets back |
 |---|---|
@@ -30,6 +30,8 @@ How the answer reaches your agent depends on the platform. ElevenLabs and Google
 ## Override a tool for one test case
 
 A Digital Human can override what a tool returns in its own runs. Edit the Digital Human and fill in **Tool Response Overrides** for the tool, JSON or plain text. Leave it empty to use the agent's mode.
+
+<img src="/images/mock-tools-responses.png" alt="A Digital Human's Tool Response Overrides with check_availability set to an empty slot list" />
 
 The order is: the Digital Human's override, then the agent's mode for the tool (Fixed or Generated), then your real backend.
 
@@ -44,6 +46,8 @@ Your scheduling agent has `check_availability` and `lookup_patient`. You want to
 3. Create a Digital Human who asks for a Thursday appointment, with the success criterion "The agent reads back the Thursday times that check_availability returned."
 
 When the agent looks up the caller, it gets back the Digital Human's own details. When it checks availability, it gets Thursday at 7:40 AM and 4:05 PM and reads those times to the caller. No real calendar or patient record is read.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-e2e.mp4"></video>
 
 To test a fully booked day in one test case, give that Digital Human an override for `check_availability` of `{"slots": []}`.
 
