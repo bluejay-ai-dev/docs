@@ -6,7 +6,7 @@ sidebarTitle: "Mock Tool Calls Reference"
 
 import { Code } from "/snippets/code.jsx";
 
-Both endpoints authenticate with your Bluejay API key in the `X-API-Key` header. They only see agents and simulations in the [workspaces](/administration/workspaces) your key can access.
+The endpoints authenticate with your Bluejay API key in the `X-API-Key` header. They only see agents and simulations in the [workspaces](/administration/workspaces) your key can access.
 
 ## Turn mocking on or off
 
@@ -15,18 +15,47 @@ Both endpoints authenticate with your Bluejay API key in the `X-API-Key` header.
 Needs write access to the agent's workspace.
 
 ```json
-{"enabled": true}
+{"enabled": true, "tools": {"check_availability": {"mode": "fixed", "response": {"slots": ["Thursday 7:40 AM"]}}}}
 ```
+
+| Request field | Type | Meaning |
+|---|---|---|
+| `enabled` | boolean | Mock tool calls in every simulation on this agent. Required. |
+| `tools` | object | Per-tool settings keyed by tool name. Replaces the stored set. Leave it out to keep the stored set. Tools not listed are generated. |
+
+Each tool setting:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `mode` | string | `generated` (default), `fixed` or `real`. |
+| `response` | any | For `fixed`, the result returned every time. |
+| <Code>response_schema</Code> | object | JSON Schema the result must match. A `fixed` tool with a schema and no response gets a generated value that matches it. |
 
 | Response field | Type | Meaning |
 |---|---|---|
 | `agent_id` | integer | The agent. |
 | `enabled` | boolean | Whether mocking is now on. |
+| `tools` | object | The stored per-tool settings. |
 | <Code>eleven_labs_branch_id</Code> | string or null | The `bluejay-mocks` branch, for ElevenLabs agents turned on. |
 
 For ElevenLabs agents, turning it on creates or reuses the `bluejay-mocks` branch, and turning it off archives the branch and deletes its tool copies. A 400 means the ElevenLabs agent has no versions, so turn on versioning in ElevenLabs first. A 502 means a call to the ElevenLabs API failed, and mocking stays as it was.
 
 The MCP tool is `set_agent_mock_tools`, with `agent_id` and `enabled`. It returns the same fields.
+
+## Set one tool
+
+`PUT https://api.getbluejay.ai/v1/agents/{agent_id}/mock-tools/{tool_name}`
+
+The body is one tool setting, such as `{"mode": "fixed", "response": {"slots": []}}`. It also turns mocking on for the agent, and returns the same fields as above. The MCP tool is `set_agent_tool_mock`.
+
+## Order
+
+For each tool call in a simulation, Bluejay uses the first of:
+
+1. The Digital Human's `tool_responses` entry for the tool.
+2. The agent's `fixed` response for the tool.
+3. A generated result, unless the tool is set to `real`.
+4. Your real tool.
 
 ## Resolve a mock
 
@@ -43,8 +72,8 @@ Call it from your tool server before you run the real tool.
 
 | Response field | Type | Meaning |
 |---|---|---|
-| `mocked` | boolean | True when this is a Bluejay test, the agent has mocking on, and the Digital Human has a canned result for this tool. |
-| `result` | any | The canned result. Return it as the tool result. |
+| `mocked` | boolean | True when this is a Bluejay test, the agent has mocking on, and the tool is not set to `real`. |
+| `result` | any | The result. Return it as the tool result. |
 
 `caller_number` matches the Digital Human with that number whose conversation is running now. If none is running, the answer is `mocked: false`.
 
@@ -61,7 +90,7 @@ The helpers are in `bluejay.helpers.tool_mocks` in the `bluejay-sdk` Python pack
 | `mockable` | Decorator for a tool. Pass `name=` when the Bluejay tool name differs from the function name. |
 | `bind_livekit(ctx)` | Identifies the call from a LiveKit `JobContext`. |
 | `bind(test_result_id=, caller_number=)` | Identifies the call yourself, in any server. |
-| `mock_or_call(tool_name, arguments, real_fn)` | Returns the mock, or the result of `real_fn()`. |
+| `mock_or_call(tool_name, arguments, real_fn)` | Returns the mocked result, or the result of `real_fn()`. |
 
 | Environment variable | Default | Meaning |
 |---|---|---|
@@ -77,10 +106,12 @@ The helper fails open:
 
 ## Which calls reach your real tool
 
-| Platform | Tool with a canned result | Tool without one |
+| Platform | Mocked tool | Tool set to Real backend |
 |---|---|---|
-| ElevenLabs, native | Canned result | Error result, real tool never runs |
-| Google CES, Dialogflow CX | Canned result | `{"status": "ok"}` |
-| Resolver or SDK helper | Canned result | Real tool runs |
+| ElevenLabs, native | Mocked result | Real tool runs |
+| Google CES, Dialogflow CX | Mocked result | `{"status": "ok"}` |
+| Resolver or SDK helper | Mocked result | Real tool runs |
+
+Generated results usually take under a second. If generation fails, the resolver answers with an error, so the helper runs your real tool, and on ElevenLabs the tool gets an error result.
 
 On ElevenLabs, every tool call in the simulation goes to Bluejay, so calls the agent makes early or drops after an interruption never reach your real tool. With the resolver, every call that your handler checks first gets the mock in the same way.

@@ -1,52 +1,69 @@
 ---
 title: "Mock Tool Calls"
-description: "Give your agent canned tool results in simulations."
+description: "Answer your agent's tool calls in simulations without touching your real systems."
 icon: flask-vial
 sidebarTitle: "Mock Tool Calls"
 ---
 
-Use mock tool calls to test how your agent handles a tool result you choose, such as "two slots open on Thursday" or "order not found". During a simulation, the tool returns the Digital Human's canned result and your real system is never called, so runs are repeatable and touch no production data.
+Mock tool calls let your agent's tools answer during simulations without calling your real systems. Runs touch no production data, and you choose what each tool returns, such as "two slots open on Thursday" or "order not found".
 
-{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool results in the agent's Simulation Settings, set a Digital Human's Tool responses entry for check_availability to {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, run the simulation, and stop on the transcript where the agent reads back the Thursday times. Then uncomment:
+{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool calls in the agent's Simulation Settings, set check_availability to Fixed with {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, run the simulation, and stop on the transcript where the agent reads back the Thursday times. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-overview.mp4"></video>
 */}
 
 ## How it works
 
-1. Turn on **Mock tool results** in the agent's **Simulation Settings**. It applies to every Digital Human on that agent.
-2. On each Digital Human, fill in **Tool responses** with the result each tool should return.
-3. Run the simulation. When the agent calls the tool, it gets that result.
+Mocking is set on the agent and applies to every simulation on that agent. Live traffic is never mocked.
 
-How the result reaches your agent depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
+1. Open the agent's **Simulation Settings** and turn on **Mock tool calls**. Every tool the agent has is listed.
+2. Pick a mode for each tool. Tools start on **Generated**.
+3. Run a simulation. Each tool call gets its answer from Bluejay.
 
-## Set tool responses
+| Mode | What the agent gets back |
+|---|---|
+| Generated | A realistic result Bluejay writes on the fly from the tool's name, description and parameters, the call's arguments, and the calling Digital Human. A lookup returns the Digital Human's own name, date of birth and account details. |
+| Fixed | The JSON you enter, every time. |
+| Real backend | Not mocked. The call goes to your real tool. |
 
-In the app, edit a Digital Human. **Tool responses** lists the agent's tools, each with a box for its response, JSON or plain text. Leave a box empty and that tool runs for real. If the agent's tools aren't synced, type a tool name and click **Add Tool**.
+How the answer reaches your agent depends on the platform. ElevenLabs and Google CES or Dialogflow CX agents are mocked automatically. Phone, Retell, Vapi and custom agents need their tool server to ask Bluejay. See [Setup by provider](/test/simulations/mock-tools-setup).
 
-Tool responses are separate from **Tool Adherence**. Tool Adherence grades which tools the agent calls; Tool responses only decide what the tools return. You can mock a tool without requiring it to be called.
+## Override a tool for one test case
 
-With the API or MCP, set `tool_responses` when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human. It maps each tool name to its response.
+A Digital Human can override what a tool returns in its own runs. Edit the Digital Human and fill in **Tool Response Overrides** for the tool, JSON or plain text. Leave it empty to use the agent's mode.
 
-```json
-{
-  "tool_responses": {
-    "check_availability": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}
-  }
-}
-```
+The order is: the Digital Human's override, then the agent's mode for the tool (Fixed or Generated), then your real backend.
 
-A tool without an entry is not mocked. What happens then depends on the platform. See [Setup by provider](/test/simulations/mock-tools-setup).
+Overrides are separate from **Tool Adherence**. Tool Adherence grades which tools the agent calls; overrides only decide what the tools return.
 
 ## Example
 
-Your scheduling agent has a `check_availability` tool. You want to test that it reads back the times your calendar returns.
+Your scheduling agent has `check_availability` and `lookup_patient`. You want to test that it reads back the times your calendar returns.
 
-1. Turn on **Mock tool results** in the agent's **Simulation Settings**.
-2. Create a Digital Human who asks for a Thursday appointment.
-3. Under **Tool responses**, set `check_availability` to `{"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}`.
-4. Add the success criterion "The agent reads back the Thursday times that check_availability returned."
+1. Turn on **Mock tool calls** in the agent's **Simulation Settings**.
+2. Set `check_availability` to **Fixed** with `{"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}`. Leave `lookup_patient` on **Generated**.
+3. Create a Digital Human who asks for a Thursday appointment, with the success criterion "The agent reads back the Thursday times that check_availability returned."
 
-When the agent checks availability, it gets Thursday at 7:40 AM and 4:05 PM, and says those times to the caller. Every run sees the same result, and no real calendar is read.
+When the agent looks up the caller, it gets back the Digital Human's own details. When it checks availability, it gets Thursday at 7:40 AM and 4:05 PM and reads those times to the caller. No real calendar or patient record is read.
+
+To test a fully booked day in one test case, give that Digital Human an override for `check_availability` of `{"slots": []}`.
+
+## With the API or MCP
+
+Turn mocking on, then set a tool to Fixed:
+
+```bash
+curl -X PUT https://api.getbluejay.ai/v1/agents/$AGENT_ID/mock-tools \
+  -H "X-API-Key: $BLUEJAY_API_KEY" -H "Content-Type: application/json" \
+  -d '{"enabled": true}'
+
+curl -X PUT https://api.getbluejay.ai/v1/agents/$AGENT_ID/mock-tools/check_availability \
+  -H "X-API-Key: $BLUEJAY_API_KEY" -H "Content-Type: application/json" \
+  -d '{"mode": "fixed", "response": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}}'
+```
+
+Overrides are the `tool_responses` field when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human.
+
+With MCP or Bluejay AI, ask "mock tool calls for my scheduling agent", then "make check_availability return Thursday 7:40 AM and 4:05 PM". The tools are `set_agent_mock_tools` and `set_agent_tool_mock`.
 
 ## Related
 

@@ -6,7 +6,7 @@ sidebarTitle: "Mock Tool Calls Setup"
 
 import { Code } from "/snippets/code.jsx";
 
-Find your agent's platform below to see what Bluejay mocks for you and what your tool server must do. Set the canned results first, as shown in [Mock tool calls](/test/simulations/mock-tools).
+Find your agent's platform below to see what Bluejay mocks for you and what your tool server must do. Pick each tool's mode first, as shown in [Mock tool calls](/test/simulations/mock-tools).
 
 | Platform | Web or chat simulations | Phone or SIP simulations |
 |---|---|---|
@@ -16,36 +16,35 @@ Find your agent's platform below to see what Bluejay mocks for you and what your
 | Bland | Not supported natively | Your tool server asks Bluejay |
 | LiveKit, Pipecat, your own code | Bluejay SDK helper | Bluejay SDK helper |
 
-"Native" means you only turn on **Mock tool results**. "Your tool server asks Bluejay" means your tool handler calls the [resolver](#retell-vapi-and-other-platforms) before it runs the real tool.
+"Native" means you only turn on **Mock tool calls**. "Your tool server asks Bluejay" means your tool handler calls the [resolver](#retell-vapi-and-other-platforms) before it runs the real tool.
 
 ## Turn on mocking
 
-Do this for every platform. Open the agent's **Simulation Settings** tab and turn on **Mock tool results**. It applies to all of the agent's Digital Humans. The canned results themselves are set on each Digital Human.
+Do this for every platform. Open the agent's **Simulation Settings** tab and turn on **Mock tool calls**. It applies to every simulation on the agent, and each tool starts on **Generated**.
 
-With the API, call [`PUT /v1/agents/{agent_id}/mock-tools`](/test/simulations/mock-tools-reference#turn-mocking-on-or-off). With MCP, ask your assistant to use `set_agent_mock_tools`.
+With the API, call [`PUT /v1/agents/{agent_id}/mock-tools`](/test/simulations/mock-tools-reference#turn-mocking-on-or-off). With MCP or Bluejay AI, ask to mock tool calls for the agent.
 
 ## ElevenLabs
 
 Bluejay mocks ElevenLabs agents natively on web simulations. Your agent needs versioning turned on in ElevenLabs.
 
-{/* TODO(video): mock-tools-elevenlabs-toggle.mp4, about 5s. On an ElevenLabs agent's Simulation Settings tab, turn on Mock tool results. Then uncomment:
+{/* TODO(video): mock-tools-elevenlabs-toggle.mp4, about 5s. On an ElevenLabs agent's Simulation Settings tab, turn on Mock tool calls and set check_availability to Fixed. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-toggle.mp4"></video>
 */}
 
 When you turn mocking on, Bluejay creates a branch named `bluejay-mocks` on the agent in your ElevenLabs workspace.
 
-- The branch is a copy of your live version. It has a client tool in place of each webhook tool, with the same name and schema.
+- The branch is a copy of your live version. It has a client tool in place of each webhook tool, with the same name and schema. Tools set to **Real backend** stay webhooks and call your server.
 - The branch takes 0% of traffic. Live callers and your main version are never touched.
-- Bluejay reuses the branch for every run. When you publish a new live version, Bluejay rebuilds the branch the next time you queue a run.
+- Bluejay reuses the branch for every run. When you publish a new live version, Bluejay rebuilds the branch the next time you queue a run. Changing a tool to or from **Real backend** rebuilds it right away.
 - Don't edit the branch. Bluejay overwrites it.
 
 In a simulation, Bluejay connects to the branch, and each tool call comes back to Bluejay instead of your server.
 
-- A tool with a canned result gets that result.
-- A tool with no canned result on that Digital Human gets an error, "No mock result is configured for this tool in this test." Your real tool never runs, including calls the agent makes early or drops after an interruption.
-- A Digital Human with no canned results at all calls your live version, and your real tools run.
+- Each tool gets the Digital Human's override, the Fixed response, or a generated result, in that order.
+- If Bluejay can't produce a result, the tool gets an error, "No mock result is available for this tool in this test." Your real tool never runs, including calls the agent makes early or drops after an interruption.
 
-{/* TODO(video): mock-tools-elevenlabs-output.mp4, about 8s. Edit a Digital Human, set check_availability under Tool responses to {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, then save. Then uncomment:
+{/* TODO(video): mock-tools-elevenlabs-output.mp4, about 8s. With Mock tool calls on, set check_availability to Fixed with {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]} and leave the other tool on Generated. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-output.mp4"></video>
 */}
 
@@ -53,16 +52,16 @@ In a simulation, Bluejay connects to the branch, and each tool call comes back t
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-run.mp4"></video>
 */}
 
-To turn mocking off, turn off **Mock tool results**. Bluejay archives the branch and deletes its tool copies. Turning it on again creates a new branch.
+To turn mocking off, turn off **Mock tool calls**. Bluejay archives the branch and deletes its tool copies. Turning it on again creates a new branch.
 
 ElevenLabs phone and SIP agents use the [resolver](#retell-vapi-and-other-platforms), because ElevenLabs can't route a phone call to a branch. Bluejay sends `X-Simulation-Result-Id` on every SIP call. Pass it to your tool webhook as a dynamic variable.
 
 ## Google CES and Dialogflow CX
 
-When Google hands a tool call to Bluejay during a simulation, Bluejay answers it with the canned result. This works for voice and chat. Turn on mocking. Nothing else is needed.
+When Google hands a tool call to Bluejay during a simulation, Bluejay answers it. This works for voice and chat. Turn on mocking. Nothing else is needed.
 
-- A tool with no canned result gets `{"status": "ok"}`.
-- A canned result that is not a JSON object arrives as `{"result": <value>}`.
+- A tool set to **Real backend** gets `{"status": "ok"}`, since Bluejay runs these tools.
+- A result that is not a JSON object arrives as `{"result": <value>}`.
 - Tools that Google runs itself, such as OpenAPI tools, still call your real system. Bluejay can't mock them yet.
 
 ## Retell, Vapi and other platforms
@@ -117,11 +116,11 @@ def check_availability(body: dict):
 
 - Only call Bluejay when the call has a test id or comes from a Bluejay number. Real callers then never wait on Bluejay.
 - On `mocked: false`, an error or a timeout, run the real tool.
-- A tool with no canned result on that Digital Human answers `mocked: false`, so your real tool runs. Give each Digital Human a canned result for every tool that writes data.
+- A tool set to **Real backend** answers `mocked: false`, so your real tool runs. Every other tool is mocked, generated unless you set it to **Fixed**.
 
 ## Custom agents (LiveKit, Pipecat)
 
-When your tools run in your own code, wrap each tool with the Bluejay SDK helper. During a Bluejay simulation it returns the canned result. On any other call it runs your real tool.
+When your tools run in your own code, wrap each tool with the Bluejay SDK helper. During a Bluejay simulation it returns the mocked result. On any other call it runs your real tool.
 
 ```bash
 pip install bluejay-sdk
