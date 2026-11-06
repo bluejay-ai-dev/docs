@@ -20,7 +20,7 @@ Find your agent's platform below to see what Bluejay mocks for you and what your
 
 ## Turn on mocking
 
-Do this for every platform. Turn on **Mock tool results** on any Digital Human's **Tools** tab. The setting belongs to the agent, so it applies to all of the agent's Digital Humans.
+Do this for every platform. Open the agent's **Simulation Settings** tab and turn on **Mock tool results**. It applies to all of the agent's Digital Humans. The canned results themselves are set on each Digital Human.
 
 With the API, call [`PUT /v1/agents/{agent_id}/mock-tools`](/test/simulations/mock-tools-reference#turn-mocking-on-or-off). With MCP, ask your assistant to use `set_agent_mock_tools`.
 
@@ -28,7 +28,7 @@ With the API, call [`PUT /v1/agents/{agent_id}/mock-tools`](/test/simulations/mo
 
 Bluejay mocks ElevenLabs agents natively on web simulations. Your agent needs versioning turned on in ElevenLabs.
 
-{/* TODO(video): mock-tools-elevenlabs-toggle.mp4, about 5s. On an ElevenLabs agent's Digital Human, open the Tools tab and turn on Mock tool results. Then uncomment:
+{/* TODO(video): mock-tools-elevenlabs-toggle.mp4, about 5s. On an ElevenLabs agent's Simulation Settings tab, turn on Mock tool results. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-toggle.mp4"></video>
 */}
 
@@ -45,11 +45,11 @@ In a simulation, Bluejay connects to the branch, and each tool call comes back t
 - A tool with no canned result on that Digital Human gets an error, "No mock result is configured for this tool in this test." Your real tool never runs, including calls the agent makes early or drops after an interruption.
 - A Digital Human with no canned results at all calls your live version, and your real tools run.
 
-{/* TODO(video): mock-tools-elevenlabs-output.mp4, about 8s. Under Tool Adherence, add check_availability with Expected Parameters {"day": "Tuesday"} and Expected Output {"slots": []}, then save. Then uncomment:
+{/* TODO(video): mock-tools-elevenlabs-output.mp4, about 8s. Edit a Digital Human, add check_availability under Tool Adherence with Expected Output {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, then save. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-output.mp4"></video>
 */}
 
-{/* TODO(video): mock-tools-elevenlabs-run.mp4, about 10s. Run the simulation, open the finished conversation, and show the check_availability tool call with the canned {"slots": []} result next to the agent saying Tuesday is full. Then uncomment:
+{/* TODO(video): mock-tools-elevenlabs-run.mp4, about 10s. Run the simulation, open the finished conversation, and show the agent reading back the Thursday 7:40 AM and 4:05 PM slots in the transcript. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-elevenlabs-run.mp4"></video>
 */}
 
@@ -85,11 +85,11 @@ Where to find the test id:
 curl -X POST https://api.getbluejay.ai/v1/tool-mocks/resolve \
   -H "X-API-Key: $BLUEJAY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"tool_name": "check_availability", "arguments": {"day": "Tuesday"}, "test_result_id": 125145}'
+  -d '{"tool_name": "check_availability", "arguments": {"day": "Thursday"}, "test_result_id": 125145}'
 ```
 
 ```json
-{"mocked": true, "result": {"slots": []}}
+{"mocked": true, "result": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}}
 ```
 
 A Retell custom function with FastAPI:

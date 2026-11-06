@@ -5,15 +5,15 @@ icon: flask-vial
 sidebarTitle: "Mock Tool Calls"
 ---
 
-Use mock tool calls to test how your agent handles a tool result you choose, such as "no slots available" or "order not found". During a simulation, the tool returns the Digital Human's canned result and your real system is never called, so runs are repeatable and touch no production data.
+Use mock tool calls to test how your agent handles a tool result you choose, such as "two slots open on Thursday" or "order not found". During a simulation, the tool returns the Digital Human's canned result and your real system is never called, so runs are repeatable and touch no production data.
 
-{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool results on a Digital Human's Tools tab, set Expected Output for check_availability to {"slots": []}, run the simulation, and stop on the transcript where the agent says nothing is open. Then uncomment:
+{/* TODO(video): mock-tools-overview.mp4, about 10s. Turn on Mock tool results in the agent's Simulation Settings, set a Digital Human's Expected Output for check_availability to {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}, run the simulation, and stop on the transcript where the agent reads back the Thursday times. Then uncomment:
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-overview.mp4"></video>
 */}
 
 ## How it works
 
-1. Turn on **Mock tool results** for the agent. It applies to every Digital Human on that agent.
+1. Turn on **Mock tool results** in the agent's **Simulation Settings**. It applies to every Digital Human on that agent.
 2. On each Digital Human, set the **Expected Output / Mock Result** of a tool under **Tool Adherence**. That output is the canned result.
 3. Run the simulation. When the agent calls the tool, it gets the canned result.
 
@@ -21,7 +21,7 @@ How the canned result reaches your agent depends on the platform. See [Setup by 
 
 ## Set the canned result
 
-In the app, open a Digital Human's **Tools** tab. Under **Tool Adherence**, add the tool, then fill in:
+In the app, edit a Digital Human. Under **Tool Adherence**, add the tool, then fill in:
 
 - **Expected Parameters**: the arguments this mock is for. Leave it empty to match any call.
 - **Expected Output / Mock Result**: the result your agent gets back. JSON or plain text.
@@ -33,8 +33,8 @@ With the API or MCP, set `expected_tool_calls` when you [create](/api-reference/
   "expected_tool_calls": [
     {
       "name": "check_availability",
-      "parameters": {"day": "Tuesday"},
-      "output": {"slots": []}
+      "parameters": {"day": "Thursday"},
+      "output": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}
     }
   ]
 }
@@ -52,20 +52,14 @@ A Digital Human can have several entries for one tool.
 
 ## Example
 
-Your scheduling agent has a `check_availability` tool. You want to test the "fully booked" path.
+Your scheduling agent has a `check_availability` tool. You want to test that it reads back the times your calendar returns.
 
-1. Turn on **Mock tool results** for the agent.
-2. Create a Digital Human who asks for a Tuesday appointment.
-3. Give it two entries for `check_availability`:
+1. Turn on **Mock tool results** in the agent's **Simulation Settings**.
+2. Create a Digital Human who asks for a Thursday appointment.
+3. Under **Tool Adherence**, add `check_availability` with Expected Output `{"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}`.
+4. Add the success criterion "The agent reads back the Thursday times that check_availability returned."
 
-| Expected Parameters | Expected Output |
-|---|---|
-| `{}` | `{"slots": ["Wed 09:00"]}` |
-| `{"day": "Tuesday"}` | `{"slots": []}` |
-
-4. Add the success criterion "The agent says Tuesday is full and offers Wednesday at 9:00."
-
-When the agent checks Tuesday, it gets no slots. When it checks any other day, it gets Wednesday at 9:00. Every run sees the same results, and no real calendar is read.
+When the agent checks availability, it gets Thursday at 7:40 AM and 4:05 PM, and says those times to the caller. Every run sees the same result, and no real calendar is read.
 
 ## Related
 
