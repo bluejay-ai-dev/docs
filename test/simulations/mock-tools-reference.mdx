@@ -38,7 +38,7 @@ Each tool setting:
 | `tools` | object | The stored per-tool settings. |
 | <Code>eleven_labs_branch_id</Code> | string or null | The `bluejay-mocks` branch, for ElevenLabs agents turned on. |
 
-For ElevenLabs agents, turning it on creates or reuses the `bluejay-mocks` branch, and turning it off archives the branch and deletes its tool copies. A 400 means the ElevenLabs agent has no versions, so turn on versioning in ElevenLabs first. A 502 means a call to the ElevenLabs API failed, and mocking stays as it was. Each voice run updates the branch to match the live agent and its tools. If that update fails, the run is not queued and the request answers 502.
+For ElevenLabs agents, turning it on creates the `bluejay-mocks` branch, or reuses it when mocking is already on, and turning it off archives the branch and deletes its tool copies. A 400 means the ElevenLabs agent has no versions, so turn on versioning in ElevenLabs first. A 502 means a call to the ElevenLabs API failed, and mocking stays as it was. Queuing a voice run also updates the branch to match the live agent and its tools. If that update fails, the run is not queued and the queue request answers 502.
 
 The MCP tool is `set_agent_mock_tools`, with `agent_id` and `enabled`. It returns the same fields.
 
@@ -67,8 +67,8 @@ Call it from your tool server before you run the real tool.
 |---|---|---|
 | `tool_name` | string | The tool the agent called. Required. |
 | `arguments` | object | The arguments the agent passed. Default `{}`. |
-| `test_result_id` | integer | The Bluejay test id, from `X-Simulation-Result-Id` or <Code>metadata.test_result_id</Code>. |
-| `caller_number` | string | The Digital Human's phone number in E.164 form, for phone calls. Used only when `test_result_id` is missing. |
+| <Code>test_result_id</Code> | integer | The Bluejay test id, from `X-Simulation-Result-Id` or <Code>metadata.test_result_id</Code>. |
+| <Code>caller_number</Code> | string | The Digital Human's phone number in E.164 form, for phone calls. Used only when `test_result_id` is missing. |
 
 | Response field | Type | Meaning |
 |---|---|---|
@@ -96,9 +96,9 @@ The helpers are in `bluejay.helpers.tool_mocks` in the `bluejay-sdk` Python pack
 
 | Environment variable | Default | Meaning |
 |---|---|---|
-| `BLUEJAY_API_KEY` | none | Required. Without it, the helper always runs the real tool. |
+| <Code>BLUEJAY_API_KEY</Code> | none | Required. Without it, calls with a test id get the error result and other calls run the real tool. |
 | <Code>BLUEJAY_MOCK_TIMEOUT_SECONDS</Code> | `1.5` | How long the helper waits for Bluejay on calls identified only by caller number. Calls with a test id wait 10 seconds. |
-| `BLUEJAY_API_URL` | <Code>https://api.getbluejay.ai/v1</Code> | The Bluejay API base URL. |
+| <Code>BLUEJAY_API_URL</Code> | <Code>https://api.getbluejay.ai/v1</Code> | The Bluejay API base URL. |
 
 The helper fails closed on tests:
 

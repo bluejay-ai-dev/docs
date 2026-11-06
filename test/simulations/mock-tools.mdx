@@ -5,7 +5,7 @@ icon: flask-vial
 sidebarTitle: "Mock Tool Calls"
 ---
 
-Mock tool calls let your agent's tools answer during simulations without calling your real systems. Runs touch no production data, and you choose what each tool returns, such as "two slots open on Thursday" or "order not found".
+Use them so test runs never create real bookings or read live data, and so each test case gets the result it needs, such as "two slots open on Thursday" or "order not found".
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/mock-tools-overview.mp4"></video>
 
@@ -23,9 +23,9 @@ Mocking is set on the agent and applies to every simulation on that agent. Live 
 |---|---|
 | Generated | A realistic result Bluejay writes on the fly from the tool's name, description and parameters, the call's arguments, and the calling Digital Human. A lookup returns the Digital Human's own name, date of birth and account details. |
 | Fixed | The JSON you enter, every time. |
-| Real backend | Not mocked. The call goes to your real tool. |
+| Real backend | Not mocked. The call goes to your real tool. On Google CES and Dialogflow CX it gets an error result. |
 
-How the answer reaches your agent depends on the platform. ElevenLabs and Google CES or Dialogflow CX agents are mocked automatically. Phone, Retell, Vapi and custom agents need their tool server to ask Bluejay. See [Setup by provider](/test/simulations/mock-tools-setup).
+How the answer reaches your agent depends on the platform. ElevenLabs web and chat agents, and Google CES or Dialogflow CX tools that Bluejay runs, are mocked automatically. ElevenLabs phone and SIP, Retell, Vapi, Bland and custom agents need their tool server to ask Bluejay. See [Setup by provider](/test/simulations/mock-tools-setup).
 
 ## Override a tool for one test case
 
@@ -65,7 +65,7 @@ curl -X PUT https://api.getbluejay.ai/v1/agents/$AGENT_ID/mock-tools/check_avail
   -d '{"mode": "fixed", "response": {"slots": ["Thursday 7:40 AM", "Thursday 4:05 PM"]}}'
 ```
 
-Overrides are the `tool_responses` field when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human.
+Overrides are the `tool_responses` field, an object keyed by tool name, when you [create](/api-reference/endpoint/create-digital-human) or [update](/api-reference/endpoint/update-digital-human) a Digital Human.
 
 With MCP or Bluejay AI, ask "mock tool calls for my scheduling agent", then "make check_availability return Thursday 7:40 AM and 4:05 PM". The tools are `set_agent_mock_tools` and `set_agent_tool_mock`.
 
