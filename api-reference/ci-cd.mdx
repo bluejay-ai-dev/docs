@@ -297,6 +297,15 @@ You need the Maintainer or Owner role on the project, because Bluejay adds a web
 
 A run starts when a deploy job with an `environment:` succeeds. If your pipeline does not deploy with GitLab environments, [use the API job](#use-the-api-job-instead).
 
+GitLab treats every job with an `environment:` as a deploy job, so Bluejay starts one run per commit and environment when the first of those jobs succeeds. A job that only uses the environment, for example to read its variables or log in, must set `action: access`, `action: prepare` or `action: verify`. Those jobs do not create deployments, so they do not start a run.
+
+```yaml
+auth:
+  environment:
+    name: production
+    action: access
+```
+
 Each run uses credits.
 
 ## Review app triggers
