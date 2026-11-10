@@ -289,15 +289,21 @@ on:
     For self-managed GitLab, click **Use an access token**. Enter your instance URL, such as `https://gitlab.example.com`, and a personal, group or project access token with the `api` scope and the **Maintainer** role. The instance must be reachable over https from the internet.
   </Step>
   <Step title="Add a trigger">
-    Open a simulation, click **CI/CD**, and add a trigger with a project, an environment name, and a minimum score. The environment name must match the `environment:` name of your deploy job, for example `production`.
+    Open a simulation, click **CI/CD**, and add a trigger with a project, an environment name, and a minimum score. The environment name must match the `environment:` name of your deploy job, for example `production`. To choose the deploy job yourself, enter its name in **Job name**.
   </Step>
 </Steps>
 
-You need the Maintainer or Owner role on the project, because Bluejay adds a webhook to it, with only Deployment events turned on, and GitLab only lets those roles add webhooks. With a lower role, such as Guest or Developer, the project does not show up in Bluejay.
+You need the Maintainer or Owner role on the project, because Bluejay adds a webhook to it, with only Deployment and Pipeline events turned on, and GitLab only lets those roles add webhooks. With a lower role, such as Guest or Developer, the project does not show up in Bluejay.
 
 A run starts when a deploy job with an `environment:` succeeds. If your pipeline does not deploy with GitLab environments, [use the API job](#use-the-api-job-instead).
 
-GitLab treats every job with an `environment:` as a deploy job, so Bluejay starts one run per commit and environment when the first of those jobs succeeds. A job that only uses the environment, for example to read its variables or log in, must set `action: access`, `action: prepare` or `action: verify`. Those jobs do not create deployments, so they do not start a run.
+GitLab treats every job with an `environment:` as a deploy job. When more than one job in a pipeline uses the trigger's environment, Bluejay picks one:
+
+1. The job named in the trigger's **Job name**, when it is set.
+2. Otherwise, the job whose stage or name contains `deploy`, when exactly one does.
+3. Otherwise, the last of those jobs in the pipeline.
+
+Only the picked job starts a run. A job that only uses the environment, for example to read its variables or log in, can set `action: access`, `action: prepare` or `action: verify`. Those jobs do not create deployments, so Bluejay never picks them.
 
 ```yaml
 auth:
@@ -316,7 +322,7 @@ A review app trigger runs against that deployment and does not change the saved 
 
 ## See the result in GitLab
 
-Bluejay adds a commit status named **Bluejay: &lt;simulation&gt; (&lt;environment&gt;)** to the commit, and it shows on the commit's merge request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, turn on **Pipelines must succeed** under **Settings &gt; Merge requests**. The status runs as a job in the commit's pipeline.
+Bluejay adds a commit status named **Bluejay: &lt;simulation&gt; (&lt;environment&gt;)** to the commit, and it shows on the commit's merge request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, turn on **Pipelines must succeed** under **Settings &gt; Merge requests**. The status runs as a job in the commit's pipeline. It shows as pending when the pipeline starts, and runs when the picked job deploys. If that job never runs, the status stays pending.
 
 ## Use the API job instead
 
