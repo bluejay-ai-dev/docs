@@ -8,7 +8,7 @@ sidebarTitle: "Cookbook"
 [JSON will be deprecated](/bluejay-as-code/overview#move-from-json-to-yaml) on November 20th, 2026.
 </Warning>
 
-Each example below is one item of a list in your payload file, shown under the name of its list so you can paste it in place. For the full field lists, see [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), [update-simulation](/api-reference/endpoint/update-simulation), and [create-custom-metric](/api-reference/endpoint/create-custom-metric).
+Each example below is one item of a list in your payload file, shown under the name of its list so you can paste it in place. For the full field lists, see [create-persona](/api-reference/endpoint/create-persona), [create-digital-human](/api-reference/endpoint/create-digital-human), [add-agent](/api-reference/endpoint/add-agent), [update-simulation](/api-reference/endpoint/update-simulation), and [create-custom-metric](/api-reference/endpoint/create-custom-metric).
 
 ## Renamed fields
 
@@ -21,7 +21,64 @@ A few fields have a different name in the payload than in the [API](/api-referen
 | `temperature` | `creativity` | Digital Human |
 | `description` | `prompt` | Custom metric (old files only) |
 
+Personas use their API field names. A persona also accepts `creativity` for `temperature` and `patience` for `endpointing_delay`.
+
 When you push a Digital Human, you can also set its voice in one field, in the form `language_accent_gender`, for example `accent: en_american_masculine`. Bluejay splits it into `language`, `accent`, and `gender`, and a pull always returns those three fields.
+
+## Personas
+
+A persona is a reusable caller. A Digital Human runs once as each persona assigned to it, or once as the baseline, its own settings, when `persona_ids` is empty or missing. See [Personas](/bluejay-as-code/overview#personas) for how pushes treat them.
+
+<CodeGroup>
+```yaml YAML
+personas:
+- bluejay_as_code_id: 4f8a2c6e-1d3b-4a97-b5e0-7c9d1e3f5a28
+  name: Rushed commuter
+  role_description: In a hurry on a train. Short answers, asks the agent to speed up.
+  language: en
+  accent: american
+  gender: male
+  background_noise: traffic
+  background_noise_volume: 0.6
+digital_humans:
+- bluejay_as_code_id: 0d5b8e1c-7a29-4f63-9e4b-2c8a6f1d3e75
+  human_name: Reschedule an appointment
+  description: You want to move your Tuesday appointment to Friday.
+  success_criteria: |-
+    The agent moves the appointment to Friday.
+    The agent confirms the new date and time.
+  persona_ids:
+  - 4f8a2c6e-1d3b-4a97-b5e0-7c9d1e3f5a28
+```
+
+```json JSON (deprecated)
+{
+  "personas": [
+    {
+      "bluejay_as_code_id": "4f8a2c6e-1d3b-4a97-b5e0-7c9d1e3f5a28",
+      "name": "Rushed commuter",
+      "role_description": "In a hurry on a train. Short answers, asks the agent to speed up.",
+      "language": "en",
+      "accent": "american",
+      "gender": "male",
+      "background_noise": "traffic",
+      "background_noise_volume": 0.6
+    }
+  ],
+  "digital_humans": [
+    {
+      "bluejay_as_code_id": "0d5b8e1c-7a29-4f63-9e4b-2c8a6f1d3e75",
+      "human_name": "Reschedule an appointment",
+      "description": "You want to move your Tuesday appointment to Friday.",
+      "success_criteria": "The agent moves the appointment to Friday.\nThe agent confirms the new date and time.",
+      "persona_ids": ["4f8a2c6e-1d3b-4a97-b5e0-7c9d1e3f5a28"]
+    }
+  ]
+}
+```
+</CodeGroup>
+
+Each bullet in `success_criteria` goes on its own line.
 
 ## Digital Human types
 

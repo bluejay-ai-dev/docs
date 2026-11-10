@@ -25,6 +25,9 @@ agents:
 simulations:
 - bluejay_as_code_id: ...
   # simulation fields
+personas:
+- bluejay_as_code_id: ...
+  # name, role_description, language, accent, gender, voice and behavior fields
 digital_humans:
 - bluejay_as_code_id: ...
   # digital human fields
@@ -36,11 +39,19 @@ custom_metrics:
 **Constraints:**
 - A pulled payload contains one agent and one simulation. A pushed payload can contain more. With more than one agent, list each simulation's `bluejay_as_code_id` in its agent's `simulations` list.
 - `digital_humans` and `custom_metrics` are lists of any size (including empty).
+- `personas` is optional. A pulled payload lists every persona its Digital Humans run as. Personas are the one exception to the ID rule above: a pulled persona's `bluejay_as_code_id` is its Bluejay persona ID, so a push matches it directly. For a new persona, generate a stable ID like any other entity; a push also matches a persona by name in the workspace before creating it.
 
 **YAML rules:**
 - Write multi-line text, such as a system prompt, as a `|` block.
 - Quote any value YAML would read as something other than text, such as `'+15551234567'`, `'no'`, `'yes'`, `'on'`, `'off'`, or `'007'`. Unquoted, these become numbers or booleans.
 - Do not use anchors or aliases (`&`, `*`). Bluejay rejects them with HTTP 400.
+
+**Personas:**
+- A Digital Human is one test case. `persona_ids` lists the personas it runs as (the `bluejay_as_code_id` of a `personas` entry, or an existing Bluejay ID). It runs once as each, or once as the baseline with none.
+- Editing a `personas` entry changes every Digital Human that runs as it, from the next run on.
+- A persona needs `name`. A persona named like one already in the workspace is that persona.
+- Files without `personas` push as before.
+- If the user already has test cases (a spreadsheet or list), write one Digital Human per test case. Do not invent new ones.
 
 ---
 

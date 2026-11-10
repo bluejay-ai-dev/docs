@@ -12,7 +12,7 @@ import { DownloadFile } from "/snippets/download-file.jsx";
 [JSON will be deprecated](#move-from-json-to-yaml) on November 20th, 2026.
 </Warning>
 
-Bluejay as Code saves your agents, simulations, Digital Humans, and custom metrics as a YAML file. Keep the file in your Git repository, and change your setup the same way you change your code:
+Bluejay as Code saves your agents, simulations, Digital Humans, personas, and custom metrics as a YAML file. Keep the file in your Git repository, and change your setup the same way you change your code:
 
 1. [Pull](#pull-the-payload) your current setup from Bluejay into a file.
 2. [Edit](#edit-the-payload) the file, and review the change in a pull request.
@@ -46,7 +46,7 @@ To pull a different type, replace `simulation` in the URL. Supported root types 
 - `digital-human`
 - `custom-metric`
 
-For the ID, use either the entity ID or its `bluejay_as_code_id`. The payload holds that entity and the entities related to it, so pulling a simulation also returns its agent, Digital Humans, and custom metrics:
+For the ID, use either the entity ID or its `bluejay_as_code_id`. The payload holds that entity and the entities related to it, so pulling a simulation also returns its agent, Digital Humans, the personas they run as, and custom metrics:
 
 ```yaml simulation.yaml
 agents:
@@ -58,11 +58,20 @@ agents:
 simulations:
 - bluejay_as_code_id: b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09
   name: Scheduling Coverage
+personas:
+- bluejay_as_code_id: 4f8a2c6e-1d3b-4a97-b5e0-7c9d1e3f5a28
+  name: Careful retiree
+  role_description: Polite and slow. Asks the agent to repeat numbers.
+  language: en
+  accent: british
+  gender: female
 digital_humans:
 - bluejay_as_code_id: a0e7b3d2-4c8f-4a91-b3e6-1d5f9c2e7a44
   human_name: Maria Alvarez
   description: New patient booking her first physical with Dr. Patel.
   success_criteria: Agent books a Tuesday or Thursday morning slot with Dr. Patel.
+  persona_ids:
+  - 4f8a2c6e-1d3b-4a97-b5e0-7c9d1e3f5a28
   simulations:
   - b1a04e88-7c2f-4d23-9a5e-2f8c6d1b7a09
 custom_metrics:
@@ -119,6 +128,7 @@ Bluejay matches each entity by `bluejay_as_code_id`:
 | Known <Code>bluejay_as_code_id</Code> | Bluejay updates the entity. |
 | Digital Human missing from a simulation's links | Bluejay removes it from the simulation. The Digital Human stays. |
 | Custom metric missing from an agent's links | Bluejay detaches it from the agent. The metric stays. |
+| Persona with a new <Code>bluejay_as_code_id</Code> | Bluejay creates it. A persona named like one already in the workspace is that persona, and Bluejay updates it. |
 
 Each link list in the payload replaces the current links on push, which is why removing an entry from a list unlinks it.
 
@@ -127,6 +137,16 @@ A push with errors still returns HTTP `200`, so it can fail without anything not
 </Warning>
 
 A push returns HTTP `400` if the YAML cannot be read, if a link points to a Digital Human or custom metric that is in neither the payload nor Bluejay, or if a new simulation does not have exactly one agent.
+
+## Personas
+
+A pulled file lists every persona its Digital Humans run as, and each Digital Human names them in `persona_ids`. Unlike other entities, a pulled persona's `bluejay_as_code_id` is its Bluejay persona ID, so `persona_ids` can name either that ID or the `bluejay_as_code_id` of a persona in the same payload.
+
+- **Run a test as several callers.** List the personas in that Digital Human's `persona_ids`. It runs once as each, or once as the baseline with an empty or missing list.
+- **Add a persona.** Add an entry under `personas` with a new `bluejay_as_code_id`, then reference it from `persona_ids`. A persona needs a `name`, and one named like a persona already in the workspace is that persona.
+- **Edit a persona.** Change its entry. Every Digital Human that runs as it uses the change from the next run on.
+
+A push returns HTTP `400` if a Digital Human lists a persona that is in neither the payload nor Bluejay. Files written before personas push as they always did.
 
 ## Move from JSON to YAML
 
