@@ -4,37 +4,31 @@ description: "Test how your agent treats returning customers."
 icon: shoe-prints
 ---
 
-Use this type when one conversation depends on an earlier one, for example a customer who books an appointment and later reschedules it.
+A customer journey is one customer who talks to your agent more than once, like a call to book an appointment and a text reminder the day before. Bluejay plays the same customer through every step, in order, and checks that your agent remembers what happened earlier.
+
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/sim-type-customer-journeys.mp4"></video>
 
 <Warning>
   Customer journeys replace Follow-up SMS, which will be deprecated on November 6, 2026. Existing follow-up SMS digital humans move to customer journeys automatically and keep the same checks. See [Test a Text Follow-Up After a Call](/cookbook/call-then-text-follow-up).
 </Warning>
 
-<iframe
-  src="https://www.youtube.com/embed/MywLdzH9J3g"
-  width="100%"
-  height="450"
-  frameBorder="0"
-  allowFullScreen
-  style={{ borderRadius: '0.5rem' }}
-></iframe>
+## When to use it
 
-## Set it up
+- Use this when one conversation depends on an earlier one, like booking and then rescheduling.
+- Use this to test a call followed by a text, or a text followed by a call.
+- Use this when your agent should know who a returning customer is.
 
-<Steps>
-  <Step title="Pick the type">
-    [Create a simulation](/test/simulations/create#pick-a-type-yourself) and pick **Customer Journeys** under **Or pick a type yourself**.
-  </Step>
-  <Step title="Add the steps">
-    Add one step per conversation, in the order the customer has them. Give each step an intent, such as "Book appointment" and then "Reschedule". Each journey is one Digital Human that runs every step in order as the same customer.
+## How it works
 
-    <img className="block dark:hidden" src="/images/journey-config-panel.png" alt="Customer Journeys configuration: steps on the left, preview on the right" />
-    <img className="hidden dark:block" src="/images/journey-config-panel-dark.png" alt="Customer Journeys configuration: steps on the left, preview on the right" />
-  </Step>
-  <Step title="Check each step's direction">
-    For an agent on a phone line, a new call step starts in the agent's own direction. So an outbound agent's steps start as **Outbound**. Switch a step to **Inbound** when the customer calls in.
-  </Step>
-</Steps>
+1. Bluejay suggests a few steps from your agent's prompt. Edit them, remove them, or click **Add step**. Each step is one call or one text, in the order the customer has them.
+2. For each step, check whether it is a call or a text, and who starts it (**Inbound** means the customer reaches out, **Outbound** means your agent does).
+3. Set **Journeys** to how many customers should go through the steps. Each journey is one Digital Human.
+4. Click **Skip personas**, then check the **Review** page and run.
+
+<img className="block dark:hidden" src="/images/journey-config-panel.png" alt="Customer Journeys configuration: steps on the left, preview on the right" />
+<img className="hidden dark:block" src="/images/journey-config-panel-dark.png" alt="Customer Journeys configuration: steps on the left, preview on the right" />
+
+For an agent on a phone line, a new call step starts in the agent's own direction. So an outbound agent's steps start as **Outbound**. Switch a step to **Inbound** when the customer calls in.
 
 ## Results
 
@@ -54,6 +48,17 @@ If a step ends with one of these statuses, Bluejay cancels the later steps of th
 - An **SMS** step needs an agent that can send text messages.
 - An **Outbound** SMS step cannot come directly after another SMS step.
 - A journey always runs as the baseline, even if it has [personas](/test/simulations/digital-humans#runs-as).
+
+## Longer demo
+
+<iframe
+  src="https://www.youtube.com/embed/MywLdzH9J3g"
+  width="100%"
+  height="450"
+  frameBorder="0"
+  allowFullScreen
+  style={{ borderRadius: '0.5rem' }}
+></iframe>
 
 ## Related
 
