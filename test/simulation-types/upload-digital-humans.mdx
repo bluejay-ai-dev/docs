@@ -6,91 +6,149 @@ icon: upload
 
 import { Code } from "/snippets/code.jsx";
 
-Upload your test cases when they already live in a spreadsheet. This is the quickest way to start: each row becomes a Digital Human with your wording, and there is no AI planning or rewriting.
+If your test cases already live in a spreadsheet, upload them as a CSV file. Each row becomes a Digital Human with your exact wording. Bluejay does not plan or rewrite anything.
 
-## Set it up
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/sim-type-upload-digital-humans.mp4"></video>
 
-<Steps>
-  <Step title="Write the files">
-    Write a test cases CSV. To run each test case with several callers, also write a personas CSV: every test case then runs once as each persona, so 5 test cases and 2 personas make 10 calls per run.
+## When to use it
 
-    ```csv test_cases.csv
-    name,intent,success_criteria
-    Reschedule appointment,Caller wants to move their Tuesday appointment to Friday,Agent confirms the new Friday slot
-    Cancel subscription,Caller wants to cancel and asks about a refund,Agent cancels and explains the refund policy
-    ```
+- Use this when you already have a list of test cases, for example from QA or from a past project.
+- Use this when you want full control over the wording of every test.
+- Use this when you want the same tests run by several kinds of callers. Upload the test cases with a personas file and Bluejay runs every test once as each persona.
 
-    ```csv personas.csv
-    name,personality_description,language,accent,verbosity,background_noise,background_noise_volume
-    Rushed commuter,In a hurry on a train. Short answers and asks the agent to speed up.,en,american,low,traffic,0.6
-    Careful retiree,Polite and slow. Asks the agent to repeat numbers.,en,british,high,none,0
-    ```
-  </Step>
-  <Step title="Drop them in">
-    [Create a simulation](/test/simulations/create#bring-your-test-cases) and drop or attach the files in the request box. Bluejay skips the planning and goes straight to the Digital Humans, which you review before you run.
-  </Step>
-</Steps>
+## How it works
 
-Bluejay tells the files apart by their header row. A file with `intent` is test cases, and a file with `name` and a persona column such as `personality_description` is personas. A file with both is a [Digital Humans CSV](#digital-humans-csv).
+1. You write one or two CSV files (see [Columns](#columns)). Click **Sample CSVs** in the app for a zip with a sample of each file and a short README.
+2. You drop the files on the upload box, or click it to pick them. You can drop them together or one after the other.
+3. Bluejay reads the header row of each file to tell what it is, and shows how many Digital Humans are ready.
+4. You click **Continue**, check the **Review** page, and run.
 
-Each test case becomes a Digital Human on your **Test Cases** tab, and the personas are saved to your **Personas** tab. A persona with the same name as one you have updates that persona.
+There are three kinds of file:
 
-## Test cases columns
+| File | How Bluejay knows | What it makes |
+|---|---|---|
+| Test cases | Has an `intent` column | One test for each row |
+| Personas | Has `name` and a persona column such as `personality_description` | Saves each row to your **Personas** tab |
+| Digital Humans | Has `intent` and a persona column | One finished Digital Human for each row |
 
-`name` and `intent` are required. `success_criteria` takes one check per line in the cell. The `TC_<tool>` and `CT_<trait>` columns below work here too.
-
-## Personas columns
-
-`name` is required. The other columns are `personality_description` (the persona's `role_description` in the API), `language`, `accent`, `voice_speed`, `verbosity`, `background_noise` and `background_noise_volume`. They take the values listed for the same fields in [Create Persona](/api-reference/endpoint/create-persona#request-body). `accent` is an accent such as `american` or `british`, not a voice key.
-
-## Digital Humans CSV
-
-The older format still works: one file, one Digital Human in each row, with every column below. Bluejay creates each row as you wrote it, except the defaults listed below for blank cells.
-
-Check any error before you go on, because Bluejay imports a row without the fields that are not valid.
-
-<img className="block dark:hidden" src="/images/upload-digital-humans.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
-<img className="hidden dark:block" src="/images/upload-digital-humans-dark.png" alt="The Upload CSV step with the Sample CSV button, a drop zone for the CSV file, and a CSV format panel that lists the reserved columns" />
+Test cases and personas multiply: every test case runs once as each persona, so 5 test cases and 2 personas make 10 calls. Test cases with no personas file run once each, as written. A persona with the same name as one you already have updates that persona instead of making a copy.
 
 ## Columns
 
-- Column headers are not case-sensitive.
-- Bluejay ignores columns that it does not know.
-- A blank behavior cell uses the values on the **Default Generation Settings** tab.
+Column headers are not case-sensitive, and a space or an underscore both work, so `Success Criteria` and `success_criteria` are the same. Bluejay ignores columns that it does not know.
 
-| Column | Values |
+### Test cases CSV
+
+```csv test_cases.csv
+name,intent,success_criteria
+Book a cleaning,Caller wants a cleaning next Tuesday morning,Agent books a Tuesday morning slot and confirms the time
+Tooth pain today,Caller has a sore tooth and wants to be seen today,Agent offers the next emergency slot and gives no medical advice
+```
+
+| Column | Accepted values |
 |---|---|
-| `Name` | Text. If blank, Bluejay generates a name. |
-| `Intent` | Text |
-| `Success Criteria` | Text. Put each bullet on its own line in the cell. |
-| `Role Description` | Text |
-| `Phone Number` | A number your organization owns. If the number is not owned or cannot be read, Bluejay skips the row. If blank, Bluejay assigns a number. |
-| `Scripted Responses` | A JSON object or array |
-| `Scripted Responses In Order` | `true` or `false` |
-| `Creativity` | 0 to 1 |
-| `Patience` | Seconds |
-| `No Response Timeout` | Seconds |
-| `Voice` | A voice key, for example <Code>en_british_feminine</Code> |
-| `Interruptions` | JSON, see below |
-| `Speaks First` | JSON, for example `{"speaks_first": true, "mode": "custom", "message": "Hi, I am calling about my bill."}` |
-| `TC_<tool>` | An expected tool call. A string is the expected output. |
+| `name` | Required. Text, the name of the test. |
+| `intent` | Required. Text, what the caller wants. |
+| `success_criteria` | Text. Put each check on its own line in the cell. |
+
+A test cases file also takes the `TC_<tool>`, `CT_<trait>`, `Phone Number` and `Scripted Responses` columns from the [Digital Humans CSV](#digital-humans-csv).
+
+### Personas CSV
+
+```csv personas.csv
+name,personality_description,language,accent,voice_speed,verbosity,background_noise,background_noise_volume
+Rushed commuter,In a hurry on a train. Short answers.,en,american,fast,low,traffic,0.6
+Careful retiree,Polite and slow. Asks the agent to repeat numbers.,en,british,slow,high,none,0
+```
+
+| Column | Accepted values |
+|---|---|
+| `name` | Required. Text. |
+| `personality_description` | Text, who the caller is and how they behave. |
+| `language` | `en`, `es`, `pt`, `ja`, `tr`, `hi`, `ar`, `he`, `ru`, `zh`, `ml`, `fr`, `yue`, `vi`, `de`, `ko`, `ur`, `te`, `ta`, `mal`, `kn`, `mr`, `gu`, `tl`, `el`, `ad` |
+| `accent` | `american`, `american2`, `mature`, `southern`, `italian`, `indian`, `british`, `australian`, `scottish`, `irish`, `welsh`, `mexican`, `spanish`, `portuguese`, `french`, `german`, `turkish`, `japanese`, `korean`, `hindi`, `urdu`, `hebrew`, `arabic`, `egyptian`, `levantine`, `chinese`, `russian`, `telugu`, `tamil`, `malayalam`, `kannada`, `marathi`, `gujarati`, `vietnamese`, `cantonese`, `tagalog`, `greek`, `multilingual`, `autodetect`, `watson`, `watsonbritish`, `watsonaustralian`, `watsoncanadian`. This is an accent, not a full voice key. |
+| `voice_speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` |
+| `verbosity` | `low`, `medium`, `high` |
+| `background_noise` | Any value from [Background noise values](#background-noise-values) |
+| `background_noise_volume` | A number from 0 (silent) to 1 (loudest) |
+
+### Digital Humans CSV
+
+One file, one Digital Human in each row, with every setting in the row. Bluejay creates each row as you wrote it. A blank cell uses the values on the **Default Generation Settings** tab.
+
+Check any error before you go on, because Bluejay imports a row without the fields that are not valid.
+
+| Column | Accepted values |
+|---|---|
+| `Name` | Text, the caller's name. If blank, Bluejay makes one up. |
+| `Intent` | Text, what the caller wants. The column must be there for Bluejay to read the file. |
+| `Success Criteria` | Text. Put each check on its own line in the cell. |
+| `Role Description` | Text, who the caller is and how they behave. |
+| `Phone Number` | A number your organization owns, in any common format. If the number is not owned or cannot be read, Bluejay skips the row. If blank, Bluejay assigns a number. |
+| `Voice` | A voice key from [Voice values](#voice-values), for example <Code>en_british_feminine</Code> |
+| `Voice Speed` | `slowest`, `slow`, `normal`, `fast`, `fastest` |
+| `Background Noise` | Any value from [Background noise values](#background-noise-values) |
+| `Background Noise Volume` | A number from 0 (silent) to 1 (loudest) |
+| `Audio Quality` | `high`, `medium`, `low`, `horrible` |
+| `Verbosity` | `low`, `medium`, `high` |
+| `Fluency` | `beginner`, `intermediate`, `native` |
+| `Creativity` | A number from 0 to 1 |
+| `Patience` | Seconds the caller waits before replying, 0 or more |
+| `No Response Timeout` | Seconds of silence before the caller gives up, 0 or more |
+| `Interruptions` | JSON, see [Interruptions](#interruptions) |
+| `Speaks First` | JSON, for example `{"speaks_first": true, "mode": "custom", "message": "Hi, I am calling about my bill."}`. `mode` is `custom` or `ai_generated`. Use `{"speaks_first": false}` to wait for the agent. |
+| `Scripted Responses` | A JSON object or array, see [Scripted responses](#scripted-responses) |
+| `Scripted Responses In Order` | `true` or `false` (also `yes` or `no`, `1` or `0`) |
+| `TC_<tool>` | An expected tool call. Plain text is the expected output. JSON with `parameters` and `output` sets both. |
 | `CT_<trait>` | The value of a [trait](/test/simulations/digital-humans#traits) |
 
-These columns take the same values as the [behavior fields](/test/simulations/personas#behavior):
+Values such as `slow` or `High` are not case-sensitive.
 
-- `Voice Speed`
-- `Background Noise`
-- `Background Noise Volume`
-- `Audio Quality`
-- `Verbosity`
-- `Fluency`
+### Voice values
+
+English: <Code>en_american_feminine</Code>, <Code>en_american2_feminine</Code>, <Code>en_american_masculine</Code>, <Code>en_mature_feminine</Code>, <Code>en_mature_masculine</Code>, <Code>en_southern_feminine</Code>, <Code>en_southern_masculine</Code>, <Code>en_italian_feminine</Code>, <Code>en_italian_masculine</Code>, <Code>en_indian_feminine</Code>, <Code>en_indian_masculine</Code>, <Code>en_british_feminine</Code>, <Code>en_british_masculine</Code>, <Code>en_australian_feminine</Code>, <Code>en_australian_masculine</Code>, <Code>en_scottish_feminine</Code>, <Code>en_scottish_masculine</Code>, <Code>en_irish_feminine</Code>, <Code>en_irish_masculine</Code>, <Code>en_welsh_feminine</Code>, <Code>en_welsh_masculine</Code>, <Code>en_canadian_feminine</Code>, <Code>en_watson_feminine</Code>, <Code>en_watson_masculine</Code>, <Code>en_watsonbritish_feminine</Code>, <Code>en_watsonbritish_masculine</Code>, <Code>en_watsonaustralian_feminine</Code>, <Code>en_watsonaustralian_masculine</Code>, <Code>en_watsoncanadian_feminine</Code>
+
+Other languages: <Code>fr_french_feminine</Code>, <Code>fr_french_masculine</Code>, <Code>fr_watson_feminine</Code>, <Code>fr_watson_masculine</Code>, <Code>de_german_feminine</Code>, <Code>de_german_masculine</Code>, <Code>de_watson_feminine</Code>, <Code>de_watson_masculine</Code>, <Code>es_mexican_feminine</Code>, <Code>es_mexican_masculine</Code>, <Code>es_spanish_feminine</Code>, <Code>es_spanish_masculine</Code>, <Code>es_watson_feminine</Code>, <Code>es_watson_masculine</Code>, <Code>pt_portuguese_feminine</Code>, <Code>pt_portuguese_masculine</Code>, <Code>pt_watson_feminine</Code>, <Code>pt_watson_masculine</Code>, <Code>tr_turkish_feminine</Code>, <Code>tr_turkish_masculine</Code>, <Code>ja_japanese_feminine</Code>, <Code>ja_japanese_masculine</Code>, <Code>ja_watson_feminine</Code>, <Code>ko_korean_feminine</Code>, <Code>ko_korean_masculine</Code>, <Code>ko_watson_feminine</Code>, <Code>hi_hindi_feminine</Code>, <Code>hi_hindi_masculine</Code>, <Code>ur_urdu_feminine</Code>, <Code>ur_urdu_masculine</Code>, <Code>he_hebrew_feminine</Code>, <Code>he_hebrew_masculine</Code>, <Code>ar_arabic_feminine</Code>, <Code>ar_arabic_masculine</Code>, <Code>ar_egyptian_feminine</Code>, <Code>ar_egyptian_masculine</Code>, <Code>ar_levantine_feminine</Code>, <Code>ar_levantine_masculine</Code>, <Code>zh_chinese_feminine</Code>, <Code>zh_chinese_masculine</Code>, <Code>ru_russian_feminine</Code>, <Code>ru_russian_masculine</Code>, <Code>te_telugu_feminine</Code>, <Code>te_telugu_masculine</Code>, <Code>ta_tamil_feminine</Code>, <Code>ta_tamil_masculine</Code>, <Code>mal_malayalam_feminine</Code>, <Code>mal_malayalam_masculine</Code>, <Code>kn_kannada_feminine</Code>, <Code>kn_kannada_masculine</Code>, <Code>mr_marathi_feminine</Code>, <Code>mr_marathi_masculine</Code>, <Code>gu_gujarati_feminine</Code>, <Code>gu_gujarati_masculine</Code>, <Code>vi_vietnamese_feminine</Code>, <Code>vi_vietnamese_masculine</Code>, <Code>yue_cantonese_feminine</Code>, <Code>yue_cantonese_masculine</Code>, <Code>tl_tagalog_feminine</Code>, <Code>tl_tagalog_masculine</Code>, <Code>el_greek_feminine</Code>, <Code>el_greek_masculine</Code>, <Code>ml_multilingual_feminine</Code>, <Code>ml_multilingual_masculine</Code>, <Code>ad_autodetect_feminine</Code>, <Code>ad_autodetect_masculine</Code>
+
+Voice keys are case-sensitive. Write them exactly as shown.
+
+### Background noise values
+
+- No noise: `none`
+- Office: `office`, `office_open_plan`, `keyboard_typing`, `small_office`, `meeting_room`
+- Home: `quiet_home`, `kitchen`, `living_room`
+- Food and drink: `cafe`, `restaurant_busy`, `noisy_restaurant`, `restaurant_party`, `pub`, `hotel_restaurant`, `restaurant`, `cafeteria`
+- Shops: `supermarket`, `shopping_centre`
+- Street and traffic: `street`, `traffic`, `city_traffic`, `road_traffic`, `urban`, `city_night`, `town_square`
+- Travel: `airport`, `train_station`, `bus_station`, `subway_station`, `subway_train`, `car_interior`, `driving`, `bus_ride`
+- Public places: `hotel_lobby`, `hospital`, `school`, `playground`, `park`, `urban_park`
+- Industrial: `construction`, `factory`
+- Weather and outdoors: `rain`, `light_rain`, `thunderstorm`, `wind`, `birdsong`, `night_insects`
+- People talking: `talking`, `babble_light`, `babble_crowd`
+- Other: `tv`
+
+### Interruptions
 
 The `Interruptions` cell is a JSON object with `interruptions_type`:
 
 - `{"interruptions_type": "none"}`
 - `{"interruptions_type": "probabilistic", "probability_of_default_interrupt": 0.5}`, with a value from 0 to 1
-- `{"interruptions_type": "keyword", "keyword_responses": {"refund": {"response": "Yes, the refund!", "probability": 0.8}}}`
+- `{"interruptions_type": "keyword", "keyword_responses": {"refund": {"response": "Yes, the refund!", "probability": 0.8}}}`, with each probability from 0 to 1
 - `{"interruptions_type": "llm", "llm_prompt": {"user_prompt": "Interrupt when the agent talks too long."}}`
+
+### Scripted responses
+
+The `Scripted Responses` cell is one JSON object, or an array of them. Each one is a line the caller says when the agent says something:
+
+| Key | Accepted values |
+|---|---|
+| `match_phrase` | Required. A line the agent would say, such as `"Can I have your account number?"`. Blank only makes sense with **Scripted Responses In Order**, where it fires on the caller's next turn. |
+| `match_type` | `exact` (default) or `context` |
+| `response_type` | `phrase` (default), `silence`, `dtmf` or `audio` |
+| `response_value` | The text to say, or the keys to press for `dtmf`, such as `"1,2,3,4"` |
+| `occurrence_mode` | `always` (default) or `first_n` |
+| `occurrence_n` | With `first_n`, how many times it fires |
+| `silence_duration` | With `silence`, how many seconds the caller stays quiet |
 
 <Warning>
   If a JSON cell has unescaped quotes, Bluejay repairs it and shows an "Auto-corrected" message. A repaired cell can have the wrong value. Check those Digital Humans before you run the simulation.
