@@ -34,7 +34,7 @@ For each tool call, Bluejay uses the first of these:
 3. A generated result, unless the tool is on **Real backend**.
 4. Your real tool.
 
-Generated results usually take a second or two. If generation fails, the tool gets an error result on every platform and your real tool does not run.
+Generated results usually take a second or two. If generation fails, the tool gets an error result on every platform. Your real tool never runs.
 
 ## Override a tool for one test case
 
@@ -139,6 +139,8 @@ def check_availability(body: dict):
             return data["result"]
     return my_calendar.slots(**body["args"])
 ```
+
+With the resolver, every call your handler checks first gets the mock.
 
 - Only call Bluejay when the call has a test id or comes from a Bluejay number. Real callers then never wait on Bluejay.
 - When the call has a test id and Bluejay errors or times out, return an error result instead of running the real tool, so a test never reaches your real backend. Generated results can take a few seconds, so wait up to 10.
