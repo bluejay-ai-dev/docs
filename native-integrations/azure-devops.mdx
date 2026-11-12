@@ -1,21 +1,41 @@
 ---
-title: "Azure Pipelines"
-sidebarTitle: "Azure Pipelines"
-description: "Fail an Azure Pipelines build when your agent's pass rate drops."
-icon: code-branch
+title: "Azure DevOps"
+description: "Fail a pull request or build when your agent's score drops."
+icon: microsoft
 ---
 
-Run your agent's simulations in Azure Pipelines and block pull requests that drop below your minimum pass rate.
+Run simulations from Azure DevOps. Connect it in the app to gate pull requests with no pipeline change, or add Bluejay as a pipeline step.
 
-To gate pull requests without changing a pipeline, connect Azure DevOps in the app instead: see the Azure DevOps tab of [CI/CD Integration](/api-reference/ci-cd). To run Bluejay as a pipeline step, use the Bluejay extension if your organization can install Marketplace extensions, or the plain YAML step, which needs nothing installed.
+## Connect Azure DevOps
 
-## Prerequisites
+<Steps>
+  <Step title="Create a personal access token">
+    In Azure DevOps, open **User settings > Personal access tokens** and create a token for your organization with these scopes: **Code (Read)**, **Code (Status)**, **Project and Team (Read)** and **Service Hooks (Read & write)**. The token owner needs permission to edit service hook subscriptions in the project.
+  </Step>
+  <Step title="Connect">
+    Go to **Settings > Developers > Integrations**, open the **CI/CD** tab, select **Azure DevOps**, click **Connect**, and enter your organization and the token.
+  </Step>
+  <Step title="Add a trigger">
+    Open a simulation, click **CI/CD**, and add a trigger with a repository, a target branch such as `main`, and a minimum score.
+  </Step>
+  <Step title="Require it on pull requests">
+    Bluejay runs the simulation on every pull request into that branch and posts the score as the `bluejay/simulation` status. It passes when the score is at least the trigger's minimum score. In **Repos > Branches > Branch policies > Status checks**, add that status and set it to required.
+  </Step>
+</Steps>
+
+Each run uses credits.
+
+## Run Bluejay in a pipeline
+
+Use the Bluejay extension if your organization can install Marketplace extensions, or the plain YAML step, which needs nothing installed.
+
+### Prerequisites
 
 1. A Bluejay API key, from the [Developers page](https://app.getbluejay.ai/developers).
 2. An agent connected to your assistant.
 3. A simulation on that agent, with the Digital Humans you want to run.
 
-## Use the Bluejay extension
+### Use the Bluejay extension
 
 <Steps>
   <Step title="Install the extension">
@@ -61,7 +81,7 @@ steps:
 
 After the run, the pipeline's **Extensions** tab shows the pass rate and a link to the run in Bluejay.
 
-## Use a plain YAML step
+### Use a plain YAML step
 
 This step does the same with `curl` and `jq`, which Microsoft-hosted Ubuntu agents already have. Add your API key as a secret pipeline variable named `BLUEJAY_API_KEY`. Secret variables are not passed to scripts automatically, so the step maps it with `env:`.
 
@@ -127,7 +147,7 @@ steps:
 
 It fails the step when the run does not complete, when the pass rate is below `BLUEJAY_MIN_SCORE`, or after 25 minutes. Set `BLUEJAY_TIMEOUT_SECONDS` to change the wait.
 
-## Inputs
+### Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
@@ -144,7 +164,7 @@ It fails the step when the run does not complete, when the pass rate is below `B
 | `pollIntervalSeconds` | No | `10` | Polling frequency in seconds. |
 | `timeoutSeconds` | No | `1500` | Maximum wait in seconds (25 minutes). |
 
-## Outputs
+### Outputs
 
 The task sets these output variables. Give the step a `name:` to read them in later steps, for example `$(bluejay.score)`.
 
@@ -155,12 +175,11 @@ The task sets these output variables. Give the step a `name:` to read them in la
 | `score` | Pass rate of the run: `success_rate` from the v2 results endpoint, the share of graded tests that passed. |
 | `reportUrl` | Link to the run in Bluejay. |
 
-## Pipeline details on the run
+### Pipeline details on the run
 
 Both options send the pipeline's repository, commit, branch, pull request and a link back to the pipeline run with the queued run. The **CI/CD** tab in **Settings > Integrations** lists the latest runs started from a pipeline, with their pass rate and both links.
 
 ## Related
 
-- [GitHub Actions](/api-reference/ci-cd)
 - [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run)
 - [Retrieve Simulation Results](/api-reference/endpoint/retrieve-simulation-results-v2)
