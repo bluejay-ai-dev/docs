@@ -9,7 +9,7 @@ python3 scripts/generate_api_pages.py
 python3 scripts/generate_cheat_sheet.py
 ```
 
-The middleware repo runs both scripts on each push to `main` (`.github/workflows/docs-sync.yml` there). It opens one docs PR named "Sync API reference from middleware", with stub pages and nav entries for new routes and `deprecated: true` on deprecated routes. Merge it to publish.
+The middleware repo runs both scripts on each push to `main` (`.github/workflows/docs-sync.yml` there). It pushes the regenerated files straight to docs `main`, with stub pages and nav entries for new routes and `deprecated: true` on deprecated routes. Add the intro sentence to a new page by hand afterward.
 
 The first script rewrites only the part of each page between the `GENERATED` markers, and the endpoint list of the API Playground page (`snippets/api-operations.jsx`). Edit the text above the markers by hand. The second script rebuilds the Cheat Sheet from the API sidebar in `docs.json`.
 
