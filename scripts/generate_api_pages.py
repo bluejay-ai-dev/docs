@@ -29,6 +29,15 @@ ENDPOINT_DIR = "api-reference/endpoint"
 # Routes that get no page. A line is "METHOD /path". Delete a line to give that route a page.
 IGNORE_FILE = "scripts/api-ignore.txt"
 OTHER_GROUP = "Other"
+PRIVATE_SEGMENTS = {"internal", "admin", "health", ".well-known", "ping"}
+
+
+def is_private(path, op):
+    """Routes for staff, health checks and the platform. These never get a page."""
+    parts = path.strip("/").split("/")
+    if PRIVATE_SEGMENTS & set(parts) or any("bbb" in x for x in parts):
+        return True
+    return any("internal" in x.get("name", "").lower() for x in op.get("parameters", []))
 
 
 def load_spec(source):
@@ -513,7 +522,8 @@ def add_new_pages(spec):
         if found:
             have.add(found)
     new = sorted((p, m.upper()) for p, item in spec["paths"].items() for m in item
-                 if m in METHODS and (m.upper(), p) not in have and f"{m.upper()} {p}" not in ignored)
+                 if m in METHODS and (m.upper(), p) not in have and f"{m.upper()} {p}" not in ignored
+                 and not is_private(p, item[m]))
     added = []
     for path, method in new:
         slug = stub_page(spec, method, path, spec["paths"][path][method.lower()])

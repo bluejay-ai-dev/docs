@@ -13,4 +13,4 @@ The middleware repo runs both scripts on each push to `main` (`.github/workflows
 
 The first script rewrites only the part of each page between the `GENERATED` markers, and the endpoint list of the API Playground page (`snippets/api-operations.jsx`). Edit the text above the markers by hand. The second script rebuilds the Cheat Sheet from the API sidebar in `docs.json`.
 
-Routes listed in `scripts/api-ignore.txt` get no page. Delete a line to give that route a page on the next sync.
+Routes listed in `scripts/api-ignore.txt` get no page. Routes with an `internal`, `admin`, `health`, `.well-known` or `ping` path segment, a `bbb` path segment, or an internal token header never get one. Delete a line to give that route a page on the next sync.
