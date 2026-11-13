@@ -16,7 +16,7 @@ export const HomeAreas = () => {
       text: "Verify your agent runs smoothly in production.",
       pages: [
         ["Logs", "/monitor/logs", "list"],
-        ["Uptime", "/monitor/uptime/overview", "heart-pulse"],
+        ["Uptime", "/monitor/uptime/overview", "wave-pulse"],
         ["Issues", "/monitor/issues", "triangle-exclamation"],
         ["Alerts", "/monitor/alerts", "bell"],
       ],
