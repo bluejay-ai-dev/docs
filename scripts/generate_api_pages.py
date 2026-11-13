@@ -25,6 +25,10 @@ START = "{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. 
 END = "{/* END GENERATED */}"
 MAX_DEPTH = 6
 METHODS = ("get", "post", "put", "patch", "delete")
+ENDPOINT_DIR = "api-reference/endpoint"
+# Routes that get no page. A line is "METHOD /path". Delete a line to give that route a page.
+IGNORE_FILE = "scripts/api-ignore.txt"
+OTHER_GROUP = "Other"
 
 
 def load_spec(source):
@@ -400,6 +404,9 @@ def process(spec, page):
         fm = set_key(fm, "sidebarTitle", path.replace("/", "/\\u200b"))
         fm = set_key(fm, "api", f"{method} {BASE_URL}{path}")
         fm = set_key(fm, "playground", "none")
+        fm = re.sub(r"^deprecated:.*\n?", "", fm, flags=re.M).rstrip("\n")
+        if op.get("deprecated"):
+            fm += "\ndeprecated: true"
         generated = generate(spec, method, path, op)
 
     out = f"---\n{fm}\n---\n\n{IMPORT}\n\n"
@@ -453,8 +460,89 @@ def write_operations(spec):
     return len(ops)
 
 
+def path_parts(path):
+    """Path segments without the version, so /v2/x lands next to /v1/x."""
+    parts = path.strip("/").split("/")
+    return parts[1:] if parts and re.fullmatch(r"v\d+", parts[0]) else parts
+
+
+def slugify(text):
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+def nav_groups(tab):
+    """(group, index, method, path) for every endpoint page in the tab."""
+    def walk(group):
+        for i, p in enumerate(group["pages"]):
+            if isinstance(p, dict):
+                yield from walk(p)
+            elif "/endpoint/" in p:
+                fm = FM_RE.match(open(os.path.join(DOCS_DIR, p + ".mdx")).read())
+                found = operation_of(fm.group(1)) if fm else None
+                if found:
+                    yield group, i, found[0], found[1]
+
+    for top in tab["groups"]:
+        yield from walk(top)
+
+
+def stub_page(spec, method, path, op):
+    summary = clean(op.get("summary")) or f"{method} {path}"
+    intro = clean((op.get("description") or "").split("\n\n")[0]) or summary + "."
+    page = f'---\ndescription: "{summary.replace(chr(34), chr(39))}"\napi: "{method} {BASE_URL}{path}"\n---\n\n{intro}\n'
+    slug = slugify(summary)
+    version = path.strip("/").split("/")[0]
+    for candidate in (slug, f"{slug}-{version}", f"{slug}-{version}-{method.lower()}"):
+        if not os.path.exists(os.path.join(DOCS_DIR, ENDPOINT_DIR, candidate + ".mdx")):
+            slug = candidate
+            break
+    open(os.path.join(DOCS_DIR, ENDPOINT_DIR, slug + ".mdx"), "w").write(page)
+    return f"{ENDPOINT_DIR}/{slug}"
+
+
+def add_new_pages(spec):
+    """Stub a page and a nav entry for each spec route with no page that is not in IGNORE_FILE."""
+    ignore_path = os.path.join(DOCS_DIR, IGNORE_FILE)
+    ignored = {ln.strip() for ln in open(ignore_path) if ln.strip() and not ln.startswith("#")}
+    docs = json.load(open(os.path.join(DOCS_DIR, "docs.json")))
+    tab = next(t for t in docs["navigation"]["tabs"] if t["tab"] == "API")
+    have = set()
+    for page in glob.glob(os.path.join(DOCS_DIR, ENDPOINT_DIR, "*.mdx")):
+        fm = FM_RE.match(open(page).read())
+        found = operation_of(fm.group(1)) if fm else None
+        if found:
+            have.add(found)
+    new = sorted((p, m.upper()) for p, item in spec["paths"].items() for m in item
+                 if m in METHODS and (m.upper(), p) not in have and f"{m.upper()} {p}" not in ignored)
+    added = []
+    for path, method in new:
+        slug = stub_page(spec, method, path, spec["paths"][path][method.lower()])
+        best, score = None, 0
+        for group, i, m, p in nav_groups(tab):
+            a, b = path_parts(path), path_parts(p)
+            common = next((k for k, (x, y) in enumerate(zip(a, b)) if x != y), min(len(a), len(b)))
+            if common > score or (common == score and best and group is best[0]):
+                best, score = (group, i), common
+        if best:
+            best[0]["pages"].insert(best[1] + 1, slug)
+        else:
+            other = next((g for g in tab["groups"] if g["group"] == OTHER_GROUP), None)
+            if not other:
+                other = {"group": OTHER_GROUP, "pages": []}
+                tab["groups"].append(other)
+            other["pages"].append(slug)
+        added.append(f"{method} {path} -> {slug}")
+    if added:
+        open(os.path.join(DOCS_DIR, "docs.json"), "w").write(json.dumps(docs, indent=2, ensure_ascii=False) + "\n")
+    return added
+
+
 def main():
     spec = load_spec(sys.argv[1] if len(sys.argv) > 1 else SPEC_URL)
+    added = add_new_pages(spec)
+    print(f"new pages: {len(added)}")
+    for a in added:
+        print("  " + a)
     problems = []
     pages = sorted(p for g in PAGE_GLOBS for p in glob.glob(os.path.join(DOCS_DIR, g)))
     for page in pages:
