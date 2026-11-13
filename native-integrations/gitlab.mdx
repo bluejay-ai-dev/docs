@@ -1,0 +1,102 @@
+---
+title: "GitLab"
+description: "Fail a pipeline when your agent's score drops."
+icon: gitlab
+---
+
+import { Code } from "/snippets/code.jsx";
+
+Run a simulation after each GitLab deploy through the Bluejay integration or an API job.
+
+## Set up GitLab
+
+<Steps>
+  <Step title="Connect GitLab">
+    Go to **Settings > Integrations**, open the **CI/CD** tab, and select **GitLab**. On gitlab.com, click **Connect** and approve Bluejay with the `api` scope. You return to Bluejay with the account listed.
+
+    For self-managed GitLab, click **Use an access token**. Enter your instance URL, such as `https://gitlab.example.com`, and a personal, group or project access token with the `api` scope and the **Maintainer** role. The instance must be reachable over https from the internet.
+  </Step>
+  <Step title="Add a trigger">
+    Open a simulation, click **CI/CD**, and add a trigger with a project, an environment name, and a minimum score. The environment name must match the `environment:` name of your deploy job, for example `production`.
+  </Step>
+</Steps>
+
+You need the Maintainer or Owner role on the project, because Bluejay adds a webhook to it, with only Deployment events turned on, and GitLab only lets those roles add webhooks. With a lower role, such as Guest or Developer, the project does not show up in Bluejay.
+
+A run starts when a deploy job with an `environment:` succeeds. If your pipeline does not deploy with GitLab environments, [use the API job](#use-the-api-job-instead).
+
+Each run uses credits.
+
+## Review app triggers
+
+To cover every review app, set the trigger's environment to `review/*`. It matches any environment that starts with `review/`, such as `review/$CI_COMMIT_REF_SLUG`. The deploy job must set `environment: url:`, since Bluejay calls that URL.
+
+A review app trigger runs against that deployment and does not change the saved agent. Set an endpoint template, and Bluejay fills it in from the deployment's environment URL. Templates use the same placeholders, preview domain and bypass header as [GitHub preview triggers](/native-integrations/github#production-and-preview-triggers). In GitLab, <Code>{"{pr_number}"}</Code> is the merge request IID.
+
+## See the result in GitLab
+
+Bluejay adds a commit status named **Bluejay: &lt;simulation&gt; (&lt;environment&gt;)** to the commit, and it shows on the commit's merge request. It passes when the score is at least the trigger's minimum score, and links to the run. To block merges on a failing score, turn on **Pipelines must succeed** under **Settings &gt; Merge requests**. The status runs as a job in the commit's pipeline.
+
+## Use the API job instead
+
+Add a job to `.gitlab-ci.yml` that queues a run through the API, waits for it to finish, and fails when the score is below your minimum.
+
+<Steps>
+  <Step title="Add variables">
+    In GitLab, under **Settings > CI/CD > Variables**, add:
+
+| Variable | Value | Masked |
+|----------|-------|--------|
+| <Code>BLUEJAY_API_KEY</Code> | Your Bluejay [API key](/api-reference/introduction#make-your-first-request) | Yes |
+| <Code>BLUEJAY_SIMULATION_ID</Code> | Your simulation ID | No |
+| <Code>MIN_SCORE</Code> | Minimum score, 0-100 (e.g., `80`) | No |
+
+The simulation ID is in the simulation's **General Settings** tab.
+  </Step>
+
+  <Step title="Add the job">
+```yaml
+bluejay-tests:
+  stage: .post
+  image: alpine:3.20
+  timeout: 30m
+  variables:
+    BLUEJAY_API: https://api.getbluejay.ai/v1
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      set -eu
+      awk -v m="$MIN_SCORE" 'BEGIN { exit !(m ~ /^[0-9]+(\.[0-9]+)?$/ && m <= 100) }' || { echo "MIN_SCORE must be 0-100"; exit 1; }
+      body=$(jq -n --arg id "$BLUEJAY_SIMULATION_ID" '{simulation_id: $id, ci: ({provider: "gitlab_ci", repository: env.CI_PROJECT_PATH, commit_sha: env.CI_COMMIT_SHA, branch: (env.CI_COMMIT_BRANCH // env.CI_COMMIT_REF_NAME), pull_request: env.CI_MERGE_REQUEST_IID, pipeline_run_url: env.CI_PIPELINE_URL} | with_entries(select(.value != null)))}')
+      resp=$(curl -sS --max-time 60 --fail-with-body -X POST "$BLUEJAY_API/queue-simulation-run" \
+        -H "X-API-Key: $BLUEJAY_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d "$body")
+      run_id=$(echo "$resp" | jq -r '.simulation_run_id')
+      echo "Queued run $run_id"
+
+      status=""
+      for _ in $(seq 1 150); do
+        resp=$(curl -sS --max-time 60 --fail-with-body "${BLUEJAY_API%/v1}/v2/retrieve-simulation-results/$run_id" \
+          -H "X-API-Key: $BLUEJAY_API_KEY")
+        status=$(echo "$resp" | jq -r '.simulation_run.status // ""' | tr 'A-Z' 'a-z')
+        case "$status" in completed|failed|cancelled|success|error) break ;; esac
+        sleep 10
+      done
+
+      score=$(echo "$resp" | jq -r '.simulation_run | if .success_rate != null then .success_rate elif (.total_tests // 0) > 0 then (.tests_passed // 0) / .total_tests * 100 else 0 end')
+      echo "Status: $status, score: $score, minimum: $MIN_SCORE"
+      case "$status" in completed|success) ;; *) echo "Run did not complete"; exit 1 ;; esac
+      awk -v s="$score" -v m="$MIN_SCORE" 'BEGIN { exit !(s >= m) }'
+```
+  </Step>
+</Steps>
+
+The score is the run's `success_rate` from the v2 results endpoint, the share of graded tests that passed. The job polls every 10 seconds for up to 25 minutes. The `.post` stage runs after every other stage, so the job tests the version your deploy jobs shipped. Add `rules` to run it only on the pipelines you want. Each run uses credits.
+
+## Related
+
+- [Queue Simulation Run](/api-reference/endpoint/queue-simulation-run)
+- [Simulation](/test/simulations/create)
+- [Simulation Results](/test/simulations/create#read-the-results)

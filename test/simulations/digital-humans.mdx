@@ -5,7 +5,7 @@ icon: users
 sidebarTitle: "Digital Human Reference"
 ---
 
-A Digital Human is one test case: a simulated customer that calls, texts, or emails your agent with a goal, and the checks that decide whether your agent handled it. Give it [personas](/test/simulations/personas) to run the same test with different callers.
+A Digital Human is one test case: a simulated customer that calls, texts, or emails your agent with a goal, and the checks that decide whether your agent handled it. Give it [personas](#personas) to run the same test with different callers.
 
 ## Bring your test cases
 
@@ -24,8 +24,59 @@ A Digital Human runs once as each persona it lists. With no personas, it runs on
 
 - Set them on the Digital Human's **Persona** tab, or for many Digital Humans at once with bulk edit.
 - A persona replaces the caller fields it sets, such as voice, background noise and personality description. Everything else, including the intent and success criteria, comes from the Digital Human, so every call tests the same goal.
-- An edit to a persona changes every Digital Human that runs as it, from the next run on.
+- An edit to a persona changes every Digital Human that runs as it, from the next run on. Past conversations keep how they ran, and each one records the persona it ran as.
 - A [customer journey](/test/simulation-types/customer-journeys) always runs as the baseline.
+
+## Personas
+
+A persona is a reusable caller: their personality, voice and call conditions. Give a Digital Human several personas to check that your agent handles the same test with every kind of caller.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/personas-tab.mp4"></video>
+
+### Fields
+
+| Field | Write or set |
+|---|---|
+| Name | Who this caller is, for example "Rushed commuter". Names are unique in a workspace. |
+| Personality Description | Who the caller is and their attitude, in one short line, for example "retiree on a family plan, hard of hearing". |
+| Voice | Language, accent and gender, or a custom voice. |
+
+There is no emotion setting. To make the caller angry, rushed or confused, write that attitude into **Personality Description**.
+
+### Behavior
+
+Use behavior settings to test whether your agent copes with harder callers, for example a fast talker on a bad connection.
+
+<video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/dh-behavior-levers.mp4"></video>
+
+- **Patience (seconds)** is how long the caller waits before it replies.
+- **No Response Timeout (seconds)** must be 15 seconds or more.
+- **Creativity** from 0.0 to 0.3 makes the caller say much the same thing on each run.
+- **Speaks First**: the caller speaks first unless you change it. Some voice platform connections start with the agent.
+
+### Scripted responses
+
+A scripted response makes a reply the same on each run. Each one pairs a line the agent says with the caller's reply: words, keypad tones, silence, or an audio clip. Scripted responses live on the Digital Human, so they apply whichever persona it runs as. The Persona API accepts `scripted_responses` too, but runs use the Digital Human's.
+
+- Under **When the agent says**, write a line the agent says, for example "Can I have your account number?". A description of agent behavior never matches.
+- Matching on context also catches lines with the same meaning in other words.
+- If **How scripted responses fire** runs them in order, each one fires once, in list order.
+
+### Default persona
+
+Each workspace has a **Default persona**, a plain caller with an American voice and no background noise. A plan uses it when you do not pick a persona. You can edit the Default persona, but not delete it.
+
+### Add personas
+
+Open **Digital Humans**, go to the **Personas** tab, and click **New persona**, or upload a [personas CSV](/test/simulation-types/upload-digital-humans#personas-columns). A [simulation plan](/test/simulations/create) also picks personas for you and saves them here when you run.
+
+Deleting a persona removes it from every Digital Human that runs as it.
+
+### Write a good persona
+
+- Describe the person, never the task. "Cancel my plan" belongs in the Digital Human.
+- Make each persona differ from the others in one way that matters to your agent, such as a strong accent, a noisy line, or an impatient caller.
+- Keep personas few and reuse them. Each persona on a Digital Human is one more call per run.
 
 ## Settings
 
@@ -34,10 +85,10 @@ A Digital Human runs once as each persona it lists. With no personas, it runs on
 | Description / Intent | What the caller wants, in one or two sentences. |
 | Success Criteria | Agent outcomes the transcript can show, one per bullet. See [Success criteria](#success-criteria). |
 | Personality | Who the caller is, in one short line, when the Digital Human runs as the baseline. |
-| Scripted Responses | Fixed replies to specific agent lines. See [Scripted responses](/test/simulations/personas#scripted-responses). |
+| Scripted Responses | Fixed replies to specific agent lines. See [Scripted responses](#scripted-responses). |
 | Tool Adherence | The tool calls the agent must make. |
 | Traits | Facts the caller gives when asked. See [Traits](#traits). |
-| Tool Response Overrides | What each tool returns in this Digital Human's runs when **Mock tool calls** is on for the agent. An override replaces the agent's mode for that tool; leave it empty to use the agent's mode. See [Mock tool calls](/test/simulations/mock-tools). |
+| Tool Response Overrides | What each tool returns in this Digital Human's runs when **Mock tool calls** is on for the agent. An override replaces the agent's mode for that tool. Leave it empty to use the agent's mode. See [Mock Tool Calls Reference](/test/simulations/mock-tool-calls). |
 
 ## Success criteria
 
@@ -79,7 +130,7 @@ With the API, list numbers with [Get Phone Numbers](/api-reference/endpoint/phon
 
 - Test one goal in each Digital Human. Booking, rescheduling, and cancelling are three Digital Humans.
 - Write **Description / Intent** as what the caller wants. If you write "correctly" or "successfully", that text describes the agent, so move it to **Success Criteria**.
-- Put who the caller is in a [persona](/test/simulations/personas), so the same test runs with any caller.
+- Put who the caller is in a [persona](#personas), so the same test runs with any caller.
 - Put grading that applies to every call in a [custom metric](/test/metrics).
 
 | Setting | Do | Do not |
@@ -95,7 +146,7 @@ An "if the agent says X, the caller does Y" rule in the intent is only a suggest
 |---|---|
 | A fixed value, for example a date of birth | [Traits](#traits) |
 | A fixed value for every Digital Human of an agent | [Agent variables](#agent-variables) |
-| A fixed line, keypad entry, or pause | [Scripted Responses](/test/simulations/personas#scripted-responses) |
+| A fixed line, keypad entry, or pause | [Scripted Responses](#scripted-responses) |
 | A fixed opening line | **Speaks First** |
 | The same call on each run | **Creativity** from 0.0 to 0.3 |
 
@@ -119,9 +170,10 @@ When an agent fails on a real conversation, create a Digital Human that recreate
 
 ## Related
 
-- [Personas](/test/simulations/personas)
 - [Upload CSV](/test/simulation-types/upload-digital-humans)
 - [Digital Humans API](/api-reference/endpoint/create-digital-humans)
 - [Digital Humans MCP tools](/mcp/testing-tools#digital-humans)
+- [Personas API](/api-reference/endpoint/list-personas)
+- [Persona MCP tools](/mcp/testing-tools#personas)
 - [Communities API](/api-reference/endpoint/create-community)
 - [Create a Simulation](/test/simulations/create)
