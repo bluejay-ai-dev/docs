@@ -1,0 +1,138 @@
+---
+title: "POST /v2/create-metrics"
+description: "Create one or many custom metrics."
+sidebarTitle: "/\u200bv2/\u200bcreate-metrics"
+api: "POST https://api.getbluejay.ai/v2/create-metrics"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Creates one or many custom metrics. `metrics` takes one metric object or a list of them, and the response is always a list. `summary` is the short description shown with a metric. Link a metric to agents with `agent_ids`.
+
+```json
+{ "metrics": { "name": "Greeting", "prompt": "Did the agent greet the caller?", "response_type": "pass_fail" } }
+```
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "metrics", "type": "object[]", "required": true, "description": "The metric definitions to create: one object or a list of objects; each object's fields say what to set.", "children": [{"name": "bluejay_as_code_id", "type": "string (uuid) or null", "required": false, "description": "Stable code-addressable identifier"}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "ID of the agent this metric belongs to (deprecated, use agent_ids instead)"}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "List of agent IDs to associate this metric with"}, {"name": "name", "type": "string", "required": true, "description": "Name of the custom metric"}, {"name": "prompt", "type": "string or null", "required": false, "description": "LLM-judge system prompt (required for llm_judge; null for other types)"}, {"name": "summary", "type": "string or null", "required": false, "description": "Short plain-English description of the metric (LLM-generated)"}, {"name": "metric_type", "type": "string", "required": false, "description": "Specific metric kind (llm_judge, tool_call, trace_span, audio_*, vocal_fry); legacy alias: type", "default": "llm_judge"}, {"name": "settings", "type": "object", "required": false, "description": "Type-specific config (e.g. tool_call: {tool_names: [...]}; trace_span: {span_names: [...], condition: contains|does_not_contain})"}, {"name": "eval_segment", "type": "string", "required": false, "description": "Which side of the conversation is evaluated", "default": "all", "values": ["agent", "user", "all"]}, {"name": "scope", "type": "string", "required": false, "description": "Which pipeline runs this metric", "default": "all", "values": ["observability", "simulations", "all"]}, {"name": "response_type", "type": "string", "required": true, "description": "Type of response expected", "values": ["pass_fail", "yes_no", "qualitative", "quantitative", "json", "enum", "int", "float", "boolean", "tool_call"]}, {"name": "min_value", "type": "number or null", "required": false, "description": "Minimum value for quantitative metrics"}, {"name": "max_value", "type": "number or null", "required": false, "description": "Maximum value for quantitative metrics"}, {"name": "category", "type": "string or null", "required": false, "description": "Category for organizing metrics"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Tags for categorizing the metric"}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "Guidance on how to score this metric"}, {"name": "eval_modality", "type": "string or null", "required": false, "description": "Evaluation modality AUTO/TEXT/AUDIO; legacy alias: eval_route", "default": "AUTO", "values": ["AUDIO", "TEXT", "AUTO"]}, {"name": "model", "type": "string or null", "required": false, "description": "Model to use for text evaluation of the metric"}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Model to use for audio evaluation of the metric"}, {"name": "temperature", "type": "number or null", "required": false, "description": "Temperature for evaluating the metric"}, {"name": "enum_options", "type": "string[] or null", "required": false, "description": "Options for enum metrics"}, {"name": "tool_names", "type": "string[] or null", "required": false, "description": "Expected tool names for tool_call metrics"}, {"name": "json_schema", "type": "object or null", "required": false, "description": "JSON Schema describing the object the judge must return (required for json metrics)"}, {"name": "allow_not_applicable", "type": "boolean", "required": false, "description": "Whether this metric allows 'not applicable' responses.", "default": false}, {"name": "template_id", "type": "string (uuid) or null", "required": false, "description": "Library template this metric was created from"}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "metrics", "type": "object[]", "required": true, "description": "The created metrics with their new ids and full stored configuration, in the order given.", "children": [{"name": "id", "type": "string", "required": true, "description": "The metric's id (a uuid): the metric_id of GET /v1/custom-metric/{metric_id} and PUT /v1/update-custom-metric/{metric_id}, and a metric_ids entry for POST /v1/metrics-lab/lab."}, {"name": "bluejay_as_code_id", "type": "string or null", "required": false, "description": "Stable code-addressable identifier (same as id for custom metrics)"}, {"name": "name", "type": "string", "required": true, "description": "Display name shown in results and dashboards."}, {"name": "prompt", "type": "string or null", "required": false, "description": "The LLM judge's instruction; null for metric types that do not judge."}, {"name": "description", "type": "string or null", "required": false, "description": "Deprecated: same value as prompt"}, {"name": "summary", "type": "string or null", "required": false, "description": "Short plain-English description of the metric (LLM-generated)"}, {"name": "metric_type", "type": "string", "required": false, "description": "Metric kind, e.g. llm_judge, tool_call, trace_span, composite.", "default": "llm_judge"}, {"name": "eval_method", "type": "string", "required": false, "description": "Evaluation category (llm_judge|statistical|ml_model|deterministic)", "default": "llm_judge"}, {"name": "settings", "type": "object", "required": false, "description": "Type-specific configuration, plus fire_conditions and composite when set."}, {"name": "eval_segment", "type": "string", "required": false, "description": "Which side of the conversation is evaluated (agent|user|all)", "default": "all"}, {"name": "scope", "type": "string", "required": false, "description": "Which pipeline runs this metric (observability|simulations|all)", "default": "all"}, {"name": "response_type", "type": "string", "required": true, "description": "Verdict shape the judge returns, e.g. pass_fail, quantitative, enum, json.", "values": ["pass_fail", "yes_no", "qualitative", "quantitative", "json", "enum", "int", "float", "boolean", "tool_call"]}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "Ids of the agents the metric is attached to."}, {"name": "min_value", "type": "number or null", "required": false, "description": "Low end of the score range for a quantitative metric."}, {"name": "max_value", "type": "number or null", "required": false, "description": "High end of the score range for a quantitative metric."}, {"name": "category", "type": "string or null", "required": false, "description": "Grouping label used in the UI."}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Tags for categorizing the metric"}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "Extra rubric text appended to the judge prompt."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When this metric was created"}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "When this metric was last updated"}, {"name": "updated_by", "type": "string or null", "required": false, "description": "User who last updated this metric"}, {"name": "created_by", "type": "string or null", "required": false, "description": "User who created this metric"}, {"name": "eval_modality", "type": "string or null", "required": false, "description": "Judge lane: AUTO, TEXT (transcript) or AUDIO (recording).", "values": ["AUDIO", "TEXT", "AUTO"]}, {"name": "model", "type": "string or null", "required": false, "description": "Text judge model; null for the default."}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Audio judge model; null for the org default."}, {"name": "temperature", "type": "number or null", "required": false, "description": "Judge sampling temperature."}, {"name": "enum_options", "type": "string[] or null", "required": false, "description": "Allowed verdict strings for an enum metric."}, {"name": "tool_names", "type": "string[] or null", "required": false, "description": "Deprecated: mirror of settings.tool_names for tool_call metrics"}, {"name": "json_schema", "type": "object or null", "required": false, "description": "JSON Schema describing the object the judge must return (json metrics only)"}, {"name": "allow_not_applicable", "type": "boolean", "required": false, "description": "Whether the judge may answer not_applicable.", "default": false}, {"name": "eval_modality_auto_selected", "type": "boolean", "required": false, "description": "Deprecated: always false (column removed).", "default": false}, {"name": "template_id", "type": "string or null", "required": false, "description": "Library template this metric was created from"}, {"name": "source", "type": "string", "required": false, "description": "standard for a Bluejay builtin shared by every org, otherwise custom (or bluejay for an unmodified template copy).", "default": "custom"}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v2/create-metrics \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "metrics": [
+      {
+        "bluejay_as_code_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+        "agent_id": 123,
+        "agent_ids": [
+          123
+        ],
+        "name": "<string>",
+        "prompt": "<string>",
+        "summary": "<string>",
+        "metric_type": "llm_judge",
+        "settings": {},
+        "eval_segment": "agent",
+        "scope": "observability",
+        "response_type": "pass_fail",
+        "min_value": 1.5,
+        "max_value": 1.5,
+        "category": "<string>",
+        "tags": [
+          "<string>"
+        ],
+        "scoring_guidance": "<string>",
+        "eval_modality": "AUDIO",
+        "model": "<string>",
+        "audio_model": "<string>",
+        "temperature": 1.5,
+        "enum_options": [
+          "<string>"
+        ],
+        "tool_names": [
+          "<string>"
+        ],
+        "json_schema": {},
+        "allow_not_applicable": false,
+        "template_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+      }
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "metrics": [
+    {
+      "id": "<string>",
+      "bluejay_as_code_id": "<string>",
+      "name": "<string>",
+      "prompt": "<string>",
+      "description": "<string>",
+      "summary": "<string>",
+      "metric_type": "llm_judge",
+      "eval_method": "llm_judge",
+      "settings": {},
+      "eval_segment": "all",
+      "scope": "all",
+      "response_type": "pass_fail",
+      "agent_ids": [
+        123
+      ],
+      "min_value": 1.5,
+      "max_value": 1.5,
+      "category": "<string>",
+      "tags": [
+        "<string>"
+      ],
+      "scoring_guidance": "<string>",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "updated_by": "<string>",
+      "created_by": "<string>",
+      "eval_modality": "AUDIO",
+      "model": "<string>",
+      "audio_model": "<string>",
+      "temperature": 1.5,
+      "enum_options": [
+        "<string>"
+      ],
+      "tool_names": [
+        "<string>"
+      ],
+      "json_schema": {},
+      "allow_not_applicable": false,
+      "eval_modality_auto_selected": false,
+      "template_id": "<string>",
+      "source": "custom"
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

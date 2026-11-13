@@ -84,19 +84,21 @@ The metrics library holds metrics tuned for your best use case.
     Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
   </Step>
   <Step title="Send the metric">
-    Send it to [`POST /v1/create-metric`](/api-reference/endpoint/create-custom-metric). Use `agent_ids` to choose the agents it grades.
+    Send it to [`POST /v2/create-metrics`](/api-reference/endpoint/create-metrics-v2). Use `agent_ids` to choose the agents it grades.
 
     ```bash
-    curl https://api.getbluejay.ai/v1/create-metric \
+    curl https://api.getbluejay.ai/v2/create-metrics \
       -H "X-API-Key: $BLUEJAY_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "name": "DOB Verified Before PHI",
-        "prompt": "The agent verifies the caller'"'"'s date of birth before it discusses patient information.",
-        "metric_type": "llm_judge",
-        "response_type": "pass_fail",
-        "scope": "simulations",
-        "agent_ids": [123]
+        "metrics": {
+          "name": "DOB Verified Before PHI",
+          "prompt": "The agent verifies the caller'"'"'s date of birth before it discusses patient information.",
+          "metric_type": "llm_judge",
+          "response_type": "pass_fail",
+          "scope": "simulations",
+          "agent_ids": [123]
+        }
       }'
     ```
   </Step>
