@@ -31,7 +31,7 @@ Write in plain, short sentences. Use the active voice. Do not use semicolons or 
 
 ### Nav and sidebar
 
-- Every page in the sidebar has an `icon` in frontmatter. Reuse a Font Awesome name already in `docs.json` when it fits.
+- Every non-API-reference page in the sidebar has an `icon` in frontmatter. Reuse a Font Awesome name already in `docs.json` when it fits.
 - Reference pages, such as statuses, limits, and field tables, sit at the bottom of their nav group, after the guides.
 - A `/v1` endpoint that has a `/v2` starts with a `<Note>` that says which to use for new integrations and why. In the sidebar, each `/v2` sits directly above its `/v1`.
 - When you move, rename, or delete a page, add a redirect from the old path and fix every internal link.
