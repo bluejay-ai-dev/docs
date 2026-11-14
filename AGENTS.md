@@ -33,7 +33,8 @@ Write in plain, short sentences. Use the active voice. Do not use semicolons or 
 
 - Every non-API-reference page in the sidebar has an `icon` in frontmatter. Reuse a Font Awesome name already in `docs.json` when it fits.
 - Reference pages, such as statuses, limits, and field tables, sit at the bottom of their nav group, after the guides.
-- A `/v1` endpoint that has a `/v2` starts with a `<Note>` that says which to use for new integrations and why. In the sidebar, each `/v2` sits directly above its `/v1`.
+- A `/v1` endpoint that has a `/v2` starts with a `<Note>` that says which to use for new integrations and why. If the `/v1` is deprecated, use `deprecated: true` and a `<Warning>` that links the `/v2` page instead.
+- Deprecated endpoints sit in a collapsed **Deprecated** group at the bottom of their section. Each `/v2` stays above that group.
 - When you move, rename, or delete a page, add a redirect from the old path and fix every internal link.
 
 ### Media
