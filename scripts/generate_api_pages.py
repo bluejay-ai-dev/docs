@@ -501,10 +501,9 @@ def stub_page(spec, method, path, op):
     page = f'---\ndescription: "{summary.replace(chr(34), chr(39))}"\napi: "{method} {BASE_URL}{path}"\n---\n\n{intro}\n'
     slug = slugify(summary)
     version = path.strip("/").split("/")[0]
-    for candidate in (slug, f"{slug}-{version}", f"{slug}-{version}-{method.lower()}"):
-        if not os.path.exists(os.path.join(DOCS_DIR, ENDPOINT_DIR, candidate + ".mdx")):
-            slug = candidate
-            break
+    candidates = [slug, f"{slug}-{version}", f"{slug}-{version}-{method.lower()}"]
+    candidates += [f"{candidates[-1]}-{n}" for n in range(2, 100)]
+    slug = next(c for c in candidates if not os.path.exists(os.path.join(DOCS_DIR, ENDPOINT_DIR, c + ".mdx")))
     open(os.path.join(DOCS_DIR, ENDPOINT_DIR, slug + ".mdx"), "w").write(page)
     return f"{ENDPOINT_DIR}/{slug}"
 
