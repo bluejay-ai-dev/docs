@@ -14,13 +14,38 @@ Rate limit: 30 requests per minute.
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/red-team-simulations/{test_id}/stop \
+  --header "X-API-Key: $BLUEJAY_API_KEY"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "status": "<string>",
+  "ended_conversations": [
+    123
+  ]
+}
+```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
 ## Path parameters
 
-<FieldTable rows={[{"name": "test_id", "type": "integer", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "test_id", "type": "integer", "required": true, "description": "The red-team test's id, or its simulation id when by=simulation_id."}]} />
 
 ## Query parameters
 
-<FieldTable rows={[{"name": "by", "type": "string", "required": false, "description": "", "default": "test_id", "values": ["test_id", "simulation_id"]}]} />
+<FieldTable rows={[{"name": "by", "type": "string", "required": false, "description": "Which id test_id is: test_id (default) or simulation_id.", "default": "test_id", "values": ["test_id", "simulation_id"]}]} />
 
 ## Headers
 
@@ -28,7 +53,7 @@ Rate limit: 30 requests per minute.
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "status", "type": "string or null", "required": false, "description": "The test's status after the call: STOPPED, or its terminal status if it had already finished."}, {"name": "ended_conversations", "type": "integer[] or null", "required": false, "description": "Ids of the live calls this stop hung up."}]} />
 
 ## Status codes
 
@@ -36,13 +61,5 @@ A `200` response has no body.
 |---|---|
 | `200` | Successful Response |
 | `422` | Validation Error |
-
-## Example request
-
-```bash
-curl --request POST \
-  --url https://api.getbluejay.ai/v1/red-team-simulations/{test_id}/stop \
-  --header 'X-API-Key: <api-key>'
-```
 
 {/* END GENERATED */}

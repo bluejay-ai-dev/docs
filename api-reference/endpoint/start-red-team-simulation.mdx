@@ -39,31 +39,12 @@ Rate limit: 30 requests per minute.
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Headers
+<RequestExample>
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "Target agent to red-team."}, {"name": "config", "type": "object or null", "required": false, "description": "Overrides for max_levels/max_branches_per_node/max_total_dhs/max_call_duration_minutes/recon_count/objective/extension/harm_categories/harm_first/attack_quotas. attack_quotas is {social_engineering, prompt_injection, audio_native, content_harm} → attempt counts (0 = adaptive). Clamped to the mandatory ceilings; quota mode raises the call budget and sizes each attack level from those counts (largest family, at least one slot per active family). Content-safety probes run by default; pass harm_categories=[] for an OWASP-only test."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "", "default": false}]} />
-
-## Response
-
-A `200` response has no body.
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/red-team-simulations \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "agent_id": 123,
@@ -71,5 +52,45 @@ curl --request POST \
     "confirmed": false
   }'
 ```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "needs_confirmation": true,
+  "action": "<string>",
+  "preview": "<string>",
+  "to_proceed": "<string>",
+  "test_id": 123,
+  "simulation_id": 123,
+  "simulation_run_id": 123,
+  "status": "<string>"
+}
+```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent to attack: its Bluejay id from GET /v1/all-agents. It must be in a workspace you can write to; SMS agents are not supported."}, {"name": "config", "type": "object or null", "required": false, "description": "Optional settings as a JSON object, such as `name`, `max_levels`, `max_total_dhs`, `max_call_duration_minutes` and `hangup_on_transfer`. Values above the limits are lowered. Leave it out for the defaults."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "Leave false for the first call, which only returns a preview. Set true, with the same arguments, only after the user approves that preview; that call places real calls.", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "needs_confirmation", "type": "boolean or null", "required": false, "description": "True on the preview call (confirmed=false): no call has been placed yet."}, {"name": "action", "type": "string or null", "required": false, "description": "On the preview call, the action to repeat with confirmed=true."}, {"name": "preview", "type": "string or null", "required": false, "description": "On the preview call, the test's scope and call budget. Relay it to the user verbatim."}, {"name": "to_proceed", "type": "string or null", "required": false, "description": "On the preview call, how to start the test once the user approves."}, {"name": "test_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the test's own id."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the test's simulation id (the id in the app's /red-teaming/{id} URL)."}, {"name": "simulation_run_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the first (recon) run's id."}, {"name": "status", "type": "string or null", "required": false, "description": "On the confirmed call, RUNNING."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

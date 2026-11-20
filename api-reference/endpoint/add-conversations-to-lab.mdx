@@ -12,35 +12,12 @@ Adds conversations to a lab.
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Path parameters
+<RequestExample>
 
-<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
-
-## Headers
-
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "lab_id", "type": "string", "required": true, "description": "Lab ID (UUID as string)"}, {"name": "conversations", "type": "object[]", "required": true, "description": "List of conversations to add to the lab", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Simulated conversation ID"}]}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "added_count", "type": "integer", "required": true, "description": "Number of conversations successfully added"}, {"name": "skipped_count", "type": "integer", "required": true, "description": "Number of conversations that were skipped (already existed)"}, {"name": "added_conversation_ids", "type": "object[]", "required": true, "description": "List of conversation identifiers that were added"}, {"name": "message", "type": "string or null", "required": false, "description": "Human-readable message about the operation"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/conversations \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "lab_id": "<string>",
@@ -53,7 +30,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -65,5 +44,32 @@ curl --request POST \
   "message": "<string>"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Path parameters
+
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": "The lab's id (a uuid), from GET /v1/metrics-lab/labs or POST /v1/metrics-lab/lab."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "lab_id", "type": "string", "required": true, "description": "The lab's id (a uuid), from GET /v1/metrics-lab/labs or POST /v1/metrics-lab/lab. Must match lab_id in the path."}, {"name": "conversations", "type": "object[]", "required": true, "description": "Conversations to score. Each is {\"call_id\": \"<uuid>\"} for a production call or {\"test_result_id\": <int>} for a simulated one. Conversations already in the lab are skipped.", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Simulated conversation ID"}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "added_count", "type": "integer", "required": true, "description": "Number of conversations successfully added"}, {"name": "skipped_count", "type": "integer", "required": true, "description": "Number of conversations that were skipped (already existed)"}, {"name": "added_conversation_ids", "type": "object[]", "required": true, "description": "The conversations that were added, each {call_id, test_result_id}."}, {"name": "message", "type": "string or null", "required": false, "description": "Human-readable message about the operation"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

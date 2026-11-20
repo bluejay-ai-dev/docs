@@ -12,35 +12,12 @@ Adds custom metrics to a lab. If `evaluate_conversations` is true, Bluejay copie
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Path parameters
+<RequestExample>
 
-<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
-
-## Headers
-
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "lab_id", "type": "string", "required": true, "description": "Lab ID (UUID as string)"}, {"name": "metric_ids", "type": "string[]", "required": true, "description": "List of custom metric IDs (UUIDs as strings) to add to the lab"}, {"name": "evaluate_conversations", "type": "boolean or null", "required": false, "description": "Whether to evaluate conversations in the lab with the newly added metrics (copies existing evaluations where found, queues new evaluations only for metrics without results)", "default": false}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "added_count", "type": "integer", "required": true, "description": "Number of metrics successfully added"}, {"name": "skipped_count", "type": "integer", "required": true, "description": "Number of metrics that were skipped (already existed)"}, {"name": "added_metric_ids", "type": "string[]", "required": true, "description": "List of metric IDs that were added"}, {"name": "evaluation_triggered", "type": "boolean", "required": false, "description": "Whether evaluations were triggered for existing conversations", "default": false}, {"name": "evaluation_count", "type": "integer or null", "required": false, "description": "Number of conversations that were evaluated (if evaluation_triggered is true)"}, {"name": "message", "type": "string or null", "required": false, "description": "Human-readable message about the operation"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/metrics \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "lab_id": "<string>",
@@ -51,7 +28,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -65,5 +44,32 @@ curl --request POST \
   "message": "<string>"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Path parameters
+
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": "The lab's id (a uuid), from GET /v1/metrics-lab/labs or POST /v1/metrics-lab/lab."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "lab_id", "type": "string", "required": true, "description": "The lab's id (a uuid), from GET /v1/metrics-lab/labs or POST /v1/metrics-lab/lab. Must match lab_id in the path."}, {"name": "metric_ids", "type": "string[]", "required": true, "description": "Ids (uuids) of the custom metrics to attach, from GET /v1/custom-metrics; ones already in the lab are skipped."}, {"name": "evaluate_conversations", "type": "boolean or null", "required": false, "description": "When true, score the added metrics on every conversation already in the lab: existing results are copied in and only pairs with none are queued. Omit or false to only attach the metrics.", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "added_count", "type": "integer", "required": true, "description": "Number of metrics successfully added"}, {"name": "skipped_count", "type": "integer", "required": true, "description": "Number of metrics that were skipped (already existed)"}, {"name": "added_metric_ids", "type": "string[]", "required": true, "description": "List of metric IDs that were added"}, {"name": "evaluation_triggered", "type": "boolean", "required": false, "description": "Whether evaluations were triggered for existing conversations", "default": false}, {"name": "evaluation_count", "type": "integer or null", "required": false, "description": "Conversations processed for scoring; null when nothing was scored."}, {"name": "message", "type": "string or null", "required": false, "description": "Human-readable message about the operation"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

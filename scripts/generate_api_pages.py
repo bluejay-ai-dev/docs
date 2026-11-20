@@ -140,11 +140,31 @@ def object_children(spec, schema, depth, seen=()):
     return rows
 
 
+# Plain-English rewrites of long spec descriptions. The spec text is also read by agents through
+# the MCP server, so it stays as written there. Keys are the exact spec text.
+OVERRIDES = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "descriptions.json")))
+
+
 def clean(text):
     if not text:
         return ""
     text = re.sub(r"\s+", " ", str(text)).strip()
+    text = OVERRIDES.get(text, text)
     return text.replace("—", ",")
+
+
+def plain(name):
+    """A short readable description for a field the spec leaves blank."""
+    words = name.replace("-", "_").split("_")
+    if name == "id":
+        return "Unique ID."
+    if len(words) > 1 and words[-1] == "id":
+        return "ID of the " + " ".join(words[:-1]) + "."
+    if len(words) > 1 and words[-1] == "at":
+        return "When it was " + " ".join(words[:-1]) + "."
+    if len(words) > 1 and words[-1] == "by":
+        return "Who " + " ".join(words[:-1]) + " it."
+    return ""
 
 
 def field_rows(spec, props, required, depth=0, seen=()):
@@ -157,7 +177,7 @@ def field_rows(spec, props, required, depth=0, seen=()):
             "name": name,
             "type": type_label(spec, schema, seen),
             "required": name in required,
-            "description": clean(schema.get("description") or first.get("description")),
+            "description": clean(schema.get("description") or first.get("description")) or plain(name),
         }
         default = schema.get("default", first.get("default"))
         if default is not None and not isinstance(default, (dict, list)):
@@ -184,7 +204,7 @@ def param_rows(spec, params, where):
             "name": p["name"],
             "type": type_label(spec, schema),
             "required": bool(p.get("required")),
-            "description": clean(p.get("description") or schema.get("description") or first.get("description")),
+            "description": clean(p.get("description") or schema.get("description") or first.get("description")) or plain(p["name"]),
         }
         default = schema.get("default", first.get("default"))
         if default is not None and not isinstance(default, (dict, list)):
@@ -258,13 +278,29 @@ def success(op):
     return None, None
 
 
+KEYS_URL = "https://app.getbluejay.ai/settings/api-keys"
+# The spec lists HTTPBearer on almost every route, so only these reject API keys by name.
+USER_TOKEN_PATHS = {"/v1/uptime/monitors/{monitor_id}/series"}
+
+
+def auth(path, op):
+    """(curl header, table row, note) for the credential the route accepts."""
+    schemes = {k for s in op.get("security") or [] for k in s}
+    if "scimToken" in schemes:
+        return ("Authorization: Bearer $BLUEJAY_SCIM_TOKEN", ("Authorization", "SCIM token as `Bearer <token>`. Not an API key."), "")
+    if path in USER_TOKEN_PATHS:
+        return ("Authorization: Bearer $BLUEJAY_USER_TOKEN", ("Authorization", "Signed-in user token as `Bearer <token>`. API keys are rejected."), "")
+    return ("X-API-Key: $BLUEJAY_API_KEY", ("X-API-Key", "API key required to authenticate requests."),
+            f"Create an API key on the [API Keys page]({KEYS_URL}), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.")
+
+
 def curl(spec, method, path, op):
     lines = [f"curl --request {method.upper()} \\", f"  --url {BASE_URL}{path} \\"]
     query = [p for p in op.get("parameters", []) if p.get("in") == "query" and p.get("required")]
     if query:
         qs = "&".join(f"{p['name']}=<{p['name']}>" for p in query)
         lines[1] = f"  --url '{BASE_URL}{path}?{qs}' \\"
-    lines.append("  --header 'X-API-Key: <api-key>'")
+    lines.append(f'  --header "{auth(path, op)[0]}"')
     ctype, schema, _ = body_schema(op)
     if ctype == "application/json":
         lines[-1] += " \\"
@@ -287,14 +323,15 @@ def table(rows):
 
 def generate(spec, method, path, op):
     parts = [START, ""]
+    rail = ["<RequestExample>", "", "```bash cURL", curl(spec, method, path, op), "```", "", "</RequestExample>", ""]
     params = op.get("parameters", [])
     for where, heading in (("path", "Path parameters"), ("query", "Query parameters"), ("header", "Headers")):
         rows = param_rows(spec, params, where)
         if where == "header":
             # An API key decides the workspace, so the API ignores X-Organization-Id for key callers.
-            rows = [r for r in rows if r["name"] not in ("X-API-Key", "X-Organization-Id")]
-            rows.insert(0, {"name": "X-API-Key", "type": "string", "required": True,
-                            "description": "API key required to authenticate requests."})
+            rows = [r for r in rows if r["name"] not in ("X-API-Key", "X-Organization-Id", "Authorization")]
+            name, desc = auth(path, op)[1]
+            rows.insert(0, {"name": name, "type": "string", "required": True, "description": desc})
         if rows:
             parts += [f"## {heading}", "", table(rows), ""]
     ctype, schema, body_required = body_schema(op)
@@ -331,9 +368,10 @@ def generate(spec, method, path, op):
         parts += ["## Status codes", "", "| Status | Meaning |", "|---|---|"]
         parts += [f"| `{c}` | {d} |" for c, d in statuses]
         parts += [""]
-    parts += ["## Example request", "", "```bash", curl(spec, method, path, op), "```", ""]
     if resp_schema:
-        parts += ["## Example response", "", "```json " + code, json.dumps(example(spec, resp_schema), indent=2), "```", ""]
+        rail += ["<ResponseExample>", "", "```json " + code, json.dumps(example(spec, resp_schema), indent=2), "```", "", "</ResponseExample>", ""]
+    note = auth(path, op)[2]
+    parts[2:2] = rail + ([f"<Note>{note}</Note>", ""] if note else [])
     parts.append(END)
     return "\n".join(parts)
 

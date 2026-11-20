@@ -12,35 +12,12 @@ Creates a revision of a custom metric in a lab. Bluejay sets the revision number
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Path parameters
+<RequestExample>
 
-<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": ""}]} />
-
-## Headers
-
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "custom_metric_id", "type": "string", "required": true, "description": "Custom metric ID (UUID as string)"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the metric revision"}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "Scoring guidance for the metric revision"}, {"name": "eval_route", "type": "string or null", "required": false, "description": "Evaluation route (e.g., 'AUDIO', 'TEXT', 'AUTO')"}, {"name": "model", "type": "string or null", "required": false, "description": "Model to use for evaluation"}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Audio model to use for evaluation"}, {"name": "temperature", "type": "number or null", "required": false, "description": "Temperature for evaluation (0-2)"}, {"name": "allow_not_applicable", "type": "boolean", "required": false, "description": "Whether to allow 'not applicable' responses", "default": false}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Revision ID (UUID as string)"}, {"name": "lab_id", "type": "string", "required": true, "description": "Lab ID (UUID as string)"}, {"name": "custom_metric_id", "type": "string", "required": true, "description": "Custom metric ID (UUID as string)"}, {"name": "revision_number", "type": "integer", "required": true, "description": "Revision number (auto-incremented)"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the metric revision"}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "Scoring guidance for the metric revision"}, {"name": "eval_route", "type": "string or null", "required": false, "description": "Evaluation route"}, {"name": "model", "type": "string or null", "required": false, "description": "Model to use for evaluation"}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Audio model to use for evaluation"}, {"name": "temperature", "type": "number or null", "required": false, "description": "Temperature for evaluation"}, {"name": "allow_not_applicable", "type": "boolean or null", "required": false, "description": "Whether to allow 'not applicable' responses"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the revision was created"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/metrics-lab/lab/{lab_id}/metric-revisions \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "custom_metric_id": "<string>",
@@ -54,7 +31,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -72,5 +51,32 @@ curl --request POST \
   "created_at": "2026-01-01T00:00:00Z"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Path parameters
+
+<FieldTable rows={[{"name": "lab_id", "type": "string (uuid)", "required": true, "description": "The lab's id (a uuid), from GET /v1/metrics-lab/labs or POST /v1/metrics-lab/lab."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "custom_metric_id", "type": "string", "required": true, "description": "The metric to rewrite: its id (a uuid), one of the lab's metrics as listed by GET /v1/metrics-lab/lab/{lab_id}."}, {"name": "description", "type": "string or null", "required": false, "description": "The revised judge instruction to test, the counterpart of the metric's prompt; usually a sharper wording."}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "Revised rubric text for the judge, e.g. how to treat borderline cases."}, {"name": "eval_route", "type": "string or null", "required": false, "description": "Which judge lane scores the revision: 'AUDIO' (recording), 'TEXT' (transcript) or 'AUTO'."}, {"name": "model", "type": "string or null", "required": false, "description": "Text judge model to score this revision with."}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Audio judge model to score this revision with."}, {"name": "temperature", "type": "number or null", "required": false, "description": "Judge sampling temperature for this revision, from 0 to 2."}, {"name": "allow_not_applicable", "type": "boolean", "required": false, "description": "true lets the judge answer not_applicable instead of forcing a verdict; stored as false when omitted.", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The revision's id; pass it as metrics.custom_metric_revision_id to POST /v1/metrics-lab/evaluate-conversation."}, {"name": "lab_id", "type": "string", "required": true, "description": "The lab the revision belongs to."}, {"name": "custom_metric_id", "type": "string", "required": true, "description": "The metric the revision rewrites."}, {"name": "revision_number", "type": "integer", "required": true, "description": "Auto-incremented revision number."}, {"name": "description", "type": "string or null", "required": false, "description": "The revision's judge instruction."}, {"name": "scoring_guidance", "type": "string or null", "required": false, "description": "The revision's rubric text."}, {"name": "eval_route", "type": "string or null", "required": false, "description": "Judge lane: AUDIO, TEXT or AUTO."}, {"name": "model", "type": "string or null", "required": false, "description": "Text judge model."}, {"name": "audio_model", "type": "string or null", "required": false, "description": "Audio judge model."}, {"name": "temperature", "type": "number or null", "required": false, "description": "Judge sampling temperature."}, {"name": "allow_not_applicable", "type": "boolean or null", "required": false, "description": "Whether the judge may answer not_applicable."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the revision was created"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

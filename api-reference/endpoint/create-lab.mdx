@@ -12,31 +12,12 @@ Creates a lab with a set of conversations and custom metrics.
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Headers
+<RequestExample>
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": "Name of the lab"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the lab"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Tags for the lab"}, {"name": "conversations", "type": "object[]", "required": true, "description": "List of conversations to associate with the lab", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Simulated conversation ID"}]}, {"name": "metric_ids", "type": "string[]", "required": true, "description": "List of custom metric IDs (UUIDs as strings) to associate with the lab"}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "Unique identifier of the lab"}, {"name": "name", "type": "string", "required": true, "description": "Name of the lab"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the lab"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the lab was created"}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "When the lab was last updated"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/metrics-lab/lab \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "name": "<string>",
@@ -56,7 +37,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -67,5 +50,28 @@ curl --request POST \
   "updated_at": "2026-01-01T00:00:00Z"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": "Display name for the lab, e.g. the metric and the problem being investigated."}, {"name": "description", "type": "string or null", "required": false, "description": "Notes on what the lab is for."}, {"name": "tags", "type": "string[] or null", "required": false, "description": "Free-form tags for organizing labs."}, {"name": "conversations", "type": "object[]", "required": true, "description": "Conversations to score. Each is {\"call_id\": \"<uuid>\"} for a production call or {\"test_result_id\": <int>} for a simulated one. Send [] to add conversations later.", "children": [{"name": "call_id", "type": "string or null", "required": false, "description": "Call ID (UUID as string)"}, {"name": "test_result_id", "type": "integer or null", "required": false, "description": "Simulated conversation ID"}]}, {"name": "metric_ids", "type": "string[]", "required": true, "description": "Ids (uuids) of the custom metrics to work on, from GET /v1/custom-metrics or a custom-metric alert's entity_field."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The lab's id; the lab_id of GET /v1/metrics-lab/lab/{lab_id} and the other lab routes."}, {"name": "name", "type": "string", "required": true, "description": "Name of the lab"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the lab"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the lab was created"}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "When the lab was last updated"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

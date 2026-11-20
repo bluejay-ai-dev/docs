@@ -14,31 +14,12 @@ Creates a schedule for a simulation. The response returns the schedule as `cron_
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Headers
+<RequestExample>
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The unique identifier for the associated simulation."}, {"name": "schedule", "type": "object", "required": true, "description": "The schedule for the cron job.", "children": [{"name": "window", "type": "object or null", "required": false, "description": "Restricts a recurring schedule to certain days and/or a daily time range , \"Mondays and Fridays\", \"weekdays 9am-5pm\". Times are read in the schedule's timezone.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}]}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "interval", "type": "integer", "required": true, "description": "Repeat every N minutes (max 59)"}, {"name": "window", "type": "object or null", "required": false, "description": "Restricts a recurring schedule to certain days and/or a daily time range , \"Mondays and Fridays\", \"weekdays 9am-5pm\". Times are read in the schedule's timezone.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}]}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "interval", "type": "integer", "required": true, "description": "Repeat every N hours (max 23)"}, {"name": "time", "type": "string", "required": true, "description": "HH:MM 24hr time"}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "window", "type": "object or null", "required": false, "description": "Restricts a recurring schedule to certain days and/or a daily time range , \"Mondays and Fridays\", \"weekdays 9am-5pm\". Times are read in the schedule's timezone.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}]}, {"name": "time", "type": "string", "required": true, "description": "HH:MM 24hr time"}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "day_of_week", "type": "string", "required": true, "description": "", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "time", "type": "string", "required": true, "description": "HH:MM 24hr time"}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "day_of_month", "type": "integer", "required": true, "description": ""}, {"name": "frequency", "type": "string", "required": true, "description": ""}, {"name": "expression", "type": "string", "required": true, "description": "Cron expression"}]}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "Whether the cron job should be enabled upon creation.", "default": true}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The unique identifier for the created cron job."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The unique identifier for the associated simulation."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The cron expression defining the job schedule."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "Whether the cron job is enabled."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/create-schedule \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "timezone": "<string>",
@@ -58,7 +39,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -69,5 +52,28 @@ curl --request POST \
   "timezone": "<string>"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The simulation to run on this schedule: its id, from GET /v2/simulations."}, {"name": "schedule", "type": "object", "required": true, "description": "When the simulation runs. Pick one: every N minutes or hours, daily, weekly, monthly, or a cron expression. Times use the schedule's timezone.", "children": [{"name": "window", "type": "object or null", "required": false, "description": "Only fire on these days and/or within this daily time range. Omit to fire all day, every day.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}]}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire every `interval` minutes, optionally only inside `window`."}, {"name": "interval", "type": "integer", "required": true, "description": "Minutes between fires, counted from the top of each hour: 15 fires at :00, :15, :30 and :45."}, {"name": "window", "type": "object or null", "required": false, "description": "Only fire on these days and/or within this daily time range. Omit to fire all day, every day.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}]}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire on the hour every `interval` hours, optionally only inside `window`."}, {"name": "interval", "type": "integer", "required": true, "description": "Hours between fires, at minute 0, counted from midnight or from the window's start hour: 6 fires at 00:00, 06:00, 12:00 and 18:00."}, {"name": "time", "type": "string", "required": true, "description": "Time of day the schedule fires, as a zero-padded 24-hour time such as \"09:30\", read in the schedule's timezone (UTC when it has none)."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire once a day at `time`."}, {"name": "window", "type": "object or null", "required": false, "description": "Only fire on window.days; its time range is ignored, since `time` names the time. Omit to fire every day.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}]}, {"name": "time", "type": "string", "required": true, "description": "Time of day the schedule fires, as a zero-padded 24-hour time such as \"09:30\", read in the schedule's timezone (UTC when it has none)."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire once a week on `day_of_week` at `time`."}, {"name": "day_of_week", "type": "string", "required": true, "description": "The weekday the schedule fires on, at `time`, in the schedule's timezone.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "time", "type": "string", "required": true, "description": "Time of day the schedule fires, as a zero-padded 24-hour time such as \"09:30\", read in the schedule's timezone (UTC when it has none)."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire once a month on `day_of_month` at `time`."}, {"name": "day_of_month", "type": "integer", "required": true, "description": "The day of the month the schedule fires on, at `time`, e.g. 1 for the first of each month."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire on a raw cron `expression`, for timing the other forms can't express."}, {"name": "expression", "type": "string", "required": true, "description": "A five-field cron expression, such as `0 9 * * *` for 9:00 every day. It uses the schedule's timezone, or UTC if none. Day-of-week counts Monday as 0, so use names like `mon-fri`."}]}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "false creates the schedule paused. Omit to create it enabled.", "default": true}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The schedule's id; pass it as schedule_id to GET /v1/schedule/{schedule_id}, PUT /v1/update-schedule/{schedule_id} or DELETE /v1/delete-schedule/{schedule_id}."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The simulation this schedule runs (see GET /v2/simulations/{simulation_id})."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The stored timing as a cron expression, also for schedules given in a frequency form."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "False when the schedule is paused."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

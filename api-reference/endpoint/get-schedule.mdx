@@ -12,34 +12,17 @@ Returns one schedule by `schedule_id`.
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Path parameters
+<RequestExample>
 
-<FieldTable rows={[{"name": "schedule_id", "type": "string", "required": true, "description": ""}]} />
-
-## Headers
-
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The unique identifier for the cron job."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The unique identifier for the associated simulation."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The cron expression defining the job schedule."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "Whether the cron job is enabled."}, {"name": "created_at", "type": "string", "required": true, "description": "The timestamp when the cron job was created."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request GET \
   --url https://api.getbluejay.ai/v1/schedule/{schedule_id} \
-  --header 'X-API-Key: <api-key>'
+  --header "X-API-Key: $BLUEJAY_API_KEY"
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -51,5 +34,28 @@ curl --request GET \
   "timezone": "<string>"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Path parameters
+
+<FieldTable rows={[{"name": "schedule_id", "type": "string", "required": true, "description": "The schedule's id, from GET /v1/schedules or POST /v1/create-schedule."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The schedule's id; pass it as schedule_id to GET /v1/schedule/{schedule_id}, PUT /v1/update-schedule/{schedule_id} or DELETE /v1/delete-schedule/{schedule_id}."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The simulation this schedule runs (see GET /v2/simulations/{simulation_id})."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The stored timing as a cron expression, also for schedules given in a frequency form."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "False when the schedule is paused."}, {"name": "created_at", "type": "string", "required": true, "description": "When the schedule was created."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

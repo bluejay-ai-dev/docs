@@ -45,31 +45,12 @@ At least one enabled check must have a `checkType` or a `customMetricId`. If not
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Headers
+<RequestExample>
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "frequency", "type": "string", "required": false, "description": "", "default": "5m"}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days/hours the monitor may run, e.g. {\"days\": [\"monday\"], \"start_time\": \"09:00\", \"end_time\": \"17:00\", \"timezone\": \"America/Los_Angeles\"}. Null runs it around the clock.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Days to run on; empty means every day", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "HH:MM start of the daily window"}, {"name": "end_time", "type": "string or null", "required": false, "description": "HH:MM end of the daily window"}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]}, {"name": "checks", "type": "object[]", "required": false, "description": ""}, {"name": "notifications", "type": "object", "required": false, "description": ""}, {"name": "enabled", "type": "boolean", "required": false, "description": "", "default": true}, {"name": "start_at", "type": "string or null", "required": false, "description": "ISO 8601 first-check time; defaults to now()."}]} />
-
-## Response
-
-A `200` response has no body.
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/uptime/monitors \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "agent_id": 123,
@@ -90,5 +71,39 @@ curl --request POST \
     "start_at": "<string>"
   }'
 ```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "id": "<string>",
+  "provisioned": true
+}
+```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent to probe: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "frequency", "type": "string", "required": false, "description": "How often a check runs, as minutes with an \"m\" suffix, e.g. \"5m\" or \"15m\". Omit for \"5m\".", "default": "5m"}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days/hours the monitor may run, e.g. {\"days\": [\"monday\"], \"start_time\": \"09:00\", \"end_time\": \"17:00\", \"timezone\": \"America/Los_Angeles\"}. Null runs it around the clock.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the days and times are read in, e.g. \"America/Los_Angeles\". Omit for UTC."}]}, {"name": "checks", "type": "object[]", "required": false, "description": "The health checks each run grades. Three are built in (`connection`, `agent_malfunction`, `latency`). Your own checks use a custom metric or a digital human. Each has an `id`, `label`, `description` and `enabled`. At least one enabled check needs a `checkType`."}, {"name": "notifications", "type": "object", "required": false, "description": "Where DOWN and recovery alerts go: `slack`, `pagerduty`, `betterstack`, `incidentio` and `email`, plus `notify_on_recovery` (default true). Leave it out for no alerts."}, {"name": "enabled", "type": "boolean", "required": false, "description": "false creates the monitor paused. Omit to start it enabled.", "default": true}, {"name": "start_at", "type": "string or null", "required": false, "description": "ISO 8601 time with a timezone for the next check, e.g. \"2026-07-22T15:00:00Z\". Omit to run the first check immediately."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string or null", "required": false, "description": "The new monitor's id; pass it as monitor_id to GET /v1/uptime/monitors/{monitor_id}, PUT /v1/uptime/monitors/{monitor_id} and DELETE /v1/uptime/monitors/{monitor_id}."}, {"name": "provisioned", "type": "boolean or null", "required": false, "description": "False when the monitor was saved but its backing simulation could not be built; a PUT /v1/uptime/monitors/{monitor_id} call retries provisioning."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

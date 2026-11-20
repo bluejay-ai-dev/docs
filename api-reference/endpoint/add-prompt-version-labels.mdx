@@ -14,35 +14,12 @@ Adds labels to one agent version.
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Path parameters
+<RequestExample>
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "version", "type": "integer", "required": true, "description": ""}]} />
-
-## Headers
-
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": ""}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "", "default": false}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": ""}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions/{version}/labels \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "labels": [
@@ -52,7 +29,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -61,5 +40,32 @@ curl --request POST \
   ]
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "version", "type": "integer", "required": true, "description": "The version's number: the version field from GET /v1/agents/{agent_id}/versions or POST /v1/agents/{agent_id}/versions."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": "Labels to add or remove, such as `production` or `staging`. Matching ignores case. `latest` is managed for you. `production` can't be removed. Move it to another version instead."}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When adding: true moves a label that already sits on another version of this agent onto this one, which is how a version is promoted to production; false fails on such a conflict with 409. Ignored when removing.", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": "Every label on this version, e.g. latest and production."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

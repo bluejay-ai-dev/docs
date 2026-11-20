@@ -14,31 +14,12 @@ Each ID must be a test result in RUNNING status. If the call does not end, Bluej
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Headers
+<RequestExample>
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "test_result_ids", "type": "integer[]", "required": true, "description": "List of conversation IDs to end"}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "success", "type": "boolean", "required": true, "description": "Whether the operation was successful"}, {"name": "ended_count", "type": "integer", "required": true, "description": "Number of conversations marked for ending"}, {"name": "test_result_ids", "type": "integer[]", "required": true, "description": "Conversation IDs that were processed"}, {"name": "failed_ids", "type": "integer[] or null", "required": false, "description": "Conversation IDs that failed to process (if any)"}, {"name": "message", "type": "string", "required": true, "description": "Status message"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/end-conversations \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "test_result_ids": [
@@ -47,7 +28,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -62,5 +45,28 @@ curl --request POST \
   "message": "<string>"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "test_result_ids", "type": "integer[]", "required": true, "description": "Ids of the running simulated conversations to end: result ids from GET /v1/retrieve-simulation-results/{simulation_run_id} (called test_result_id elsewhere)."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "success", "type": "boolean", "required": true, "description": "True when at least one conversation was marked for ending."}, {"name": "ended_count", "type": "integer", "required": true, "description": "How many conversations were marked for ending."}, {"name": "test_result_ids", "type": "integer[]", "required": true, "description": "Ids of the conversations marked for ending."}, {"name": "failed_ids", "type": "integer[] or null", "required": false, "description": "Ids that were not ended: not running, already finished, or not found."}, {"name": "message", "type": "string", "required": true, "description": "Summary of what was ended."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

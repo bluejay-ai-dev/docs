@@ -14,9 +14,32 @@ A trace with more than 200,000 spans returns 413. A trace that is not in your or
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/traces/{trace_id} \
+  --header "X-API-Key: $BLUEJAY_API_KEY"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "status": "<string>",
+  "data": {}
+}
+```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
 ## Path parameters
 
-<FieldTable rows={[{"name": "trace_id", "type": "string", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "trace_id", "type": "string", "required": true, "description": "The trace's id (a hex string): trace_id from GET /v1/traces/search, or one of a conversation's trace_ids from GET /v1/observability/conversations/{conversation_id}."}]} />
 
 ## Headers
 
@@ -24,7 +47,7 @@ A trace with more than 200,000 spans returns 413. A trace that is not in your or
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "status", "type": "string or null", "required": false, "description": "success when the trace was read."}, {"name": "data", "type": "object or null", "required": false, "description": "The trace envelope. Spans are at data.data.results[0].rows[].data, each with span_id, parent_span_id, name, timestamp, duration_nano, has_error, kind_string, status_code_string, attributes, resource and events."}]} />
 
 ## Status codes
 
@@ -32,13 +55,5 @@ A `200` response has no body.
 |---|---|
 | `200` | Successful Response |
 | `422` | Validation Error |
-
-## Example request
-
-```bash
-curl --request POST \
-  --url https://api.getbluejay.ai/v1/traces/{trace_id} \
-  --header 'X-API-Key: <api-key>'
-```
 
 {/* END GENERATED */}

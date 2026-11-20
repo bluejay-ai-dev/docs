@@ -14,35 +14,12 @@ Creates the next agent version of an agent. `prompt_text` is optional. If you om
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Path parameters
+<RequestExample>
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}]} />
-
-## Headers
-
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "prompt_text", "type": "string or null", "required": false, "description": "Prompt content. Omit to copy the current latest version (MAX(version) / latest label) and increment. An empty string stores a blank prompt."}, {"name": "commit_message", "type": "string or null", "required": false, "description": ""}, {"name": "labels", "type": "string[] or null", "required": false, "description": ""}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When true, a label that already points at another version (including production) moves here.", "default": false}, {"name": "metadata", "type": "object or null", "required": false, "description": ""}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "the id of the prompt"}, {"name": "prompt_text", "type": "string", "required": true, "description": "the prompt content"}, {"name": "commit_message", "type": "string or null", "required": false, "description": ""}, {"name": "labels", "type": "string[] or null", "required": false, "description": "labels associated with the prompt"}, {"name": "metadata", "type": "object or null", "required": false, "description": "arbitrary JSON metadata"}, {"name": "version", "type": "integer", "required": true, "description": "the version number of the prompt"}, {"name": "agent_id", "type": "integer", "required": true, "description": "id of the agent that owns this prompt"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request POST \
   --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "prompt_text": "<string>",
@@ -55,7 +32,9 @@ curl --request POST \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -70,5 +49,32 @@ curl --request POST \
   "agent_id": 123
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "prompt_text", "type": "string or null", "required": false, "description": "Prompt content. Omit to copy the current latest version (MAX(version) / latest label) and increment. An empty string stores a blank prompt."}, {"name": "commit_message", "type": "string or null", "required": false, "description": "Short note on what changed, shown in the version history; saved as 'new version' when omitted."}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Your own labels to put on the new version, e.g. staging. latest is added automatically, and production too on the agent's first version. A label already on another version of this agent fails the call."}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When true, a production label requested in labels moves here from another version. A custom label already on another version is always refused (409); remove it there first.", "default": false}, {"name": "metadata", "type": "object or null", "required": false, "description": "Free-form JSON object stored with the version, e.g. the source commit or author; saved as {} when omitted."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "The version's uuid. Other endpoints take it as agent_version_id."}, {"name": "prompt_text", "type": "string", "required": true, "description": "The full prompt text stored in this version."}, {"name": "commit_message", "type": "string or null", "required": false, "description": "The note saved with this version."}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Labels on this version, e.g. latest and production."}, {"name": "metadata", "type": "object or null", "required": false, "description": "Free-form JSON stored with this version."}, {"name": "version", "type": "integer", "required": true, "description": "The version number: the version of GET /v1/agents/{agent_id}/versions/{version} and DELETE /v1/agents/{agent_id}/versions/{version}."}, {"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns this version."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}

@@ -16,21 +16,71 @@ Returns outcome counts, uptime percentage, and p50, p90, p95, and p99 latency pe
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/series \
+  --header "Authorization: Bearer $BLUEJAY_USER_TOKEN"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "bucket": "<string>",
+  "from": "<string>",
+  "to": "<string>",
+  "series": [
+    {
+      "date": "<string>",
+      "uptime_pct": 1.5,
+      "up": 123,
+      "down": 123,
+      "unknown": 123,
+      "pending": 123,
+      "avg_latency_ms": 1.5,
+      "p50_latency_ms": 1.5,
+      "p75_latency_ms": 1.5,
+      "p90_latency_ms": 1.5,
+      "p95_latency_ms": 1.5,
+      "p99_latency_ms": 1.5
+    }
+  ],
+  "latency": {
+    "avg_latency_ms": 1.5,
+    "p50_latency_ms": 1.5,
+    "p75_latency_ms": 1.5,
+    "p90_latency_ms": 1.5,
+    "p95_latency_ms": 1.5,
+    "p99_latency_ms": 1.5
+  },
+  "window": {
+    "uptime_pct": 1.5,
+    "incidents": 123
+  }
+}
+```
+
+</ResponseExample>
+
 ## Path parameters
 
-<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": "The monitor to chart: its id, from GET /v1/uptime/monitors or POST /v1/uptime/monitors."}]} />
 
 ## Query parameters
 
-<FieldTable rows={[{"name": "days", "type": "integer", "required": false, "description": "Lookback window in days.", "default": 7}, {"name": "bucket", "type": "string or null", "required": false, "description": "Aggregation granularity. Defaults to a width that suits the range."}, {"name": "check", "type": "string or null", "required": false, "description": "Grade one health check instead of the monitor's own verdict: its check_type, or a custom metric's id."}, {"name": "label", "type": "string or null", "required": false, "description": "The check's display name, so runs written before custom metrics were keyed by id still grade."}]} />
+<FieldTable rows={[{"name": "days", "type": "integer", "required": false, "description": "How many days back from now to cover, up to 365.", "default": 7}, {"name": "bucket", "type": "string or null", "required": false, "description": "Width of each point: \"15m\", \"hour\", \"day\", \"week\" or \"month\". Omit to get a width that suits the window (hourly up to 2 days, then daily, weekly, monthly)."}, {"name": "check", "type": "string or null", "required": false, "description": "Grade one health check instead of the monitor's own UP/DOWN verdict: its checkType (connection, agent_malfunction, latency) or the customMetricId of a custom-metric check, as listed in the monitor's checks. Omit for the monitor's verdict."}, {"name": "label", "type": "string or null", "required": false, "description": "The check's display name (its label in the monitor's checks). Runs recorded before custom metrics were keyed by id stored the name instead, so pass it alongside check to grade those too."}]} />
 
 ## Headers
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+<FieldTable rows={[{"name": "Authorization", "type": "string", "required": true, "description": "Signed-in user token as `Bearer <token>`. API keys are rejected."}]} />
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "bucket", "type": "string or null", "required": false, "description": "Width of each point: 15m, hour, day, week or month."}, {"name": "from", "type": "string or null", "required": false, "description": "ISO 8601 start of the window."}, {"name": "to", "type": "string or null", "required": false, "description": "ISO 8601 end of the window (now)."}, {"name": "series", "type": "object[] or null", "required": false, "description": "One point per bucket, ascending; every bucket in the window is returned, so a stretch with no runs comes back with null rates rather than missing.", "children": [{"name": "date", "type": "string or null", "required": false, "description": "ISO 8601 start of the bucket."}, {"name": "uptime_pct", "type": "number or null", "required": false, "description": "Percent of graded runs in the bucket that passed."}, {"name": "up", "type": "integer or null", "required": false, "description": "Runs that passed."}, {"name": "down", "type": "integer or null", "required": false, "description": "Runs that failed."}, {"name": "unknown", "type": "integer or null", "required": false, "description": "Runs that could not be graded."}, {"name": "pending", "type": "integer or null", "required": false, "description": "Runs not graded yet."}, {"name": "avg_latency_ms", "type": "number or null", "required": false, "description": "Mean response latency, in ms."}, {"name": "p50_latency_ms", "type": "number or null", "required": false, "description": "Median response latency, in ms."}, {"name": "p75_latency_ms", "type": "number or null", "required": false, "description": "75th percentile response latency, in ms."}, {"name": "p90_latency_ms", "type": "number or null", "required": false, "description": "90th percentile response latency, in ms."}, {"name": "p95_latency_ms", "type": "number or null", "required": false, "description": "95th percentile response latency, in ms."}, {"name": "p99_latency_ms", "type": "number or null", "required": false, "description": "99th percentile response latency, in ms."}]}, {"name": "latency", "type": "object or null", "required": false, "description": "Mean and percentiles over the whole window.", "children": [{"name": "avg_latency_ms", "type": "number or null", "required": false, "description": "Mean response latency, in ms."}, {"name": "p50_latency_ms", "type": "number or null", "required": false, "description": "Median response latency, in ms."}, {"name": "p75_latency_ms", "type": "number or null", "required": false, "description": "75th percentile response latency, in ms."}, {"name": "p90_latency_ms", "type": "number or null", "required": false, "description": "90th percentile response latency, in ms."}, {"name": "p95_latency_ms", "type": "number or null", "required": false, "description": "95th percentile response latency, in ms."}, {"name": "p99_latency_ms", "type": "number or null", "required": false, "description": "99th percentile response latency, in ms."}]}, {"name": "window", "type": "object or null", "required": false, "description": "Uptime % and incidents for the monitor's own verdict.", "children": [{"name": "uptime_pct", "type": "number or null", "required": false, "description": "Percent of the window's checks that were UP."}, {"name": "incidents", "type": "integer or null", "required": false, "description": "Incidents in the window: each is the start of an unresolved DOWN streak."}]}]} />
 
 ## Status codes
 
@@ -38,13 +88,5 @@ A `200` response has no body.
 |---|---|
 | `200` | Successful Response |
 | `422` | Validation Error |
-
-## Example request
-
-```bash
-curl --request GET \
-  --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id}/series \
-  --header 'X-API-Key: <api-key>'
-```
 
 {/* END GENERATED */}

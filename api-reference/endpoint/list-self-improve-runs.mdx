@@ -12,9 +12,58 @@ Returns the Self-Improve runs for the agents you can see. Filter with `agent_id`
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/self-improve/runs \
+  --header "X-API-Key: $BLUEJAY_API_KEY"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "runs": [
+    {
+      "id": 123,
+      "organization_id": "<string>",
+      "agent_id": 123,
+      "simulation_id": 123,
+      "status": "<string>",
+      "config": {},
+      "success_metric_ids": [
+        "<string>"
+      ],
+      "baseline_pass_rate": 1.5,
+      "current_pass_rate": 1.5,
+      "final_pass_rate": 1.5,
+      "current_iteration": 123,
+      "iteration_history": [
+        {}
+      ],
+      "baseline_prompt_text": "<string>",
+      "current_prompt_text": "<string>",
+      "proposed_agent_version_id": "<string>",
+      "current_sim_run_id": 123,
+      "stop_requested": true,
+      "error": "<string>",
+      "created_at": "<string>",
+      "updated_at": "<string>"
+    }
+  ]
+}
+```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
 ## Query parameters
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer or null", "required": false, "description": ""}, {"name": "status", "type": "string or null", "required": false, "description": ""}]} />
+<FieldTable rows={[{"name": "agent_id", "type": "integer or null", "required": false, "description": "Only runs that improve this agent: its Bluejay id from GET /v1/all-agents. Omit for every agent you can see."}, {"name": "status", "type": "string or null", "required": false, "description": "Only runs in this state: PENDING, RUNNING, SUCCEEDED, STOPPED or FAILED. Omit for all states."}]} />
 
 ## Headers
 
@@ -22,7 +71,7 @@ Returns the Self-Improve runs for the agents you can see. Filter with `agent_id`
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "runs", "type": "object[] or null", "required": false, "description": "Runs you can see, newest first, at most 100. Open one with GET /v1/self-improve/runs/{run_id}.", "children": [{"name": "id", "type": "integer or null", "required": false, "description": "Run id; pass it as run_id to GET /v1/self-improve/runs/{run_id} or POST /v1/self-improve/runs/{run_id}/stop."}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Organization that owns the run."}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "The agent being improved."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "The simulation that scores each round."}, {"name": "status", "type": "string or null", "required": false, "description": "PENDING, RUNNING, SUCCEEDED, STOPPED or FAILED."}, {"name": "config", "type": "object or null", "required": false, "description": "The run's settings: target_pass_rate, max_iterations, min_improvement and metric_count."}, {"name": "success_metric_ids", "type": "string[] or null", "required": false, "description": "Custom metric ids pass rate is scored with."}, {"name": "baseline_pass_rate", "type": "number or null", "required": false, "description": "Pass rate before any change, as a fraction."}, {"name": "current_pass_rate", "type": "number or null", "required": false, "description": "Pass rate of the best prompt kept so far."}, {"name": "final_pass_rate", "type": "number or null", "required": false, "description": "Pass rate of the winning prompt, once finished."}, {"name": "current_iteration", "type": "integer or null", "required": false, "description": "The round the loop is on; 0 is the baseline."}, {"name": "iteration_history", "type": "object[] or null", "required": false, "description": "One entry per round: its iteration, sim_run_id, pass_rate and whether its prompt was kept."}, {"name": "baseline_prompt_text", "type": "string or null", "required": false, "description": "The agent's prompt before the run."}, {"name": "current_prompt_text", "type": "string or null", "required": false, "description": "The best prompt kept so far."}, {"name": "proposed_agent_version_id", "type": "string or null", "required": false, "description": "The new 'latest' agent version the winning prompt was saved as, when one was written."}, {"name": "current_sim_run_id", "type": "integer or null", "required": false, "description": "The simulation run scoring the current round."}, {"name": "stop_requested", "type": "boolean or null", "required": false, "description": "True once a stop was requested."}, {"name": "error", "type": "string or null", "required": false, "description": "Why the run failed, when it did."}, {"name": "created_at", "type": "string or null", "required": false, "description": "When the run was created, ISO 8601."}, {"name": "updated_at", "type": "string or null", "required": false, "description": "When the run last changed, ISO 8601."}]}]} />
 
 ## Status codes
 
@@ -30,13 +79,5 @@ A `200` response has no body.
 |---|---|
 | `200` | Successful Response |
 | `422` | Validation Error |
-
-## Example request
-
-```bash
-curl --request GET \
-  --url https://api.getbluejay.ai/v1/self-improve/runs \
-  --header 'X-API-Key: <api-key>'
-```
 
 {/* END GENERATED */}

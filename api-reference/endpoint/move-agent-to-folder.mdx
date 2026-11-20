@@ -12,31 +12,12 @@ Moves an agent into a folder. Send no folder to remove the agent from its folder
 
 {/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
 
-## Headers
+<RequestExample>
 
-<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
-
-## Request body
-
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "ID of the agent to move"}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": "ID of the target folder (null to disassociate from any folder)"}]} />
-
-## Response
-
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "ID of the agent"}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": "ID of the folder (null if disassociated)"}, {"name": "status", "type": "string", "required": false, "description": "Status of the operation", "default": "success"}]} />
-
-## Status codes
-
-| Status | Meaning |
-|---|---|
-| `200` | Successful Response |
-| `422` | Validation Error |
-
-## Example request
-
-```bash
+```bash cURL
 curl --request PUT \
   --url https://api.getbluejay.ai/v1/folders/move-agent \
-  --header 'X-API-Key: <api-key>' \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
   --header 'Content-Type: application/json' \
   --data '{
     "agent_id": 123,
@@ -44,7 +25,9 @@ curl --request PUT \
   }'
 ```
 
-## Example response
+</RequestExample>
+
+<ResponseExample>
 
 ```json 200
 {
@@ -53,5 +36,28 @@ curl --request PUT \
   "status": "success"
 }
 ```
+
+</ResponseExample>
+
+<Note>Create an API key on the [API Keys page](https://app.getbluejay.ai/settings/api-keys), then run `export BLUEJAY_API_KEY=<your key>` so the examples work as written.</Note>
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent to move: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": "The agent-kind folder to put the agent in, from GET /v1/all-folders or POST /v1/create-folder; it must be in the agent's workspace. Omit or pass null to take the agent out of every folder (back to the root)."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The id of the agent that was moved."}, {"name": "folder_id", "type": "string (uuid) or null", "required": false, "description": "The folder the agent is now in; null when it was moved to the root."}, {"name": "status", "type": "string", "required": false, "description": "'success' when the agent was moved.", "default": "success"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
 
 {/* END GENERATED */}
