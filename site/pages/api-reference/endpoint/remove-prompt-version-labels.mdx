@@ -13,7 +13,11 @@ Removes labels from one agent version.
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "version", "type": "integer", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "version", "type": "integer", "required": true, "description": "The version's number: the version field from GET /v1/agents/{agent_id}/versions or POST /v1/agents/{agent_id}/versions."}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": "Labels to remove, repeated per label, e.g. ?labels=staging&labels=qa, matched to existing labels ignoring case. production is never detached (move it to another version instead), nor latest from the newest version. Omit to remove every other label."}]} />
 
 ## Headers
 
@@ -21,11 +25,11 @@ Removes labels from one agent version.
 
 ## Request body
 
-<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": ""}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "", "default": false}]} />
+<FieldTable rows={[{"name": "body", "type": "object or null", "required": false, "children": [{"name": "labels", "type": "string[] or null", "required": false, "description": "Deprecated. Use the labels query parameter. Still read when the query has no labels."}]}]} />
 
 ## Response
 
-<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": ""}]} />
+<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": "Every label on this version, e.g. latest and production."}]} />
 
 ## Status codes
 
@@ -42,8 +46,9 @@ curl --request DELETE \
   --header 'X-API-Key: <api-key>' \
   --header 'Content-Type: application/json' \
   --data '{
-    "labels": [],
-    "override_label": false
+    "labels": [
+      "<string>"
+    ]
   }'
 ```
 

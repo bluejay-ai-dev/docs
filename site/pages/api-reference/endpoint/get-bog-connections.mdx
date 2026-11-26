@@ -1,0 +1,65 @@
+---
+title: "GET /v1/bog/connections"
+description: "Get Bog Connections"
+api: "GET https://api.getbluejay.ai/v1/bog/connections"
+playground: "none"
+---
+
+The organization's GitHub connections with their BOG settings.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "string or null", "required": false, "description": "The connection id other BOG routes take as connection_id."}, {"name": "account_login", "type": "string or null", "required": false, "description": "GitHub account or organization the app is installed on."}, {"name": "workspace_id", "type": "string or null", "required": false, "description": "Workspace the connection belongs to."}, {"name": "revoked", "type": "boolean or null", "required": false, "description": "True when the app was uninstalled on GitHub."}, {"name": "settings", "type": "object or null", "required": false, "description": "Which repositories and triggers BOG uses.", "children": [{"name": "repositories", "type": "string[] or null", "required": false, "description": "Repositories (owner/name) to scan. null scans every repository."}, {"name": "branches", "type": "object or null", "required": false, "description": "Branch to scan per repository (owner/name). Replaces the whole map. A missing repository uses its default branch.", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "auto_scan", "type": "boolean or null", "required": false, "description": "Scan on install and when the scanned branch changes an agent file."}, {"name": "on_pr", "type": "boolean or null", "required": false, "description": "Scan each pull request and propose tests."}, {"name": "auto_update_from_code", "type": "boolean or null", "required": false, "description": "Update linked agents from code without approval."}, {"name": "auto_fix_prs", "type": "boolean or null", "required": false, "description": "Open fix PRs from failed tests."}]}, {"name": "needs_permission_approval", "type": "boolean or null", "required": false, "description": "True until the install approves code access on GitHub."}, {"name": "permission_url", "type": "string or null", "required": false, "description": "GitHub page where the user approves the new permissions."}, {"name": "last_scanned", "type": "object or null", "required": false, "description": "When each repository last finished a scan, keyed by owner/name."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/bog/connections \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+[
+  {
+    "id": "<string>",
+    "account_login": "<string>",
+    "workspace_id": "<string>",
+    "revoked": true,
+    "settings": {
+      "repositories": [
+        "<string>"
+      ],
+      "branches": {
+        "key": "<string>"
+      },
+      "auto_scan": true,
+      "on_pr": true,
+      "auto_update_from_code": true,
+      "auto_fix_prs": true
+    },
+    "needs_permission_approval": true,
+    "permission_url": "<string>",
+    "last_scanned": {}
+  }
+]
+```
+
+{/* END GENERATED */}

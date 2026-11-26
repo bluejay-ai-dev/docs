@@ -13,7 +13,7 @@ A trace with more than 200,000 spans returns 413. A trace that is not in your or
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "trace_id", "type": "string", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "trace_id", "type": "string", "required": true, "description": "The trace's id (a hex string): trace_id from GET /v1/traces/search, or one of a conversation's trace_ids from GET /v1/observability/conversations/{conversation_id}."}]} />
 
 ## Headers
 
@@ -21,7 +21,7 @@ A trace with more than 200,000 spans returns 413. A trace that is not in your or
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "status", "type": "string or null", "required": false, "description": "success when the trace was read."}, {"name": "data", "type": "object or null", "required": false, "description": "The trace envelope. Spans are at data.data.results[0].rows[].data, each with span_id, parent_span_id, name, timestamp, duration_nano, has_error, kind_string, status_code_string, attributes, resource and events."}]} />
 
 ## Status codes
 
@@ -36,6 +36,15 @@ A `200` response has no body.
 curl --request POST \
   --url https://api.getbluejay.ai/v1/traces/{trace_id} \
   --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "status": "<string>",
+  "data": {}
+}
 ```
 
 {/* END GENERATED */}

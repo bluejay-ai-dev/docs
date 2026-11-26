@@ -11,7 +11,7 @@ Sets the position and size of widgets on a dashboard. Items for widgets that are
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "dashboard_id", "type": "string", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "dashboard_id", "type": "string", "required": true, "description": "The dashboard whose widgets to arrange, from GET /v1/dashboards or POST /v1/dashboards."}]} />
 
 ## Headers
 
@@ -19,11 +19,11 @@ Sets the position and size of widgets on a dashboard. Items for widgets that are
 
 ## Request body
 
-<FieldTable rows={[{"name": "layouts", "type": "object[]", "required": true, "description": "Layout per widget already on the dashboard", "children": [{"name": "widget_id", "type": "string", "required": true, "description": ""}, {"name": "layout", "type": "object", "required": true, "description": "Where a widget sits on a dashboard and how big it is. The field names are older than the grid they describe: x is the row and y is the column, both 1-based. The dashboard is six columns wide, and height is counted in 50px steps, so h=6 is the 300px a widget used to be and the range 2..18 is 100px..900px.", "children": [{"name": "x", "type": "integer", "required": true, "description": "Row, 1-based, top to bottom"}, {"name": "y", "type": "integer", "required": true, "description": "Column within the row, 1..6"}, {"name": "w", "type": "integer", "required": true, "description": "Width in columns, 1..6"}, {"name": "h", "type": "integer", "required": true, "description": "Height in 50px steps, 2..18 (100px..900px)"}]}]}]} />
+<FieldTable rows={[{"name": "layouts", "type": "object[]", "required": true, "description": "One entry per widget to place: {\"widget_id\": \"<id from GET /v1/dashboards/{dashboard_id} or POST /v1/widgets>\", \"layout\": {\"x\": <row, 1-based>, \"y\": <column 1-6>, \"w\": <width in columns 1-6>, \"h\": <height in 50px steps, 2-18>}}. Widgets you leave out keep their place; widgets not on this dashboard are ignored.", "children": [{"name": "widget_id", "type": "string", "required": true, "description": ""}, {"name": "layout", "type": "object", "required": true, "description": "Where a widget sits on a dashboard and how big it is. The field names are older than the grid they describe: x is the row and y is the column, both 1-based. The dashboard is six columns wide, and height is counted in 50px steps, so h=6 is the 300px a widget used to be and the range 2..18 is 100px..900px.", "children": [{"name": "x", "type": "integer", "required": true, "description": "Row, 1-based, top to bottom"}, {"name": "y", "type": "integer", "required": true, "description": "Column within the row, 1..6"}, {"name": "w", "type": "integer", "required": true, "description": "Width in columns, 1..6"}, {"name": "h", "type": "integer", "required": true, "description": "Height in 50px steps, 2..18 (100px..900px)"}]}]}]} />
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "success", "type": "boolean or null", "required": false, "description": "True when the request was applied: the dashboard or widget was deleted, or the layouts were saved."}]} />
 
 ## Status codes
 
@@ -52,6 +52,14 @@ curl --request PUT \
       }
     ]
   }'
+```
+
+## Example response
+
+```json 200
+{
+  "success": true
+}
 ```
 
 {/* END GENERATED */}

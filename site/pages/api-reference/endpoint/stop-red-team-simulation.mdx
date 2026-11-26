@@ -13,11 +13,11 @@ Rate limit: 30 requests per minute.
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "test_id", "type": "integer", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "test_id", "type": "integer", "required": true, "description": "The red-team test's id, or its simulation id when by=simulation_id."}]} />
 
 ## Query parameters
 
-<FieldTable rows={[{"name": "by", "type": "string", "required": false, "description": "", "default": "test_id", "values": ["test_id", "simulation_id"]}]} />
+<FieldTable rows={[{"name": "by", "type": "string", "required": false, "description": "Which id test_id is: test_id (default) or simulation_id.", "default": "test_id", "values": ["test_id", "simulation_id"]}]} />
 
 ## Headers
 
@@ -25,7 +25,7 @@ Rate limit: 30 requests per minute.
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "status", "type": "string or null", "required": false, "description": "The test's status after the call: STOPPED, or its terminal status if it had already finished."}, {"name": "ended_conversations", "type": "integer[] or null", "required": false, "description": "Ids of the live calls this stop hung up."}]} />
 
 ## Status codes
 
@@ -40,6 +40,17 @@ A `200` response has no body.
 curl --request POST \
   --url https://api.getbluejay.ai/v1/red-team-simulations/{test_id}/stop \
   --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "status": "<string>",
+  "ended_conversations": [
+    123
+  ]
+}
 ```
 
 {/* END GENERATED */}
