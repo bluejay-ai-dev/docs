@@ -1,0 +1,56 @@
+---
+title: "POST /v1/red-team-simulations/{test_id}/stop"
+description: "Stop a Red Teaming run."
+api: "POST https://api.getbluejay.ai/v1/red-team-simulations/{test_id}/stop"
+playground: "none"
+---
+
+Stops a red team test. Bluejay ends its live calls and returns their IDs in `ended_conversations`. A test that is already complete, stopped, or failed keeps its status.
+
+Rate limit: 30 requests per minute.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "test_id", "type": "integer", "required": true, "description": "The red-team test's id, or its simulation id when by=simulation_id."}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "by", "type": "string", "required": false, "description": "Which id test_id is: test_id (default) or simulation_id.", "default": "test_id", "values": ["test_id", "simulation_id"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string or null", "required": false, "description": "The test's status after the call: STOPPED, or its terminal status if it had already finished."}, {"name": "ended_conversations", "type": "integer[] or null", "required": false, "description": "Ids of the live calls this stop hung up."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/red-team-simulations/{test_id}/stop \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "status": "<string>",
+  "ended_conversations": [
+    123
+  ]
+}
+```
+
+{/* END GENERATED */}

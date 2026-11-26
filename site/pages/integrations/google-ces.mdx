@@ -1,0 +1,90 @@
+---
+title: "Google CES"
+description: "Test your Google CES agents."
+---
+
+Connect the Google Cloud project that holds your CES apps, then test, edit, and publish their agents from Bluejay.
+
+<img src="/images/connect-google-ces.png" alt="The Google CES connection field with a CES deployment path" />
+<img src="/images/connect-google-ces-dark.png" alt="The Google CES connection field with a CES deployment path" />
+
+## Connect
+
+<Steps>
+<Step title="Set up the Google credential">
+In Bluejay, open **Settings → Integrations** and choose the **Google Agents** tab. CES uses the same credential as [Dialogflow CX](/integrations/google-dfcx#connect), so save one as that page describes. For keyless access, run the setup script with `--ces`, which grants the sync and run roles.
+</Step>
+<Step title="Grant the CES roles">
+Turn on the `ces.googleapis.com` API in the project, and give the service account the roles in the table below. The setup script does not grant the push and publish roles, so add them if you edit agents from Bluejay or use Self-Improve.
+</Step>
+<Step title="Sync the agents">
+Click **Sync Agents from Google**. Bluejay creates one agent for each deployment of each CES app, with the instructions, tools, and handoffs of the app version that the deployment serves. A later sync updates them, but never replaces a workflow that has edits you have not pushed yet.
+</Step>
+</Steps>
+
+| Use | Permissions | Predefined role |
+|---|---|---|
+| Sync and pull | `ces.apps.get`, `ces.apps.list`, `ces.agents.list`, `ces.tools.list`, `ces.appVersions.get`, <Code>ces.appVersions.list</Code>, `ces.deployments.get`, <Code>ces.deployments.list</Code> | <Code>roles/ces.viewer</Code> |
+| Run simulations | <Code>ces.sessions.runSession</Code>, <Code>ces.sessions.bidiRunSession</Code> | <Code>roles/ces.client</Code> |
+| Push | `ces.agents.update`, `ces.tools.update` | <Code>roles/ces.agentEditor</Code>, <Code>roles/ces.toolsEditor</Code> |
+| Publish and Self-Improve | `ces.agents.update`, <Code>ces.appVersions.create</Code>, <Code>ces.deployments.update</Code> | <Code>roles/ces.agentEditor</Code>, <Code>roles/ces.appEditor</Code>, <Code>roles/ces.deploymentEditor</Code> |
+| Quota | <Code>serviceusage.services.use</Code> | <Code>roles/serviceusage.serviceUsageConsumer</Code> |
+
+You need `roles/ces.toolsEditor` only to change a tool's description. If you prefer one role, `roles/ces.admin` covers every permission in the table.
+
+To connect one agent by hand instead of syncing, give it the **Google CES** connection type and set **CES Deployment Path** to <Code>apps/&#60;app&#62;/deployments/&#60;deployment&#62;</Code>. In CX Agent Studio, copy the **Deployment ID** from **Deployed channels**.
+
+## Edit an agent
+
+<Steps>
+  <Step title="Pull a version">
+    On the synced agent's **Workflow** tab, pull the version you want to start from: the one the deployment serves, the CES draft, or any saved version.
+  </Step>
+  <Step title="Edit and push">
+    Change an agent's name, instructions, tools, or handoffs, then push. A push always goes to the CES draft, so callers do not hear your edits yet.
+  </Step>
+  <Step title="Publish">
+    Publish saves the draft as a new CES version and points the deployment you choose at it. Callers hear your edits from then on.
+  </Step>
+</Steps>
+
+To add or remove an agent, or change the root agent, do it in CES and pull again. Bluejay rejects a push that does.
+
+## Test
+
+The connection type on the agent decides whether you test by voice or by chat. In both, Bluejay replies `{"status": "ok"}` to each client-side tool call, and you cannot set a different response.
+
+<Tabs>
+<Tab title="Voice">
+
+Choose the **Google CES** voice tile. Voice tests need no phone number and work for inbound agents only.
+
+</Tab>
+<Tab title="Chat">
+
+Set the agent mode to **Text** and choose the **Google CES** text tile.
+
+</Tab>
+</Tabs>
+
+## Self-Improve
+
+[Self-Improve](/improve/self-improve) works with the **Google CES** connection type. Each round rewrites the instructions of the agents in your CES app. Tools and handoffs stay as you configured them.
+
+After each round, Self-Improve saves the new instructions as a CES version and points the deployment at it. When the run finishes, the deployment serves the best instructions from the run. So start Self-Improve on the Bluejay agent of a deployment you use for testing.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| A push fails and names an agent and a field | Someone changed that field in CES after your pull. Pull again and redo those edits. |
+| Self-Improve fails as soon as it starts | The CES draft has unpublished changes. Publish or discard them in CES, then start again. |
+| Each voice run fails with <Code>USER&#95;PROJECT&#95;DENIED</Code> | Grant the service account <Code>serviceusage.services.use</Code>. |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Agents MCP tools](/mcp/testing-tools#agents)
+- [Dialogflow CX](/integrations/google-dfcx)
+- [Agents](/test/simulations/create#connect-your-agent)
+- [Self-Improve](/improve/self-improve)

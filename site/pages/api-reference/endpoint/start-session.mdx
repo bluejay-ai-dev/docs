@@ -1,0 +1,58 @@
+---
+title: "POST /v1/sessions/{session_id}/start"
+description: "Start Session"
+api: "POST https://api.getbluejay.ai/v1/sessions/{session_id}/start"
+playground: "none"
+---
+
+Start or resume a session and get the upload policy for its audio.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "session_id", "type": "string", "required": true, "description": ""}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "session_id", "type": "string", "required": true, "description": ""}, {"name": "recording_id", "type": "string", "required": true, "description": "This recording's folder, named by start time. A restarted session gets a new one, and the newest replaces older ones."}, {"name": "resumed", "type": "boolean", "required": true, "description": "True when this session already has a conversation."}, {"name": "expires_at", "type": "string (date-time)", "required": true, "description": ""}, {"name": "upload", "type": "object", "required": true, "description": "Upload policy for the call's audio chunks (audio/ogg).", "children": [{"name": "url", "type": "string", "required": true, "description": "POST the file here as multipart/form-data."}, {"name": "fields", "type": "object", "required": true, "description": "Form fields to send with the file. Set `key` to key_prefix plus the file name.", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "key_prefix", "type": "string", "required": true, "description": "Every file goes under this folder, e.g. key_prefix + 'chunk-0000.ogg'."}, {"name": "max_bytes", "type": "integer", "required": true, "description": ""}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/sessions/{session_id}/start \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "session_id": "<string>",
+  "recording_id": "<string>",
+  "resumed": true,
+  "expires_at": "2026-01-01T00:00:00Z",
+  "upload": {
+    "url": "<string>",
+    "fields": {
+      "key": "<string>"
+    },
+    "key_prefix": "<string>",
+    "max_bytes": 123
+  }
+}
+```
+
+{/* END GENERATED */}

@@ -1,0 +1,63 @@
+---
+title: "POST /v1/end-conversations"
+description: "End running simulation conversations."
+api: "POST https://api.getbluejay.ai/v1/end-conversations"
+playground: "none"
+---
+
+Ends running conversations. The response lists which IDs were marked to end and which failed.
+
+Each ID must be a test result in RUNNING status. If the call does not end, Bluejay updates its status after 30 seconds.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "test_result_ids", "type": "integer[]", "required": true, "description": "Ids of the running simulated conversations to end: result ids from GET /v1/retrieve-simulation-results/{simulation_run_id} (called test_result_id elsewhere)."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "success", "type": "boolean", "required": true, "description": "True when at least one conversation was marked for ending."}, {"name": "ended_count", "type": "integer", "required": true, "description": "How many conversations were marked for ending."}, {"name": "test_result_ids", "type": "integer[]", "required": true, "description": "Ids of the conversations marked for ending."}, {"name": "failed_ids", "type": "integer[] or null", "required": false, "description": "Ids that were not ended: not running, already finished, or not found."}, {"name": "message", "type": "string", "required": true, "description": "Summary of what was ended."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/end-conversations \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "test_result_ids": [
+      123
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "success": true,
+  "ended_count": 123,
+  "test_result_ids": [
+    123
+  ],
+  "failed_ids": [
+    123
+  ],
+  "message": "<string>"
+}
+```
+
+{/* END GENERATED */}

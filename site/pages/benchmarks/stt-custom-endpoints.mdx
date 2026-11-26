@@ -1,0 +1,172 @@
+---
+title: "Custom Endpoints"
+description: "Benchmark your own speech-to-text service."
+---
+
+Use a custom endpoint to run [STT benchmarks](/benchmarks/stt) against a transcription service that is not in the model library, such as your own model or a self-hosted server. Pick the option whose format your service already speaks.
+
+| Option | Mode | Where the transcript comes back | API `provider` |
+|---|---|---|---|
+| **OpenAI-compatible (batch)** | Batch | In the response | <Code>openai&#95;compatible</Code> |
+| **OpenAI Realtime-compatible (streaming)** | Streaming | Over the WebSocket | <Code>openai&#95;realtime&#95;compatible</Code> |
+| **Custom HTTP** | Batch | You post it to Bluejay | <Code>custom&#95;http</Code> |
+| **Custom CHIRP (WebSocket)** | Streaming | You post it to Bluejay | <Code>custom&#95;chirp</Code> |
+
+None of the four receive the dataset's vocabulary. Only the two OpenAI options receive a language, the code of the first speaker's language, such as `en`.
+
+## Add the model
+
+On the **Models** tab, click **Add model** and pick an option that starts with **Your own endpoint**. Bluejay stores the secret encrypted and never shows it again.
+
+To add it through the API, call [Create Model Config](/api-reference/endpoint/create-model-config) with the option's `provider`, your <Code>endpoint&#95;url</Code> and <Code>endpoint&#95;secret</Code>, and for the OpenAI options a `model`. Custom HTTP takes <Code>settings.auth&#95;header</Code> and Custom CHIRP takes <Code>settings.username</Code>.
+
+A run keeps the endpoint URL it started with. A new secret applies at once, even to a run in progress.
+
+## OpenAI-compatible (batch)
+
+Bluejay sends each item as one request in the format of OpenAI's `POST /audio/transcriptions`.
+
+- **URL**: Bluejay adds `/audio/transcriptions` to your endpoint URL. For `https://stt.example.com/v1`, it calls `https://stt.example.com/v1/audio/transcriptions`.
+- **Auth**: `Authorization: Bearer <key>`.
+- **Request**: `multipart/form-data` with `file` (a 16 kHz mono 16-bit WAV), `model`, and `language`.
+- **Response**: status `200` with a JSON body. Bluejay reads only the top-level `text` field and ignores `segments` and `words`.
+
+```json
+{ "text": "Hi, I'm calling to check on my order from last Tuesday." }
+```
+
+The request times out after **Timeout per item**, and never sooner than 60 seconds.
+
+| Your service returns | Result |
+|---|---|
+| `429`, or the error code <Code>rate&#95;limit&#95;exceeded</Code> | **Model busy**. Bluejay retries later and honors a `Retry-After` header given in seconds. |
+| `401` or `403` | **Authentication failed** |
+| `5xx`, the error code <Code>server&#95;error</Code>, a timeout, or no response | Bluejay retries later. |
+| Any other status | **Provider error**, with your body's `error.message` |
+
+## OpenAI Realtime-compatible (streaming)
+
+Bluejay streams each item in real time over a WebSocket in the format of OpenAI's Realtime transcription.
+
+- **URL**: Bluejay switches the scheme to `wss://` and adds `/realtime?intent=transcription`. For `https://stt.example.com/v1`, it connects to <Code>wss://stt.example.com/v1/realtime?intent=transcription</Code>. Do not put a query string in your endpoint URL.
+- **Auth**: `Authorization: Bearer <key>` on the upgrade request.
+
+### Session
+
+1. Your server sends `session.created`.
+2. Bluejay sends `session.update` with the model and language, and with `turn_detection` set to `null`.
+3. Your server answers `session.updated`.
+
+```json
+{
+  "type": "session.update",
+  "session": {
+    "type": "transcription",
+    "audio": {
+      "input": {
+        "format": { "type": "audio/pcm", "rate": 24000 },
+        "transcription": { "model": "your-model", "language": "en" },
+        "turn_detection": null
+      }
+    }
+  }
+}
+```
+
+### Audio and transcripts
+
+Bluejay sends 16-bit mono PCM at 24 kHz, in 20 ms frames as `input_audio_buffer.append` events with base64 `audio`. It detects speech itself and sends `input_audio_buffer.commit` after each phrase and at the end of the audio.
+
+Your server returns one final per commit. Bluejay reads three event types.
+
+| Event | Fields Bluejay reads | Meaning |
+|---|---|---|
+| <Code>conversation.item.input&#95;audio&#95;transcription.delta</Code> | <Code>item&#95;id</Code>, `delta` | Partial text, added up per item |
+| <Code>conversation.item.input&#95;audio&#95;transcription.completed</Code> | <Code>item&#95;id</Code>, `transcript` | Final text. A later final for the same item replaces it. |
+| <Code>conversation.item.input&#95;audio&#95;transcription.failed</Code> or `error` | `error.code`, `error.message` | Fails the whole item |
+
+After the last commit, Bluejay waits up to 5 seconds for the remaining finals, then closes the socket. Latency uses Bluejay's own clock, so the timestamps you send are not used.
+
+## Custom HTTP (batch)
+
+Bluejay posts each item's audio to your URL. Your service answers right away and posts the transcript back when it is ready, as described in [Post the transcript](#post-the-transcript).
+
+- **URL**: called exactly as you enter it.
+- **Auth**: the header named in **Auth header**, `Authorization` if you leave it empty, with the secret exactly as you saved it. For a bearer token, save the secret as `Bearer <token>`. With no secret, Bluejay sends no auth header.
+- **Request**: `multipart/form-data` with `file` (a 16 kHz mono 16-bit WAV) and <Code>run&#95;item&#95;id</Code>. Keep the <Code>run&#95;item&#95;id</Code> to post the transcript.
+- **Response**: any `2xx`. Bluejay ignores the body.
+
+| Your service returns | Result |
+|---|---|
+| `401` or `403` | **Authentication failed** |
+| `429` | **Model busy**. Bluejay retries later and honors a `Retry-After` header given in seconds. |
+| Any other status, no response, or a timeout | **Couldn't connect**, with no retry |
+
+**Time to transcript** starts when your service responds, so time spent before the response does not count. Respond within **Timeout per item**.
+
+## Custom CHIRP (WebSocket)
+
+Bluejay streams each item to your WebSocket in real time, using the same frame format as [WebSocket agents](/integrations/websockets) with audio in one direction only. Your service posts the transcript back, as described in [Post the transcript](#post-the-transcript). Bluejay does not read a transcript from the socket.
+
+- **URL**: a `wss://` or `ws://` URL, called as you enter it.
+- **Auth**: `Authorization: Basic` with your **Username** and **Password**, sent only when both are set.
+- **Headers**: <Code>X-Run-Item-Id</Code> carries the run item ID you post the transcript for.
+
+### Frames Bluejay sends
+
+- **Audio**: binary frames of 16 kHz mono 16-bit little-endian PCM, 20 ms each (640 bytes), sent in real time and followed by 1.5 seconds of silence.
+- **Events**: JSON text frames shaped `{"type", "id", "ts_ms", "data"}`. `speech.started` and `speech.completed` mark where each script line starts and ends, with `data.utterance_id`. Uploaded recordings have no line timings, so they send none.
+- **End**: a `mark` frame with `data.name` set to `stream.end`. Bluejay then closes the socket without waiting for a reply.
+
+Bluejay reads only `session.error` frames from your service, and only logs them.
+
+| What happens | Result |
+|---|---|
+| The upgrade returns `401` or `403` | **Authentication failed** |
+| The upgrade returns `429` | **Model busy**. Bluejay retries later. |
+| Bluejay cannot connect after 3 tries, 2 seconds apart | **Couldn't connect** |
+| Your service closes the socket before `stream.end` | **Connection dropped** |
+
+## Post the transcript
+
+Custom HTTP and Custom CHIRP send the transcript back with one request to [Post Run Item Transcript](/api-reference/endpoint/post-run-item-transcript). Authenticate with a [Bluejay API key](/api-reference/introduction) that can write to the run's workspace.
+
+```bash
+curl -X POST "https://api.getbluejay.ai/v1/datasets/run-items/$RUN_ITEM_ID/transcript" \
+  -H "X-API-Key: $BLUEJAY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "transcript": [
+      { "speaker": "A", "utterance": "Hi, I am calling about my order.", "start_offset_ms": 0, "end_offset_ms": 2400 },
+      { "speaker": "B", "utterance": "Sure, what is the order number?", "start_offset_ms": 2600, "end_offset_ms": 4100 }
+    ]
+  }'
+```
+
+- Every entry needs all four fields. `speaker` is your own label, and the offsets are whole milliseconds.
+- Put the entries in spoken order. Bluejay scores the utterances in array order, and speakers and offsets do not change the score.
+- Post the whole transcript in one request. Each post replaces the last one, and Bluejay scores the newest transcript once it has not changed for 5 seconds. A partial transcript posted early is scored as it is.
+- With no transcript by **Timeout per item** after the audio ends, the item fails with **No transcript**.
+
+| Status | Meaning |
+|---|---|
+| `200` | Accepted. The body is <Code>&#123;"run&#95;item&#95;id": "...", "status": "running"&#125;</Code>. |
+| `404` | No such run item in your organization. |
+| `409` | The run does not use Custom HTTP or Custom CHIRP, or the item is no longer running. |
+| `422` | The body does not match the schema. |
+
+## Limits
+
+| Limit | Value |
+|---|---|
+| Transcript entries per post | 5,000 |
+| Characters per utterance | 20,000 |
+| Transcript posts | 600 per minute |
+| Auth header name | Letters, numbers and `-`, up to 100 characters |
+| Tries for a busy model | 5 |
+
+## Related
+
+- [STT](/benchmarks/stt)
+- [WebSockets](/integrations/websockets)
+- [API keys](/api-reference/introduction)

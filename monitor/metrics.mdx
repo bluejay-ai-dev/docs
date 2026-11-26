@@ -75,19 +75,21 @@ The metrics library holds metrics tuned for your best use case.
     Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
   </Step>
   <Step title="Send the metric">
-    Send it to [`POST /v1/create-metric`](/api-reference/endpoint/create-custom-metric). Use `agent_ids` to choose the agents it grades.
+    Send it to [`POST /v2/create-metrics`](/api-reference/endpoint/create-metrics-v2). Use `agent_ids` to choose the agents it grades.
 
     ```bash
-    curl https://api.getbluejay.ai/v1/create-metric \
+    curl https://api.getbluejay.ai/v2/create-metrics \
       -H "X-API-Key: $BLUEJAY_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "name": "DOB Verified Before PHI",
-        "prompt": "The agent verifies the caller'"'"'s date of birth before it discusses patient information.",
-        "metric_type": "llm_judge",
-        "response_type": "pass_fail",
-        "scope": "observability",
-        "agent_ids": [123]
+        "metrics": {
+          "name": "DOB Verified Before PHI",
+          "prompt": "The agent verifies the caller'"'"'s date of birth before it discusses patient information.",
+          "metric_type": "llm_judge",
+          "response_type": "pass_fail",
+          "scope": "observability",
+          "agent_ids": [123]
+        }
       }'
     ```
   </Step>
@@ -142,7 +144,36 @@ Predicted WER estimates how many words your agent's transcript got wrong. When y
 
 To turn it on, add **Predicted WER** from the metrics library, then turn on **Enable Predicted Word Error Rate Evaluations** under **Settings** > **Observability**. Each conversation is transcribed one extra time, which counts toward your speech-to-text usage. Conversations sent with only a transcript, or only a recording, get no value.
 
-Read it in the `metrics` array of [GET /v1/retrieve-call-log/{call_id}](/api-reference/endpoint/retrieve-call-log) and of the `observability_call_evaluated` [webhook](/api-reference/webhooks), as the entry with `metric_name` set to `predicted_wer`.
+Read it in the `metrics` array of [GET /v1/retrieve-call-log/{call_id}](/api-reference/endpoint/retrieve-call-log) and of the `observability_call_evaluated` [webhook](/api-reference/webhooks), as the entry with `metric_name` set to `predicted_wer`. The same entry is in `metric_results` on `GET /v1/observability/conversations/{id}`.
+
+That entry's `metadata.wer_details` lists the words behind the score, the same ones **Compare Transcript** highlights. Each item in `segments` is one turn of your transcript that has errors:
+
+```json
+{
+  "metric_name": "predicted_wer",
+  "value": "0.12",
+  "metadata": {
+    "wer_details": {
+      "segments": [
+        {
+          "segment_index": 3,
+          "utterance": "Your appointment is on the fifth.",
+          "errors": [
+            { "start": 27, "end": 32, "reference": "sixth", "type": "substitute" }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- `segment_index` is the turn's position in the transcript you sent, and `utterance` is its text.
+- `start` and `end` are character offsets into `utterance` (UTF-16, as JavaScript counts them).
+- `reference` is what Bluejay heard in the recording there.
+- `type` is `substitute` (different words), `delete` (words your transcript is missing), or `insert` (words your transcript has that the recording doesn't). A `delete` has `start` equal to `end`, marking where the missing words go.
+
+Conversations scored before November 17, 2026 have the score but no `wer_details` until they are re-evaluated.
 
 ## Add metric conditions
 

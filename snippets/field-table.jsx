@@ -6,6 +6,30 @@ export const FieldTable = ({ rows = [] }) => {
       .split(at)
       .flatMap((part, i) => (i > 0 ? [<wbr key={i} />, part] : [part]));
 
+  const renderDescription = (text) => {
+    const parts = [];
+    const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let last = 0;
+    let match;
+    let i = 0;
+    const source = String(text);
+    while ((match = re.exec(source))) {
+      if (match.index > last) {
+        parts.push(<span key={i++}>{breakable(source.slice(last, match.index), /(?<=[_/])/)}</span>);
+      }
+      parts.push(
+        <a key={i++} href={match[2]}>
+          {match[1]}
+        </a>
+      );
+      last = match.index + match[0].length;
+    }
+    if (last < source.length) {
+      parts.push(<span key={i++}>{breakable(source.slice(last), /(?<=[_/])/)}</span>);
+    }
+    return parts;
+  };
+
   const renderRows = (items, depth, prefix) =>
     items.flatMap((row, i) => {
       const key = `${prefix}${i}`;
@@ -43,7 +67,7 @@ export const FieldTable = ({ rows = [] }) => {
           </td>
           <td>{row.required ? "Required" : "Optional"}</td>
           <td>
-            {row.description ? <div>{breakable(row.description, /(?<=[_/])/)}</div> : null}
+            {row.description ? <div>{renderDescription(row.description)}</div> : null}
             {row.default !== undefined ? (
               <div className="bj-field-meta">
                 Default: <code>{breakable(row.default)}</code>

@@ -1,0 +1,61 @@
+---
+title: "POST /v1/agents/{agent_id}/versions/promote"
+description: "Promote an agent version to production."
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote"
+playground: "none"
+---
+
+Moves the `production` label to the latest version, or to the version in `version`. `prompt_id` is a deprecated alias for the version UUID. It is ignored when `version` is set.
+
+`POST /v1/agents/{agent_id}/prompts/promote` is the deprecated path of this endpoint.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "version", "type": "integer or null", "required": false, "description": "If set, attach the production label to this version number; otherwise attach to the latest version."}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Alias for version: the version's uuid. Ignored when version is set."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "The version's uuid. Other endpoints take it as agent_version_id."}, {"name": "prompt_text", "type": "string", "required": true, "description": "The full prompt text stored in this version."}, {"name": "commit_message", "type": "string or null", "required": false, "description": "The note saved with this version."}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Labels on this version, e.g. latest and production."}, {"name": "metadata", "type": "object or null", "required": false, "description": "Free-form JSON stored with this version."}, {"name": "version", "type": "integer", "required": true, "description": "The version number: the version of GET /v1/agents/{agent_id}/versions/{version} and DELETE /v1/agents/{agent_id}/versions/{version}."}, {"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns this version."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions/promote \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "b3addeb0-34bb-57fa-8c77-28d483328041",
+  "prompt_text": "<string>",
+  "commit_message": "<string>",
+  "labels": [
+    "<string>"
+  ],
+  "metadata": {},
+  "version": 123,
+  "agent_id": 123
+}
+```
+
+{/* END GENERATED */}

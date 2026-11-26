@@ -1,0 +1,71 @@
+---
+title: "SDK"
+description: "Install the SDK, configure your API key, and make your first request."
+---
+
+Use the Bluejay SDK to observe production conversations, run simulations, and call the Bluejay API. The SDK supports Python and Node.js. The Node.js preview package works with JavaScript and TypeScript. The TypeScript tabs use examples you can also copy into JavaScript.
+
+<CardGroup cols={2}>
+  <Card title="Observe your agent" icon="audio-waveform" href="/sdk/observability">
+    Capture transcripts, model calls, tools, and voice recordings.
+  </Card>
+  <Card title="Run simulations" icon="flask" href="/sdk/simulations">
+    Queue a saved simulation, read its results, and attach traces from your agent.
+  </Card>
+</CardGroup>
+
+## Install and authenticate
+
+The Python examples require `bluejay-sdk` 0.4.0 or later and Python 3.10 or later. The Pipecat extra requires Python 3.11 or later. The Node.js preview requires Node.js 22 or later.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```bash title="Python"
+pip install "bluejay-sdk>=0.4.0"
+```
+
+```bash title="TypeScript"
+# Install a preview tarball on Node.js 22 or later.
+npm install /path/to/getbluejay-sdk-0.4.0.tgz
+```
+
+</CodeGroup>
+
+Create a key in [API Keys](https://app.getbluejay.ai/settings/api-keys) and set it in the environment where the SDK runs.
+
+```bash
+export BLUEJAY_API_KEY="your-api-key"
+```
+
+## Make your first request
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+from bluejay import BluejayClient
+
+client = BluejayClient()
+for agent in client.agents.list():
+    print(agent.id)
+```
+
+```typescript title="TypeScript"
+import { BluejayClient } from "@getbluejay/sdk";
+
+const client = new BluejayClient();
+for (const agent of await client.agents.list()) {
+  console.log(agent.id);
+}
+```
+
+</CodeGroup>
+
+The default client calls the API. To capture conversations and traces, enable tracing once at startup and follow the [observability guide](/sdk/observability).
+
+Node.js API methods return promises. In Python asyncio applications, use `AsyncBluejayClient` and await HTTP methods such as `client.agents.list()`. Writing `client.turn()` is synchronous in both SDKs.
+
+## API reference
+
+The SDK groups API methods by resource. For example, use `client.agents.list()` for agents, `client.simulations.run(...)` to queue a test, and `client.simulation_results.list(...)` to read a run. The [API reference](/api-reference/endpoint/get-all-agents) describes request fields and response models.
+
+<Note>The Node.js SDK is available as a preview tarball. Install that build to try the TypeScript examples before npm release.</Note>

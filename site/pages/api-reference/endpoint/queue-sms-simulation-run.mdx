@@ -1,0 +1,74 @@
+---
+title: "POST /v1/queue-sms-simulation-run"
+description: "Run an SMS simulation."
+api: "POST https://api.getbluejay.ai/v1/queue-sms-simulation-run"
+playground: "none"
+deprecated: true
+---
+
+<Warning>This endpoint is deprecated. Use [`POST /v2/queue-simulation-run`](/api-reference/endpoint/queue-simulation-run-v2) instead.</Warning>
+
+Queues an SMS run of a simulation.
+
+- If `terminate_overlapping_simulations` is `true`, Bluejay ends running conversations that use the same pair of phone numbers.
+- `runs_per_digital_human` overrides the simulation setting for this run. The default is 1.
+- `prompt_id` is deprecated. Use `agent_version_id`. If you send both and they differ, the response is 400.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "simulation_id", "type": "string", "required": true, "description": "The simulation to run: its id from GET /v1/get-all-simulations or POST /v1/create-simulation."}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Deprecated. Use agent_version_id. Same uuid, still works."}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": "Agent version to test in this run instead of the simulation's default: a version uuid from GET /v1/agents/{agent_id}/versions for the simulation's agent."}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": "Knowledge base uuid to use for this run instead of the simulation's default."}, {"name": "digital_human_ids", "type": "string[] or null", "required": false, "description": "Digital humans to run, by id from GET /v1/digital-humans (with this simulation_id); each must belong to the simulation. Omitted, every digital human in the simulation runs."}, {"name": "terminate_overlapping_simulations", "type": "boolean or null", "required": false, "description": "If true, all overlapping conversations with same pair of phone numbers will be ended", "default": false}, {"name": "runs_per_digital_human", "type": "integer or null", "required": false, "description": "Conversations to start per digital human in this run. Omitted, the simulation's runs_per_digital_human, else 1. Email runs always hold one conversation per digital human."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulation_run_id", "type": "string", "required": true, "description": "Id of the new run; poll GET /v1/retrieve-simulation-results/{simulation_run_id} with it until the run's status is COMPLETED."}, {"name": "simulation_result_ids", "type": "string[]", "required": true, "description": "One id per queued conversation, for GET /v1/retrieve-simulation-result/{test_result_id} or POST /v1/end-conversations."}, {"name": "agent_id", "type": "string", "required": true, "description": "The agent under test."}, {"name": "status", "type": "string", "required": false, "description": "Status of the request, \"success\" when queued.", "default": "success"}, {"name": "terminated_conversations", "type": "object[] or null", "required": false, "description": "SMS runs with terminate_overlapping_simulations: the open conversations between the same pair of phone numbers that were ended. Always null for email runs."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/queue-sms-simulation-run \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_id": "<string>",
+    "prompt_id": "b66cf0b1-f449-537b-be1e-e166771c9701",
+    "agent_version_id": "80df19fa-47cd-51eb-952a-f858a6cc7642",
+    "knowledge_base_id": "e356e6c6-e0d0-5076-8850-d7c1876f470f",
+    "digital_human_ids": [
+      "<string>"
+    ],
+    "terminate_overlapping_simulations": false,
+    "runs_per_digital_human": 123
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "simulation_run_id": "<string>",
+  "simulation_result_ids": [
+    "<string>"
+  ],
+  "agent_id": "<string>",
+  "status": "success",
+  "terminated_conversations": [
+    {}
+  ]
+}
+```
+
+{/* END GENERATED */}

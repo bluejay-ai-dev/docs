@@ -1,0 +1,80 @@
+---
+title: "Traces"
+description: "See why your agent failed in a simulation."
+---
+
+Bluejay accepts OpenTelemetry traces and shows each trace next to the simulated conversation that you link it to.
+
+If you are linking traces to production calls, see [Traces](/monitor/traces).
+
+<Video src="https://www.youtube.com/embed/wNhFpwT3dTQ" title="wNhFpwT3dTQ" kind="iframe" />
+
+## Export traces to Bluejay
+
+Bluejay accepts traces from any OpenTelemetry-compatible library, for example OpenInference, OpenLLMetry, or Langfuse. Using a voice framework? Its [integration page](/integrations/phone-number) can show a framework-specific setup.
+
+<Steps>
+  <Step title="Get an API key">
+    Create one as described in [Get an API key](/api-reference/introduction#make-your-first-request).
+  </Step>
+  <Step title="Install the packages">
+    ```bash
+    pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http opentelemetry-instrumentation-openai
+    ```
+  </Step>
+  <Step title="Point the exporter at Bluejay">
+    Send spans over OTLP HTTP to `https://otlp.getbluejay.ai/v1/traces`, with your API key in the `X-API-KEY` header:
+
+    ```python
+    from opentelemetry.sdk import trace as trace_sdk
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+
+    tracer_provider = trace_sdk.TracerProvider(
+        resource=Resource.create({SERVICE_NAME: "<your_service_name>"})
+    )
+    tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(
+        "https://otlp.getbluejay.ai/v1/traces",
+        headers={"X-API-KEY": "<BLUEJAY_API_KEY>"},
+    )))
+    ```
+  </Step>
+  <Step title="Instrument your LLM client">
+    For example, the OpenAI client:
+
+    ```python
+    from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+    OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+    ```
+  </Step>
+</Steps>
+
+## Link a trace
+
+To show a trace next to its simulated conversation, send Bluejay the trace IDs for that call.
+
+1. Read the `X-Simulation-Result-Id` that Bluejay sends with each simulated call. It arrives as a SIP header, a WebSocket upgrade header, or in a form that your [integration page](/integrations/phone-number) describes.
+2. Collect the trace IDs that your agent creates during the call.
+3. After the call ends, call `tracer_provider.force_flush()`. If you skip this, the trace can be missing.
+4. Send `simulation_result_id` and `trace_ids` to [`POST /v1/update-simulation-result`](/api-reference/endpoint/update-simulation-result).
+
+```python
+import httpx
+
+async def link_traces(simulation_result_id, trace_ids, api_key):
+    async with httpx.AsyncClient(timeout=10) as client:
+        await client.post(
+            "https://api.getbluejay.ai/v1/update-simulation-result",
+            json={"simulation_result_id": simulation_result_id, "trace_ids": trace_ids},
+            headers={"X-API-Key": api_key},
+        )
+```
+
+## Related
+
+- [Traces API](/api-reference/endpoint/list-traces)
+- [Traces MCP tools](/mcp/monitoring-tools#monitor)
+- [Create a Simulation](/test/simulations/create)
+- [Tool Calls, Events, and Metadata](/test/metrics#tool-calls-events-and-metadata)
+- [Trace metric](/test/metrics/deterministic#trace)

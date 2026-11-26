@@ -1,0 +1,62 @@
+---
+title: "GET /v1/agents/{agent_id}/workflow/summary"
+description: "Get the workflow of an agent."
+api: "GET https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/summary"
+playground: "none"
+---
+
+Returns the [workflow](/test/simulations/reference#workflow) of one agent as `nodes` and `edges`. Use a node ID in a [conditional metric](/test/metrics#add-metric-conditions). If the agent has no workflow provider, the request returns `400`.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": "Bluejay id of the agent (from GET /v1/all-agents) whose stored workflow to use. It needs a workflow already pulled with POST /v1/agents/{agent_id}/workflow/sync."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "nodes", "type": "object[]", "required": false, "description": "The workflow's nodes; pass a node_id to PATCH /v1/agents/{agent_id}/workflow/nodes/{node_id}, DELETE /v1/agents/{agent_id}/workflow/nodes/{node_id} or POST /v1/agents/{agent_id}/workflow/edges.", "children": [{"name": "node_id", "type": "string", "required": true, "description": "Node id."}, {"name": "name", "type": "string", "required": true, "description": "Node display name."}, {"name": "prompt_excerpt", "type": "string", "required": false, "description": "Start of the node's prompt.", "default": ""}, {"name": "type", "type": "string or null", "required": false, "description": "Provider-specific node kind, e.g. start or override_agent."}]}, {"name": "edges", "type": "object[]", "required": false, "description": "The transitions between nodes; pass an edge_id to DELETE /v1/agents/{agent_id}/workflow/edges/{edge_id}.", "children": [{"name": "edge_id", "type": "string", "required": true, "description": "Edge id."}, {"name": "source_node_id", "type": "string", "required": true, "description": "Node the transition leaves from."}, {"name": "target_node_id", "type": "string", "required": true, "description": "Node the transition goes to."}, {"name": "condition", "type": "string", "required": false, "description": "When the transition is taken.", "default": ""}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/summary \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "nodes": [
+    {
+      "node_id": "<string>",
+      "name": "<string>",
+      "prompt_excerpt": "",
+      "type": "<string>"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "<string>",
+      "source_node_id": "<string>",
+      "target_node_id": "<string>",
+      "condition": ""
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

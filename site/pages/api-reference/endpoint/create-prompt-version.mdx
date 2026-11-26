@@ -1,0 +1,71 @@
+---
+title: "POST /v1/agents/{agent_id}/versions"
+description: "Create an agent version."
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
+playground: "none"
+---
+
+Creates the next agent version of an agent. `prompt_text` is optional. If you omit it, Bluejay copies the current prompt.
+
+`POST /v1/agents/{agent_id}/prompts/versions` is the deprecated path of this endpoint.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "prompt_text", "type": "string or null", "required": false, "description": "Prompt content. Omit to copy the current latest version (MAX(version) / latest label) and increment. An empty string stores a blank prompt."}, {"name": "commit_message", "type": "string or null", "required": false, "description": "Short note on what changed, shown in the version history; saved as 'new version' when omitted."}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Your own labels to put on the new version, e.g. staging. latest is added automatically, and production too on the agent's first version. A label already on another version of this agent fails the call."}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When true, a production label requested in labels moves here from another version. A custom label already on another version is always refused (409); remove it there first.", "default": false}, {"name": "metadata", "type": "object or null", "required": false, "description": "Free-form JSON object stored with the version, e.g. the source commit or author; saved as {} when omitted."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "The version's uuid. Other endpoints take it as agent_version_id."}, {"name": "prompt_text", "type": "string", "required": true, "description": "The full prompt text stored in this version."}, {"name": "commit_message", "type": "string or null", "required": false, "description": "The note saved with this version."}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Labels on this version, e.g. latest and production."}, {"name": "metadata", "type": "object or null", "required": false, "description": "Free-form JSON stored with this version."}, {"name": "version", "type": "integer", "required": true, "description": "The version number: the version of GET /v1/agents/{agent_id}/versions/{version} and DELETE /v1/agents/{agent_id}/versions/{version}."}, {"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns this version."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "prompt_text": "<string>",
+    "commit_message": "<string>",
+    "labels": [
+      "<string>"
+    ],
+    "override_label": false,
+    "metadata": {}
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "b3addeb0-34bb-57fa-8c77-28d483328041",
+  "prompt_text": "<string>",
+  "commit_message": "<string>",
+  "labels": [
+    "<string>"
+  ],
+  "metadata": {},
+  "version": 123,
+  "agent_id": 123
+}
+```
+
+{/* END GENERATED */}

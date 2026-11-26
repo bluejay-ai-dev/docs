@@ -1,0 +1,68 @@
+---
+title: "Run Simulations"
+description: "Queue a simulation, read the results, and attach agent traces."
+---
+
+Run an existing simulation from Python or Node.js and use its run ID to read the results. The SDK can queue tests from a script or CI. It can also attach traces from the agent under test to the simulation result.
+
+## Queue a run
+
+[Connect your agent](/integrations/overview) and [create a simulation](/test/simulations/create) in Bluejay. Copy the simulation ID from the simulation page.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+from bluejay import BluejayClient
+
+client = BluejayClient()
+run = client.simulations.run(simulation_id="YOUR_SIMULATION_ID")
+print(run.simulation_run_id)
+print(run.run_url)
+```
+
+```typescript title="TypeScript"
+import { BluejayClient } from "@getbluejay/sdk";
+
+const client = new BluejayClient();
+const run = await client.simulations.run({ simulation_id: "YOUR_SIMULATION_ID" });
+console.log(run.simulation_run_id, run.run_url);
+```
+
+</CodeGroup>
+
+The API returns when the run is queued. The simulation's configured Digital Humans are used unless you pass `digital_human_ids`. See the [queue API](/api-reference/endpoint/queue-simulation-run-v2) for run overrides and SMS requirements.
+
+## Read results
+
+Fetch the results using the run ID. The run can still be `RUNNING`. For automation, poll until `COMPLETED` or until your job times out.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+results = client.simulation_results.list(run.simulation_run_id, limit=20)
+print(results.simulation_run.status)
+print(results.simulation_run.success_rate)
+```
+
+```typescript title="TypeScript"
+const results = await client.simulationResults.list({
+  simulation_run_id: run.simulation_run_id,
+  limit: 20,
+});
+console.log(results.simulation_run.status);
+console.log(results.simulation_run.success_rate);
+```
+
+</CodeGroup>
+
+The response includes the run summary and a page of conversations. Increment `offset` by `limit` to read more. For pull request or pipeline reporting, see [CI/CD](/native-integrations/overview). [Results API](/api-reference/endpoint/retrieve-simulation-results-v2)
+
+## Attach traces from the agent under test
+
+Enable [observability](/sdk/observability) in the agent process. Use the **simulation result ID for that specific conversation**, not the run ID printed above.
+
+- **LiveKit** reads the result ID from the `X-Simulation-Result-Id` participant attribute. Node.js also checks job metadata. To supply the ID yourself, pass `simulation_result_id` in Python or `simulationResultId` in Node.js. See [Connect LiveKit](/integrations/livekit).
+- **Pipecat** reads it from the start request body in your application. Pass that value as `simulation_result_id` in Python when you create the [tap](/sdk/pipecat).
+- **Custom code** passes the simulation result ID when creating the session and calls `conversation.end()` when the test conversation finishes.
+
+Open the completed conversation in the simulation run and inspect its [trace](/test/traces).

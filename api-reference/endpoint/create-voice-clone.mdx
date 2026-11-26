@@ -1,0 +1,62 @@
+---
+title: "POST /v1/voice-clones"
+description: "Clone a voice."
+sidebarTitle: "/\u200bv1/\u200bvoice-clones"
+api: "POST https://api.getbluejay.ai/v1/voice-clones"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Clones a voice from your audio clips, so a Digital Human can speak in it. Send up to 25 clips in `files`.
+
+- The clone speaks any language. `language` only sets the language of its preview clip.
+- `gender` sets grammatical gender in languages that have it.
+- The clone belongs to your workspace. Only Digital Humans and personas in that workspace can use it.
+
+The response has `voice_id`, `catalog_voice_id`, `name`, `gender` and `created_at_unix`. Pass `catalog_voice_id` as `voice_id` on a Digital Human or persona, or pass `voice_id` as `custom_voice_id`. The other voice clone endpoints take `voice_id` in the path.
+
+Rate limit: 100 requests per minute.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+Send the body as `multipart/form-data`.
+
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": ""}, {"name": "files", "type": "string[]", "required": true, "description": ""}, {"name": "language", "type": "string", "required": false, "description": "Language the preview clip is rendered in", "default": "en"}, {"name": "gender", "type": "string", "required": false, "description": "Speaker's gender; sets grammatical gender in gendered languages", "default": "male", "values": ["female", "male"]}]} />
+
+## Response
+
+The response is `object`.
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/voice-clones \
+  --header 'X-API-Key: <api-key>' \
+  --form name=<name> \
+  --form files=<files> \
+  --form language=<language> \
+  --form gender=<gender>
+```
+
+## Example response
+
+```json 200
+{}
+```
+
+{/* END GENERATED */}

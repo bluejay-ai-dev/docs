@@ -1,0 +1,191 @@
+---
+title: "STT"
+description: "Compare speech-to-text models on conversations you choose."
+---
+
+Use STT benchmarks to find the speech-to-text model that transcribes your kind of conversations best. You run a model against a dataset of scripted conversations, and Bluejay scores each transcript against the script.
+
+<Note>
+STT benchmarks are turned on per organization. To turn them on, [contact the Bluejay team](https://cal.com/rohanv/15min). They then appear under **Benchmarks** in the sidebar.
+</Note>
+
+## Run your first benchmark
+
+<Tip>
+To try it in a minute, click **Run** on one of the [sample datasets](#sample-datasets). They are real recordings with their transcripts, so there is nothing to write or generate.
+</Tip>
+
+<Steps>
+  <Step title="Add a model">
+    On the **STT** page, click **Add a model**. Pick a model from the library, or point at [your own endpoint](/benchmarks/stt-custom-endpoints).
+
+    If your workspace has no key for that provider yet, Bluejay asks for it here. The key is saved to the workspace's **Speech-to-text** integrations, so every model from that provider can use it.
+  </Step>
+  <Step title="Create a dataset">
+    Describe the conversations you care about and choose how many. Bluejay writes the scripts and generates their audio.
+
+    You can start the run while it works. Each item joins the run as soon as its audio is ready.
+  </Step>
+  <Step title="Run it">
+    Review the model and the dataset, then click **Run**. Every item is sent to the model, and its transcript is scored as soon as it comes back.
+  </Step>
+</Steps>
+
+To start another run later, click **New Run**. It starts from the model every time, so you can mix any model with any dataset.
+
+## Datasets
+
+A dataset is a set of conversations. Each item has a script, the speakers who read it, and the audio Bluejay generates from them. The script is the reference that transcripts are scored against.
+
+### Sample datasets
+
+The **STT** page lists sample datasets of real, public recordings. Click a sample to add a copy to your workspace, or click **Run** to add it and pick a model straight away.
+
+| Sample | What it has | License |
+|---|---|---|
+| Voice agent requests | 25 people asking a voice assistant for help, one request each. From Pipecat's STT benchmark data. | CC BY 4.0 |
+| Doctor and patient consultations | Two mock GP consultations, line by line, with symptoms, medications and history. From Babylon Health's PriMock57. | CC BY 4.0 |
+| Parliament speeches in five languages | European Parliament speeches in English, German, French, Spanish and Italian, five of each. From Meta's VoxPopuli. | CC0 |
+
+### Generate data
+
+**Generate data** writes the scripts and generates their audio in one go. A clear description gets better scripts, for example "Calls to a bike shop about repairs and bookings. Informal, with lots of dates and prices."
+
+- With no speakers set under **Additional settings**, Bluejay picks who talks and creates a persona for each one.
+- Pin a speaker to one of your personas to hear that voice in every conversation.
+- An environment applies to the whole item. Its background noise and recording device replace the speakers' own noise and line quality.
+
+### Environments in the API
+
+An environment gives an item one background noise and one recording device. In the API it is an `environment` object: on an item's `content`, or, when you [generate data](/api-reference/endpoint/generate-items), inside each entry of `environments`.
+
+```json
+"environments": [
+  { "weight": 70, "environment": { "background": "hospital", "level": "moderate", "device": "close_mic" } },
+  { "weight": 30, "environment": { "background": "office", "level": "quiet", "device": "phone_line" } }
+]
+```
+
+| Field | Values |
+|---|---|
+| `background` | A noise preset, such as `hospital`, `office`, `cafe` or `street`. [Generate data](/api-reference/endpoint/generate-items) lists every preset. Leave it out for no background noise. |
+| `level` | `quiet`, `moderate` or `loud`. Required with `background`. |
+| `device` | `close_mic`, `laptop`, `phone_line` or `far_field`. |
+
+`weight` is each environment's relative share of the generated items.
+
+### Write a script
+
+Click **Write a script** to type a conversation yourself. Saving the item also generates its audio, so there is no separate step.
+
+- Real speakers barely pause, so keep most **Pause before** values between 0 and 250 ms.
+- Text in square brackets, such as `[laughing]` or `[sighing]`, is a delivery cue. It changes how the line sounds and is never part of the reference transcript.
+
+Editing a script generates its audio again. If audio fails to generate, click **Retry audio**.
+
+### Use your own recordings
+
+To score real recordings instead of generated audio, add the item through the API with <Code>audio&#95;source</Code> set to `uploaded`, then upload the file with [Upload item audio](/api-reference/endpoint/upload-item-audio). The item's script becomes the reference transcript, so write exactly what is said. Bluejay plays the file as it is, without personas or an environment.
+
+If the recording is not in English, set the item's <Code>language</Code>, for example `es`, and Bluejay sends it to the model. Generated audio takes its language from its personas.
+
+### Vocabulary
+
+A dataset's vocabulary lists the terms you need transcribed exactly, such as drug names or dosages. Set it through the API. Each term can have `alternates`, other spellings that also count as correct, and a `category` to group results. Generated scripts use the vocabulary where it fits.
+
+```json
+"vocabulary": [
+  { "term": "1000 mg", "alternates": ["1 g"], "category": "dosage" },
+  { "term": "pleural effusion", "category": "finding" }
+]
+```
+
+## Models
+
+A model is a speech-to-text model plus how to call it. Each model runs in one mode.
+
+| Mode | How Bluejay sends the audio |
+|---|---|
+| Batch | The whole recording in one request, after the conversation ends. |
+| Streaming | In real time, as it would arrive on a live call. |
+
+Library models use your own provider key, never a Bluejay key. To connect a model the library does not have, see [Custom Endpoints](/benchmarks/stt-custom-endpoints).
+
+## Run settings
+
+| Setting | Default | What it does |
+|---|---|---|
+| Concurrency | 5 | How many items are sent to the model at the same time, from 1 to 25. Above the provider's limit, some items are turned away as busy and retried later. |
+| Timeout per item | 300 s | How long to wait for an item's transcript once its audio has finished, from 30 to 1,800 seconds. Batch requests are cut off after the same time. |
+
+Bluejay tries an item up to 5 times, with a growing wait, when the model is busy or a library model cannot be reached. Other failures are not retried.
+
+## Read the results
+
+Totals pool every item's counts, so a long conversation weighs more than a short one. **Compare with another run** lists only runs of the same dataset.
+
+| Score | What it measures |
+|---|---|
+| WER | Word error rate. Casing, punctuation, units, ordinals and number formats are forgiven, so "2nd" and "second" match. Japanese and Chinese are scored per character. |
+| Strict WER | Word error rate on the raw text, so casing, punctuation and number format count as errors. |
+| CER | Character error rate, per item. |
+| Term recall | Share of the vocabulary terms in the script that the transcript got right. An alternate spelling counts. Empty when the script has no vocabulary terms. |
+| Numbers and dates | Share of the numbers and dates in the script that the transcript got right. The value decides, so "two" and "2" match, and "3/14/25" matches "March fourteenth, twenty twenty-five". |
+| Coverage | Share of the script's words that the transcript did not drop. |
+| Made-up text | Share of the transcript inside runs of 3 or more words that are not in the script. |
+| Time to transcript | Batch and custom endpoints. How long the transcript took to arrive. |
+| Time to final text | Streaming. How long after each word was spoken its final text arrived, as a median and a 90th percentile. |
+
+Speaker labels and timestamps in a transcript do not change its scores. Bluejay reads every speaker's words in order.
+
+### Failed items
+
+| Reason | What to do |
+|---|---|
+| **Authentication failed** | Check the provider key in **Integrations**, or your endpoint's secret. The message shows the provider's own error. |
+| **Couldn't connect** | Check the model's endpoint URL and that it can be reached from the internet. |
+| **Model busy** | The provider turned the item away 5 times. Lower **Concurrency** and run again. |
+| **Provider error** | The provider rejected the request. Its message says why, for example a missing permission on the key. |
+| **No transcript** | A custom endpoint did not post a transcript before **Timeout per item**. |
+| **Connection dropped** | The connection closed before all the audio was sent. |
+
+A run's status shows **Failed** when every item failed. To stop a run, click **Cancel**. Items already running still finish.
+
+## Limits
+
+| Limit | Value |
+|---|---|
+| Generated conversations per request | 1 to 200 |
+| Length of a generated conversation | 0.5 to 30 minutes |
+| Speakers set when generating | 6 |
+| Uploaded audio | WAV, MP3 or FLAC, up to 100 MB and 30 minutes |
+| Vocabulary terms per dataset | 2,000 |
+
+## Use the API
+
+Every step above works through the API, with the same API keys as the rest of Bluejay.
+
+| Task | Method | Path |
+|---|---|---|
+| [Create a dataset](/api-reference/endpoint/create-dataset) | `POST` | <Code>/v1/datasets</Code> |
+| [List sample datasets](/api-reference/endpoint/list-samples) | `GET` | <Code>/v1/datasets/samples</Code> |
+| [Add a sample dataset](/api-reference/endpoint/add-sample) | `POST` | <Code>/v1/datasets/samples/&#123;sample&#95;id&#125;</Code> |
+| [Generate data](/api-reference/endpoint/generate-items) | `POST` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/generate</Code> |
+| [Add items](/api-reference/endpoint/create-items) | `POST` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/items</Code> |
+| [Upload item audio](/api-reference/endpoint/upload-item-audio) | `PUT` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/items/&#123;item&#95;id&#125;/audio</Code> |
+| [Retry failed audio](/api-reference/endpoint/build-dataset) | `POST` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/build</Code> |
+| [Add a model](/api-reference/endpoint/create-model-config) | `POST` | <Code>/v1/model-configs</Code> |
+| [Start a run](/api-reference/endpoint/create-run) | `POST` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/runs</Code> |
+| [Read a run](/api-reference/endpoint/get-run) | `GET` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/runs/&#123;run&#95;id&#125;</Code> |
+| [Read a run's items](/api-reference/endpoint/list-run-items) | `GET` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/runs/&#123;run&#95;id&#125;/items</Code> |
+| [Post a custom endpoint's transcript](/api-reference/endpoint/post-run-item-transcript) | `POST` | <Code>/v1/datasets/run-items/&#123;run&#95;item&#95;id&#125;/transcript</Code> |
+| [Cancel a run](/api-reference/endpoint/cancel-run) | `POST` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/runs/&#123;run&#95;id&#125;/cancel</Code> |
+| [Delete a run](/api-reference/endpoint/delete-run) | `DELETE` | <Code>/v1/datasets/&#123;dataset&#95;id&#125;/runs/&#123;run&#95;id&#125;</Code> |
+
+Save provider keys in the app, on the **Integrations** page or when you add a model. A deleted run and its results cannot be recovered, and a run that is still running must be cancelled first.
+
+## Related
+
+- [Custom Endpoints](/benchmarks/stt-custom-endpoints)
+- [Digital Humans](/test/simulations/digital-humans)
+- [Workspaces](/administration/workspaces)

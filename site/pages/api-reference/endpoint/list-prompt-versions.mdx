@@ -1,0 +1,65 @@
+---
+title: "GET /v1/agents/{agent_id}/versions"
+description: "List the versions of an agent."
+api: "GET https://api.getbluejay.ai/v1/agents/{agent_id}/versions"
+playground: "none"
+---
+
+Returns the agent versions of an agent. Filter with `label` or `version`.
+
+`GET /v1/agents/{agent_id}/prompts/versions` is the deprecated path of this endpoint.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "label", "type": "string or null", "required": false, "description": "Only return versions that carry this label, e.g. production, latest or one of your own; the text must match exactly. Omit for all versions."}, {"name": "version", "type": "integer or null", "required": false, "description": "Return only this version number; when set, label and limit are ignored. Omit to list versions."}, {"name": "limit", "type": "integer", "required": false, "description": "Most versions to return, counted from the newest; 50 when omitted.", "default": 50}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "The version's uuid. Other endpoints take it as agent_version_id."}, {"name": "prompt_text", "type": "string", "required": true, "description": "The full prompt text stored in this version."}, {"name": "commit_message", "type": "string or null", "required": false, "description": "The note saved with this version."}, {"name": "labels", "type": "string[] or null", "required": false, "description": "Labels on this version, e.g. latest and production."}, {"name": "metadata", "type": "object or null", "required": false, "description": "Free-form JSON stored with this version."}, {"name": "version", "type": "integer", "required": true, "description": "The version number: the version of GET /v1/agents/{agent_id}/versions/{version} and DELETE /v1/agents/{agent_id}/versions/{version}."}, {"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns this version."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+[
+  {
+    "id": "b3addeb0-34bb-57fa-8c77-28d483328041",
+    "prompt_text": "<string>",
+    "commit_message": "<string>",
+    "labels": [
+      "<string>"
+    ],
+    "metadata": {},
+    "version": 123,
+    "agent_id": 123
+  }
+]
+```
+
+{/* END GENERATED */}

@@ -1,0 +1,104 @@
+---
+title: "POST /v1/scenario"
+description: "Create a scenario."
+api: "POST https://api.getbluejay.ai/v1/scenario"
+playground: "none"
+---
+
+Creates a scenario. `definition` is a React Flow graph with `nodes`, `edges`, and an optional `viewport`. Each node and its `data` must match the typed schemas in the playground.
+
+To generate Digital Humans from a scenario, see [Scenario Adherence](/test/simulation-types/scenario-adherence).
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "name", "type": "string", "required": true, "description": "Display name for the new workflow, shown in the scenario builder."}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "Bluejay ids of voice agents in your organization to link the workflow to (from GET /v1/all-agents). Omit or null for a workflow that is not tied to an agent."}, {"name": "description", "type": "string or null", "required": false, "description": "Free-text note on what the workflow covers. Omit to leave it empty."}, {"name": "definition", "type": "object", "required": true, "description": "The conversation graph as a JSON object with `nodes` and `edges` arrays (React Flow shape). Each node has a non-empty string `id` on the node object (not only inside `data`), plus `type`, `position` (x/y) and `data`; each edge has a non-empty string `id`, unique across all edges, plus `source` and `target` node ids. Omitted `nodes` / `edges` default to []; send {\"nodes\": [], \"edges\": []} for an empty draft. With no `single` or `options` nodes, the graph is stored as a draft (only multiple-start is rejected). Once there is content, export rules apply (paths, branch_options, etc.)."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The workflow's id; pass it as workflow_id to GET /v1/scenario/{workflow_id}, PUT /v1/scenario/{workflow_id}, POST /v1/scenario/{workflow_id}/duplicate or DELETE /v1/scenario/{workflow_id}."}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Organization that owns the workflow."}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "Bluejay ids of the voice agents the workflow is linked to; empty when it is not tied to an agent."}, {"name": "name", "type": "string", "required": true, "description": "The workflow's display name."}, {"name": "description", "type": "string or null", "required": false, "description": "The workflow's free-text description."}, {"name": "definition", "type": "object", "required": true, "description": "The stored conversation graph: `start`, `single` and `options` nodes plus edges. Nodes and edges use top-level string `id` fields; edge `id` values are unique within the graph."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the workflow was created, as an ISO 8601 timestamp."}, {"name": "dh_sync_summary", "type": "object or null", "required": false, "description": "Only on PUT /v1/scenario/{workflow_id} when the definition changed: counts of digital humans updated, created, marked_stale and skipped, plus errors, from re-syncing this workflow's digital humans."}, {"name": "warnings", "type": "string[]", "required": false, "description": "Non-blocking lint warnings emitted at save time (e.g. node text referencing an unknown ``{{trait_name}}``). Empty when the definition is clean or no agents are linked."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/scenario \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_ids": [],
+    "definition": {
+      "edges": [
+        {
+          "id": "e-wf-start-n-greet",
+          "source": "wf-start",
+          "target": "n-greet"
+        }
+      ],
+      "nodes": [
+        {
+          "data": {
+            "id": "wf-start"
+          },
+          "deletable": false,
+          "draggable": true,
+          "id": "wf-start",
+          "position": {
+            "x": 100,
+            "y": 50
+          },
+          "type": "start"
+        },
+        {
+          "data": {
+            "criteria": "Greet the caller and offer help",
+            "id": "n-greet",
+            "speaker": "agent",
+            "turn": 0,
+            "type": "message"
+          },
+          "id": "n-greet",
+          "position": {
+            "x": 200,
+            "y": 180
+          },
+          "type": "single"
+        }
+      ]
+    },
+    "description": "Password reset IVR",
+    "name": "Support reset flow"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "organization_id": "<string>",
+  "agent_ids": [],
+  "name": "<string>",
+  "description": "<string>",
+  "definition": {},
+  "created_at": "2026-01-01T00:00:00Z",
+  "dh_sync_summary": {},
+  "warnings": [
+    "<string>"
+  ]
+}
+```
+
+{/* END GENERATED */}

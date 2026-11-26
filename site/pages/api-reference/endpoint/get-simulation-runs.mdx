@@ -1,0 +1,63 @@
+---
+title: "GET /v1/get-simulation-runs/{simulation_id}"
+description: "List the runs of a simulation."
+api: "GET https://api.getbluejay.ai/v1/get-simulation-runs/{simulation_id}"
+playground: "none"
+---
+
+Returns the runs of a simulation.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "simulation_id", "type": "string", "required": true, "description": "The simulation whose runs to list: its id from GET /v2/simulations or POST /v1/create-simulation."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulation_runs", "type": "object[]", "required": false, "description": "List of simulation runs", "children": [{"name": "id", "type": "integer", "required": true, "description": "Run id; pass it as simulation_run_id to GET /v1/retrieve-simulation-results/{simulation_run_id}."}, {"name": "simulation_id", "type": "integer", "required": true, "description": "ID of the simulation associated with the run"}, {"name": "experiment_id", "type": "integer", "required": true, "description": "Deprecated: same value as simulation_id."}, {"name": "summary", "type": "string or null", "required": false, "description": "Summary of the simulation run"}, {"name": "tests_passed", "type": "integer or null", "required": false, "description": "Number of tests that passed in the simulation run"}, {"name": "tests_failed", "type": "integer or null", "required": false, "description": "Status-level failure count (dropped calls, infra errors) - NOT eval-grade failures. See eval_failed for that."}, {"name": "total_tests", "type": "integer or null", "required": false, "description": "Total number of tests in the simulation run"}, {"name": "tests_completed", "type": "integer or null", "required": false, "description": "Number of tests that were completed in the simulation run"}, {"name": "curr_step_id", "type": "integer or null", "required": false, "description": "Current step ID of the simulation run"}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the simulation run was created"}, {"name": "status", "type": "string", "required": true, "description": "Current status of the simulation run", "values": ["RUNNING", "COMPLETED"]}, {"name": "phone_number", "type": "string or null", "required": false, "description": "Phone number of the simulation run"}, {"name": "eval_failed", "type": "integer or null", "required": true, "description": "Eval-grade failure count (tests_completed - tests_passed) - what most consumers mean by 'failed'. tests_failed only counts status-level failures."}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/get-simulation-runs/{simulation_id} \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "simulation_runs": [
+    {
+      "id": 123,
+      "simulation_id": 123,
+      "experiment_id": 123,
+      "summary": "<string>",
+      "tests_passed": 123,
+      "tests_failed": 123,
+      "total_tests": 123,
+      "tests_completed": 123,
+      "curr_step_id": 123,
+      "created_at": "2026-01-01T00:00:00Z",
+      "status": "RUNNING",
+      "phone_number": "<string>",
+      "eval_failed": 123
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

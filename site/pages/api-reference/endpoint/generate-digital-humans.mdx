@@ -1,0 +1,132 @@
+---
+title: "POST /v1/generate-digital-humans"
+description: "Generate Digital Humans from an agent prompt."
+api: "POST https://api.getbluejay.ai/v1/generate-digital-humans"
+playground: "none"
+---
+
+Generates Digital Humans for an agent and links them to the simulation. To generate from a graph, see [Create Scenario](/api-reference/endpoint/create-scenario).
+
+This request does not accept `allow_silence_tool` or `silence_tool_instructions`. To set them, use [Update Digital Human](/api-reference/endpoint/update-digital-human).
+
+`success_criteria` in the response is one string with a bullet per line.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": "The agent under test (id from GET /v1/all-agents). Generation reads this agent's prompt, description, synced workflow, tools, first message, knowledge base and a few of its real calls."}, {"name": "simulation_id", "type": "string or null", "required": false, "description": "Simulation (id from GET /v2/simulations) to attach the generated digital humans to. It must belong to agent_id."}, {"name": "prompt_id", "type": "string (uuid) or null", "required": false, "description": "Deprecated. Use agent_version_id. Same uuid, still works."}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": "Agent version UUID to generate from (defaults to latest)"}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": "Accepted for older callers but not read by generation; leave it out."}, {"name": "goal_adherence", "type": "object[] or null", "required": false, "description": "Caller goals to generate digital humans for, each with how many to make. A goal the agent does not list yet is also added to the agent's goals.", "children": [{"name": "goal", "type": "string", "required": true, "description": "A goal callers bring to this agent, in one or two sentences from the caller's side (e.g. 'reschedule an existing appointment'). A goal the agent does not list yet is added to the agent's goals."}, {"name": "num_calls", "type": "integer", "required": true, "description": "How many digital humans to generate for this goal."}]}, {"name": "workflow_adherence", "type": "object or null", "required": false, "description": "Map of legacy workflow id to how many digital humans should follow that workflow. These are the older workflows, not the scenario-builder workflows from GET /v1/scenario; unknown ids are skipped.", "children": [{"name": "{key}", "type": "integer", "required": false, "description": "Any key.", "children": []}]}, {"name": "workflow_adherence_v2", "type": "object or null", "required": false, "description": "Dictionary of workflow_v2 IDs and their counts (uses new graph definition format)", "children": [{"name": "{key}", "type": "integer", "required": false, "description": "Any key.", "children": []}]}, {"name": "replay_transcript", "type": "object[] or null", "required": false, "description": "Past calls to rebuild as digital humans. Each entry gives either the transcript text or a production conversation_id (from GET /v1/observability/conversations), plus how closely to replay it. To reproduce a production call, pass its conversation_id with mode \"strict\" rather than authoring a digital human or IVR flow by hand: the replay keeps the call's lines, the agent's key presses and where the caller talked over the agent."}, {"name": "customer_personas", "type": "object[] or null", "required": false, "description": "List of customer personas to be used in the simulation", "children": [{"name": "name", "type": "string", "required": true, "description": "Name of the customer persona"}, {"name": "description", "type": "string", "required": true, "description": "Description of the customer persona"}, {"name": "goal", "type": "string", "required": true, "description": "What this persona is calling to accomplish, in one or two sentences. Caller-side only; do not describe what the agent should do."}, {"name": "num_calls", "type": "integer", "required": true, "description": "Number of calls that matched the customer persona"}]}, {"name": "system_prompt", "type": "integer or null", "required": false, "description": "Number of digital humans to generate from the agent version's locked system-prompt rules. Each rule is tested from both sides, so this is two per rule and must be even: one caller the agent must help, one it must push back on. A lower number covers fewer rules rather than half-testing every rule.", "default": 0}, {"name": "custom_prompt", "type": "object or null", "required": false, "description": "Digital humans written to your instructions. Facts the agent asks the caller for come back as each digital human's traits.", "children": [{"name": "prompt", "type": "string", "required": true, "description": "What the digital humans should cover, e.g. \"a regression suite: the main jobs, two edge cases and one hard caller\"."}, {"name": "count", "type": "integer", "required": true, "description": "How many digital humans to write, or the most to write when min_count is set."}, {"name": "min_count", "type": "integer or null", "required": false, "description": "Let the generator decide how many, from min_count up to count: one per distinct case the agent needs, with no two testing the same thing."}]}, {"name": "load_testing", "type": "integer or null", "required": false, "description": "How many load-test digital humans to make: copies of one generic caller scenario, for running the agent at volume.", "default": 0}, {"name": "red_teaming", "type": "integer or null", "required": false, "description": "How many red-team digital humans to make: adversarial callers that try to push the agent outside its rules.", "default": 0}, {"name": "red_team_attacks", "type": "object or null", "required": false, "description": "Red-team attack matrix (intent x vector x available information). When set, supersedes the legacy red_teaming int. Persisted onto test_cases: free-text intent → intent_summary, attack_vector → attack_vector column, available information → customer_trait_values rows with completeness.", "children": [{"name": "batches", "type": "object[]", "required": false, "description": "", "children": [{"name": "intent", "type": "string", "required": true, "description": "Free-text attacker goal (e.g. 'force a credential reset without proper auth'). Persisted to test_cases.intent_summary - the same column goal-adherence DHs use. FE may seed from preset templates but value is editable."}, {"name": "vector_id", "type": "string", "required": true, "description": "Attack tactic - key in VECTOR_CATALOG. Catalog-bound (not editable). Drives attack_type derivation."}, {"name": "traits", "type": "object[]", "required": false, "description": "Free-form customer traits the attacker possesses; missing fields = attacker doesn't have them.", "children": [{"name": "name", "type": "string", "required": true, "description": "Free-form trait label, e.g. 'SSN', 'Date of Birth'."}, {"name": "data_type", "type": "string", "required": true, "description": "Data type of the trait value.", "values": ["string", "number", "boolean", "date"]}, {"name": "value", "type": "any or null", "required": false, "description": "Concrete value. '__random__' = LLM fabricates full value. '__partial_random__' = BE applies name-based heuristic and stamps completeness."}, {"name": "completeness", "type": "string or null", "required": false, "description": "e.g. 'last_4', 'year_only', 'full'. May be stamped by partial-autogen heuristic server-side."}]}, {"name": "count", "type": "integer", "required": true, "description": "Number of scenarios to generate for this batch."}, {"name": "custom_success_criteria", "type": "string or null", "required": false, "description": "Override the LLM-generated success criteria."}]}]}, {"name": "traits", "type": "object[] or null", "required": false, "description": "Case facts applied to EVERY generated digital human , the fixtures the whole batch shares (e.g. a test account number). Per-caller facts belong on the individual digital human, and neither place takes internal or agent-side information: a trait is always something a real caller could recite.", "children": [{"name": "trait_name", "type": "string", "required": true, "description": "The fact's name, as the agent would ask for it (e.g. member_id, date_of_birth, order_number). Trait names are shared across the organization, so reuse an existing name rather than coining a variant. A trait is always something the CALLER knows and can say out loud, never internal or agent-side information (CRM contents, what the agent should look up or say, grader notes). A FILE trait is the exception: a document the caller holds and may attach to an email (e.g. bill_of_lading)."}, {"name": "trait_data_type", "type": "string", "required": true, "description": "What kind of fact `value` holds: yes/no, free text, a calendar date written as an ISO 8601 string, a number, or FILE. `value` is converted to this kind when saved, so '42' or 'yes' is accepted. FILE is a file the digital human may attach to its emails in email simulations; it decides which email, if any. Up to 5 FILE traits, 10MB total per digital human.", "values": ["BOOLEAN", "STRING", "DATE", "NUMBER", "FILE"]}, {"name": "value", "type": "object", "required": true, "description": "The concrete value this caller gives (stored as JSONB). Fixing it here is what makes the call repeatable; leave it out of `intent` prose, where the model would improvise a different one each run. For FILE, the `attachment` object create_email_attachment_upload_url returns ({filename, content_type, size_bytes, s3_key}), passed after the upload; reads add text_excerpt (a PDF's opening text)."}, {"name": "is_sip_header", "type": "boolean", "required": false, "description": "Send this fact as a SIP header on the call instead of as something the caller says aloud. Use it only when the agent reads the value from call metadata; ordinary case facts stay spoken.", "default": false}]}, {"name": "num_runs", "type": "integer or null", "required": false, "description": "How many times each generated digital human runs every time its simulation runs.", "default": 1}, {"name": "persona_ids", "type": "array of string (uuid) or null", "required": false, "description": "Personas every generated digital human runs as (list_personas). With none, each runs once as the baseline, its own settings."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "digital_humans", "type": "any[]", "required": false, "description": "The digital humans that were generated and saved, each with id, name, intent, success_criteria, tags, traits and phone_number. Pass an id to GET /v2/digital-humans/{digital_human_id} or PUT /v1/update-digital-humans."}, {"name": "status", "type": "string", "required": false, "description": "Status code of the generation, as a string.", "default": "200"}, {"name": "success", "type": "boolean", "required": false, "description": "True when generation finished.", "default": true}, {"name": "test_scenarios", "type": "any[] or null", "required": false, "description": "The scenario behind each generated digital human, in the same order: intent, success criteria and, for transcript replays, original_transcript and formatted_transcript."}, {"name": "warning", "type": "string or null", "required": false, "description": "Set when the request asked for more digital humans than the per-call maximum and was cut down."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/generate-digital-humans \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": "<string>",
+    "simulation_id": "<string>",
+    "prompt_id": "b66cf0b1-f449-537b-be1e-e166771c9701",
+    "agent_version_id": "80df19fa-47cd-51eb-952a-f858a6cc7642",
+    "knowledge_base_id": "e356e6c6-e0d0-5076-8850-d7c1876f470f",
+    "goal_adherence": [
+      {
+        "goal": "<string>",
+        "num_calls": 123
+      }
+    ],
+    "workflow_adherence": {
+      "key": 123
+    },
+    "workflow_adherence_v2": {
+      "key": 123
+    },
+    "replay_transcript": [
+      {
+        "transcript": "<string>",
+        "success_criteria": "<string>",
+        "mode": "strict"
+      }
+    ],
+    "customer_personas": [
+      {
+        "name": "<string>",
+        "description": "<string>",
+        "goal": "<string>",
+        "num_calls": 123
+      }
+    ],
+    "system_prompt": 0,
+    "custom_prompt": {
+      "prompt": "<string>",
+      "count": 123,
+      "min_count": 123
+    },
+    "load_testing": 0,
+    "red_teaming": 0,
+    "red_team_attacks": {
+      "batches": [
+        {
+          "intent": "<string>",
+          "vector_id": "<string>",
+          "traits": [
+            {
+              "name": "<string>",
+              "data_type": "string",
+              "value": null,
+              "completeness": "<string>"
+            }
+          ],
+          "count": 123,
+          "custom_success_criteria": "<string>"
+        }
+      ]
+    },
+    "traits": [
+      {
+        "trait_name": "<string>",
+        "trait_data_type": "BOOLEAN",
+        "value": null,
+        "is_sip_header": false
+      }
+    ],
+    "num_runs": 1,
+    "persona_ids": [
+      "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "digital_humans": [
+    null
+  ],
+  "status": "200",
+  "success": true,
+  "test_scenarios": [
+    null
+  ],
+  "warning": "<string>"
+}
+```
+
+{/* END GENERATED */}

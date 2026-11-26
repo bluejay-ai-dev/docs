@@ -1,0 +1,74 @@
+---
+description: "Create Run"
+api: "POST https://api.getbluejay.ai/v1/datasets/{dataset_id}/runs"
+title: "POST /v1/datasets/{dataset_id}/runs"
+sidebarTitle: "/\u200bv1/\u200bdatasets/\u200b{dataset_id}/\u200bruns"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Run every active item's audio against a model config. Audio that is still generating, or failed and is queued again here, plays once it is ready, and items a generation is still writing join the run as they are written.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "dataset_id", "type": "string (uuid)", "required": true, "description": "The dataset's id, from GET /v1/datasets."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "model_config_id", "type": "string (uuid)", "required": true, "description": "The target: a model config in the dataset's workspace, from GET /v1/model-configs."}, {"name": "settings", "type": "object", "required": false, "description": "", "children": [{"name": "concurrency", "type": "integer", "required": false, "description": "Items sent to the transcriber at once.", "default": 5}, {"name": "deadline_s", "type": "integer", "required": false, "description": "Seconds after the audio ends to wait for the transcript.", "default": 300}]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "dataset_id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "model_config_id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "target", "type": "object", "required": true, "description": "The model config as it was when the run started, without secrets."}, {"name": "settings", "type": "object", "required": true, "description": ""}, {"name": "status", "type": "string", "required": true, "description": "", "values": ["running", "finished"]}, {"name": "counts", "type": "object", "required": true, "description": "Run items by status.", "children": [{"name": "{key}", "type": "integer", "required": false, "description": "Any key.", "children": []}]}, {"name": "scores", "type": "object or null", "required": false, "description": "Pooled over scored run items: Σ counts / Σ denominators."}, {"name": "created_by", "type": "string (uuid) or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": ""}, {"name": "finished_at", "type": "string (date-time) or null", "required": false, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/datasets/{dataset_id}/runs \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "model_config_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+    "settings": {
+      "concurrency": 5,
+      "deadline_s": 300
+    }
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "dataset_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "model_config_id": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "target": {},
+  "settings": {},
+  "status": "running",
+  "counts": {
+    "key": 123
+  },
+  "scores": {},
+  "created_by": "3c90c3cc-0d44-4b50-8888-8dd25736052a",
+  "created_at": "2026-01-01T00:00:00Z",
+  "finished_at": "2026-01-01T00:00:00Z"
+}
+```
+
+{/* END GENERATED */}

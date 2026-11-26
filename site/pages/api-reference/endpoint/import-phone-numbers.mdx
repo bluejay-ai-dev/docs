@@ -1,0 +1,67 @@
+---
+title: "POST /v1/phone-numbers/import"
+description: "Import Phone Numbers"
+api: "POST https://api.getbluejay.ai/v1/phone-numbers/import"
+playground: "none"
+---
+
+Point numbers from a saved provider account at Bluejay. Real calls to them reach Bluejay.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "provider", "type": "string", "required": true, "description": "Voice provider the account is at.", "values": ["twilio", "telnyx", "vonage", "plivo", "bandwidth"]}, {"name": "account_id", "type": "string", "required": true, "description": "The account's id, from GET /v1/phone-provider-accounts."}, {"name": "provider_number_ids", "type": "string[]", "required": true, "description": "The provider's ids for the numbers, from GET /v1/phone-provider-accounts/{provider}/{account_id}/numbers."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "numbers", "type": "object[]", "required": true, "description": "The numbers that were imported, one entry each.", "children": [{"name": "id", "type": "integer", "required": true, "description": "Bluejay's record id for the number."}, {"name": "phone_number", "type": "string", "required": true, "description": "The number in E.164 form."}, {"name": "sms_setup_error", "type": "string or null", "required": false, "description": "Why texting was not set up; null when it was. Calls work either way."}]}, {"name": "failed", "type": "object[]", "required": false, "description": "The numbers that were not imported, one entry each.", "children": [{"name": "provider_number_id", "type": "string", "required": true, "description": "The provider's id for the number that was not imported."}, {"name": "error", "type": "string", "required": true, "description": "Why the number was not imported."}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/phone-numbers/import \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "provider": "twilio",
+    "account_id": "<string>",
+    "provider_number_ids": [
+      "<string>"
+    ]
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "numbers": [
+    {
+      "id": 123,
+      "phone_number": "<string>",
+      "sms_setup_error": "<string>"
+    }
+  ],
+  "failed": [
+    {
+      "provider_number_id": "<string>",
+      "error": "<string>"
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}
