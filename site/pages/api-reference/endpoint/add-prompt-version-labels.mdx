@@ -13,7 +13,7 @@ Adds labels to one agent version.
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "version", "type": "integer", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "version", "type": "integer", "required": true, "description": "The version's number: the version field from GET /v1/agents/{agent_id}/versions or POST /v1/agents/{agent_id}/versions."}]} />
 
 ## Headers
 
@@ -21,11 +21,11 @@ Adds labels to one agent version.
 
 ## Request body
 
-<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": ""}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "", "default": false}]} />
+<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": "Labels to add or remove, e.g. ['production'] or ['staging'], matched to existing labels ignoring case. Adding ignores latest, which is managed automatically, and an empty list adds nothing. Removing never detaches production (move it to another version instead) or latest from the newest version, and an empty list removes every other label."}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When adding: true moves a label that already sits on another version of this agent onto this one, which is how a version is promoted to production; false fails on such a conflict with 409. Ignored when removing.", "default": false}]} />
 
 ## Response
 
-<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": ""}]} />
+<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": "Every label on this version, e.g. latest and production."}]} />
 
 ## Status codes
 

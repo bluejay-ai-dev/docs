@@ -40,11 +40,11 @@ Rate limit: 30 requests per minute.
 
 ## Request body
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "Target agent to red-team."}, {"name": "config", "type": "object or null", "required": false, "description": "Overrides for max_levels/max_branches_per_node/max_total_dhs/max_call_duration_minutes/recon_count/objective/extension/harm_categories/harm_first/attack_quotas. attack_quotas is {social_engineering, prompt_injection, audio_native, content_harm} → attempt counts (0 = adaptive). Clamped to the mandatory ceilings; quota mode raises the call budget and sizes each attack level from those counts (largest family, at least one slot per active family). Content-safety probes run by default; pass harm_categories=[] for an OWASP-only test."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "", "default": false}]} />
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent to attack: its Bluejay id from GET /v1/all-agents. It must be in a workspace you can write to; SMS agents are not supported."}, {"name": "config", "type": "object or null", "required": false, "description": "Optional overrides as a JSON object: name (the test's display name; defaults to the agent's), max_levels, max_branches_per_node, max_total_dhs (total calls), max_call_duration_minutes, recon_count, objective, extension, harm_categories, harm_first, attack_quotas, scripted_responses (+ scripted_responses_ordered) , blanket nav/scripted steps, same shape as a digital human's, seeded onto every attacker call so each clears the same gate before probing , and hangup_on_transfer (default true; set false to ride a test-rig transfer into the downstream agent instead of hanging up). Values over the mandatory ceilings are lowered to them. Omit for the defaults: 5 levels, 3 attacks per level, 16 calls of up to 10 minutes, 3 recon probes. attack_quotas is {social_engineering, prompt_injection, audio_native, content_harm} → attempt counts (0 = adaptive); quota mode raises the call budget and sizes each attack level from those counts (largest family, at least one slot per active family). Content-safety probes run by default; pass harm_categories=[] for an OWASP-only test."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "Leave false for the first call, which only returns a preview. Set true, with the same arguments, only after the user approves that preview; that call places real calls.", "default": false}]} />
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "needs_confirmation", "type": "boolean or null", "required": false, "description": "True on the preview call (confirmed=false): no call has been placed yet."}, {"name": "action", "type": "string or null", "required": false, "description": "On the preview call, the action to repeat with confirmed=true."}, {"name": "preview", "type": "string or null", "required": false, "description": "On the preview call, the test's scope and call budget. Relay it to the user verbatim."}, {"name": "to_proceed", "type": "string or null", "required": false, "description": "On the preview call, how to start the test once the user approves."}, {"name": "test_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the test's own id."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the test's simulation id (the id in the app's /red-teaming/{id} URL)."}, {"name": "simulation_run_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the first (recon) run's id."}, {"name": "status", "type": "string or null", "required": false, "description": "On the confirmed call, RUNNING."}]} />
 
 ## Status codes
 
@@ -65,6 +65,21 @@ curl --request POST \
     "config": {},
     "confirmed": false
   }'
+```
+
+## Example response
+
+```json 200
+{
+  "needs_confirmation": true,
+  "action": "<string>",
+  "preview": "<string>",
+  "to_proceed": "<string>",
+  "test_id": 123,
+  "simulation_id": 123,
+  "simulation_run_id": 123,
+  "status": "<string>"
+}
 ```
 
 {/* END GENERATED */}

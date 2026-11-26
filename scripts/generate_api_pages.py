@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import urllib.request
+import uuid
 
 DOCS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE_DIR = os.path.join(DOCS_DIR, "site")
@@ -126,8 +127,10 @@ def type_label(spec, schema, seen=()):
             labels.append(f"{inner}[]" if " " not in inner else f"array of {inner}")
         elif t in ("object", None) and ("properties" in v or v.get("title")) and t != "string":
             labels.append("object")
-        elif v.get("format") in ("uuid", "date-time", "date", "uri", "email", "binary"):
-            labels.append(f"{t} ({v['format']})" if v["format"] != "binary" else "file")
+        elif v.get("format") == "binary" or "contentMediaType" in v:
+            labels.append("file")
+        elif v.get("format") in ("uuid", "date-time", "date", "uri", "email"):
+            labels.append(f"{t} ({v['format']})")
         else:
             labels.append(t or "any")
     label = " or ".join(dict.fromkeys(labels))
@@ -236,11 +239,11 @@ def example(spec, schema, depth=0, seen=(), name=""):
     if "default" in schema and schema["default"] is not None:
         return schema["default"]
     t = v.get("type")
-    if depth >= MAX_DEPTH:
-        return {} if t == "object" else None
     if t == "array":
-        return [example(spec, v.get("items", {}), depth + 1, seen)]
+        return [example(spec, v.get("items", {}), depth + 1, seen)] if depth < MAX_DEPTH else []
     if t == "object" or "properties" in v:
+        if depth >= MAX_DEPTH:
+            return {}
         out = {k: example(spec, s, depth + 1, seen, k) for k, s in v.get("properties", {}).items()}
         extra = v.get("additionalProperties")
         if not out and isinstance(extra, dict) and extra:
@@ -249,7 +252,8 @@ def example(spec, schema, depth=0, seen=(), name=""):
     fmt = v.get("format")
     if t == "string":
         if fmt == "uuid":
-            return "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+            # One uuid per field name, so two ids in one example never look like the same object.
+            return str(uuid.uuid5(uuid.NAMESPACE_URL, name)) if name else "3c90c3cc-0d44-4b50-8888-8dd25736052a"
         if fmt == "date-time":
             return "2026-01-01T00:00:00Z"
         if fmt == "date":
@@ -301,8 +305,8 @@ def curl(spec, method, path, op):
         fields = list(resolved.get("properties", {}).items())
         for i, (name, s) in enumerate(fields):
             lines[-1] += " \\"
-            is_file = type_label(spec, s) == "file"
-            lines.append(f"  --form {name}=@<file>" if is_file else f"  --form {name}=<{name}>")
+            is_file = type_label(spec, s).startswith("file")
+            lines.append(f"  --form '{name}=@/path/to/file'" if is_file else f"  --form {name}=<{name}>")
     return "\n".join(lines)
 
 
@@ -326,15 +330,22 @@ def generate(spec, method, path, op):
     if schema is not None:
         resolved, _ = resolve(spec, schema)
         rows = field_rows(spec, resolved.get("properties", {}), resolved.get("required", []))
-        if not rows:
-            rows = [{"name": "body", "type": type_label(spec, schema), "required": body_required,
-                     "children": object_children(spec, schema, 0)}]
+        variants, _ = non_null(spec, schema)
         note = "" if ctype == "application/json" else f"Send the body as `{ctype}`.\n\n"
-        parts += ["## Request body", "", note + table(rows), ""]
+        if not rows and len(variants) > 1 and all(v.get("properties") for v in variants):
+            parts += ["## Request body", "", note + "Send one of these bodies.", ""]
+            for v in variants:
+                parts += [f"### {v.get('title')}", "", table(field_rows(spec, v["properties"], v.get("required", []))), ""]
+        else:
+            if not rows:
+                rows = [{"name": "body", "type": type_label(spec, schema), "required": body_required,
+                         "children": object_children(spec, schema, 0)}]
+            parts += ["## Request body", "", note + table(rows), ""]
     code, resp = success(op)
     resp_schema = None
     if resp:
-        resp_schema = (resp.get("content", {}).get("application/json") or {}).get("schema")
+        resp_json = resp.get("content", {}).get("application/json")
+        resp_schema = (resp_json or {}).get("schema")
         parts += [f"## Response", ""]
         if resp_schema:
             resolved, _ = resolve(spec, resp_schema)
@@ -349,6 +360,8 @@ def generate(spec, method, path, op):
                     parts += [f"The response is `{type_label(spec, resp_schema)}`.", ""]
             if rows:
                 parts += [table(rows), ""]
+        elif resp_json is not None:
+            parts += ["The response is JSON.", ""]
         else:
             parts += [f"A `{code}` response has no body.", ""]
     statuses = [(c, clean(r.get("description"))) for c, r in sorted(op.get("responses", {}).items())]

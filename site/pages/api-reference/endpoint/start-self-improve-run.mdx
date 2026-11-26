@@ -14,7 +14,7 @@ Starts a loop that changes the agent prompt, pushes it to the provider, and runs
 
 ## Limits
 
-- The agent must be a Vapi, ElevenLabs, or Retell agent with a provider ID. Other agents return 400.
+- The agent must be a Vapi, ElevenLabs, Retell, or Google CES agent connected to its provider. Other agents return 400.
 - `max_iterations` is 5 by default and 20 at most.
 - `metric_count` is 5 by default and 20 at most.
 - One agent can have one active run. A second run returns 409.
@@ -29,11 +29,11 @@ Rate limit: 30 requests per minute.
 
 ## Request body
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "VAPI, ElevenLabs, Retell, or Google CES agent to self-improve in place (prompt iterated; one new 'latest' version written at the end)."}, {"name": "simulation_id", "type": "integer", "required": true, "description": "Simulation (digital humans + metrics) to run each round against the agent."}, {"name": "target_pass_rate", "type": "number", "required": false, "description": "", "default": 0.9}, {"name": "max_iterations", "type": "integer", "required": false, "description": "", "default": 5}, {"name": "min_improvement", "type": "number", "required": false, "description": "Minimum pass-rate gain to keep an iteration; non-negative so worse prompts are never kept.", "default": 0.02}, {"name": "metric_count", "type": "integer", "required": false, "description": "", "default": 5}, {"name": "success_metric_ids", "type": "string[] or null", "required": false, "description": "Reuse these metrics instead of generating new ones."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "", "default": false}]} />
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent whose prompt to improve in place: its Bluejay id from GET /v1/all-agents. It must be a VAPI, ElevenLabs, Retell or Google CES agent connected to its provider, with no other self-improve run active."}, {"name": "simulation_id", "type": "integer", "required": true, "description": "The simulation re-run every round to score each candidate prompt (its digital humans are the test set): its id from GET /v2/simulations. Its selected metrics are replaced with the run's success metrics."}, {"name": "target_pass_rate", "type": "number", "required": false, "description": "Pass rate, as a fraction (0.9 means 90%), at which the loop stops early as good enough.", "default": 0.9}, {"name": "max_iterations", "type": "integer", "required": false, "description": "Most improvement rounds to run. Each round pushes a candidate prompt and runs the whole simulation again, so each round costs a full simulation run.", "default": 5}, {"name": "min_improvement", "type": "number", "required": false, "description": "Smallest pass-rate gain, as a fraction (0.02 means 2 points), for a candidate to replace the best prompt so far; non-negative so worse prompts are never kept. Two rounds in a row without this gain end the loop.", "default": 0.02}, {"name": "metric_count", "type": "integer", "required": false, "description": "How many pass/fail success metrics to generate from the agent's prompt when success_metric_ids is not given. Ignored when it is.", "default": 5}, {"name": "success_metric_ids", "type": "string[] or null", "required": false, "description": "Existing custom metric ids (UUIDs from GET /v1/custom-metrics) to score pass rate with, instead of generating new metrics. Omit to have the run generate metric_count of them."}, {"name": "confirmed", "type": "boolean", "required": false, "description": "Leave false for the first call, which only returns a preview. Set true, with the same arguments, only after the user approves that preview; that call starts the run.", "default": false}]} />
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "needs_confirmation", "type": "boolean or null", "required": false, "description": "True on the preview call (confirmed=false): nothing has started yet."}, {"name": "action", "type": "string or null", "required": false, "description": "On the preview call, the action to repeat with confirmed=true."}, {"name": "preview", "type": "string or null", "required": false, "description": "On the preview call, what the run will do. Relay it to the user verbatim."}, {"name": "to_proceed", "type": "string or null", "required": false, "description": "On the preview call, how to start the run once the user approves."}, {"name": "run_id", "type": "integer or null", "required": false, "description": "On the confirmed call, the new run's id; poll it with GET /v1/self-improve/runs/{run_id}."}, {"name": "status", "type": "string or null", "required": false, "description": "On the confirmed call, the run's starting status, normally PENDING."}]} />
 
 ## Status codes
 
@@ -61,6 +61,19 @@ curl --request POST \
     ],
     "confirmed": false
   }'
+```
+
+## Example response
+
+```json 200
+{
+  "needs_confirmation": true,
+  "action": "<string>",
+  "preview": "<string>",
+  "to_proceed": "<string>",
+  "run_id": 123,
+  "status": "<string>"
+}
 ```
 
 {/* END GENERATED */}

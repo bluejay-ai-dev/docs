@@ -1,0 +1,62 @@
+---
+title: "GET /v1/bog/suggestions"
+description: "Get Bog Suggestions"
+api: "GET https://api.getbluejay.ai/v1/bog/suggestions"
+playground: "none"
+---
+
+Agents and changes BOG found in code, newest first.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Query parameters
+
+<FieldTable rows={[{"name": "connection_id", "type": "string or null", "required": false, "description": "Only this GitHub connection. Omit for all."}, {"name": "status", "type": "string or null", "required": false, "description": "Only suggestions in this status. Omit for suggested and confirming.", "values": ["suggested", "confirming", "confirmed", "dismissed"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+The response is a list. Each item has these fields:
+
+<FieldTable rows={[{"name": "id", "type": "string or null", "required": false, "description": "The suggestion id other BOG routes take as suggestion_id."}, {"name": "ci_connection_id", "type": "string or null", "required": false, "description": "The GitHub connection it came from."}, {"name": "scan_id", "type": "string or null", "required": false, "description": "The scan that found it."}, {"name": "repository", "type": "string or null", "required": false, "description": "Repository, as owner/name."}, {"name": "name", "type": "string or null", "required": false, "description": "Agent name found in code."}, {"name": "type", "type": "string or null", "required": false, "description": "new_agent, prompt_update, uptime_monitor, observability_pr, ci_trigger or fix_pr."}, {"name": "status", "type": "string or null", "required": false, "description": "suggested, confirming (set up runs in the background), confirmed or dismissed."}, {"name": "fields", "type": "object or null", "required": false, "description": "What the scan extracted: prompt, goals, tools, reach details. After set up, simulation_run_id; after a failed set up, error. A fix_pr holds diff, changes, summary, failures and, once open, pr_url."}, {"name": "files", "type": "object or null", "required": false, "description": "Defining files and their git blob hashes."}, {"name": "file_urls", "type": "object or null", "required": false, "description": "GitHub link for each defining file."}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "Linked Bluejay agent."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "Simulation created for the agent."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/bog/suggestions \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+[
+  {
+    "id": "<string>",
+    "ci_connection_id": "<string>",
+    "scan_id": "<string>",
+    "repository": "<string>",
+    "name": "<string>",
+    "type": "<string>",
+    "status": "<string>",
+    "fields": {},
+    "files": {},
+    "file_urls": {},
+    "agent_id": 123,
+    "simulation_id": 123
+  }
+]
+```
+
+{/* END GENERATED */}

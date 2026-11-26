@@ -11,7 +11,7 @@ Returns one uptime monitor and its recent checks.
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "monitor_id", "type": "string", "required": true, "description": "The monitor to read: its id, from GET /v1/uptime/monitors or POST /v1/uptime/monitors."}]} />
 
 ## Headers
 
@@ -19,7 +19,7 @@ Returns one uptime monitor and its recent checks.
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "id", "type": "string or null", "required": false, "description": "The monitor's id; pass it as monitor_id to GET /v1/uptime/monitors/{monitor_id}, PUT /v1/uptime/monitors/{monitor_id}, DELETE /v1/uptime/monitors/{monitor_id} or GET /v1/uptime/monitors/{monitor_id}/series."}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "The agent being probed."}, {"name": "frequency", "type": "string or null", "required": false, "description": "Check interval as an \"<n>m\" minutes token, e.g. \"5m\"."}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days, hours and timezone the monitor may run in ({days, start_time, end_time, timezone}); null runs around the clock."}, {"name": "checks", "type": "object[] or null", "required": false, "description": "The health checks each run grades, in the shape POST /v1/uptime/monitors takes."}, {"name": "notifications", "type": "object or null", "required": false, "description": "Where DOWN and recovery alerts go."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "False when the monitor is paused."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "The backing health-check simulation's id; null until provisioned."}, {"name": "experiment_id", "type": "integer or null", "required": false, "description": "Deprecated: same value as simulation_id."}, {"name": "last_status", "type": "string or null", "required": false, "description": "Latest verdict, e.g. UP or DOWN; null before the first check."}, {"name": "last_checked_at", "type": "string (date-time) or null", "required": false, "description": "ISO 8601 time of the latest check."}, {"name": "last_latency_ms", "type": "number or null", "required": false, "description": "Average response latency the latest finished check measured, in ms."}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Organization that owns the monitor."}, {"name": "workspace_id", "type": "string or null", "required": false, "description": "Workspace the monitor lives in (its agent's)."}, {"name": "created_by", "type": "string or null", "required": false, "description": "User id of the creator."}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": "ISO 8601 creation time."}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "ISO 8601 time of the last change."}]} />
 
 ## Status codes
 
@@ -34,6 +34,32 @@ A `200` response has no body.
 curl --request GET \
   --url https://api.getbluejay.ai/v1/uptime/monitors/{monitor_id} \
   --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "agent_id": 123,
+  "frequency": "<string>",
+  "active_window": {},
+  "checks": [
+    {}
+  ],
+  "notifications": {},
+  "enabled": true,
+  "simulation_id": 123,
+  "experiment_id": 123,
+  "last_status": "<string>",
+  "last_checked_at": "2026-01-01T00:00:00Z",
+  "last_latency_ms": 1.5,
+  "organization_id": "<string>",
+  "workspace_id": "<string>",
+  "created_by": "<string>",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}
 ```
 
 {/* END GENERATED */}

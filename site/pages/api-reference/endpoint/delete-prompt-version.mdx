@@ -17,7 +17,7 @@ Deletes one agent version.
 
 ## Path parameters
 
-<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": ""}, {"name": "version", "type": "integer", "required": true, "description": ""}]} />
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "version", "type": "integer", "required": true, "description": "The version's number: the version field from GET /v1/agents/{agent_id}/versions or POST /v1/agents/{agent_id}/versions."}]} />
 
 ## Headers
 
@@ -25,7 +25,7 @@ Deletes one agent version.
 
 ## Response
 
-A `200` response has no body.
+<FieldTable rows={[{"name": "deleted_id", "type": "string or null", "required": false, "description": "Uuid of the version that was deleted."}, {"name": "deleted_version", "type": "integer or null", "required": false, "description": "Number of the version that was deleted."}, {"name": "new_latest_id", "type": "string or null", "required": false, "description": "Uuid of the version that now carries latest when the deleted one had it; null otherwise."}]} />
 
 ## Status codes
 
@@ -40,6 +40,16 @@ A `200` response has no body.
 curl --request DELETE \
   --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions/{version} \
   --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "deleted_id": "<string>",
+  "deleted_version": 123,
+  "new_latest_id": "<string>"
+}
 ```
 
 {/* END GENERATED */}
