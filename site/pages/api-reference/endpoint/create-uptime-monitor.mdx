@@ -1,0 +1,100 @@
+---
+title: "POST /v1/uptime/monitors"
+description: "Create an uptime monitor."
+api: "POST https://api.getbluejay.ai/v1/uptime/monitors"
+playground: "none"
+---
+
+Creates an uptime monitor and the simulation and schedule that run it. `active_window` limits the days and hours. If it is null, the monitor runs at all times.
+
+## Checks
+
+Each item in `checks` is one health check that a run grades:
+
+```json
+{
+  "id": "latency",
+  "label": "Latency",
+  "enabled": true,
+  "isTemplate": true,
+  "checkType": "latency",
+  "config": { "latency_threshold_ms": 3000, "alert_after_failures": 3 }
+}
+```
+
+- A template check has `isTemplate: true` and a `checkType` of `connection`, `agent_malfunction`, or `latency`.
+- A custom check has `isTemplate: false` and a `customMetricId` with a `condition` of `data_type`, `operator`, and `comparison_value`.
+- A `digitalHumanId` check changes the caller to that Digital Human. An update replaces the whole `checks` array, so send this check on every update to keep the caller.
+
+At least one enabled check must have a `checkType` or a `customMetricId`. If not, the response is 400.
+
+## Notifications
+
+```json
+{
+  "slack": { "channel": "C0123456789", "notify_channel": true },
+  "pagerduty": true,
+  "betterstack": true,
+  "incidentio": true,
+  "email": { "scope": "specific", "addresses": ["oncall@example.com"] }
+}
+```
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent to probe: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "frequency", "type": "string", "required": false, "description": "How often a check runs, as minutes with an \"m\" suffix, e.g. \"5m\" or \"15m\". Omit for \"5m\".", "default": "5m"}, {"name": "active_window", "type": "object or null", "required": false, "description": "Days/hours the monitor may run, e.g. {\"days\": [\"monday\"], \"start_time\": \"09:00\", \"end_time\": \"17:00\", \"timezone\": \"America/Los_Angeles\"}. Null runs it around the clock.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the days and times are read in, e.g. \"America/Los_Angeles\". Omit for UTC."}]}, {"name": "checks", "type": "object[]", "required": false, "description": "The health checks each run grades, as a list of objects: {\"id\", \"label\", \"description\", \"enabled\", \"isTemplate\", \"checkType\"?: connection|agent_malfunction|latency, \"digitalHumanId\"?, \"customMetricId\"?, \"config\"?: {\"latency_threshold_ms\", \"alert_after_failures\", \"unresponsive_gap_ms\"}, \"condition\"?: {\"data_type\": numeric|boolean|categorical, \"operator\", \"comparison_value\"}}. The three template checks (connection, agent_malfunction, latency) have isTemplate true and a checkType; your own checks have isTemplate false and a customMetricId (one of your custom metrics, from GET /v1/custom-metrics) or a digitalHumanId (from GET /v2/digital-humans). At least one enabled check must carry a checkType or customMetricId: a check with only a description grades nothing, and digitalHumanId only picks which digital human runs the probe. config.alert_after_failures (default 1) is how many runs in a row must fail the check before the monitor goes DOWN and alerts; raise it for latency and agent_malfunction so a one-off spike doesn't page, and keep connection at 1. config.unresponsive_gap_ms (voice only, default 15000) is how long the agent may stay silent after the caller speaks before the connection check fails."}, {"name": "notifications", "type": "object", "required": false, "description": "Where DOWN and recovery alerts go: an object with any of \"slack\": {\"channel\", \"team_id\"?, \"notify_channel\"?}, \"pagerduty\": bool, \"betterstack\": bool, \"incidentio\": bool, \"email\": {\"scope\": \"all\"|\"specific\", \"addresses\": [...]}, and \"notify_on_recovery\": bool. notify_on_recovery defaults to true; false mutes the Slack and email message sent when the monitor comes back up, while PagerDuty, Better Stack and incident.io still receive the resolve so their incidents close. Omit for no alerts."}, {"name": "enabled", "type": "boolean", "required": false, "description": "false creates the monitor paused. Omit to start it enabled.", "default": true}, {"name": "start_at", "type": "string or null", "required": false, "description": "ISO 8601 time with a timezone for the next check, e.g. \"2026-07-22T15:00:00Z\". Omit to run the first check immediately."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string or null", "required": false, "description": "The new monitor's id; pass it as monitor_id to GET /v1/uptime/monitors/{monitor_id}, PUT /v1/uptime/monitors/{monitor_id} and DELETE /v1/uptime/monitors/{monitor_id}."}, {"name": "provisioned", "type": "boolean or null", "required": false, "description": "False when the monitor was saved but its backing simulation could not be built; a PUT /v1/uptime/monitors/{monitor_id} call retries provisioning."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/uptime/monitors \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": 123,
+    "frequency": "5m",
+    "active_window": {
+      "days": [
+        "monday"
+      ],
+      "start_time": "<string>",
+      "end_time": "<string>",
+      "timezone": "<string>"
+    },
+    "checks": [
+      {}
+    ],
+    "notifications": {},
+    "enabled": true,
+    "start_at": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "provisioned": true
+}
+```
+
+{/* END GENERATED */}

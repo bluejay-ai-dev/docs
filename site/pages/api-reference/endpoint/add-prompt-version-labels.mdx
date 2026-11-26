@@ -1,0 +1,62 @@
+---
+title: "POST /v1/agents/{agent_id}/versions/{version}/labels"
+description: "Add labels to an agent version."
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/versions/{version}/labels"
+playground: "none"
+---
+
+Adds labels to one agent version.
+
+`POST /v1/agents/{agent_id}/prompts/versions/{version}/labels` is the deprecated path of this endpoint.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the versions: its Bluejay agent id, from GET /v1/all-agents."}, {"name": "version", "type": "integer", "required": true, "description": "The version's number: the version field from GET /v1/agents/{agent_id}/versions or POST /v1/agents/{agent_id}/versions."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "labels", "type": "string[] or null", "required": false, "description": "Labels to add or remove, e.g. ['production'] or ['staging'], matched to existing labels ignoring case. Adding ignores latest, which is managed automatically, and an empty list adds nothing. Removing never detaches production (move it to another version instead) or latest from the newest version, and an empty list removes every other label."}, {"name": "override_label", "type": "boolean or null", "required": false, "description": "When adding: true moves a label that already sits on another version of this agent onto this one, which is how a version is promoted to production; false fails on such a conflict with 409. Ignored when removing.", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "labels", "type": "string[]", "required": false, "description": "Every label on this version, e.g. latest and production."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/versions/{version}/labels \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "labels": [
+      "<string>"
+    ],
+    "override_label": false
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "labels": [
+    "<string>"
+  ]
+}
+```
+
+{/* END GENERATED */}

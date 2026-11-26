@@ -59,6 +59,7 @@ export const HomeLinks = () => {
     ["Monitor", "/monitor/logs", "list", "Find the production conversations where your agent failed, and see why."],
     ["Improve", "/improve/bluejay-ai", null, "Ask Bluejay AI why calls fail and what to fix first."],
     ["Cookbook", "/cookbook/ab-test-agents", "book-open", "Step-by-step recipes for common jobs."],
+    ["SDK", "/sdk/overview", "code", "Trace a call and write each utterance. Bluejay builds the conversation."],
     ["Developers guide", "/api-reference/introduction", "code", "API, MCP server, webhooks, and Bluejay as Code."],
     ["Integrations", "/integrations/phone-number", "plug", "Connect your agent's voice, text, or email platform."],
   ];

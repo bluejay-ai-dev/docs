@@ -1,0 +1,60 @@
+---
+title: "POST /v1/custom-background-noises/upload-url"
+description: "Get an upload URL for a background noise."
+api: "POST https://api.getbluejay.ai/v1/custom-background-noises/upload-url"
+playground: "none"
+---
+
+Returns `upload_url`, `content_type` and `storage_path`.
+
+1. Send the file bytes to `upload_url` with HTTP PUT and a `Content-Type` header set to `content_type`.
+2. Send `storage_path` to [Create Custom Background Noise](/api-reference/endpoint/create-custom-background-noise).
+
+The file name must end in `.mp3` or `.wav`. Other types return 400.
+
+Rate limit: 30 requests per minute.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "filename", "type": "string", "required": true, "description": "Name of the audio file you are about to upload, ending in .mp3 or .wav (other formats are rejected). Only its last path segment is kept, with unsafe characters replaced."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "upload_url", "type": "string or null", "required": false, "description": "One-time signed URL; HTTP PUT the raw audio bytes to it with the content_type below."}, {"name": "content_type", "type": "string or null", "required": false, "description": "The Content-Type header the PUT must send (audio/mpeg or audio/wav)."}, {"name": "storage_path", "type": "string or null", "required": false, "description": "Where the file will live once uploaded. Pass it to POST /v1/custom-background-noises to add the file to the library."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/custom-background-noises/upload-url \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "filename": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "upload_url": "<string>",
+  "content_type": "<string>",
+  "storage_path": "<string>"
+}
+```
+
+{/* END GENERATED */}

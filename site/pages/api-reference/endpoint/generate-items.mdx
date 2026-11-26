@@ -1,0 +1,87 @@
+---
+title: "POST /v1/datasets/{dataset_id}/generate"
+description: "Generate Items"
+api: "POST https://api.getbluejay.ai/v1/datasets/{dataset_id}/generate"
+playground: "none"
+---
+
+Queue writing draft items from a brief. The speech worker writes them and creates the personas they need, one persona per speaker in each conversation.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "dataset_id", "type": "string (uuid)", "required": true, "description": "The dataset's id, from GET /v1/datasets."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "description", "type": "string", "required": true, "description": "What the conversations are about."}, {"name": "count", "type": "integer", "required": true, "description": "Items to write."}, {"name": "length_minutes", "type": "object", "required": true, "description": "", "children": [{"name": "min", "type": "number", "required": true, "description": ""}, {"name": "max", "type": "number", "required": true, "description": ""}]}, {"name": "language", "type": "string", "required": false, "description": "Language of the scripts and of created personas.", "default": "en"}, {"name": "speakers", "type": "object[]", "required": false, "description": "Optional roles; empty lets generation choose who talks.", "children": [{"name": "role", "type": "string", "required": true, "description": "A speaker every conversation has, e.g. 'customer'."}, {"name": "persona_id", "type": "string (uuid) or null", "required": false, "description": "An existing persona to always use for this role; null lets generation create the people for it."}]}, {"name": "environments", "type": "object[]", "required": false, "description": "Weighted environment mix; empty means no environment.", "children": [{"name": "weight", "type": "integer", "required": true, "description": "Relative share of items in this environment."}, {"name": "environment", "type": "object or null", "required": false, "description": "", "children": [{"name": "background", "type": "string or null", "required": false, "description": "A background noise preset; overrides every persona's.", "values": ["airport", "babble_crowd", "babble_light", "birdsong", "bus_ride", "bus_station", "cafe", "cafeteria", "car_interior", "city_night", "city_traffic", "construction", "driving", "factory", "hospital", "hotel_lobby", "hotel_restaurant", "keyboard_typing", "kitchen", "light_rain", "living_room", "meeting_room", "night_insects", "noisy_restaurant", "office", "office_open_plan", "park", "playground", "pub", "quiet_home", "rain", "restaurant", "restaurant_busy", "restaurant_party", "road_traffic", "school", "shopping_centre", "small_office", "street", "subway_station", "subway_train", "supermarket", "talking", "thunderstorm", "town_square", "traffic", "train_station", "truck_cab", "tv", "urban", "urban_park", "wind"]}, {"name": "level", "type": "string or null", "required": false, "description": "How loud the background plays; required with background.", "values": ["quiet", "moderate", "loud"]}, {"name": "device", "type": "string or null", "required": false, "description": "Recording device; overrides every persona's line quality.", "values": ["close_mic", "laptop", "phone_line", "far_field"]}]}]}, {"name": "use_vocabulary", "type": "boolean", "required": false, "description": "", "default": true}, {"name": "build_audio", "type": "boolean", "required": false, "description": "Queue each item's audio as soon as its script is written.", "default": false}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid)", "required": true, "description": ""}, {"name": "status", "type": "string", "required": true, "description": "", "values": ["queued", "running", "done", "failed"]}, {"name": "count", "type": "integer", "required": true, "description": "Items requested."}, {"name": "items_written", "type": "integer", "required": true, "description": ""}, {"name": "items_failed", "type": "integer", "required": true, "description": ""}, {"name": "error", "type": "string or null", "required": false, "description": ""}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": ""}, {"name": "started_at", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "finished_at", "type": "string (date-time) or null", "required": false, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `201` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/datasets/{dataset_id}/generate \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "description": "<string>",
+    "count": 123,
+    "length_minutes": {
+      "min": 1.5,
+      "max": 1.5
+    },
+    "language": "en",
+    "speakers": [
+      {
+        "role": "<string>",
+        "persona_id": "41831d80-8f04-52b9-b596-5502fa146b4a"
+      }
+    ],
+    "environments": [
+      {
+        "weight": 123,
+        "environment": {
+          "background": "airport",
+          "level": "quiet",
+          "device": "close_mic"
+        }
+      }
+    ],
+    "use_vocabulary": true,
+    "build_audio": false
+  }'
+```
+
+## Example response
+
+```json 201
+{
+  "id": "b3addeb0-34bb-57fa-8c77-28d483328041",
+  "status": "queued",
+  "count": 123,
+  "items_written": 123,
+  "items_failed": 123,
+  "error": "<string>",
+  "created_at": "2026-01-01T00:00:00Z",
+  "started_at": "2026-01-01T00:00:00Z",
+  "finished_at": "2026-01-01T00:00:00Z"
+}
+```
+
+{/* END GENERATED */}

@@ -1,0 +1,110 @@
+---
+title: "PUT /v1/update-alert/{alert_id}"
+description: "Update an alert."
+api: "PUT https://api.getbluejay.ai/v1/update-alert/{alert_id}"
+playground: "none"
+---
+
+Updates an alert. A field you do not send does not change. Send `simulation_id` as `null` to apply the alert to all simulations of the agent.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "alert_id", "type": "string (uuid)", "required": true, "description": "The alert to change: its id, from GET /v1/alerts or POST /v1/create-alert."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "sample_size", "type": "integer or null", "required": false, "description": "Evaluate over the most recent N conversations instead of a time window (minimum 30). NULL keeps the time-window behavior; the alert never fires with fewer than N conversations."}, {"name": "name", "type": "string or null", "required": false, "description": "New name. Omit to keep the current one."}, {"name": "description", "type": "string or null", "required": false, "description": "New free-text note. Omit to keep it; null removes it."}, {"name": "is_enabled", "type": "boolean or null", "required": false, "description": "false pauses the alert, true resumes it. Omit to leave it as is."}, {"name": "entity_type", "type": "string or null", "required": false, "description": "What the alert watches: custom_metric (one of your custom metrics), standard_metric (a built-in metric), custom_goal, metadata_field (a conversation metadata key), system_failure (simulation conversations ending in a given status) or issue (calls that hit an issue, observability only). Decides what entity_field holds. Omit to keep the current one.", "values": ["standard_metric", "custom_goal", "custom_metric", "metadata_field", "system_failure", "issue"]}, {"name": "entity_field", "type": "string or null", "required": false, "description": "The exact thing watched, per entity_type: custom_metric takes the custom metric's UUID (from GET /v1/custom-metrics); standard_metric the built-in metric's UUID; metadata_field the metadata key as a dot path with no \"metadata:\" prefix; system_failure \"status:<bucket>\", the conversation status to count; issue \"any\" for every issue, or one issue's UUID (from GET /v1/observability/issues). An issue alert's value is how many of those issues the call hit, so operator greater_than with comparison_value \"0\" fires on any issue. Omit to keep the current one."}, {"name": "operator", "type": "string or null", "required": false, "description": "How each conversation's value is compared with comparison_value: equals, not_equals, greater_than, less_than, greater_than_or_equal, less_than_or_equal, contains or not_contains. Omit to keep the current one.", "values": ["equals", "not_equals", "greater_than", "less_than", "greater_than_or_equal", "less_than_or_equal", "contains", "not_contains"]}, {"name": "comparison_value", "type": "string or null", "required": false, "description": "The threshold to compare against, always as a string, e.g. \"0.8\", \"true\" or \"billing\". Omit to keep the current one."}, {"name": "notification_channels", "type": "object[] or null", "required": false, "description": "Where to send notifications when the alert fires, as a list of {\"type\", \"target\"}. type is email, slack, webhook, pagerduty, betterstack or incidentio; target is the email address, Slack channel, webhook URL or PagerDuty routing key, and is ignored for betterstack and incidentio, which use the organization's saved credentials. Replaces the whole stored list; [] stops all notifications. Omit to keep it.", "children": [{"name": "type", "type": "string", "required": true, "description": "Type of notification: 'email', 'slack', 'webhook', 'pagerduty', 'betterstack', or 'incidentio'"}, {"name": "target", "type": "string", "required": true, "description": "Target for the notification (email address, slack channel, webhook URL, or PagerDuty routing key; ignored for betterstack and incidentio, which use the org's saved credentials)"}]}, {"name": "applies_to_all_agents", "type": "boolean or null", "required": false, "description": "true watches every agent; false limits the alert to agent_ids (or its existing agents). Omit to keep it."}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "Bluejay agent ids (from GET /v1/all-agents) the alert is limited to. Required when applies_to_all_agents is false. Replaces the alert's agent list. Omit to keep it."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "Limit a simulation alert to one simulation (id from GET /v2/simulations). Only valid when source_scope is simulation. Omit to keep it; null makes the alert watch all simulations of its agents again."}, {"name": "evaluation_scope", "type": "string or null", "required": false, "description": "How a simulation alert is evaluated; per_simulation_run (judge each completed run) is the supported value. Omit to keep it.", "values": ["per_test_result", "per_simulation_run", "per_simulation_run_window"]}, {"name": "aggregation", "type": "string or null", "required": false, "description": "How a simulation alert combines the conversation values in a run into one value: none, avg, max, min or count. Omit to keep it.", "values": ["none", "avg", "max", "min", "count"]}, {"name": "threshold_time_interval", "type": "integer or null", "required": false, "description": "The window the alert is judged over. For observability or all alerts, seconds of recent conversations; for simulation alerts, the number K of recent completed runs, and it fires when all K met the condition. Omit to keep it."}, {"name": "min_events", "type": "integer or null", "required": false, "description": "For observability or all alerts, how many conversations matching the condition within the window trip the alert: a count, or a percent of the window's conversations when min_events_type is percentage. Ignored (stored as null) for simulation alerts. Omit to keep it."}, {"name": "min_events_type", "type": "string or null", "required": false, "description": "Whether min_events is a count of events (events) or a percent of conversations, 0 to 100 (percentage). Omit to keep it.", "values": ["events", "percentage"]}, {"name": "source_scope", "type": "string or null", "required": false, "description": "Which conversations fire the alert: observability (live calls sent to Bluejay), simulation (simulation runs) or all (both). Omit to keep it.", "values": ["all", "observability", "simulation"]}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The alert's id; pass it as alert_id to PUT /v1/update-alert/{alert_id}, DELETE /v1/alert/{alert_id} or GET /v1/alerts/{alert_id}/results."}, {"name": "name", "type": "string", "required": true, "description": "The alert's name."}, {"name": "description", "type": "string or null", "required": false, "description": "Free-text note about the alert."}, {"name": "is_enabled", "type": "boolean", "required": true, "description": "Whether the alert is evaluated; false means paused."}, {"name": "organization_id", "type": "string", "required": true, "description": "Organization that owns the alert."}, {"name": "entity_type", "type": "string", "required": true, "description": "What the alert watches: custom_metric, standard_metric, custom_goal, metadata_field, system_failure or issue.", "values": ["standard_metric", "custom_goal", "custom_metric", "metadata_field", "system_failure", "issue"]}, {"name": "entity_field", "type": "string", "required": true, "description": "The watched metric UUID, metadata key, status bucket, or issue UUID (\"any\" for every issue), per entity_type."}, {"name": "operator", "type": "string", "required": true, "description": "How each value is compared with comparison_value.", "values": ["equals", "not_equals", "greater_than", "less_than", "greater_than_or_equal", "less_than_or_equal", "contains", "not_contains"]}, {"name": "comparison_value", "type": "string", "required": true, "description": "The threshold value, as a string."}, {"name": "notification_channels", "type": "any[]", "required": true, "description": "Where notifications go, as a list of {type, target}: type is email, slack, webhook, pagerduty, betterstack or incidentio; target is the email address, Slack channel, webhook URL or PagerDuty routing key."}, {"name": "last_triggered_at", "type": "string (date-time) or null", "required": false, "description": "ISO 8601 time the alert last fired; null if never."}, {"name": "trigger_count", "type": "integer", "required": true, "description": "How many times the alert has fired."}, {"name": "created_by", "type": "string or null", "required": false, "description": "User id of the creator."}, {"name": "applies_to_all_agents", "type": "boolean", "required": true, "description": "True when the alert watches every agent; false limits it to agents."}, {"name": "agents", "type": "integer[] or null", "required": false, "description": "Agent ids the alert is limited to; null when applies_to_all_agents is true."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "Simulation a simulation alert is limited to; null for all simulations."}, {"name": "evaluation_scope", "type": "string or null", "required": false, "description": "How a simulation alert is evaluated; per_simulation_run is the supported value."}, {"name": "aggregation", "type": "string or null", "required": false, "description": "How a simulation alert combines a run's conversation values: none, avg, max, min or count."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "ISO 8601 creation time."}, {"name": "updated_at", "type": "string (date-time) or null", "required": false, "description": "ISO 8601 time of the last change."}, {"name": "updated_by", "type": "string or null", "required": false, "description": "User id of the last editor."}, {"name": "threshold_time_interval", "type": "integer or null", "required": true, "description": "Window the alert is judged over: seconds for observability/all alerts, number of recent completed runs for simulation alerts."}, {"name": "min_events", "type": "integer or null", "required": true, "description": "Matching events needed in the window to fire (count or percent, per min_events_type); null for simulation alerts."}, {"name": "min_events_type", "type": "string", "required": false, "description": "events (min_events is a count) or percentage.", "default": "events"}, {"name": "in_alert", "type": "boolean", "required": true, "description": "Whether the alert is currently firing."}, {"name": "source_scope", "type": "string", "required": false, "description": "Which conversations fire it: all, observability or simulation.", "default": "all"}, {"name": "simulation_name", "type": "string or null", "required": false, "description": "Name of simulation_id's simulation, if set."}, {"name": "sample_size", "type": "integer or null", "required": false, "description": "Evaluated over the most recent N conversations instead of a time window; null uses the window."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/update-alert/{alert_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "sample_size": 123,
+    "name": "<string>",
+    "description": "<string>",
+    "is_enabled": true,
+    "entity_type": "standard_metric",
+    "entity_field": "<string>",
+    "operator": "equals",
+    "comparison_value": "<string>",
+    "notification_channels": [
+      {
+        "type": "<string>",
+        "target": "<string>"
+      }
+    ],
+    "applies_to_all_agents": true,
+    "agent_ids": [
+      123
+    ],
+    "simulation_id": 123,
+    "evaluation_scope": "per_test_result",
+    "aggregation": "none",
+    "threshold_time_interval": 123,
+    "min_events": 123,
+    "min_events_type": "events",
+    "source_scope": "all"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "name": "<string>",
+  "description": "<string>",
+  "is_enabled": true,
+  "organization_id": "<string>",
+  "entity_type": "standard_metric",
+  "entity_field": "<string>",
+  "operator": "equals",
+  "comparison_value": "<string>",
+  "notification_channels": [
+    null
+  ],
+  "last_triggered_at": "2026-01-01T00:00:00Z",
+  "trigger_count": 123,
+  "created_by": "<string>",
+  "applies_to_all_agents": true,
+  "agents": [
+    123
+  ],
+  "simulation_id": 123,
+  "evaluation_scope": "<string>",
+  "aggregation": "<string>",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "updated_by": "<string>",
+  "threshold_time_interval": 123,
+  "min_events": 123,
+  "min_events_type": "events",
+  "in_alert": true,
+  "source_scope": "all",
+  "simulation_name": "<string>",
+  "sample_size": 123
+}
+```
+
+{/* END GENERATED */}

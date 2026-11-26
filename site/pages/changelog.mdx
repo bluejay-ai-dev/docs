@@ -1,0 +1,2164 @@
+---
+title: "Changelog"
+description: "See what is new in Bluejay."
+---
+
+<ChangelogFilters tags={["New","Improvement","Integration","Simulations","API","Observability","Metrics","Platform","Digital Humans","Docs","Dashboard","Alerts","Workflows"]} />
+
+<Columns cols={1}>
+
+## Hang up on transfer is on by default
+
+  <Columns cols={1}>
+
+**November 19th, 2026**
+
+*Improvement* *API* *Simulations*
+
+</Columns>
+
+  New simulations now hang up when the agent transfers the call, so a Digital Human never reaches your live team by accident. This applies to simulations created in the app, through Create Simulation and through Bluejay as Code. Pass `hangup_on_transfer: false` to let transfers through. Existing simulations keep their setting.
+
+  [Create Simulation](/api-reference/endpoint/create-simulation)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Human tags
+
+  <Columns cols={1}>
+
+**November 4th, 2026**
+
+*Improvement* *API* *Digital Humans*
+
+</Columns>
+
+  The `tag` query parameter on `GET /v1/digital-humans` and the `tag` field on Create and Update Digital Human are deprecated. They stop working November 11, 2026. Use `tags` instead. A request that still uses `tag` returns a `warning` field in the response.
+
+  The `tags` filter ignores case and accepts several tags. Repeat the parameter, as in `?tags=a&tags=b`, or pass a JSON list. A Digital Human must have every tag you list.
+
+  The `tag` field on Digital Human responses stays for now.
+
+  [List Digital Humans](/api-reference/endpoint/get-all-digital-humans) · [Create Digital Human](/api-reference/endpoint/create-digital-human) · [Update Digital Human](/api-reference/endpoint/update-digital-human)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Agent variables
+
+  <Columns cols={1}>
+
+**November 3rd, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Set values once on an agent in **Agent Variables** on the **Simulation Settings** tab, and every Digital Human of that agent uses them on its next run. A Digital Human's trait with the same name overrides an agent variable. Write `{{name}}` in success criteria, intent, description, or personality, and Bluejay fills in the value before the Digital Human and the grader see it, for voice and text.
+
+  Synced Retell conversation flow and ElevenLabs agents fill their agent variables from the provider's default dynamic variables when they have none yet.
+
+  [Agent variables](/test/simulations/digital-humans#agent-variables) · [Update Agent](/api-reference/endpoint/update-agent)
+
+</Columns>
+
+<Columns cols={1}>
+
+## incident.io paging
+
+  <Columns cols={1}>
+
+**November 3rd, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Alerts and uptime monitors can now page through incident.io. Create an HTTP alert source in incident.io, paste its source ID and token under Settings → Integrations, then switch on incident.io Notifications on any alert or monitor. DOWN fires an alert and recovery resolves it.
+
+  [incident.io setup](/monitor/alerts#connect-a-channel)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Personas
+
+  <Columns cols={1}>
+
+**November 2nd, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  A Digital Human is one test case, and personas are who calls. Give a Digital Human several personas and it runs once as each, so one test covers every kind of caller. Edit a persona once and every Digital Human that runs as it uses the change.
+
+  Personalities are now personas. A simulation that had Personalities selected has those personas on each of its Digital Humans. The **Digital Humans** tab is now **Test Cases**, and uploading your own test cases is the quickest way to start.
+
+  [Digital Human Reference](/test/simulations/digital-humans) · [Personas](/test/simulations/digital-humans#personas) · [Upload CSV](/test/simulation-types/upload-digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Simulation plans
+
+  <Columns cols={1}>
+
+**November 2nd, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Say what to test, and Bluejay reads your agent, its calls and your existing tests, then writes a plan of test cases and the personas that call. Edit it by chat, comments or typing in place, compare versions, and generate the Digital Humans when it looks right.
+
+  [Create a Simulation](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Personas in the API, MCP and Bluejay as Code
+
+  <Columns cols={1}>
+
+**November 2nd, 2026**
+
+*New* *API*
+
+</Columns>
+
+  New `/v1/personas` endpoints and MCP tools. Digital Human create, update, bulk and generate take `persona_ids`, and reads return them. Bluejay as Code files carry a `personas` list.
+
+  **Removed:** `/v1/personalities` and the simulation personalities endpoints. Use personas on each Digital Human instead.
+
+  [Personas API](/api-reference/endpoint/list-personas) · [Update Digital Human](/api-reference/endpoint/update-digital-human) · [Bluejay as Code](/bluejay-as-code/overview#personas)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Bluejay as Code in YAML
+
+  <Columns cols={1}>
+
+**October 20th, 2026**
+
+*New* *API*
+
+</Columns>
+
+  Bluejay as Code now reads and writes YAML. Pull with `format=yaml` and push with `Content-Type: application/yaml`. System prompts and other long text come back as multi-line blocks, so a pull request shows a prompt change line by line.
+
+  **Deprecated:** JSON payloads, on November 20th, 2026.
+
+  [Bluejay as Code](/bluejay-as-code/overview) · [Move from JSON to YAML](/bluejay-as-code/overview#move-from-json-to-yaml)
+
+</Columns>
+
+<Columns cols={1}>
+
+## A new look for the docs
+
+  <Columns cols={1}>
+
+**October 20th, 2026**
+
+*New* *Docs*
+
+</Columns>
+
+  We rebuilt these docs to be shorter, clearer, and easier to get around. Every page now matches the product, related pages are merged into one place, and the new quickstart gets your agent tested in a few steps. Old links still work, so your bookmarks take you to the right page.
+
+  [Quickstart](/) · [Glossary](/glossary) · [MCP Server](/mcp/overview)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Itemized success criteria
+
+  <Columns cols={1}>
+
+**October 15th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Success criteria are bullets now. Each bullet is a workspace `success_criterion` metric. Bluejay grades each expected behavior met / not met, stores `success_score` as passed-count / `max_value`, keeps overall pass/fail at 100%, and reports `criteria_pass_rate` (0–100) on `/v2` retrieve.
+
+  `/v1` digital human get, create, update, generate, and retrieve stay a string and a boolean. There is no public `/v2` generate route yet.
+
+  [Success Criteria](/key-concepts/digital-humans/success-criteria) · [Retrieve Results v2](/api-reference/endpoint/retrieve-simulation-results-v2)
+
+</Columns>
+
+<Columns cols={1}>
+
+## API key on HTTP text messages
+
+  <Columns cols={1}>
+
+**September 29th, 2026**
+
+*Improvement* *API*
+
+</Columns>
+
+  `POST /v1/send-http-text-message` now requires your API key on every request. Send it as `X-API-Key` or `Authorization: Bearer` with each message and each tool-call log.
+
+  A request without a key returns 401. A key from another organization, or a key limited to a workspace that doesn't own the simulation, returns 404.
+
+  If your agent already sends the same key you use to queue the simulation, nothing changes.
+
+  [Send HTTP Text Message](/api-reference/endpoint/send-http-text-message) · [Chat testing](/integrations/http-webhooks)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Agent versions
+
+  <Columns cols={1}>
+
+**September 9th, 2026**
+
+*Improvement* *API*
+
+</Columns>
+
+  **New:** agent versions live at `/v1/agents/{id}/versions` (create, list, get, delete, promote, labels).
+
+  **Same as before:** `POST /v1/evaluate` and `/evaluate-call`. New optional integer `version`. `label` still works. Omit `version` and we use the version that currently has the `production` label. An unknown version uses the production version and returns a `warning`. An unknown label is created and attached to the production version.
+
+  **Deprecated:** `/v1/agents/{id}/prompts` paths still work. Get-by-label stays on `GET /prompts?label=` (no `/versions` twin).
+
+  **New:** create/queue simulation accepts `agent_version_id`.
+
+  **Deprecated:** `prompt_id` on create/queue simulation. Same uuid, still works. If both are sent and they differ, the request is 400.
+
+  [Evaluate](/api-reference/endpoint/evaluate) · [Create Agent Version](/api-reference/endpoint/create-prompt-version)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Better Stack paging
+
+  <Columns cols={1}>
+
+**September 1st, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Alerts and uptime monitors can now page through Better Stack alongside PagerDuty. Paste a Better Stack Uptime API token under Settings → Integrations, then switch on Better Stack Notifications on any alert or monitor. DOWN opens an incident and recovery resolves it, with nothing to configure on the Better Stack side.
+
+  [Better Stack and PagerDuty setup](/monitor/alerts#connect-a-channel)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Issues
+
+  <Columns cols={1}>
+
+**August 19th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  Production failures now group into Issues you can triage. Patterns appear once the same problem recurs across calls, with a title. Known errors (a tool 500, a tool that should have run but never did) appear as soon as they are recognized. Open Monitor → Issues for the full list, grouped by status. The list is not paginated.
+
+  [Issues](/monitor/issues) · [Monitor → Issues](/monitor/observability/issues) · [List Issues API](/api-reference/endpoint/list-issues)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Topics (early access)
+
+  <Columns cols={1}>
+
+**August 18th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  Bluejay now clusters what's happening across your production calls automatically. The **Topics** map is an interactive view of what your callers talked about: pan, zoom, search, and see trends against the prior window. Rolling out to select organizations first. Contact us for access.
+
+  [Logs](/monitor/logs)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Expanded language coverage
+
+  <Columns cols={1}>
+
+**August 18th, 2026**
+
+*Improvement* *Digital Humans*
+
+</Columns>
+
+  Digital Humans picked up a wave of new languages and dialects this summer: Urdu, Hebrew, Tagalog, Telugu, Tamil, Malayalam, Kannada, Marathi, and Gujarati, plus Egyptian and Levantine Arabic with native dialect voices. Vietnamese and Cantonese voice coverage was also filled out, and every non-English language received dialect-aware prompting for more authentic speech.
+
+  [Digital Humans overview](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Custom SIP headers
+
+  <Columns cols={1}>
+
+**August 11th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Simulations can now attach custom SIP headers to the calls they place. Headers configured on the agent are delivered on the SIP INVITE, so agents behind infrastructure that routes or authenticates on custom headers can be tested exactly as they run in production.
+
+  [SIP connections](/integrations/sip)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Custom metrics judged on call audio
+
+  <Columns cols={1}>
+
+**August 11th, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  Audio custom metrics are now judged natively on the call recording by an audio-capable model, with optional knowledge-base grounding. Tone, pacing, pronunciation, and other things a transcript can't capture are now first-class evaluation targets.
+
+  [Custom metrics overview](/test/metrics)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Outbound call-outcome metrics & spoken-phrase checks
+
+  <Columns cols={1}>
+
+**August 11th, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  Eight new library metrics for outbound calling: LLM-judged outcomes (human picked up, voicemail detected, transfer attempted, stuck call, abrupt termination, natural delivery) plus deterministic required-disclosure and prohibited-wording checks. Phrase metrics are authored by simply typing the words the agent must (or must not) say — Bluejay compiles the matching and absorbs ASR variance like punctuation and acronym spellings automatically.
+
+  [Metric types](/test/metrics)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Twilio account linking
+
+  <Columns cols={1}>
+
+**August 11th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Link your own Twilio account from Settings → Integrations, so simulations can dial using your Twilio numbers.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Pipecat improvements
+
+  <Columns cols={1}>
+
+**August 11th, 2026**
+
+*Improvement* *Integration*
+
+</Columns>
+
+  Bluejay's Pipecat Cloud integration now sends the run's metadata in the start-call body, so your Pipecat agent can identify and branch on the Bluejay test run that's calling it. Sessions also end cleanly when the agent hangs up or fails to start, instead of waiting for a timeout.
+
+  [Pipecat simulations](/integrations/pipecat)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Spend breakdown in credits
+
+  <Columns cols={1}>
+
+**August 11th, 2026**
+
+*Improvement* *Platform*
+
+</Columns>
+
+  The Spend page now breaks your usage down per product, denominated in credits, and the usage page breaks credit consumption down by agent and by individual simulation — including observability-only agents.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Bland integration
+
+  <Columns cols={1}>
+
+**August 4th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Bland is now a fully supported provider. Connect from Create Agent with inline API key setup, pick a Conversational Pathway, and pull, edit, push, and publish pathway versions from an interactive canvas inside Bluejay. Simulations run over Bland's native voice bridge (with PSTN dialing also supported) and record the exact path each call took through the pathway graph, and Bland production calls can be ingested into observability.
+
+  [Bland Observability](/integrations/bland) · [Bland Simulations](/simulation-integrations/bland)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Natural-language log filtering
+
+  <Columns cols={1}>
+
+**August 4th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  Filter your call logs by just typing. Plain-English queries are translated into structured log filters automatically, on top of the freeform full-text search over call summaries that shipped earlier in July.
+
+  [Logs](/monitor/logs)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Knowledge bases: URL & HTML ingestion
+
+  <Columns cols={1}>
+
+**August 4th, 2026**
+
+*Improvement* *Platform*
+
+</Columns>
+
+  Knowledge bases now accept web pages directly by URL — Bluejay crawls and ingests the page server-side — as well as uploaded HTML files, alongside the existing document upload flow.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Amelia integration
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Test Amelia agents on Bluejay over both chat and voice. Enter your Amelia credentials in Settings → Integrations, pick a domain and flow, and sync agents into Bluejay. You can view and edit the agent's flow on an interactive canvas and push changes back to Amelia.
+
+  [Amelia integration](/integrations/amelia)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Deep Reports
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  Agent-generated, verified reports built from your simulation and observability data. A report studio lets you edit the report through chat on a Bluejay-native canvas, schedule recurring sends, and email the result — with PDF export for run comparisons.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Dashboard widgets: histograms, filters, and 32 new metrics
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Dashboard*
+
+</Columns>
+
+  A major dashboard upgrade: a histogram widget for numeric metric distributions, 32 newly graphable metrics in the widget dialogs, distribution aggregation for integer-scale custom metrics, per-widget conversation filters, metadata Group By, and click-a-threshold-bar to filter the explorer to that group. The Logs page also gained a Table | Chart toggle to chart whatever view you've filtered to.
+
+  [Dashboards](/monitor/dashboards)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Answer Latency
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  Every simulated call now measures how long the agent took to answer, across all transports. Answer Latency shows up in the conversation Evals tab and as a sortable column in simulation run results, so slow pickup is a trackable signal.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Human review overrides
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  Reviewers can override an automated metric verdict by hand. The human correction is stored alongside the original AI grade — both are preserved — and corrected values show up everywhere: tables, aggregates, and reports.
+
+  [Custom metrics overview](/test/metrics)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Bluejay in Slack
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Ask Bluejay about your agents, simulations, and production conversations directly from Slack. The per-org Slack bot supports threaded follow-ups without re-tagging, works in externally shared channels, and performs write actions safely via one-click approval messages.
+
+  [Bluejay in Slack](/improve/slack)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Outbound trigger webhook
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  For agents that dial out from your own system, configure a trigger webhook in agent settings: Bluejay calls it to tell your infrastructure to place the call (or send the SMS) to the Digital Human. Works with any provider, so outbound agents are testable without Bluejay controlling the dialer.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Extension dialing (DTMF)
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Digital Humans can now dial a configured extension as DTMF tones after connecting, so agents behind IVR menus and extension routing can be tested end to end. Extensions can be set per Digital Human (including in bulk) and on red-team launches.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Google Cloud: selective sync & keyless setup
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*Improvement* *Integration*
+
+</Columns>
+
+  Choose exactly which Google Conversational Agents to sync (or toggle sync-all), and connect your Google Cloud project without service-account keys using least-privilege Workload Identity Federation, configured from the settings UI with a paste-and-run Cloud Shell flow.
+
+  [Keyless Google Cloud setup](/integrations/google-dfcx#keyless-setup)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Grounded, customizable judging
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*Improvement* *Metrics*
+
+</Columns>
+
+  LLM-judge custom metrics can now ground their evaluation in your knowledge base, so factual-accuracy metrics grade against your actual documentation. Standard hallucination and redundancy metrics accept per-org prompt overrides and are editable like custom metrics, and new default eval models improve text and audio judging quality.
+
+  [Prompting guide](/test/metrics/llm-as-a-judge#prompting-guide)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Human management upgrades
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*Improvement* *Digital Humans*
+
+</Columns>
+
+  A table view of Digital Humans with inline per-field editing, per-Digital-Human run history pages, duplicate-to-a-target-count, and two new generation sources: build Digital Humans from your knowledge base's topics, or derive traits from your agent's template variables so provider call variables are filled with each persona's data.
+
+  [Digital Humans overview](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Trace view v2 with token costs
+
+  <Columns cols={1}>
+
+**July 28th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  A redesigned trace experience: per-leg latency dashboards, a rebuilt trace side panel with a standalone full view, and trace export alongside simulation results. Model spans now show token usage (input/cached/output, text/audio splits) with estimated cost per model and trace-level totals. ElevenLabs agent traces are ingested via OpenTelemetry, so their tool calls and spans appear like any other provider's.
+
+  [Traces](/monitor/traces)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Self-serve signup
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*New* *Platform*
+
+</Columns>
+
+  Bluejay is open to self-serve signups. Sign up with email verification, land in a redesigned onboarding flow with Bluejay AI as your first experience, and start testing immediately against seeded sample agents — including read-only "Bug Bounty" challenge agents built to be probed.
+
+  [Quickstart](/)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Metrics Library
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  An app-store-style library at /metrics: browse standard and community-published metric templates, preview them, rate them, and add them to your org in one click. You can publish your own metrics to the library through a review queue, and My Metrics was restructured to match.
+
+  [Custom metrics overview](/test/metrics)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Red teaming revamp
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  A rebuilt red-team experience: a dedicated launch flow and results page with an OWASP/ATLAS-mapped scorecard and leak table, opt-in content-safety attacks as a distinct attack category, audio-native attacker behaviors, keypad (DTMF) attacks, and extension support for targets behind IVRs.
+
+  [Red teaming](/test/red-teaming/overview) · [Content safety](/test/red-teaming/overview)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Import workflow diagrams & IVR test plans
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Drop a workflow diagram (for example an IVR flowchart image) into Bluejay AI and it becomes an editable Agent Workflow with a generated checklist-style test plan covering the flow's paths. Step-based IVR test-plan exports import too: Bluejay turns them into transcript-replay Digital Humans, so existing IVR test scripts become runnable simulations.
+
+  [Agent workflows](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Audio Clarity Score
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  A single 0–100 audio clarity score on every call, replacing the earlier burst-SNR approach. The agent channel is scored for intelligibility and the caller channel with DNSMOS, calibrated against a human-labeled gold set, so brief bad stretches aren't averaged away.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Multimodal journeys & follow-up SMS
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Customer journeys can now mix voice and SMS — for example an SMS leg that ends when the call leg starts — with per-step success criteria and transition guards. Follow-up SMS gets full configuration: call association, a sender allowlist on the Phone Numbers page, and a per-simulation SMS inactivity timeout.
+
+  [Customer journeys](/test/simulation-types/customer-journeys) · [Follow-up SMS](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Smarter call endings
+
+  <Columns cols={1}>
+
+**July 21st, 2026**
+
+*Improvement* *Simulations*
+
+</Columns>
+
+  Whether a simulated call should end is now decided by a consensus of judges, with a transfer-intent classifier gating hangups on transfer — so Digital Humans stop hanging up prematurely on ambiguous turns. Chat simulations gained the same discipline: conversations no longer end while the agent's question is still pending.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Pay-as-you-go, auto-reload & plan limits
+
+  <Columns cols={1}>
+
+**July 14th, 2026**
+
+*New* *Platform*
+
+</Columns>
+
+  New orgs are provisioned straight onto pay-as-you-go with billing attached at signup, with an optional automatic credit top-up and a wallet-balance view. The billing tab was redesigned with new plan cards, credit codes are redeemable, plan switches reuse your saved card, and unused base allotment rolls over as credit. Plan entitlements — phone number counts, simulation concurrency, data retention — are now enforced in real time.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Unified knowledge bases (RAG)
+
+  <Columns cols={1}>
+
+**July 14th, 2026**
+
+*New* *Platform*
+
+</Columns>
+
+  Knowledge bases became a full retrieval feature: upload documents, watch ingestion status, and attach knowledge bases to agents. Knowledge you upload once now grounds digital-human behavior, chat simulations, and metric judging consistently everywhere.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Phone number management
+
+  <Columns cols={1}>
+
+**July 14th, 2026**
+
+*Improvement* *Platform*
+
+</Columns>
+
+  Buy phone numbers in bulk in a single purchase, with limits driven by your plan instead of a hardcoded cap, and a per-number SMS Enabled indicator so you know which numbers can run SMS tests.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Uptime Monitoring
+
+  <Columns cols={1}>
+
+**July 7th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  Continuous health checks for production agents: Bluejay periodically places real calls (or SMS/webchat sessions) against your agent, detects incidents, and alerts on failures — Slack with optional @channel, a configurable consecutive-failure threshold, and latency tracking with 7-day aggregates. Health checks can run full conversations with your own Digital Human, grade with your custom metrics, respect day/hour active windows, and be paused and resumed.
+
+  [Uptime monitoring](/monitor/uptime/overview)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Voice Agent Audit
+
+  <Columns cols={1}>
+
+**July 7th, 2026**
+
+*New* *Platform*
+
+</Columns>
+
+  A free public audit: enter your agent's phone number on the landing page and Bluejay runs ~20 tailored test calls with custom metrics and audio-quality checks, then emails you an exec-readable PDF report of the findings.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Custom telephony connections
+
+  <Columns cols={1}>
+
+**July 7th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  For orgs with their own telephony: Bluejay can call a webhook you host at dial time to fetch a per-call SIP endpoint (dynamic routing, ephemeral endpoints), LiveKit agents can authenticate via API key or a token webhook, and outbound simulations can admit authenticated inbound SIP — so setups where your infrastructure originates or routes the call are fully testable.
+
+  [Dynamic SIP webhook](/integrations/sip#dynamic-sip-webhook)
+
+</Columns>
+
+<Columns cols={1}>
+
+## No-answer diagnostics
+
+  <Columns cols={1}>
+
+**July 7th, 2026**
+
+*Improvement* *Simulations*
+
+</Columns>
+
+  Calls your agent never answers are now diagnosable: no-answer results carry the recording and the caller-side transcript so you can hear exactly what happened, and dial timeouts are classified correctly instead of as generic failures.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Tool Call metric & tool adherence
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*New* *Metrics*
+
+</Columns>
+
+  A new tool_call metric type deterministically checks whether the agent called the right tools — pick tool names from a combobox, no LLM prompt needed. Tool adherence supports expected tool calls with parameter comparison and an order-enforcement toggle, and grading waits for the expected tools' traces to arrive before scoring.
+
+  [Tool calls](/test/metrics#tool-calls-events-and-metadata)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Vapi squads & Retell conversation flows
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Multi-assistant Vapi squads render as editable workflow canvases, Retell conversation flows get a dedicated editor, and auto-sync keeps Retell, Vapi, and ElevenLabs agents current — with an org-level toggle controlling re-sync before every simulation.
+
+  [Vapi simulations](/simulation-integrations/vapi) · [Retell integration](/integrations/retell)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Self-improve for Vapi agents
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*New* *Platform*
+
+</Columns>
+
+  Bluejay can close the test-fix-retest loop for Vapi agents: it analyzes failed results, proposes prompt improvements, applies them, and announces runs when they finish.
+
+  [Self-improve](/improve/self-improve)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Usage alerts
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*New* *Alerts*
+
+</Columns>
+
+  Get notified when your org crosses credit-usage thresholds, framed by credits remaining. Every org is seeded with default alerts at 80% and 100% of its allotment, with recipient selection including your whole team.
+
+  [Alerts overview](/monitor/alerts)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Voice scenes
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*New* *Digital Humans*
+
+</Columns>
+
+  Describe a voice as a scene — "tired commuter on a train" — and Bluejay generates a matching custom voice with bundled background ambience, giving Digital Humans situationally realistic audio.
+
+  [Digital Humans overview](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Cross-agent run comparison
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Compare simulation runs across different agents: stage runs into a comparison tray that persists as you browse, then open a side-by-side comparison — with PDF export and instant email send.
+
+  [Simulation runs](/test/simulations/create#read-the-results)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Simulation run controls
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*Improvement* *Simulations*
+
+</Columns>
+
+  Finer control over how simulations run: a delay-between-tests setting, concurrency capped to your phone-number pool and org ceiling, an org-level max call length with per-simulation override, a per-simulation inactivity timeout, and scheduling restricted to chosen days and hours.
+
+</Columns>
+
+<Columns cols={1}>
+
+## CHIRP playback acknowledgments
+
+  <Columns cols={1}>
+
+**June 30th, 2026**
+
+*Improvement* *Integration*
+
+</Columns>
+
+  The CHIRP websocket protocol gained a mark message: agents integrating over CHIRP receive playback acknowledgments confirming when queued audio has actually been played to the caller, enabling precise turn-taking and barge-in handling.
+
+  [Websocket connections](/integrations/websockets)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Google Dialogflow CX integration
+
+  <Columns cols={1}>
+
+**June 23rd, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Run simulations against Dialogflow CX agents end-to-end. Connect your Google Cloud project via Service Account key, point Bluejay at your CX agent, and Bluejay handles session orchestration, audio transport, and evaluation. Outbound dialing, per-agent CES region, and CX-specific dispatch are all supported.
+
+  [Dialogflow CX simulations](/integrations/google-dfcx)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Kore.ai integration
+
+  <Columns cols={1}>
+
+**June 23rd, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Bluejay now integrates with Kore.ai for both simulations and observability. Connect your Kore platform host, bot ID, and webhook app credentials on the agent's connection settings to start testing Kore-powered conversational agents.
+
+  [Kore.ai integration](/integrations/kore)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Retell outbound support
+
+  <Columns cols={1}>
+
+**June 16th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Retell-connected agents can now run as outbound. Bluejay auto-derives the agent's type (inbound vs. outbound) from your Retell bindings on sync, provisions always-on SIP for outbound Digital Humans, and preserves the synced phone number across connection saves. Outbound Digital Humans default to *not* speaking first.
+
+  [Retell integration](/integrations/retell)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Retell observability + simulations refresh
+
+  <Columns cols={1}>
+
+**June 16th, 2026**
+
+*Improvement* *Observability*
+
+</Columns>
+
+  We rewrote the Retell Observability page around the new UI flow and expanded the Retell Simulations guide with quick-sync steps, metrics coverage, and updated walkthroughs.
+
+  [Retell Observability](/integrations/retell) · [Retell Simulations](/simulation-integrations/retell)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Vapi simulations
+
+  <Columns cols={1}>
+
+**June 16th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Run simulations directly against Vapi assistants. Bluejay connects to your Vapi assistant, drives the conversation with a Digital Human, and evaluates the resulting transcript with your custom metrics.
+
+  [Vapi simulations](/simulation-integrations/vapi)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Audio quality metrics (Tyto risk score)
+
+  <Columns cols={1}>
+
+**June 9th, 2026**
+
+*New* *Observability*
+
+</Columns>
+
+  Call logs now include a Tyto **`risk_score`** as a headline audio-quality signal alongside latency and custom metrics. The score is plumbed end-to-end through the eval DTOs and aggregated on the call logs view so you can sort and filter production conversations by audio risk.
+
+  [Logs](/monitor/logs)
+
+</Columns>
+
+<Columns cols={1}>
+
+## PagerDuty alert channel
+
+  <Columns cols={1}>
+
+**June 9th, 2026**
+
+*New* *Alerts*
+
+</Columns>
+
+  Threshold alarms can now page on-call via PagerDuty Events API v2 in addition to Slack, email, and webhook. Connect your PagerDuty integration key on the notifications page and route specific alarms to PagerDuty for incident-grade escalation.
+
+  [Alerts overview](/monitor/alerts)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Percentage alarms + simulation alerts
+
+  <Columns cols={1}>
+
+**June 9th, 2026**
+
+*Improvement* *Alerts*
+
+</Columns>
+
+  Threshold alarms now support **percentage-based** thresholds (e.g. alert when goal success drops below 80% of calls) in addition to absolute values, and you can scope alarms to **simulation metrics** as well as observability. Percentage alarms gracefully recover when no agents have calls in the window.
+
+  [Alerts overview](/monitor/alerts)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Customer Journeys
+
+  <Columns cols={1}>
+
+**June 2nd, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Customer Journeys let you chain multiple simulated calls into a single multi-step scenario, with prior-call context (entities, knowledge, and state) carried across steps. Build journeys from the dashboard or define them in Bluejay-as-Code.
+
+  [Customer Journeys guide](/test/simulation-types/customer-journeys) · [Bluejay-as-Code](/bluejay-as-code/overview)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Voice cloning in simulations
+
+  <Columns cols={1}>
+
+**June 2nd, 2026**
+
+*New* *Digital Humans*
+
+</Columns>
+
+  Digital Humans can now speak with a cloned voice during simulations. Upload a voice sample on the Digital Human, and Bluejay will use that cloned voice for all simulation runs — useful for accent coverage, brand-voice testing, and replicating known caller profiles.
+
+  [Digital Humans overview](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Custom background noise
+
+  <Columns cols={1}>
+
+**June 2nd, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Upload your own background noise audio to play under simulation calls. Test how your agent handles call-center hum, traffic, household noise, or any acoustic environment you care about, instead of relying only on the built-in profiles.
+
+  [Simulations overview](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Bulk CSV upload for Digital Humans
+
+  <Columns cols={1}>
+
+**May 26th, 2026**
+
+*New* *Digital Humans*
+
+</Columns>
+
+  Create Digital Humans in bulk by uploading a CSV from the Digital Humans page. Each row maps to one Digital Human (persona, scenario, traits, and success criteria), so you can stand up large evaluation populations without scripting against the API.
+
+  [Digital Humans overview](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## New voice accents
+
+  <Columns cols={1}>
+
+**May 26th, 2026**
+
+*New* *Digital Humans*
+
+</Columns>
+
+  Expanded voice coverage for Digital Humans:
+
+  - **UK English** — Scottish, Irish, and Welsh accents
+  - **Korean** — new locale support
+
+  Voices resolve from atomic language, accent, and gender attributes, so existing agents pick up new options automatically.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Scenario Builder split from Workflows
+
+  <Columns cols={1}>
+
+**May 19th, 2026**
+
+*Improvement* *Docs*
+
+</Columns>
+
+  We split **Scenario Builder** (single-agent conversational scripts) from **Workflows** (multi-agent automation pipelines) across the docs and API reference. The Workflows API was renamed to the Scenario Builder API where it referred to single-agent scenarios; multi-agent workflow endpoints stay under Workflows.
+
+  [Scenario Builder overview](/test/simulation-types/scenario-adherence) · [Workflows overview](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Simulation Statuses reference
+
+  <Columns cols={1}>
+
+**May 19th, 2026**
+
+*New* *Docs*
+
+</Columns>
+
+  Added a dedicated **Simulation Statuses** reference page covering every terminal status, the error codes that map to each failure bucket, and what to do when a simulation lands in System Error. Useful when triaging failed runs or building dashboards on top of the API.
+
+  [Simulation statuses](/test/simulations/reference#call-statuses)
+
+</Columns>
+
+<Columns cols={1}>
+
+## DTMF tool for Digital Humans
+
+  <Columns cols={1}>
+
+**April 23rd, 2026**
+
+*New* *Digital Humans*
+
+</Columns>
+
+  Digital Humans can now be configured to send DTMF tones during a call via a new **`allow_dtmf_tool`** field, aligned with how **`allow_end_call_tool`** and **`allow_silence_tool`** are stored and returned. Create and bulk-create default to `allow_dtmf_tool: true` when omitted; updates treat the field as optional (omit to leave unchanged). OpenAPI schemas **`DigitalHumanRequestData`**, **`DigitalHumanResponseData`**, and **`UpdateDigitalHumanRequest`** include the new property.
+
+  [Create Digital Human](/api-reference/endpoint/create-digital-human) · [Update Digital Human](/api-reference/endpoint/update-digital-human)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Runs per Digital Human
+
+  <Columns cols={1}>
+
+**April 23rd, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Simulations now support executing multiple runs for each selected Digital Human in a single batch. Set **`runs_per_digital_human`** on the simulation (persisted in `simulations.settings`) to control the default, or pass an explicit per-run override when queuing a run. Values must be positive integers; when unset, each Digital Human runs once. The Bluejay dashboard exposes the new control on the simulation settings page and the "Create simulation" and "Create new run" dialogs.
+
+  [Simulations overview](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Human intelligence upgrade
+
+  <Columns cols={1}>
+
+**April 23rd, 2026**
+
+*Improvement* *Digital Humans*
+
+</Columns>
+
+  We upgraded the reasoning quality of Digital Humans during both simulations and observability replays. Expect more coherent multi-turn behavior, better adherence to persona and objectives, and steadier tool-use decisions across longer conversations. No configuration changes are required — the upgrade applies automatically to all Digital Humans.
+
+  [Digital Humans overview](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Scripted silence in workflows
+
+  <Columns cols={1}>
+
+**April 23rd, 2026**
+
+*Improvement* *Workflows*
+
+</Columns>
+
+  When a Digital Human is running in workflow mode, the silence tool now evaluates only at end-of-turn instead of firing from timeout-based checks mid-turn. This removes a class of false silence triggers on scripted workflow steps and keeps silence decisions aligned with the workflow's turn boundaries. Non-workflow Digital Humans are unchanged.
+
+  [Workflows overview](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Workflow latency fix
+
+  <Columns cols={1}>
+
+**April 23rd, 2026**
+
+*Improvement* *Workflows*
+
+</Columns>
+
+  Fixed a latency regression in workflow-mode conversations where session-handler state could delay turn transitions. Workflow runs now advance between agent and user turns without the extra wait, improving perceived responsiveness on branching paths.
+
+  [Workflows overview](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Human: silence tool fields
+
+  <Columns cols={1}>
+
+**April 14th, 2026**
+
+*Improvement* *API*
+
+</Columns>
+
+  Digital Human create, read, update, delete, and bulk APIs now expose **`allow_silence_tool`** and **`silence_tool_instructions`**, aligned with how **`allow_end_call_tool`** and **`hangup_instructions`** are stored and returned. Create and bulk-create default to `allow_silence_tool: false` and `silence_tool_instructions: "default"` when omitted; updates treat fields as optional (omit to leave unchanged). OpenAPI schemas **`DigitalHumanRequestData`**, **`DigitalHumanResponseData`**, and **`UpdateDigitalHumanRequest`** include the new properties.
+
+  [Create Digital Human](/api-reference/endpoint/create-digital-human) · [Update Digital Human](/api-reference/endpoint/update-digital-human)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Redesigned Workflows
+
+  <Columns cols={1}>
+
+**April 3rd, 2026**
+
+*Improvement* *API*
+
+</Columns>
+
+  Workflows are a structured way to test your agent along a conversation path.
+
+  - **Agent and user turns** — you define what the agent should say or do (so simulations can check it) and what the Digital Human says on each step.
+  - **Branching** — **options** nodes capture different things the caller might do next (speech, DTMF, silence).
+  - **Coverage** — each distinct path through the graph becomes its own Digital Human, so every branch gets exercised.
+  - **Docs** — cookbook and API reference refreshed; older workflow endpoints are under **Deprecated**.
+
+  [Create scenario](/api-reference/endpoint/create-scenario) · [Cookbook](/cookbook/scenario-builder)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Revamped documentation
+
+  <Columns cols={1}>
+
+**March 22nd, 2026**
+
+*Improvement* *Docs*
+
+</Columns>
+
+  We completely overhauled the Bluejay docs with improved navigation, expanded guides, and new content across the board. Highlights include:
+
+  - **Restructured navigation** with dedicated tabs for Documentation, API Reference, and Changelog
+  - **Expanded integration guides** covering all supported providers and simulation transports
+  - **Cookbook recipes** for common workflows like GitHub Actions CI, API-driven evaluations, and webhook setup
+
+  [Explore the docs](/)
+
+</Columns>
+
+<Columns cols={1}>
+
+## SMS simulation support
+
+  <Columns cols={1}>
+
+**March 20th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  Bluejay now supports SMS-based simulations, enabling you to test text-based agent flows end-to-end. Configure SMS simulations the same way you configure voice simulations — define Digital Humans, set up custom metrics, and run batch evaluations against your SMS agent.
+
+  SMS simulations support all existing integrations including telephony providers and HTTP webhooks.
+
+  [Read the docs](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Threshold alarms
+
+  <Columns cols={1}>
+
+**March 15th, 2026**
+
+*New* *Alerts*
+
+</Columns>
+
+  Set threshold-based alarms on any custom metric to get alerted when agent performance degrades. Define upper or lower bounds, choose your notification channel (Slack, email, or webhook), and Bluejay will trigger alerts automatically when production metrics cross your thresholds.
+
+  Alarms work across both observability and simulation metrics, so you can catch regressions in production and in testing.
+
+  [Read the docs](/monitor/alerts)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Faster call log evaluation
+
+  <Columns cols={1}>
+
+**March 14th, 2026**
+
+*Improvement* *Observability*
+
+</Columns>
+
+  We made significant performance improvements to the observability evaluation pipeline:
+
+  - **3x faster evaluation** for call logs with custom metrics
+  - **Parallel metric execution** — multiple custom metrics now evaluate concurrently instead of sequentially
+  - **Reduced API latency** for the `/evaluate` and `/re-evaluate` endpoints by approximately 40%
+
+  These improvements apply automatically to all existing observability configurations.
+
+  [Read the docs](/monitor/logs)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Miro integration for simulation visualization
+
+  <Columns cols={1}>
+
+**March 10th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  You can now connect Bluejay to Miro to automatically generate visual conversation flow diagrams from your simulation results. Each simulation run produces a Miro board showing the conversation tree, branching paths, and metric outcomes.
+
+  Connect your Miro workspace from the Integrations page in your Bluejay dashboard.
+
+  [Read the docs](/test/simulation-types/scenario-adherence#build-a-scenario)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Workflow scheduling improvements
+
+  <Columns cols={1}>
+
+**March 3rd, 2026**
+
+*Improvement* *Workflows*
+
+</Columns>
+
+  Workflows now support cron-based scheduling with finer granularity. You can schedule simulation runs and observability evaluations to execute at specific intervals — hourly, daily, or on a custom cron expression.
+
+  Additional improvements include:
+  - Retry logic for failed workflow steps
+  - Execution history with detailed step-level logs
+  - Webhook notifications on workflow completion or failure
+
+  [Read the docs](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Community-based simulation runs
+
+  <Columns cols={1}>
+
+**February 24th, 2026**
+
+*New* *Simulations*
+
+</Columns>
+
+  You can now run simulations against an entire community of Digital Humans in a single batch. Previously, simulations ran against individual Digital Humans or manually selected groups. Community-based runs let you test your agent against a diverse, pre-configured population in one click.
+
+  Combine communities with custom metrics to get aggregate performance scores across demographic segments, persona types, or behavioral profiles.
+
+  [Read the docs](/test/simulations/digital-humans#communities)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Custom metric formulas
+
+  <Columns cols={1}>
+
+**February 17th, 2026**
+
+*Improvement* *Metrics*
+
+</Columns>
+
+  Custom metrics now support formula-based definitions in addition to LLM-as-a-Judges. Define metrics using arithmetic expressions over existing metric scores, enabling composite metrics like weighted averages or pass/fail thresholds without writing evaluation prompts.
+
+  Formula metrics evaluate instantly and do not consume LLM credits.
+
+  [Read the docs](/test/metrics)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Pipecat integration
+
+  <Columns cols={1}>
+
+**February 10th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Bluejay now integrates natively with Pipecat for running simulations against Pipecat-powered voice agents. Connect your Pipecat pipeline endpoint and Bluejay will handle session orchestration, audio transport, and evaluation.
+
+  [Read the docs](/integrations/pipecat)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Knowledge base versioning API
+
+  <Columns cols={1}>
+
+**February 3rd, 2026**
+
+*New* *API*
+
+</Columns>
+
+  The Knowledge Base API lets you create knowledge bases, add documents, and attach them to agents. Knowledge bases ground your agents' answers and power hallucination detection during evaluation.
+
+  [Read the docs](/api-reference/endpoint/create-knowledge-base)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Dashboard redesign
+
+  <Columns cols={1}>
+
+**January 27th, 2026**
+
+*Improvement* *Dashboard*
+
+</Columns>
+
+  We redesigned the Bluejay dashboard with a focus on surfacing actionable insights. The new layout includes:
+
+  - **At-a-glance health scores** for each agent across simulation and production metrics
+  - **Trend sparklines** showing metric performance over time
+  - **Alert badges** highlighting agents that need attention
+  - **Quick-launch actions** for running simulations and viewing recent call logs
+
+  The redesign is live for all users.
+
+  [Read the docs](/monitor/dashboards)
+
+</Columns>
+
+<Columns cols={1}>
+
+## ElevenLabs observability integration
+
+  <Columns cols={1}>
+
+**January 20th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Bluejay now supports direct observability integration with ElevenLabs Conversational AI. Connect your ElevenLabs account to automatically ingest call logs, evaluate them with custom metrics, and surface quality issues in your dashboard.
+
+  [Read the docs](/integrations/eleven-labs)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Human generation improvements
+
+  <Columns cols={1}>
+
+**January 13th, 2026**
+
+*Improvement* *Simulations*
+
+</Columns>
+
+  The Digital Human generation engine has been upgraded with better persona diversity and more realistic conversational styles:
+
+  - **Expanded trait library** with 40+ new customer traits including emotional tone, technical proficiency, and communication preferences
+  - **Scenario-aware generation** — Digital Humans now adapt their behavior based on the simulation scenario context
+  - **Bulk generation** — generate up to 100 Digital Humans in a single API call
+
+  [Read the docs](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Slack alerting integration
+
+  <Columns cols={1}>
+
+**January 6th, 2026**
+
+*New* *Integration*
+
+</Columns>
+
+  Connect Bluejay to Slack to receive real-time alerts when production metrics drop below thresholds or simulation runs complete. Configure per-channel routing so the right team gets the right alerts.
+
+  [Read the docs](/monitor/alerts#connect-a-channel)
+
+</Columns>
+
+<Columns cols={1}>
+
+## WebSocket simulation support
+
+  <Columns cols={1}>
+
+**December 16th, 2025**
+
+*New* *Simulations*
+
+</Columns>
+
+  Bluejay now supports WebSocket-based simulations for testing real-time, bidirectional agent communication. Configure your WebSocket endpoint, define the message protocol, and run simulations with full transcript capture and metric evaluation.
+
+  [Read the docs](/integrations/websockets)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Prompt versioning and labels
+
+  <Columns cols={1}>
+
+**December 9th, 2025**
+
+*Improvement* *API*
+
+</Columns>
+
+  The Prompt API now supports versioning and labeling. Create multiple versions of a prompt, tag them with labels like `production` or `staging`, and reference them by label in your agent configuration. Roll back to any previous version instantly.
+
+  [Read the docs](/api-reference/endpoint/create-prompt-version)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Webhook-based log ingestion
+
+  <Columns cols={1}>
+
+**December 2nd, 2025**
+
+*New* *Observability*
+
+</Columns>
+
+  You can now send call logs to Bluejay via webhook for evaluation. Configure a webhook endpoint in your dashboard, point your agent platform at it, and Bluejay will automatically ingest, evaluate, and store the results.
+
+  This is the fastest way to get observability running if your platform isn't covered by a native integration.
+
+  [Read the docs](/api-reference/webhooks)
+
+</Columns>
+
+<Columns cols={1}>
+
+## LiveKit simulation integration
+
+  <Columns cols={1}>
+
+**November 25th, 2025**
+
+*New* *Integration*
+
+</Columns>
+
+  Run simulations against LiveKit-powered voice agents. Bluejay connects to your LiveKit room, manages participant sessions, and captures full audio transcripts for evaluation.
+
+  [Read the docs](/simulation-integrations/livekit)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Metrics Lab
+
+  <Columns cols={1}>
+
+**November 18th, 2025**
+
+*New* *Metrics*
+
+</Columns>
+
+  Introducing Metrics Lab — an interactive environment for prototyping and testing custom metrics before deploying them. Write evaluation prompts, test them against sample transcripts, and iterate on scoring criteria without affecting production data.
+
+  [Read the docs](/test/metrics/metrics-lab)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Folder-based agent organization
+
+  <Columns cols={1}>
+
+**November 11th, 2025**
+
+*Improvement* *Dashboard*
+
+</Columns>
+
+  Agents can now be organized into folders for better workspace management. Create folders, move agents between them, and filter your agent list by folder. Folders are available in both the dashboard and the API.
+
+  [Read the docs](/api-reference/endpoint/create-folder)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Retell observability integration
+
+  <Columns cols={1}>
+
+**November 4th, 2025**
+
+*New* *Integration*
+
+</Columns>
+
+  Bluejay now integrates directly with Retell for production call monitoring. Connect your Retell account to automatically pull call logs, run evaluations, and track agent performance over time.
+
+  [Read the docs](/integrations/retell)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Vapi observability integration
+
+  <Columns cols={1}>
+
+**October 21st, 2025**
+
+*New* *Integration*
+
+</Columns>
+
+  Bluejay now integrates with Vapi for production call monitoring. Connect your Vapi account to automatically ingest call logs, run custom metric evaluations, and track agent quality over time.
+
+  [Read the docs](/integrations/vapi)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Bland observability integration
+
+  <Columns cols={1}>
+
+**October 7th, 2025**
+
+*New* *Integration*
+
+</Columns>
+
+  You can now connect Bluejay to Bland for production observability. Call logs from your Bland-powered agents are automatically ingested, evaluated against your custom metrics, and surfaced in the dashboard.
+
+  [Read the docs](/integrations/bland)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Communities and workflows API endpoints
+
+  <Columns cols={1}>
+
+**September 29th, 2025**
+
+*New* *API*
+
+</Columns>
+
+  New API endpoint groups for managing communities and workflows:
+
+  - **Communities** — create, update, add members, list, and delete communities programmatically
+  - **Workflows** — define, schedule, and manage automation workflows through the API
+
+  [Read the docs](/api-reference/introduction)
+
+</Columns>
+
+<Columns cols={1}>
+
+## SIP simulation integration
+
+  <Columns cols={1}>
+
+**September 22nd, 2025**
+
+*New* *Integration*
+
+</Columns>
+
+  Bluejay now supports SIP-based simulations. Connect your SIP trunk and run simulations directly over the SIP protocol, enabling testing for enterprise telephony deployments and contact center agents.
+
+  [Read the docs](/integrations/sip)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Telephony simulation support
+
+  <Columns cols={1}>
+
+**September 15th, 2025**
+
+*New* *Integration*
+
+</Columns>
+
+  Run simulations over PSTN by connecting your telephony provider to Bluejay. Dial into your agent's phone number, capture the full conversation, and evaluate it with custom metrics — all without changing your agent's infrastructure.
+
+  [Read the docs](/simulation-integrations/telephony)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Observability and evaluation API endpoints
+
+  <Columns cols={1}>
+
+**September 1st, 2025**
+
+*New* *API*
+
+</Columns>
+
+  New API endpoint groups for observability and evaluation workflows:
+
+  - **Observability** — evaluate and re-evaluate call logs, manage call log lifecycle
+  - **Custom Metrics** — create, bulk-create, update, list, and delete custom metrics via API
+
+  [Read the docs](/api-reference/introduction)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Humans and simulation runs API endpoints
+
+  <Columns cols={1}>
+
+**August 18th, 2025**
+
+*New* *API*
+
+</Columns>
+
+  New API endpoint groups for simulation orchestration:
+
+  - **Digital Humans** — create, generate, update, list, and manage Digital Human personas
+  - **Simulation Runs** — queue voice and SMS runs, retrieve results, and manage active conversations
+
+  [Read the docs](/api-reference/introduction)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Agents and simulations API endpoints
+
+  <Columns cols={1}>
+
+**August 4th, 2025**
+
+*New* *API*
+
+</Columns>
+
+  The first set of public API endpoints is now available:
+
+  - **Agents** — create, update, list, move, and delete agents
+  - **Simulations** — create, configure, list, and manage simulations programmatically
+
+  These endpoints form the foundation of the Bluejay API and enable full automation of your testing pipeline.
+
+  [Read the docs](/api-reference/introduction)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Digital Human personas
+
+  <Columns cols={1}>
+
+**July 21st, 2025**
+
+*New* *Simulations*
+
+</Columns>
+
+  Introducing Digital Humans — synthetic customer personas that power Bluejay simulations. Define demographic profiles, personality traits, communication styles, and scenario-specific behaviors to create realistic test conversations at scale.
+
+  [Read the docs](/test/simulations/digital-humans)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Simulation engine
+
+  <Columns cols={1}>
+
+**July 7th, 2025**
+
+*New* *Simulations*
+
+</Columns>
+
+  The Bluejay simulation engine is live. Run synthetic conversations against your voice agents to validate behavior before production. Define scenarios, assign Digital Humans, and evaluate performance with custom metrics.
+
+  [Read the docs](/test/simulations/create)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Observability pipeline
+
+  <Columns cols={1}>
+
+**June 23rd, 2025**
+
+*New* *Observability*
+
+</Columns>
+
+  Bluejay's observability pipeline is now available. Ingest production call logs, evaluate them against custom metrics, and surface quality trends in the dashboard. Supports both API-based and webhook-based log ingestion.
+
+  [Read the docs](/monitor/logs)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Custom metrics engine
+
+  <Columns cols={1}>
+
+**June 9th, 2025**
+
+*New* *Metrics*
+
+</Columns>
+
+  Define custom evaluation criteria tailored to your use case. Bluejay's custom metrics engine supports LLM-as-a-Judge evaluations with configurable scoring rubrics, pass/fail thresholds, and dynamic variables that adapt to conversation context.
+
+  [Read the docs](/test/metrics)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Agent management and dashboard
+
+  <Columns cols={1}>
+
+**May 19th, 2025**
+
+*New* *Dashboard*
+
+</Columns>
+
+  The Bluejay dashboard is live. Create and manage your conversational AI agents, view performance summaries, and navigate your workspace from a central hub.
+
+  [Read the docs](/test/simulations/create#connect-your-agent)
+
+</Columns>
+
+<Columns cols={1}>
+
+## Evaluation framework
+
+  <Columns cols={1}>
+
+**April 28th, 2025**
+
+*New* *Platform*
+
+</Columns>
+
+  Bluejay's evaluation framework is ready. Score agent conversations using structured rubrics, capture per-turn and per-call metrics, and generate evaluation reports. This framework underpins both simulation testing and production observability.
+
+</Columns>
+
+<Columns cols={1}>
+
+## Core platform infrastructure
+
+  <Columns cols={1}>
+
+**April 7th, 2025**
+
+*New* *Platform*
+
+</Columns>
+
+  The foundational Bluejay platform is up and running — authentication, workspace management, and the base API layer. This milestone sets the stage for all product features to follow.
+
+</Columns>

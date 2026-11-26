@@ -1,0 +1,72 @@
+---
+title: "PUT /v1/update-schedule/{schedule_id}"
+description: "Update a schedule."
+api: "PUT https://api.getbluejay.ai/v1/update-schedule/{schedule_id}"
+playground: "none"
+---
+
+Updates a schedule and returns the updated schedule.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "schedule_id", "type": "string", "required": true, "description": "The schedule's id, from GET /v1/schedules or POST /v1/create-schedule."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}, {"name": "schedule", "type": "object or null", "required": false, "description": "Replacement timing; overwrites the stored cron expression. When the simulation runs. Pick one form by frequency: every_n_minutes or every_n_hours (interval, plus an optional days/hours window), daily (time, plus optional window days), weekly (day_of_week and time), monthly (day_of_month and time), or cron (a raw expression). Times are read in the schedule's timezone. Omit to keep the current timing.", "children": [{"name": "window", "type": "object or null", "required": false, "description": "Only fire on these days and/or within this daily time range. Omit to fire all day, every day.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}]}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire every `interval` minutes, optionally only inside `window`."}, {"name": "interval", "type": "integer", "required": true, "description": "Minutes between fires, counted from the top of each hour: 15 fires at :00, :15, :30 and :45."}, {"name": "window", "type": "object or null", "required": false, "description": "Only fire on these days and/or within this daily time range. Omit to fire all day, every day.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}]}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire on the hour every `interval` hours, optionally only inside `window`."}, {"name": "interval", "type": "integer", "required": true, "description": "Hours between fires, at minute 0, counted from midnight or from the window's start hour: 6 fires at 00:00, 06:00, 12:00 and 18:00."}, {"name": "time", "type": "string", "required": true, "description": "Time of day the schedule fires, as a zero-padded 24-hour time such as \"09:30\", read in the schedule's timezone (UTC when it has none)."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire once a day at `time`."}, {"name": "window", "type": "object or null", "required": false, "description": "Only fire on window.days; its time range is ignored, since `time` names the time. Omit to fire every day.", "children": [{"name": "days", "type": "string[]", "required": false, "description": "Weekdays the window is open on, e.g. [\"monday\", \"friday\"]. Leave empty for every day. Read in the timezone, UTC when none is set.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "start_time", "type": "string or null", "required": false, "description": "Time of day the window opens, as a zero-padded 24-hour time such as \"09:00\", in the timezone (UTC when none is set). Leave start_time and end_time unset (or equal) for no time restriction."}, {"name": "end_time", "type": "string or null", "required": false, "description": "Time of day the window closes, as a zero-padded 24-hour time such as \"17:00\"; the window runs up to but not including it. An end before start_time wraps past midnight, e.g. 22:00 to 06:00."}]}, {"name": "time", "type": "string", "required": true, "description": "Time of day the schedule fires, as a zero-padded 24-hour time such as \"09:30\", read in the schedule's timezone (UTC when it has none)."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire once a week on `day_of_week` at `time`."}, {"name": "day_of_week", "type": "string", "required": true, "description": "The weekday the schedule fires on, at `time`, in the schedule's timezone.", "values": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, {"name": "time", "type": "string", "required": true, "description": "Time of day the schedule fires, as a zero-padded 24-hour time such as \"09:30\", read in the schedule's timezone (UTC when it has none)."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire once a month on `day_of_month` at `time`."}, {"name": "day_of_month", "type": "integer", "required": true, "description": "The day of the month the schedule fires on, at `time`, e.g. 1 for the first of each month."}, {"name": "frequency", "type": "string", "required": true, "description": "Selects this form: fire on a raw cron `expression`, for timing the other forms can't express."}, {"name": "expression", "type": "string", "required": true, "description": "A five-field cron expression (minute hour day-of-month month day-of-week) read in the schedule's timezone (UTC when it has none), e.g. \"0 9 * * *\" fires at 09:00 every day. A numeric day-of-week counts monday as 0 (the scheduler's numbering, not standard cron's sunday=0), so prefer day names such as mon-fri."}]}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "false pauses the schedule, true resumes it. Omit to leave it as is."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The schedule's id; pass it as schedule_id to GET /v1/schedule/{schedule_id}, PUT /v1/update-schedule/{schedule_id} or DELETE /v1/delete-schedule/{schedule_id}."}, {"name": "simulation_id", "type": "string", "required": true, "description": "The simulation this schedule runs (see GET /v2/simulations/{simulation_id})."}, {"name": "cron_expression", "type": "string", "required": true, "description": "The stored timing as a cron expression, also for schedules given in a frequency form."}, {"name": "enabled", "type": "boolean or null", "required": false, "description": "False when the schedule is paused."}, {"name": "created_at", "type": "string", "required": true, "description": "When the schedule was created."}, {"name": "timezone", "type": "string or null", "required": false, "description": "IANA timezone the cron expression is read in. Null means UTC."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/update-schedule/{schedule_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "timezone": "<string>",
+    "schedule": {
+      "window": {
+        "days": [
+          "monday"
+        ],
+        "start_time": "<string>",
+        "end_time": "<string>"
+      },
+      "frequency": "<string>",
+      "interval": 123
+    },
+    "enabled": true
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "simulation_id": "<string>",
+  "cron_expression": "<string>",
+  "enabled": true,
+  "created_at": "<string>",
+  "timezone": "<string>"
+}
+```
+
+{/* END GENERATED */}

@@ -1,0 +1,80 @@
+---
+title: "POST /v1/send-http-text-message"
+description: "Reply in an HTTP text simulation."
+api: "POST https://api.getbluejay.ai/v1/send-http-text-message"
+playground: "none"
+---
+
+Sends one agent turn into a running HTTP text simulation. The Digital Human reply goes to the webhook in the agent settings.
+
+## Fields
+
+| Field | Type | Description |
+|---|---|---|
+| <Code>simulation&#95;result&#95;id</Code> | string | Required. The simulation result to send to. |
+| `type` | string | `message` (default) or `tool_call`. |
+| `message` | string | Required when `type` is `message`. The agent text. |
+| `name` | string | Required when `type` is `tool_call`. The tool name. |
+| `parameters` | object | Tool parameters. |
+| `output` | any | Tool output. |
+| `end_turn` | boolean | Default `true`. If `false`, Bluejay holds the message and waits for more. |
+| <Code>end&#95;conversation</Code> | boolean | Default `false`. If `true`, Bluejay ends and evaluates the conversation. |
+| `message_id` | string | Unique ID. Bluejay drops a repeated ID in the same conversation. |
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+Send one of these bodies.
+
+### HttpTextAgentUserMessageRequest
+
+<FieldTable rows={[{"name": "simulation_result_id", "type": "string", "required": true, "description": "The running text conversation to post into: one of the simulation_result_ids POST /v1/queue-http-text-simulation-run returned, or a result id from GET /v1/retrieve-simulation-results/{simulation_run_id}."}, {"name": "end_conversation", "type": "boolean or null", "required": false, "description": "True to make this the agent's last message: the conversation ends and is evaluated, with no digital-human reply. Omitted means false.", "default": false}, {"name": "end_turn", "type": "boolean or null", "required": false, "description": "False to hold this message and send it with the next one as a single turn, for agents that reply in several pieces. Omitted means true: the turn goes out now.", "default": true}, {"name": "message_id", "type": "string or null", "required": false, "description": "Your unique id for this message. A repeat with the same id in the same conversation is ignored, so retries are safe."}, {"name": "type", "type": "string", "required": false, "description": "Send a message to the user", "default": "message"}, {"name": "message", "type": "string", "required": true, "description": "The agent's reply, exactly as the agent would send it to the customer."}]} />
+
+### HttpTextAgentToolCallRequest
+
+<FieldTable rows={[{"name": "simulation_result_id", "type": "string", "required": true, "description": "The running text conversation to post into: one of the simulation_result_ids POST /v1/queue-http-text-simulation-run returned, or a result id from GET /v1/retrieve-simulation-results/{simulation_run_id}."}, {"name": "end_conversation", "type": "boolean or null", "required": false, "description": "True to make this the agent's last message: the conversation ends and is evaluated, with no digital-human reply. Omitted means false.", "default": false}, {"name": "end_turn", "type": "boolean or null", "required": false, "description": "False to hold this message and send it with the next one as a single turn, for agents that reply in several pieces. Omitted means true: the turn goes out now.", "default": true}, {"name": "message_id", "type": "string or null", "required": false, "description": "Your unique id for this message. A repeat with the same id in the same conversation is ignored, so retries are safe."}, {"name": "type", "type": "string", "required": true, "description": "Log a tool call"}, {"name": "name", "type": "string", "required": true, "description": "Tool name"}, {"name": "parameters", "type": "object or null", "required": false, "description": "Tool parameters"}, {"name": "output", "type": "any or null", "required": false, "description": "Tool output"}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "simulation_result_id", "type": "string", "required": true, "description": "The conversation the message was posted to."}, {"name": "status", "type": "string", "required": false, "description": "success when the message was accepted, ignored as a duplicate, or held.", "default": "success"}, {"name": "end_conversation", "type": "boolean", "required": false, "description": "True when the conversation has ended (this message ended it, or it had already ended and the message was ignored).", "default": false}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/send-http-text-message \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_result_id": "<string>",
+    "end_conversation": false,
+    "end_turn": true,
+    "message_id": "<string>",
+    "type": "message",
+    "message": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "simulation_result_id": "<string>",
+  "status": "success",
+  "end_conversation": false
+}
+```
+
+{/* END GENERATED */}

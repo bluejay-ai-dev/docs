@@ -1,0 +1,55 @@
+---
+title: "POST /v1/generate-intent-summary"
+description: "Summarize a Digital Human intent."
+api: "POST https://api.getbluejay.ai/v1/generate-intent-summary"
+playground: "none"
+---
+
+Writes `intent_summary` on a Digital Human. If the intent is 500 characters or shorter, Bluejay clears `intent_summary` and the response has `skipped: true`.
+
+The response is 400 if the Digital Human has a workflow or voicemail tag, or has no intent.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "test_case_id", "type": "integer", "required": true, "description": "ID of the test case"}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "intent_summary", "type": "string or null", "required": false, "description": "The generated intent summary, or null if intent is short"}, {"name": "test_case_id", "type": "integer", "required": true, "description": "ID of the test case"}, {"name": "skipped", "type": "boolean", "required": false, "description": "True if summary was skipped because intent is short", "default": false}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/generate-intent-summary \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "test_case_id": 123
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "intent_summary": "<string>",
+  "test_case_id": 123,
+  "skipped": false
+}
+```
+
+{/* END GENERATED */}

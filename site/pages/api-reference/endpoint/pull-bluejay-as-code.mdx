@@ -1,0 +1,94 @@
+---
+title: "GET /v1/bluejay-as-code/{root_type}/{root_id}"
+description: "Export your setup as YAML."
+api: "GET https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id}"
+playground: "none"
+---
+
+<Warning>
+[JSON will be deprecated](/bluejay-as-code/overview#move-from-json-to-yaml) on November 20th, 2026.
+</Warning>
+
+Exports a bundle with these lists:
+
+- `agents`
+- `simulations`
+- `personas`
+- `digital_humans`
+- `custom_metrics`
+
+Each item has a `bluejay_as_code_id`.
+
+Supported values for `root_type` include:
+
+- `simulation`
+- `agent`
+- `digital-human`
+- `custom-metric`
+
+`root_id` is the Bluejay ID or the `bluejay_as_code_id` of the root.
+
+Commit the `bluejay_as_code_id` values to your config. Do not create new values for each push.
+
+The response is YAML. To get JSON until it is deprecated, add the query parameter `format=json` or send the header `Accept: application/json`.
+
+```bash
+curl "https://api.getbluejay.ai/v1/bluejay-as-code/simulation/$SIM_ID" \
+  --header "X-API-Key: $BLUEJAY_API_KEY" \
+  --output simulation.yaml
+```
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "root_type", "type": "string", "required": true, "description": "", "values": ["simulation", "agent", "digital-human", "custom-metric"]}, {"name": "root_id", "type": "string", "required": true, "description": ""}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "format", "type": "string or null", "required": false, "description": "", "values": ["json", "yaml"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "agents", "type": "object[]", "required": true, "description": ""}, {"name": "simulations", "type": "object[]", "required": true, "description": ""}, {"name": "digital_humans", "type": "object[]", "required": true, "description": ""}, {"name": "custom_metrics", "type": "object[]", "required": true, "description": ""}, {"name": "personas", "type": "object[]", "required": false, "description": ""}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/bluejay-as-code/{root_type}/{root_id} \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "agents": [
+    {}
+  ],
+  "simulations": [
+    {}
+  ],
+  "digital_humans": [
+    {}
+  ],
+  "custom_metrics": [
+    {}
+  ],
+  "personas": []
+}
+```
+
+{/* END GENERATED */}

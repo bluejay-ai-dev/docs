@@ -1,0 +1,73 @@
+---
+title: "PUT /v1/scenario/{workflow_id}"
+description: "Update a scenario."
+api: "PUT https://api.getbluejay.ai/v1/scenario/{workflow_id}"
+playground: "none"
+---
+
+Updates a scenario. Fields you do not send do not change.
+
+- `agent_ids` replaces all agent links. `[]` removes all links.
+- `definition` replaces the full graph. Bluejay validates it the same as [Create Scenario](/api-reference/endpoint/create-scenario).
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "workflow_id", "type": "string (uuid)", "required": true, "description": "The workflow's id, a UUID from GET /v1/scenario or POST /v1/scenario."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "name", "type": "string or null", "required": false, "description": "New display name. Omit to keep the current one."}, {"name": "agent_ids", "type": "integer[] or null", "required": false, "description": "The full new set of linked agent ids (voice agents in your organization, from GET /v1/all-agents), replacing the current links; [] or null unlinks all. Omit to keep the current links."}, {"name": "description", "type": "string or null", "required": false, "description": "New free-text description; an empty string clears it. Omit to keep the current one."}, {"name": "definition", "type": "object or null", "required": false, "description": "A complete replacement graph with `nodes` and `edges`, same shape as on POST /v1/scenario: each node needs a top-level `id`; each edge needs a top-level `id` unique among edges. It overwrites the whole stored graph, so start from the definition GET /v1/scenario/{workflow_id} returns. Omit to keep the current graph."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string", "required": true, "description": "The workflow's id; pass it as workflow_id to GET /v1/scenario/{workflow_id}, PUT /v1/scenario/{workflow_id}, POST /v1/scenario/{workflow_id}/duplicate or DELETE /v1/scenario/{workflow_id}."}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Organization that owns the workflow."}, {"name": "agent_ids", "type": "integer[]", "required": false, "description": "Bluejay ids of the voice agents the workflow is linked to; empty when it is not tied to an agent."}, {"name": "name", "type": "string", "required": true, "description": "The workflow's display name."}, {"name": "description", "type": "string or null", "required": false, "description": "The workflow's free-text description."}, {"name": "definition", "type": "object", "required": true, "description": "The stored conversation graph: `start`, `single` and `options` nodes plus edges. Nodes and edges use top-level string `id` fields; edge `id` values are unique within the graph."}, {"name": "created_at", "type": "string (date-time)", "required": true, "description": "When the workflow was created, as an ISO 8601 timestamp."}, {"name": "dh_sync_summary", "type": "object or null", "required": false, "description": "Only on PUT /v1/scenario/{workflow_id} when the definition changed: counts of digital humans updated, created, marked_stale and skipped, plus errors, from re-syncing this workflow's digital humans."}, {"name": "warnings", "type": "string[]", "required": false, "description": "Non-blocking lint warnings emitted at save time (e.g. node text referencing an unknown ``{{trait_name}}``). Empty when the definition is clean or no agents are linked."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request PUT \
+  --url https://api.getbluejay.ai/v1/scenario/{workflow_id} \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "<string>",
+    "agent_ids": [
+      123
+    ],
+    "description": "<string>",
+    "definition": {}
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "<string>",
+  "organization_id": "<string>",
+  "agent_ids": [],
+  "name": "<string>",
+  "description": "<string>",
+  "definition": {},
+  "created_at": "2026-01-01T00:00:00Z",
+  "dh_sync_summary": {},
+  "warnings": [
+    "<string>"
+  ]
+}
+```
+
+{/* END GENERATED */}

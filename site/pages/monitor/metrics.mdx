@@ -1,0 +1,254 @@
+---
+title: "Create a Metric"
+description: "Grade production conversations on your own rules."
+---
+
+If you are setting up custom metrics for simulation results, see [Metrics](/test/metrics).
+
+<MetricExamples />
+
+## Set up a metric
+
+<Tabs>
+  <Tab title="Manual">
+<Steps>
+  <Step title="Open the form">
+    On the **Metrics** page, click **Create**, then **Create manually**.
+
+    <img src="/images/metrics-page.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+    <img src="/images/metrics-page-dark.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+  </Step>
+  <Step title="Write the rule">
+    Choose a [metric type](#metric-types). For LLM as a Judge, pick the response type and write the prompt with the [prompting guide](/monitor/metrics/llm-as-a-judge#prompting-guide).
+
+    <img src="/images/metric-create-dialog.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+    <img src="/images/metric-create-dialog-dark.png" alt="The Create Metric dialog with a name and prompt filled in, and the Agents, Evaluates, and Runs on fields set" />
+  </Step>
+  <Step title="Choose where it runs">
+    Select the agents to grade. **Runs on** decides whether the metric grades simulations, production conversations, or both. To grade only some conversations, [add metric conditions](#add-metric-conditions). Then click **Create**.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="Automatic">
+<Steps>
+  <Step title="Open the generator">
+    On the **Metrics** page, click **Create**, then **Create automatically**.
+
+    <img src="/images/metrics-page.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+    <img src="/images/metrics-page-dark.png" alt="The Metrics page with the Create menu open, showing Add from library, Create automatically, and Create manually" />
+  </Step>
+  <Step title="Pick the agent">
+    Bluejay reads the agent's context, such as its system prompt, to write the drafts. It writes 1 to 10 metrics at a time. To steer them, open **Generation instructions (optional)**, for example "Focus on compliance and escalation."
+
+    <img src="/images/metric-autogenerate-dialog.png" alt="The Auto-generate Metrics dialog with an agent selected, the number of metrics, and the optional generation instructions" />
+    <img src="/images/metric-autogenerate-dialog-dark.png" alt="The Auto-generate Metrics dialog with an agent selected, the number of metrics, and the optional generation instructions" />
+  </Step>
+  <Step title="Review and save">
+    Click **Generate**, review the drafts, and save the ones you want.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="Library">
+The metrics library holds metrics tuned for your best use case.
+
+<Steps>
+  <Step title="Open the library">
+    On the **Metrics** page, open the **Library** tab.
+
+    <img src="/images/metrics-library.png" alt="The Library tab on the Metrics page with ready-made metrics grouped by category, each with an Add button" />
+    <img src="/images/metrics-library-dark.png" alt="The Library tab on the Metrics page with ready-made metrics grouped by category, each with an Add button" />
+  </Step>
+  <Step title="Add a metric">
+    Click a metric to read its prompt and settings, then click **Add**. Bluejay adds it to all of your agents.
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="API">
+<Steps>
+  <Step title="Get an API key">
+    Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
+  </Step>
+  <Step title="Send the metric">
+    Send it to [`POST /v2/create-metrics`](/api-reference/endpoint/create-metrics-v2). Use `agent_ids` to choose the agents it grades.
+
+    ```bash
+    curl https://api.getbluejay.ai/v2/create-metrics \
+      -H "X-API-Key: $BLUEJAY_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "metrics": {
+          "name": "DOB Verified Before PHI",
+          "prompt": "The agent verifies the caller'"'"'s date of birth before it discusses patient information.",
+          "metric_type": "llm_judge",
+          "response_type": "pass_fail",
+          "scope": "observability",
+          "agent_ids": [123]
+        }
+      }'
+    ```
+  </Step>
+</Steps>
+  </Tab>
+  <Tab title="Bluejay as Code">
+<Steps>
+  <Step title="Get an API key">
+    Open the [API Keys page](https://app.getbluejay.ai/settings/api-keys) of the app and create a key.
+  </Step>
+  <Step title="Pull the agent">
+    [Pull](/bluejay-as-code/overview#pull-the-payload) the agent's payload. It includes the custom metrics linked to the agent.
+  </Step>
+  <Step title="Add the metric">
+    Add an item to `custom_metrics` with a new `bluejay_as_code_id`, and add that ID to the agent's `custom_metrics` list.
+
+    ```yaml
+    agents:
+    - bluejay_as_code_id: f3d2a87c-1e4b-4b9a-9c2d-7f1e6b5a4c33
+      custom_metrics:
+      - 2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44
+    custom_metrics:
+    - bluejay_as_code_id: 2b8d4c1f-9a3e-4f72-b5c0-6e1d8a7f3c44
+      name: DOB Verified Before PHI
+      prompt: The agent verifies the caller's date of birth before it discusses patient information.
+      metric_type: llm_judge
+      response_type: pass_fail
+      scope: observability
+    ```
+  </Step>
+  <Step title="Push the file">
+    [Push](/bluejay-as-code/overview#push-the-payload) the file, and check that `valid` is `true` in the response.
+  </Step>
+</Steps>
+  </Tab>
+</Tabs>
+
+## Metric types
+
+| Type | How it scores |
+|---|---|
+| [LLM as a Judge](/monitor/metrics/llm-as-a-judge) | An LLM scores the conversation against your prompt. |
+| [Phrase Match](/monitor/metrics/deterministic) | Checks whether specific words were said. |
+| [Tool Call](/monitor/metrics/deterministic) | Passes when the agent called the tools you name. |
+| [Trace](/monitor/metrics/deterministic#trace) | Passes when the linked trace contains, or does not contain, the spans you name. |
+| [Transfer Landed](/monitor/metrics/deterministic) | Passes when the Digital Human you choose answers the transfer in time. |
+| [Composite](/monitor/metrics/composite) | Combines the results of other metrics into one score or label. |
+
+## Predicted WER
+
+Predicted WER estimates how many words your agent's transcript got wrong. When you send a production conversation with both `recording_url` and a transcript, Bluejay transcribes the recording itself and compares the two. A value of `0.12` means about 12% of words differ.
+
+To turn it on, add **Predicted WER** from the metrics library, then turn on **Enable Predicted Word Error Rate Evaluations** under **Settings** > **Observability**. Each conversation is transcribed one extra time, which counts toward your speech-to-text usage. Conversations sent with only a transcript, or only a recording, get no value.
+
+Read it in the `metrics` array of [GET /v1/retrieve-call-log/\{call_id\}](/api-reference/endpoint/retrieve-call-log) and of the `observability_call_evaluated` [webhook](/api-reference/webhooks), as the entry with `metric_name` set to `predicted_wer`. The same entry is in `metric_results` on `GET /v1/observability/conversations/{id}`.
+
+That entry's `metadata.wer_details` lists the words behind the score, the same ones **Compare Transcript** highlights. Each item in `segments` is one turn of your transcript that has errors:
+
+```json
+{
+  "metric_name": "predicted_wer",
+  "value": "0.12",
+  "metadata": {
+    "wer_details": {
+      "segments": [
+        {
+          "segment_index": 3,
+          "utterance": "Your appointment is on the fifth.",
+          "errors": [
+            { "start": 27, "end": 32, "reference": "sixth", "type": "substitute" }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- `segment_index` is the turn's position in the transcript you sent, and `utterance` is its text.
+- `start` and `end` are character offsets into `utterance` (UTF-16, as JavaScript counts them).
+- `reference` is what Bluejay heard in the recording there.
+- `type` is `substitute` (different words), `delete` (words your transcript is missing), or `insert` (words your transcript has that the recording doesn't). A `delete` has `start` equal to `end`, marking where the missing words go.
+
+Conversations scored before November 17, 2026 have the score but no `wer_details` until they are re-evaluated.
+
+## Add metric conditions
+
+Use a conditional metric when a rule applies only to some conversations. On other conversations, the metric does not run and has no result.
+
+Common use cases include:
+
+- Check the refund policy wording only when the agent called the refund tool.
+- Check that the agent stated the copay only when the conversation reached the billing step of the workflow.
+- Check how the agent handled the escalation only when a Customer Asked for a Human metric returned Yes.
+
+A condition can check that:
+
+- The conversation reached a node of the agent [workflow](/test/simulations/reference#workflow). You pick the node from the workflow, so the metric must grade one agent. In YAML, find node IDs with [Get Workflow Summary](/api-reference/endpoint/get-workflow-summary).
+- The agent called a given tool.
+- Another metric has a given result, for example Fail.
+
+A condition can read only metrics that always run. In YAML, see the [conditional metric example](/bluejay-as-code/cookbook#conditional-metrics).
+
+## Tool calls, events, and metadata
+
+If a metric grades something the transcript does not show, such as which tools your agent called, send that data with each production conversation. You can send:
+
+- **Tool calls**: the tools your agent called, with their inputs and outputs. A [Tool Call](/monitor/metrics/deterministic#tool-call) metric needs them.
+- **Traces**: the ID of the OpenTelemetry trace your agent exported during the call, sent as `trace_id`. A [Trace](/monitor/metrics/deterministic#trace) metric needs it, and every metric sees a summary of the linked trace. See [Traces](/monitor/traces).
+- **Events**: moments in the conversation, such as an escalation or a hold.
+- **Metadata**: a JSON object about the whole conversation, such as the customer's name. Each key fills a [dynamic variable](/monitor/metrics/llm-as-a-judge#dynamic-variables) in a metric prompt.
+
+### Send tool calls
+
+Put `tool_calls`, `events`, and `metadata` in the same [`POST /v1/evaluate`](/api-reference/endpoint/evaluate) request as the transcript or recording, because you cannot add them later.
+
+```json
+{
+  "agent_id": "123",
+  "start_time_utc": "2026-07-16T18:00:00Z",
+  "participants": [
+    { "role": "AGENT", "spoke_first": true },
+    { "role": "USER", "spoke_first": false }
+  ],
+  "recording_url": "https://storage.example.com/call.mp3",
+  "tool_calls": [
+    {
+      "name": "check_order_status",
+      "start_offset_ms": 2000,
+      "description": "Look up order status by order ID",
+      "parameters": { "order_id": "ORD-2024-001" },
+      "output": { "status": "in_transit" }
+    }
+  ],
+  "metadata": { "customer_tier": "premium" }
+}
+```
+
+### Tool call fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | The tool name. |
+| <Code>start&#95;offset&#95;ms</Code> | integer | Yes | Milliseconds from the start of the conversation. |
+| `description` | string | No | What the tool does. |
+| `parameters` | object | No | The input to the tool. |
+| `output` | any | No | The value the tool returned. |
+
+### Event fields
+
+An event marks a moment in the conversation, for example an escalation or a hold.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | The event name. |
+| <Code>start&#95;offset&#95;ms</Code> | integer | Yes | Milliseconds from the start of the conversation. |
+| <Code>end&#95;offset&#95;ms</Code> | integer | No | When the event ended. |
+| `description` | string | No | Details of the event. |
+| `tags` | string[] | No | Tags for the event. |
+| `metadata` | object | No | Extra data for the event. |
+
+## Related
+
+- [Custom Metrics API](/api-reference/endpoint/create-metrics-v2)
+- [Custom Metrics MCP tools](/mcp/testing-tools#metrics)
+- [Evaluate API](/api-reference/endpoint/evaluate)
+- [Metrics Lab API](/api-reference/endpoint/create-lab)
+- [Metrics Lab MCP tools](/mcp/testing-tools#labs)

@@ -29,6 +29,9 @@ Add the agent to a [simulation](/test/simulations/create) and run it. Your agent
 </Step>
 </Steps>
 
+<Tabs>
+<Tab title="Test">
+
 ## How a conversation runs
 
 Bluejay sends each Digital Human message to your endpoint and reads your agent's reply from the response. The Digital Human always sends the first message. Each request holds the whole conversation so far, because the chat completions format keeps no state between requests. Digital Human messages have the `user` role and your agent's earlier replies have the `assistant` role. Bluejay sends no `system` message, so your agent uses its own instructions.
@@ -80,9 +83,13 @@ Return the final reply text in the same response as the tool calls. A response w
 
 Each request carries a W3C `traceparent` header with a new trace ID, and Bluejay saves that ID on the conversation. If your agent uses OpenTelemetry and [sends its traces to Bluejay](/test/traces), its spans continue that trace and appear next to the conversation, so you do not need to link them yourself.
 
-## Monitor
+</Tab>
+<Tab title="Monitor">
 
 This connection runs tests only. To score your agent's production conversations, send them to Bluejay as described in [Logs](/monitor/logs).
+
+</Tab>
+</Tabs>
 
 ## Limits
 
@@ -97,7 +104,7 @@ This connection runs tests only. To score your agent's production conversations,
 | **Enter the base URL only, without /chat/completions** | Remove <Code>/chat/completions</Code> from the end of the **API base URL**. Bluejay adds that path itself. |
 | **API base URL must be a valid http(s) URL** | Enter the full URL, starting with `http://` or `https://`. |
 | `400`: `OPENAI_CHAT connection_type requires openai_base_url` | Set <Code>openai_base_url</Code> in the API request. |
-| `400`: `OPENAI_CHAT is a text connection type and has no voice transport` | The run was queued with <Code>/v1/queue-simulation-run</Code>. Use <Code>/v1/queue-http-text-simulation-run</Code>. |
+| `400`: `OPENAI_CHAT is a text connection type and has no voice transport` | The run was queued with <Code>/v2/queue-simulation-run</Code>. Use <Code>/v1/queue-http-text-simulation-run</Code>. |
 | The conversation stops partway and ends after the inactivity timeout | Your endpoint failed on that turn, or it returned tool calls with no reply text. Check your endpoint's logs for that turn, and return reply text with every response. |
 
 ## Related

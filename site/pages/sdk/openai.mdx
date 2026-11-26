@@ -1,0 +1,42 @@
+---
+title: "OpenAI"
+description: "Trace OpenAI SDK calls."
+---
+
+`BluejayClient(tracing=True)` traces the OpenAI SDK. No extra package. Chat completions and responses are covered: `create`, `parse`, and `stream`, including Azure OpenAI and OpenAI-compatible clients.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+from bluejay import BluejayClient
+
+client = BluejayClient(tracing=True)
+
+# this call is a span, with the model, prompt, reply, tool calls, tokens, and finish reason
+reply = openai_client.chat.completions.create(model="gpt-4o-mini", messages=messages)
+```
+
+```typescript title="TypeScript"
+import { BluejayClient } from "@getbluejay/sdk";
+
+const client = new BluejayClient({ tracing: true });
+const { OpenAI } = await import("openai");
+const openai = new OpenAI();
+
+const reply = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+});
+await client.flush();
+```
+
+</CodeGroup>
+
+When the call runs inside a [session](/sdk/observability#trace-chat-or-sms), the span joins that call.
+
+## Related
+
+- [SDK](/sdk/overview)
+- [Traces](/monitor/traces)
+
+Node.js supports OpenAI versions 4.19 through 6.x. Initialize Bluejay before loading OpenAI. For ES modules, run Node with `--experimental-loader=@opentelemetry/instrumentation/hook.mjs` and dynamically import OpenAI after initialization.

@@ -9,43 +9,48 @@ import { Code } from "/snippets/code.jsx";
 
 Connect an agent that runs as a LiveKit Agents worker.
 
-<img className="block dark:hidden" src="/images/connect-livekit.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
-<img className="hidden dark:block" src="/images/connect-livekit-dark.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
+<Tabs>
+<Tab title="Test">
 
 ## Connect
 
 <Steps>
 <Step title="Save the LiveKit keys">
-In LiveKit Cloud, open **Settings > API keys** and copy the API key, API secret, and server URL. The URL looks like `wss://your-project.livekit.cloud`. In Bluejay, open **Settings → Integrations** and choose the **LiveKit** tab. Paste them there. Skip this step if your server will issue room tokens through a [token webhook](#token-webhook).
+In LiveKit Cloud, copy the API key, API secret, and server URL from **Settings > API keys**. Paste them in Bluejay under **Settings → Integrations → LiveKit**. Skip this step if you use a [token webhook](#token-webhook).
 </Step>
 <Step title="Create the agent">
-Create a Voice agent with the **LiveKit** connection type:
+Create a Voice agent with the **LiveKit** connection type.
 
-- **LiveKit Agent Name**: the name your worker registers with. Leave it empty only if your worker uses automatic dispatch, because Bluejay then dispatches no agent.
-- **LiveKit Customer Tool Topic (Optional)**: set it to record tool calls. See [Tool calls](#tool-calls).
-- **LiveKit Metadata (Optional JSON)**: Bluejay sends it as the job metadata when it dispatches your agent, with each Digital Human's `livekit_metadata` merged over it and the simulation IDs added, such as `X-Simulation-Result-Id`.
+<img className="block dark:hidden" src="/images/connect-livekit.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
+<img className="hidden dark:block" src="/images/connect-livekit-dark.png" alt="The LiveKit connection fields with saved LiveKit credentials, an agent name, a customer tool topic, and metadata JSON" />
 </Step>
-<Step title="Choose how Bluejay joins the room">
-In the agent's **Connection Settings**, set **Authentication**:
+<Step title="Set the agent name">
+Set **LiveKit Agent Name** to your worker's registered name. Leave it empty only with automatic dispatch.
+</Step>
+<Step title="Choose the authentication">
+Set **Authentication** in the agent's **Connection Settings**:
 
-- **API Key**: Bluejay creates the room token with the keys you saved.
-- **Token Webhook**: your server creates the room token, so Bluejay stores no LiveKit keys. Put the full header value in **Authorization Header (Optional)**, scheme included, for example `Bearer <token>`. See [Token webhook](#token-webhook).
+- **API Key**: Bluejay creates the room token with your saved keys.
+- **Token Webhook**: your server creates the room token. Put the full header value, such as `Bearer <token>`, in **Authorization Header (Optional)**.
+</Step>
+<Step title="Add metadata (optional)">
+Bluejay sends **LiveKit Metadata** as the job metadata, with each Digital Human's `livekit_metadata` and the simulation IDs, such as `X-Simulation-Result-Id`, merged in.
 </Step>
 </Steps>
 
-## Test
+## Run a test
 
 <Tabs>
 <Tab title="Direct">
 
-Use this path to iterate on agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it, so you need no phone number. An agent with the **LiveKit** connection type, set up as in [Connect](#connect), uses this path.
+Test agent logic without phone audio. Bluejay creates a room in your LiveKit project and dispatches your agent into it.
 
 <video controls muted playsInline preload="metadata" className="w-full rounded-xl" src="/videos/connection-settings.mp4"></video>
 
 </Tab>
 <Tab title="SIP">
 
-Use SIP to test the same path that your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. The number does not need to be one you bought, as long as it matches your trunk.
+Test the path your phone calls take. Bluejay sends a SIP INVITE to `sip:<number>@<your-project>.sip.livekit.cloud`. The number only needs to match your trunk.
 
 <Steps>
 <Step title="Create an inbound trunk">
@@ -59,13 +64,13 @@ Create the trunk in the project that owns the SIP host.
 lk sip inbound create trunk.json
 ```
 
-To read the result ID from your agent, for example to call [Update Simulation Result](/api-reference/endpoint/update-simulation-result), map the `X-Simulation-Result-Id` header to a participant attribute. Run `lk sip inbound update --id ST_your_trunk_id -` with:
+To read the result ID in your agent, map the `X-Simulation-Result-Id` header to a participant attribute with `lk sip inbound update --id ST_your_trunk_id -`:
 
 ```json
 { "headers_to_attributes": { "X-Simulation-Result-Id": "X-Simulation-Result-Id" } }
 ```
 
-The ID then shows in `participant.attributes`. LiveKit sets the attribute asynchronously, so it can be missing at the moment the SIP participant joins.
+The ID shows in `participant.attributes`, but can be missing when the SIP participant first joins.
 </Step>
 <Step title="Create a dispatch rule">
 Create the rule on the trunk, and set `agentName` to your worker name.
@@ -84,11 +89,11 @@ lk sip dispatch create dispatch.json
 ```
 </Step>
 <Step title="Create the Bluejay agent">
-Create a Voice agent with the **SIP** connection type, and set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`. Use the number exactly as it appears in the trunk `numbers`. See [SIP](/integrations/sip) for the other SIP fields.
+Create a Voice agent with the **SIP** connection type. Set **SIP URI** to `sip:+15551230000@your-project.sip.livekit.cloud`, with the number exactly as in the trunk. See [SIP](/integrations/sip).
 </Step>
 </Steps>
 
-Bluejay puts each custom SIP header from **Connection Settings** on the INVITE under the name you enter, and also sends all of them together as JSON in `X-Custom-Headers`. Your agent can read them with the `lk.sip.GetRemoteHeaders` RPC:
+Bluejay sends each custom SIP header on the INVITE, and all of them as JSON in `X-Custom-Headers`. Read them with the `lk.sip.GetRemoteHeaders` RPC:
 
 ```python
 import json
@@ -107,26 +112,26 @@ if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
 </Tab>
 <Tab title="Outbound">
 
-To test an agent that places calls, your agent dials the Digital Humans. The **LiveKit** connection type is inbound only, so use the **Phone** connection type.
+For an agent that places calls, use the **Phone** connection type. The **LiveKit** connection type is inbound only.
 
 <Steps>
 <Step title="Create the agent">
 Create an Outbound Voice agent with the **Phone** connection type, and give each Digital Human a phone number.
 </Step>
 <Step title="Set a trigger">
-Set **Outbound Trigger Webhook URL** on the agent, or subscribe a [webhook](/api-reference/webhooks) to `outbound_simulation_started`. Without a trigger, your agent never learns that a run started, and the Digital Humans wait until the run times out.
+Set **Outbound Trigger Webhook URL**, or subscribe a [webhook](/api-reference/webhooks) to `outbound_simulation_started`. Without a trigger, the Digital Humans wait until the run times out.
 </Step>
 <Step title="Dial the Digital Humans">
-When the trigger fires, have your agent dial each `phone_number`, for example with `create_sip_participant`. The [event payload](/api-reference/webhook/events-webhook) lists the numbers.
+When the trigger fires, dial each `phone_number` in the [event payload](/api-reference/webhook/events-webhook), for example with `create_sip_participant`.
 </Step>
 </Steps>
 
 </Tab>
 </Tabs>
 
-### Token webhook
+## Token webhook
 
-With **Token Webhook** authentication, Bluejay sends a `POST` to the **Token Webhook URL** before each call:
+Before each call, Bluejay sends a `POST` to the **Token Webhook URL**:
 
 ```json
 {
@@ -144,13 +149,11 @@ With **Token Webhook** authentication, Bluejay sends a `POST` to the **Token Web
 | `livekit_url` | Replaces the server URL from the integration. Required if you saved no LiveKit integration. |
 | `room_name` | Optional. Replaces the room the Digital Human joins. |
 
-Make sure your agent is dispatched. Put a `RoomAgentDispatch` in the token room configuration, or dispatch the agent from your server.
+Dispatch your agent with a `RoomAgentDispatch` in the token, or from your server. Bluejay waits 15 seconds and tries up to 3 times on a timeout, `408`, `429`, or `5xx`. A `401` or `403` fails the run with no retry.
 
-Bluejay waits 15 seconds for the response. If the request times out or returns `408`, `429`, or a `5xx` status, Bluejay tries again, up to 3 attempts in total. If your endpoint returns `401` or `403`, Bluejay does not try again, and the run fails with `NO_CONNECTION` and `LIVEKIT_SESSION_SETUP_FAILED`.
+## Tool calls
 
-### Tool calls
-
-To record your agent's tool calls in a simulation, set **LiveKit Customer Tool Topic**, then have your agent publish one data packet on that topic each time it calls a tool. Bluejay saves the packets when the simulation ends.
+Set **LiveKit Customer Tool Topic**, and publish one data packet on that topic for each tool call.
 
 ```python
 import json
@@ -166,12 +169,12 @@ async def report_tool_call(room, tool_name, parameters, output):
 | `parameters` | The tool input. |
 | `output` | The tool return value. |
 | <Code>start_offset_ms</Code> | Milliseconds from call start. |
-| `client_ts` | ISO 8601 time of the call. Bluejay uses it when <Code>start_offset_ms</Code> is not set. If you send neither, Bluejay uses the time it gets the packet. |
+| `client_ts` | ISO 8601 time. Used when <Code>start_offset_ms</Code> is not set. |
 | <Code>invocation_id</Code> | Bluejay drops a second packet with the same ID. |
 
-### Traces
+## Traces
 
-To see your agent's traces on a simulation result, export OpenTelemetry traces to Bluejay, then link them to the result when the call shuts down.
+Export OpenTelemetry traces to Bluejay, and link them to the result at shutdown.
 
 ```python
 import httpx
@@ -216,82 +219,110 @@ async def on_shutdown():
 ctx.add_shutdown_callback(on_shutdown)
 ```
 
-Keep the order in `on_shutdown`: `span.end()`, then `force_flush()`, then the POST, then `shutdown()`. If you send the POST before the flush, the trace can be missing. See [Traces](/test/traces).
-
-## Monitor
-
-To score your live calls, send them with the LiveKit webhook or from your agent through the API. Use the API if you need tool calls.
-
-<Tabs>
-<Tab title="Webhook">
-
-LiveKit sends every call in the project to Bluejay. This path does not capture tool calls.
-
-<Warning>
-Cost risk. The LiveKit webhook streams call data to Bluejay. LiveKit can bill you for the egress.
-</Warning>
-
-<Steps>
-<Step title="Copy the webhook URL">
-In Bluejay, open **Settings → Integrations** and choose the **LiveKit** tab. Save your LiveKit keys, then copy the webhook URL from **Show configuration**.
-</Step>
-<Step title="Add the webhook in LiveKit Cloud">
-In LiveKit Cloud, go to **Settings > Webhooks** and add the URL, signed with your API key.
-</Step>
-<Step title="Set a dispatch name">
-Make sure your agent has a [dispatch name](https://docs.livekit.io/agents/build/dispatch/) (`agent_name` in `WorkerOptions`).
-</Step>
-</Steps>
-
-On the first call with a new dispatch name, Bluejay creates an agent for it. If you refresh the webhook URL in Bluejay, the old URL stops working, so update it in LiveKit Cloud too.
-
-<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/livekit-obs-full.mp4"></video>
+Call `force_flush()` before the POST, or the trace can be missing.
 
 </Tab>
-<Tab title="API">
+<Tab title="Monitor">
 
-Your agent sends each finished call to [`/v1/evaluate`](/api-reference/endpoint/evaluate) in a shutdown callback. This path captures tool calls and attributes each call to one Bluejay agent.
+To score your live calls from the worker, use the [SDK](/sdk/livekit). The code and webhook below are the paths that do not install it. Use the code path if you need tool calls and you are not using the SDK.
 
-<Steps>
-<Step title="Create the agent">
-Create an agent in Bluejay and copy its agent ID.
-</Step>
-<Step title="Add a shutdown callback">
-Add a shutdown callback that sends the call.
+## Code
+
+Send each finished call to [`/v1/evaluate`](/api-reference/endpoint/evaluate) with its trace, so Bluejay sees the system prompt and tool calls.
 
 ```python
 import os
+from datetime import datetime, timezone
+
 import httpx
-from livekit.agents import JobContext
+import opentelemetry.trace as otel_trace
+from livekit.agents import AgentSession, JobContext
+from livekit.agents.telemetry import set_tracer_provider
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+BLUEJAY_API_KEY = os.environ["BLUEJAY_API_KEY"]
+BLUEJAY_AGENT_ID = os.environ["BLUEJAY_AGENT_ID"]
+
+tracer_provider = trace_sdk.TracerProvider(resource=Resource.create({SERVICE_NAME: "my-agent"}))
+tracer_provider.add_span_processor(
+    BatchSpanProcessor(
+        OTLPSpanExporter("https://otlp.getbluejay.ai/v1/traces", headers={"X-API-KEY": BLUEJAY_API_KEY})
+    )
+)
+set_tracer_provider(tracer_provider)
+otel_trace.set_tracer_provider(tracer_provider)
+
 
 async def entrypoint(ctx: JobContext):
-    async def report_to_bluejay():
-        payload = {
-            "agent_id": os.environ["BLUEJAY_AGENT_ID"],
-            "start_time_utc": started_at_iso,  # ISO 8601 UTC, captured at call start
-            "participants": [{"role": "AGENT"}, {"role": "USER"}],
-            "transcript": transcript,  # [{start_offset_ms, end_offset_ms, speaker, utterance}]
-            "tool_calls": tool_calls,  # [{name, parameters, output, start_offset_ms}]
-            # "recording_url": recording_url,  # enables audio metrics
-        }
-        async with httpx.AsyncClient(timeout=10) as client:
+    started_at = datetime.now(timezone.utc)
+    trace_id = format(otel_trace.get_current_span().get_span_context().trace_id, "032x")
+
+    session = AgentSession(...)
+
+    async def send_to_bluejay():
+        transcript = []
+        for item in session.history.items:
+            if item.type != "message" or item.role not in ("assistant", "user") or not item.text_content:
+                continue
+            start = item.metrics.get("started_speaking_at", item.created_at)
+            end = item.metrics.get("stopped_speaking_at", start)
+            transcript.append({
+                "speaker": "AGENT" if item.role == "assistant" else "USER",
+                "utterance": item.text_content,
+                "start_offset_ms": max(0, int((start - started_at.timestamp()) * 1000)),
+                "end_offset_ms": max(0, int((end - started_at.timestamp()) * 1000)),
+            })
+        if not transcript:
+            return
+        tracer_provider.force_flush()
+        async with httpx.AsyncClient(timeout=30) as client:
             res = await client.post(
                 "https://api.getbluejay.ai/v1/evaluate",
-                json=payload,
-                headers={"X-API-Key": os.environ["BLUEJAY_API_KEY"]},
+                json={
+                    "agent_id": BLUEJAY_AGENT_ID,
+                    "start_time_utc": started_at.isoformat(),
+                    "participants": [{"role": "AGENT"}, {"role": "USER"}],
+                    "transcript": transcript,
+                    "trace_ids": [trace_id],
+                },
+                headers={"X-API-Key": BLUEJAY_API_KEY},
             )
             res.raise_for_status()
 
-    ctx.add_shutdown_callback(report_to_bluejay)
+    ctx.add_shutdown_callback(send_to_bluejay)
+    await session.start(...)
 ```
-</Step>
-</Steps>
 
-If the project also sends calls through the webhook, set `bluejay.bypass_webhook` when the agent joins, so Bluejay does not get each call twice:
+If you also use the webhook, set `bluejay.bypass_webhook` so Bluejay does not get each call twice:
 
 ```python
 await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "true"})
 ```
+
+## No code
+
+Use a LiveKit webhook to send every call in the project to Bluejay.
+
+<Warning>
+Calls arrive without traces or tool calls. LiveKit can bill you for the egress.
+</Warning>
+
+<Steps>
+<Step title="Copy the webhook URL">
+Save your LiveKit keys, then copy the URL from **Settings → Integrations → LiveKit → Show configuration**.
+</Step>
+<Step title="Add the webhook in LiveKit Cloud">
+Add the URL under **Settings > Webhooks**, signed with your API key.
+</Step>
+<Step title="Set a dispatch name">
+Set `agent_name` in `WorkerOptions`. Bluejay creates an agent for each new [dispatch name](https://docs.livekit.io/agents/build/dispatch/).
+</Step>
+</Steps>
+
+<video controls muted playsInline preload="metadata" className="w-full aspect-video rounded-xl" src="/videos/livekit-obs-full.mp4"></video>
 
 </Tab>
 </Tabs>
@@ -308,6 +339,7 @@ await req.accept(identity="support-bot", attributes={"bluejay.bypass_webhook": "
 
 ## Related
 
+- [SDK](/sdk/livekit)
 - [Agents API](/api-reference/endpoint/add-agent)
 - [Agents MCP tools](/mcp/testing-tools#agents)
 - [Logs](/monitor/logs)

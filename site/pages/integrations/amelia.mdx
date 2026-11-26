@@ -1,0 +1,69 @@
+---
+title: "Amelia"
+description: "Test your Amelia bot."
+---
+
+Connect an Amelia domain to test its bot by chat or voice, and import its AI agents and conversation flows into Bluejay.
+
+<img src="/images/connect-amelia.png" alt="The Amelia connection fields with an Amelia URL ending in /Amelia and a domain" />
+<img src="/images/connect-amelia-dark.png" alt="The Amelia connection fields with an Amelia URL ending in /Amelia and a domain" />
+
+## Connect
+
+<Steps>
+<Step title="Save an Amelia account">
+Amelia has no API key, so Bluejay signs in with an Amelia user account to import agents and flows. Simulations do not use it. In Bluejay, open **Settings → Integrations** and choose the **Amelia** tab. Enter an account that can view your domain.
+
+- **Amelia URL**: where you sign in, for example <Code value={"https://yourcompany.amelia.com"} />. It must be a public `https` address.
+</Step>
+<Step title="Create the agent">
+Give the agent the **Amelia** connection type, voice for a call or text for a chat.
+
+- **Amelia URL**: include the trailing `/Amelia`, for example <Code value={"https://yourcompany.amelia.com/Amelia"} />. Without it, every simulation fails at start.
+- **Domain**: one domain is one bot. A domain that makes each user sign in before chat is not supported.
+- **Agent**: the AI agent that Sync pulls into Bluejay. It does not change which agent answers.
+- **Flow**: the conversation flow that each simulation starts. Leave it unset to let Amelia route.
+</Step>
+</Steps>
+
+Amelia picks which AI agent answers, and it can hand over to a different agent during a conversation. To reach one agent every time, make a flow whose **Execute Cognitive Agent** block names that agent, and set **Flow** to that flow.
+
+## Test
+
+A simulation needs only **Amelia URL** and **Domain** on the agent, and no phone number. Test with chat first to check the bot logic, then with voice to check the call experience.
+
+## Import and edit flows
+
+<Steps>
+<Step title="Sync from Amelia">
+On the **Amelia** tab, click **Sync from Amelia** to make one Bluejay agent for each AI agent, set up for chat. You can sync once per minute, and the sync fails if Amelia returns more than 2000 AI agents. AI agents are read-only in Bluejay, so edit them in Amelia and sync again.
+</Step>
+<Step title="Pull a flow">
+Set **Flow** on the agent and leave **Agent** empty, because **Agent** has priority over **Flow** and hides the **Workflow** tab. Then sync from the **Workflow** tab.
+</Step>
+<Step title="Edit and push">
+Edit the text of **Amelia Says** and **Amelia Asks** blocks, steps, and conditions. Edit other blocks in Amelia and sync again. **Push** saves the flow in Amelia as a new revision and deploys it.
+</Step>
+</Steps>
+
+In the API, use [Sync Amelia Agents](/api-reference/endpoint/sync-amelia-agents), [List Amelia Agents](/api-reference/endpoint/list-amelia-agents), [List Amelia Flows](/api-reference/endpoint/list-amelia-flows), and [Sync Agent Workflow](/api-reference/endpoint/sync-agent-workflow). Set the flow with `amelia_flow_name` on [Update Agent](/api-reference/endpoint/update-agent).
+
+## Troubleshooting
+
+| Error | Fix |
+|---|---|
+| `Amelia session failed: HTTP <code>` at the start of a chat | End the agent's **Amelia URL** in `/Amelia`, and check the **Domain**. |
+| `Agent has no Amelia cognitive agent name or flow name` | Set **Agent** or **Flow**. |
+| `Amelia domain '...' has no cognitive agent named '...'` | Pick an agent that exists in that domain. |
+| `Amelia has no domain with code '...' visible to these credentials` or `No Amelia domain with code '...'` | Check the domain code, and make sure the saved account can see the domain. |
+| `Amelia flow '...' has no revision to sync. Deploy it in Amelia first.` | Deploy the flow in Amelia, then sync. |
+| `Amelia rejected the stored admin credentials` | Update the username or password on the **Amelia** tab. |
+| `Amelia rejected this graph: ...` on **Push** | Fix the errors that Amelia validation lists, then push again. |
+| `Amelia URL must be a public host` or `must start with https://` | Use an `https` address on the public internet, not `localhost`, an internal name, or a private address. |
+
+## Related
+
+- [Agents API](/api-reference/endpoint/add-agent)
+- [Workflow MCP tools](/mcp/testing-tools#workflows)
+- [Agents](/test/simulations/create#connect-your-agent)
+- [Simulation](/test/simulations/create)

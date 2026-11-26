@@ -1,0 +1,71 @@
+---
+title: "GET /v1/red-team-simulations"
+description: "List Red Teaming runs."
+api: "GET https://api.getbluejay.ai/v1/red-team-simulations"
+playground: "none"
+---
+
+Returns the red team tests for the agents you can see. Filter with `agent_id` and `status`.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Query parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer or null", "required": false, "description": "Only tests against this agent: its Bluejay id from GET /v1/all-agents. Omit for every agent you can see."}, {"name": "status", "type": "string or null", "required": false, "description": "Only tests in this state: PENDING, RUNNING, COMPLETED, STOPPED or FAILED. Omit for all states."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "tests", "type": "object[] or null", "required": false, "description": "Red-team tests you can see, newest first, at most 100.", "children": [{"name": "id", "type": "integer or null", "required": false, "description": "The test's own id (not the simulation id)."}, {"name": "organization_id", "type": "string or null", "required": false, "description": "Organization that owns the test."}, {"name": "agent_id", "type": "integer or null", "required": false, "description": "The agent under attack."}, {"name": "simulation_id", "type": "integer or null", "required": false, "description": "The test's simulation id (the id in the app's /red-teaming/{id} URL); look the test up by it with by=simulation_id."}, {"name": "objective", "type": "string or null", "required": false, "description": "The test's objective."}, {"name": "status", "type": "string or null", "required": false, "description": "PENDING, RUNNING, COMPLETED, STOPPED or FAILED."}, {"name": "config", "type": "object or null", "required": false, "description": "The test's settings after clamping to the ceilings."}, {"name": "overall", "type": "string or null", "required": false, "description": "Overall verdict, once scored."}, {"name": "owasp_scorecard", "type": "object or null", "required": false, "description": "OWASP category id → {name, verdict, attempts}."}, {"name": "secondary_scores", "type": "object or null", "required": false, "description": "MITRE ATLAS results: {framework, techniques: technique id → {name, status}}."}, {"name": "confirmed_vulns", "type": "object[] or null", "required": false, "description": "Confirmed vulnerabilities, each with its category and name."}, {"name": "harvested", "type": "object[] or null", "required": false, "description": "Information the attacks extracted from the agent, each with field, value and confidence."}, {"name": "coverage", "type": "object or null", "required": false, "description": "The test's attack coverage summary."}, {"name": "bluejay_analysis", "type": "string or null", "required": false, "description": "Bluejay's written analysis of the findings."}, {"name": "final_simulation_run_id", "type": "integer or null", "required": false, "description": "The test's last simulation run."}, {"name": "created_at", "type": "string or null", "required": false, "description": "When the test started, ISO 8601."}, {"name": "updated_at", "type": "string or null", "required": false, "description": "When the test last changed, ISO 8601."}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/red-team-simulations \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "tests": [
+    {
+      "id": 123,
+      "organization_id": "<string>",
+      "agent_id": 123,
+      "simulation_id": 123,
+      "objective": "<string>",
+      "status": "<string>",
+      "config": {},
+      "overall": "<string>",
+      "owasp_scorecard": {},
+      "secondary_scores": {},
+      "confirmed_vulns": [
+        {}
+      ],
+      "harvested": [
+        {}
+      ],
+      "coverage": {},
+      "bluejay_analysis": "<string>",
+      "final_simulation_run_id": 123,
+      "created_at": "<string>",
+      "updated_at": "<string>"
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

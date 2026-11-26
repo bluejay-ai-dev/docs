@@ -1,0 +1,61 @@
+---
+title: "POST /v1/agents/{agent_id}/labels"
+description: "Create an agent label."
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/labels"
+playground: "none"
+---
+
+Creates a label for an agent. `production` and `latest` return 400. A label that exists returns 409.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "integer", "required": true, "description": "The agent that owns the label: its Bluejay agent id, from GET /v1/all-agents."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "label_text", "type": "string", "required": true, "description": "The label's text, e.g. 'billing'. Must not match another label of this agent (case-insensitive), and 'latest' and 'production' are reserved."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "id", "type": "string (uuid) or null", "required": false, "description": "The label's id (a UUID). For a free-standing label, pass it as label_id to GET /v1/agents/{agent_id}/labels/{label_id}, PUT /v1/agents/{agent_id}/labels/{label_id} or DELETE /v1/agents/{agent_id}/labels/{label_id}."}, {"name": "created_at", "type": "string (date-time) or null", "required": false, "description": "When the label was created, as an ISO 8601 timestamp."}, {"name": "agent_id", "type": "integer", "required": true, "description": "The agent the label belongs to."}, {"name": "label_text", "type": "string", "required": true, "description": "The label's text."}, {"name": "agent_version_id", "type": "string (uuid) or null", "required": false, "description": "The agent version the label is attached to; null for a free-standing label."}, {"name": "knowledge_base_id", "type": "string (uuid) or null", "required": false, "description": "The knowledge base the label is attached to; null for a free-standing label."}, {"name": "color", "type": "string or null", "required": false, "description": "The label's display colour, when one is set."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/labels \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "label_text": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "id": "b3addeb0-34bb-57fa-8c77-28d483328041",
+  "created_at": "2026-01-01T00:00:00Z",
+  "agent_id": 123,
+  "label_text": "<string>",
+  "agent_version_id": "80df19fa-47cd-51eb-952a-f858a6cc7642",
+  "knowledge_base_id": "e356e6c6-e0d0-5076-8850-d7c1876f470f",
+  "color": "<string>"
+}
+```
+
+{/* END GENERATED */}

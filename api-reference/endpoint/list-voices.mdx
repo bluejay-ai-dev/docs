@@ -1,0 +1,107 @@
+---
+title: "GET /v1/voices"
+description: "List the voices you can use."
+sidebarTitle: "/\u200bv1/\u200bvoices"
+api: "GET https://api.getbluejay.ai/v1/voices"
+playground: "none"
+---
+
+import { FieldTable } from "/snippets/field-table.jsx";
+
+Returns the languages, accents and voices your workspace can give a Digital Human or persona. It is the live list of what you can pick. A voice ID never changes, so it is safe to store.
+
+- `voices` has one entry per voice and language. A voice that speaks three languages appears three times.
+- Your organization's cloned and generated voices come last, with `own: true` and no `accent`. They speak any language. The `accent` filter does not apply to them, and the `gender` filter keeps the ones with no gender.
+- The stock voices depend on the voice providers your organization has.
+- `sample_url` expires after 15 minutes. Call again for a new one.
+
+Rate limit: 100 requests per minute.
+
+## Set a voice
+
+[Create Digital Humans](/api-reference/endpoint/create-digital-humans-v2), [Update Digital Human](/api-reference/endpoint/update-digital-human), [Create Persona](/api-reference/endpoint/create-persona) and [Update Persona](/api-reference/endpoint/update-persona) take a voice in one of two ways:
+
+- **`voice_id`** pins that exact voice, such as `cartesia-connie`. It must speak the Digital Human's `language`. If you create one with `voice_id` and no `language`, Bluejay uses English, or another language the voice speaks.
+- **`language`, `accent` and `gender`** pin the voice that `defaults` lists for that combination. A `language` alone uses its `default_accent`. Without `gender`, Bluejay picks one at random. A combination with no voice returns `400` with the valid choices.
+
+A Digital Human created with no voice fields gets an English voice with a random gender. A persona has a voice only once you set `accent`, `voice_id` or `custom_voice_id`. Until then, each Digital Human that runs as it keeps its own voice.
+
+On an update, a voice field counts only when it differs from the stored value. Changing `accent` or `gender` without `voice_id` pins that combination's default voice. Changing only `language` keeps the voice if it speaks the new language. If it does not, also send an `accent` of the new language or a `voice_id`.
+
+- **Cloned voices:** pin one with its `voice_id` from this list, or set `custom_voice_id` to the `voice_id` from [Create Voice Clone](/api-reference/endpoint/create-voice-clone). Bluejay stores no accent or gender for a clone, so both come back null. Only Digital Humans and personas in the clone's workspace can use it.
+- **Fluency:** `fluency` works only on voices with `supports_fluency`, which are ElevenLabs voices in English or Urdu. Bluejay saves `native` for any other voice.
+- **Older values:** older accent values still work on input. So do the language codes `ml` for multilingual and `ad` for auto-detect, which responses return as `multi` and `auto`.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Query parameters
+
+<FieldTable rows={[{"name": "language", "type": "string or null", "required": false, "description": "Only voices that speak this language", "values": ["en", "es", "pt", "ja", "tr", "hi", "ar", "he", "ru", "zh", "multi", "fr", "yue", "vi", "de", "ko", "ur", "te", "ta", "mal", "kn", "mr", "gu", "tl", "el", "auto"]}, {"name": "accent", "type": "string or null", "required": false, "description": "Only voices with this accent, e.g. american"}, {"name": "gender", "type": "string or null", "required": false, "description": "female or male", "values": ["male", "female"]}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "languages", "type": "object[]", "required": true, "description": "Language and accent pairs with at least one voice you may use", "children": [{"name": "language", "type": "string", "required": true, "description": ""}, {"name": "language_label", "type": "string", "required": true, "description": ""}, {"name": "default_accent", "type": "string", "required": true, "description": "The accent picked when a digital human sets only this language"}, {"name": "accents", "type": "object[]", "required": true, "description": "", "children": [{"name": "accent", "type": "string", "required": true, "description": ""}, {"name": "accent_label", "type": "string", "required": true, "description": ""}, {"name": "is_default", "type": "boolean", "required": true, "description": "The accent this language picks when no accent is given"}]}]}, {"name": "voices", "type": "object[]", "required": true, "description": "One entry per voice and language matching the filters, then your own voices", "children": [{"name": "voice_id", "type": "string", "required": true, "description": "Pass as voice_id on a digital human or persona"}, {"name": "name", "type": "string", "required": true, "description": ""}, {"name": "gender", "type": "string or null", "required": false, "description": ""}, {"name": "age", "type": "string or null", "required": false, "description": "adult or mature; display only"}, {"name": "language", "type": "string or null", "required": false, "description": ""}, {"name": "accent", "type": "string or null", "required": false, "description": "Null for your own clones and generated voices, which speak any language"}, {"name": "is_default", "type": "boolean", "required": true, "description": "The voice a language, accent and gender pick by default"}, {"name": "supports_fluency", "type": "boolean", "required": true, "description": "True only for ElevenLabs voices in English or Urdu; everything else is always native"}, {"name": "sample_url", "type": "string or null", "required": false, "description": "Presigned preview clip, valid 15 minutes; null when none exists"}, {"name": "own", "type": "boolean", "required": true, "description": "Your organization's clone or generated voice"}]}, {"name": "defaults", "type": "object[]", "required": true, "description": "The voice each language, accent and gender picks", "children": [{"name": "language", "type": "string", "required": true, "description": ""}, {"name": "accent", "type": "string", "required": true, "description": ""}, {"name": "gender", "type": "string", "required": true, "description": ""}, {"name": "voice_id", "type": "string", "required": true, "description": ""}]}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request GET \
+  --url https://api.getbluejay.ai/v1/voices \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "languages": [
+    {
+      "language": "<string>",
+      "language_label": "<string>",
+      "default_accent": "<string>",
+      "accents": [
+        {
+          "accent": "<string>",
+          "accent_label": "<string>",
+          "is_default": true
+        }
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "voice_id": "<string>",
+      "name": "<string>",
+      "gender": "<string>",
+      "age": "<string>",
+      "language": "<string>",
+      "accent": "<string>",
+      "is_default": true,
+      "supports_fluency": true,
+      "sample_url": "<string>",
+      "own": true
+    }
+  ],
+  "defaults": [
+    {
+      "language": "<string>",
+      "accent": "<string>",
+      "gender": "<string>",
+      "voice_id": "<string>"
+    }
+  ]
+}
+```
+
+{/* END GENERATED */}

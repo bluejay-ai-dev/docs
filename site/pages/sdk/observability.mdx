@@ -1,0 +1,187 @@
+---
+title: "Observe Your Agent"
+description: "Send production transcripts, traces, and recordings to Bluejay."
+---
+
+Enable tracing at process startup, then use the integration for your agent. The SDK groups telemetry by session so the transcript and trace are available on the same conversation in [Logs](/monitor/logs).
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+from bluejay import BluejayClient
+
+client = BluejayClient(tracing=True)
+```
+
+```typescript title="TypeScript"
+import { BluejayClient } from "@getbluejay/sdk";
+
+const client = new BluejayClient({ tracing: true });
+```
+
+</CodeGroup>
+
+| Agent | What to add |
+| --- | --- |
+| LiveKit | Attach Bluejay before the agent session starts. The integration captures turns, spans, and audio. [LiveKit setup](/sdk/livekit) |
+| Pipecat | Add the tap to the pipeline and enable Pipecat tracing. The integration captures turns, spans, and audio. [Pipecat setup](/sdk/pipecat) |
+| Chat or SMS | Reuse the conversation ID and call `client.turn()` for each message. |
+| Custom voice | Record finalized speech with `client.turn()` and add spans for custom steps. |
+
+## Trace chat or SMS
+
+Use `@client.session(...)` in Python or a `client.session(...)` callback in Node.js. Choose a stable conversation ID from the handler's arguments. Use the same ID for every message in the conversation.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+@client.session(lambda chat_id, message: chat_id, external_agent_id="support-chat")
+def answer_message(chat_id, message):
+    client.turn("USER", message)
+    reply = generate_reply(message)
+    client.turn("AGENT", reply)
+    return reply
+```
+
+```typescript title="TypeScript"
+async function answerMessage(chatId, message) {
+  return client.session({ sessionId: chatId, externalAgentId: "support-chat" }, async () => {
+    client.turn("USER", message);
+    const reply = await generateReply(message);
+    client.turn("AGENT", reply);
+    return reply;
+  });
+}
+```
+
+</CodeGroup>
+
+For SMS, use the conversation ID across messages and record the agent turn after your send succeeds:
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+@client.session(lambda thread_id, sender, message: thread_id, external_agent_id="support-sms")
+async def respond_to_sms(thread_id, sender, message):
+    client.turn("USER", message)
+    reply = await generate_sms_reply(message)
+    await send_sms(sender, reply)
+    client.turn("AGENT", reply)
+```
+
+```typescript title="TypeScript"
+async function respondToSms(threadId, sender, message) {
+  return client.session({ sessionId: threadId, externalAgentId: "support-sms" }, async () => {
+    client.turn("USER", message);
+    const reply = await generateSmsReply(message);
+    await sendSms(sender, reply);
+    client.turn("AGENT", reply);
+  });
+}
+```
+
+</CodeGroup>
+
+Use the external ID configured on your Bluejay agent. To build the conversation when your app knows it has ended, call `client.end_session()` in Python or `await client.endSession()` in Node.js. Pass the conversation ID and the same agent ID. Bluejay also builds idle sessions automatically.
+
+## Trace custom voice
+
+Keep one ID for the call. Record the caller's finalized transcript and the portion of the reply that played. Pass timezone-aware `datetime` values for speech timing.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+with client.session(call_id, external_agent_id="support-voice") as conversation:
+    conversation.turn("USER", caller_text, start_time=heard_at, end_time=heard_until)
+    conversation.turn(
+        "AGENT", played_text,
+        start_time=played_at,
+        end_time=played_until,
+        interrupted=caller_barged_in,
+    )
+
+conversation.end()
+```
+
+```typescript title="TypeScript"
+const conversation = client.createSession({ sessionId: callId, externalAgentId: "support-voice" });
+conversation.turn("USER", callerText, { startTime: heardAt, endTime: heardUntil });
+conversation.turn("AGENT", playedText, {
+  startTime: playedAt,
+  endTime: playedUntil,
+  interrupted: callerBargedIn,
+});
+await conversation.end();
+```
+
+</CodeGroup>
+
+For callbacks, reopen the same session ID as each callback runs. A custom stack supplies its own audio. If you already have a recording and a transcript, you can submit the finished call through [Evaluate](/api-reference/endpoint/evaluate) as an alternative ingest path. Use one ingest path per conversation.
+
+## Add model and tool details
+
+`turn()` writes a transcript line. Supported provider calls are traced automatically inside the active session. Node.js has built-in OpenAI tracing. For other providers, use existing OpenTelemetry instrumentation or a manual model span. See [OpenAI](/sdk/openai), [Anthropic](/sdk/anthropic), [Gemini](/sdk/gemini), or [Bedrock](/sdk/bedrock).
+
+Wrap a custom function with `observe()` to record its arguments, result, and errors. Use a decorator in Python or wrap the function in Node.js.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+@client.observe(kind="tool")
+def lookup_order(order_id):
+    return orders.get(order_id)
+```
+
+```typescript title="TypeScript"
+const lookupOrder = client.observe(
+  "lookup order",
+  async (orderId) => orders.get(orderId),
+  { kind: "tool" },
+);
+```
+
+</CodeGroup>
+
+For a model request that has no provider or framework span, use a manual span and set its output and token counts.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+with client.span("generate reply", kind="llm", model=model_name, input=messages) as span:
+    result = model_client.generate(messages)
+    span.set_output(result.text, input_tokens=result.input_tokens, output_tokens=result.output_tokens)
+```
+
+```typescript title="TypeScript"
+const result = await client.span("generate reply", async (span) => {
+  const reply = await modelClient.generate(messages);
+  span.setAttribute("gen_ai.usage.input_tokens", reply.inputTokens);
+  span.setAttribute("gen_ai.usage.output_tokens", reply.outputTokens);
+  return reply.text;
+}, { kind: "llm", model: modelName, input: messages });
+```
+
+</CodeGroup>
+
+## Configure data capture
+
+Configure trace redaction when initializing the client at startup:
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+client = BluejayClient()
+client.init_tracing(redact_pii=True)
+```
+
+```typescript title="TypeScript"
+const client = new BluejayClient({ tracing: { redactPii: true } });
+```
+
+</CodeGroup>
+
+`redact_pii=True` in Python and `redactPii: true` in Node.js strip supported content attributes such as transcript lines, prompts, and tool payloads from spans sent to Bluejay. For custom span attributes, provide a `mask` function. The voice integrations have separate audio upload settings.
+
+## Verify the integration
+
+Send a message or place a call, then open the conversation in [Logs](/monitor/logs) and inspect its [trace](/monitor/traces). For a short-lived trace-only script, flush spans before exit with `client.flush()` in Python or `await client.flush()` in Node.js.

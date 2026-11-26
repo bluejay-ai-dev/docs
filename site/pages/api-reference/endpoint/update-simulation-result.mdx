@@ -1,0 +1,113 @@
+---
+title: "POST /v1/update-simulation-result"
+description: "Add data to a simulation result."
+api: "POST https://api.getbluejay.ai/v1/update-simulation-result"
+playground: "none"
+---
+
+Adds tool calls, events, tags, metadata, and trace IDs to a simulation result.
+
+## Identify the result
+
+Send one of these:
+
+- `simulation_result_id`. For SIP calls, read it from the `X-Simulation-Result-Id` header of the call.
+- `start_time`, `end_time`, and `duration` in seconds.
+
+With the time window, Bluejay looks for a connected simulation in the workspaces your key can see. A stored call matches when both times are within 90 seconds and the stored duration is within the larger of 5 seconds and 10% of `duration`. Calls with no stored duration always match.
+
+Without `recorded_transcript`, exactly one call must match. With a transcript, Bluejay scores each call that matches:
+
+- One call is kept only when the transcript shares at least 80% of its normalized words.
+- Two or more calls are separated only when the best score leads the next score by at least 0.08.
+
+## Errors
+
+- 404: nothing in your organization matched the time window.
+- 409: the transcript was missing, not stored yet, too close to separate the calls, or not close enough to the only call. Send `simulation_result_id` instead. Nothing is written.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "simulation_result_id", "type": "string or null", "required": false, "description": "Simulation result ID provided via SIP for the specific call. Omit to match on start_time, end_time, and duration."}, {"name": "start_time", "type": "string (date-time) or null", "required": false, "description": "Call start (timezone-aware). With end_time and duration, identifies the result when simulation_result_id is omitted."}, {"name": "end_time", "type": "string (date-time) or null", "required": false, "description": "Call end (timezone-aware). With start_time and duration, identifies the result when simulation_result_id is omitted."}, {"name": "duration", "type": "integer or null", "required": false, "description": "Call duration in seconds. With start_time and end_time, identifies the result when simulation_result_id is omitted."}, {"name": "events", "type": "object[] or null", "required": false, "description": "List of events that occurred during the call", "children": [{"name": "title", "type": "string", "required": true, "description": "Title of the event"}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the event in milliseconds"}, {"name": "description", "type": "string or null", "required": false, "description": "Description of the event"}, {"name": "end_offset_ms", "type": "integer or null", "required": false, "description": "End offset of the event in milliseconds"}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the event"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the event"}]}, {"name": "tool_calls", "type": "object[] or null", "required": false, "description": "List of tool calls made during the call", "children": [{"name": "name", "type": "string", "required": true, "description": "Name of the tool the agent called, e.g. lookup_order."}, {"name": "start_offset_ms", "type": "integer", "required": true, "description": "When the agent called the tool, in milliseconds from the start of the conversation."}, {"name": "description", "type": "string or null", "required": false, "description": "What the tool does, as described to the agent."}, {"name": "parameters", "type": "object or null", "required": false, "description": "Arguments the agent passed to the tool, as a JSON object."}, {"name": "output", "type": "any or null", "required": false, "description": "What the tool returned to the agent: text or any JSON value."}]}, {"name": "recorded_transcript", "type": "object[] or null", "required": false, "description": "Recorded transcript of the call. Stored for STT accuracy, and used to pick the call when several match the time window.", "children": [{"name": "start_offset_ms", "type": "integer", "required": true, "description": "Start offset of the utterance in milliseconds"}, {"name": "end_offset_ms", "type": "integer", "required": true, "description": "End offset of the utterance in milliseconds"}, {"name": "speaker", "type": "string", "required": true, "description": "Identifier for the speaker (e.g., 'AGENT', 'USER')", "values": ["AGENT", "USER", "DIGITAL_HUMAN", "agent", "digital_human"]}, {"name": "utterance", "type": "string", "required": true, "description": "Transcribed text of the utterance"}, {"name": "filler_utterance", "type": "boolean or null", "required": false, "description": "True when this utterance is filler that covers a pause, such as 'one moment' or 'let me check', rather than a real reply. Lets latency be measured to the first real reply."}, {"name": "interrupted", "type": "boolean or null", "required": false, "description": "True when the other side cut this utterance off; the text is what was actually said before the cut."}]}, {"name": "tags", "type": "string[] or null", "required": false, "description": "List of tags associated with the call"}, {"name": "metadata", "type": "object or null", "required": false, "description": "Additional metadata associated with the call"}, {"name": "trace_ids", "type": "string[] or null", "required": false, "description": "Trace IDs to associate with this simulation result"}, {"name": "session_id", "type": "string or null", "required": false, "description": "Session ID your spans carry as `session.id`. Every trace with this session is attached to the result, along with any trace_ids."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string", "required": false, "description": "Status of the response", "default": "success"}, {"name": "message", "type": "string or null", "required": false, "description": "Optional message providing additional information about the response"}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/update-simulation-result \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_result_id": "<string>",
+    "start_time": "2026-01-01T00:00:00Z",
+    "end_time": "2026-01-01T00:00:00Z",
+    "duration": 123,
+    "events": [
+      {
+        "title": "<string>",
+        "start_offset_ms": 123,
+        "description": "<string>",
+        "end_offset_ms": 123,
+        "tags": [
+          "<string>"
+        ],
+        "metadata": {}
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "<string>",
+        "start_offset_ms": 123,
+        "description": "<string>",
+        "parameters": {},
+        "output": null
+      }
+    ],
+    "recorded_transcript": [
+      {
+        "start_offset_ms": 123,
+        "end_offset_ms": 123,
+        "speaker": "AGENT",
+        "utterance": "<string>",
+        "filler_utterance": true,
+        "interrupted": true
+      }
+    ],
+    "tags": [
+      "<string>"
+    ],
+    "metadata": {},
+    "trace_ids": [
+      "<string>"
+    ],
+    "session_id": "<string>"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "status": "success",
+  "message": "<string>"
+}
+```
+
+{/* END GENERATED */}

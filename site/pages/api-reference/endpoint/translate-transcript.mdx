@@ -1,0 +1,62 @@
+---
+title: "POST /v1/translate-transcript"
+description: "Translate a transcript."
+api: "POST https://api.getbluejay.ai/v1/translate-transcript"
+playground: "none"
+---
+
+Translates a transcript. Send `simulation_result_id` for a simulation, or `conversation_id` for a production call. `target_language` is a language code such as `es`. The default is `en`.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+Send one of these bodies.
+
+### Translate Simulation Transcript
+
+<FieldTable rows={[{"name": "simulation_result_id", "type": "integer", "required": true, "description": "A simulated conversation to translate: its result id from GET /v1/retrieve-simulation-results/{simulation_run_id}. Give this or conversation_id."}, {"name": "target_language", "type": "string", "required": false, "description": "Language code to translate into, such as es, fr or de. Omitted means en (English).", "default": "en"}]} />
+
+### Translate Observability Transcript
+
+<FieldTable rows={[{"name": "conversation_id", "type": "string", "required": true, "description": "A production conversation to translate: its id (UUID) from GET /v1/observability/conversations, or the call_id POST /v1/evaluate returns. Give this or simulation_result_id."}, {"name": "target_language", "type": "string", "required": false, "description": "Language code to translate into, such as es, fr or de. Omitted means en (English).", "default": "en"}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "translated_transcript_url", "type": "string", "required": true, "description": "Signed link to the translated transcript (JSON utterances)."}, {"name": "target_language", "type": "string", "required": true, "description": "The language code the transcript was translated into."}, {"name": "success", "type": "boolean", "required": false, "description": "True when a translation was produced or an existing one was found.", "default": true}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/translate-transcript \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "simulation_result_id": 123,
+    "target_language": "en"
+  }'
+```
+
+## Example response
+
+```json 200
+{
+  "translated_transcript_url": "<string>",
+  "target_language": "<string>",
+  "success": true
+}
+```
+
+{/* END GENERATED */}

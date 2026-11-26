@@ -2,6 +2,18 @@
 
 This file provides guidance to coding agents working in this repository.
 
+## Where the docs live
+
+SaturnDocs publishes the docs from `site/`. Each push to `main` starts a build.
+
+- Pages are in `site/pages/`. The file path is the page address.
+- The navigation, the sidebar icons and labels, and the redirects are in `site/docs.json`.
+- Components are in `site/components/`. A page uses a component by its name and needs no `import` line.
+- Images and videos are in `site/public/`. A page links them from the root, such as `/images/alerts-list.png`.
+- Run `npx saturndocs@latest check site` before you push.
+
+The files outside `site/` and `scripts/` are the Mintlify version of the docs. Do not edit them. They stay until the domain moves to SaturnDocs, and a later pull request removes them.
+
 ## Docs content
 
 Write in plain, short sentences. Use the active voice. Do not use semicolons or em dashes.
@@ -20,8 +32,8 @@ Write in plain, short sentences. Use the active voice. Do not use semicolons or 
 - Headings are sentence case. Page titles in frontmatter are Title Case, because the sidebar shows them.
 - Capitalize product names: Bluejay AI, Bluejay as Code, Digital Human, Knowledge Base, Red Teaming, Metrics Lab, Self-Improve, and simulation type names. Generic nouns stay lowercase in running text: agent, simulation, custom metric, issue, alert, dashboard, conversation, trace, webhook, integration.
 - App UI labels are bold and keep the app's exact capitalization. A page named after a feature uses the app's label for it.
-- The `integrations/` folder holds the agent connection pages (Connect Your Agent). The `native-integrations/` folder, the CI/CD tab, holds GitHub, GitLab and Azure DevOps.
-- The agent connection pages (`integrations/`) are the only place that lists the integrations and connection types. They change often, so other pages link to the first Integrations page, [Connect Your Agent](/integrations/overview), instead of naming them. A page can still name the providers that one feature supports, for example which platforms can pull a workflow. The API reference can also list connection types with their request fields, as Add Agent does, because API users need the field names.
+- The `site/pages/integrations/` folder holds the agent connection pages (Connect Your Agent). The `site/pages/native-integrations/` folder, the CI/CD tab, holds GitHub, GitLab and Azure DevOps.
+- The agent connection pages (`site/pages/integrations/`) are the only place that lists the integrations and connection types. They change often, so other pages link to the first Integrations page, [Connect Your Agent](/integrations/overview), instead of naming them. A page can still name the providers that one feature supports, for example which platforms can pull a workflow. The API reference can also list connection types with their request fields, as Add Agent does, because API users need the field names.
 
 ### What to leave out
 
@@ -31,18 +43,20 @@ Write in plain, short sentences. Use the active voice. Do not use semicolons or 
 
 ### Nav and sidebar
 
-- Every non-API-reference page in the sidebar has an `icon` in frontmatter. Reuse a Font Awesome name already in `docs.json` when it fits.
+- Every non-API-reference page in the sidebar has an `icon` on its entry in `site/docs.json`. Reuse a Font Awesome name already in `site/docs.json`. `site/public/theme.css` has one rule for each icon name, so a new name does not match the other icons until the theme has a rule for it.
+- A sidebar label that differs from the page title is the `label` of the page's entry in `site/docs.json`.
 - Reference pages, such as statuses, limits, and field tables, sit at the bottom of their nav group, after the guides.
-- A `/v1` endpoint that has a `/v2` starts with a `<Note>` that says which to use for new integrations and why. In the sidebar, each `/v2` sits directly above its `/v1`.
-- When you move, rename, or delete a page, add a redirect from the old path and fix every internal link.
+- A `/v1` endpoint that has a `/v2` starts with a `<Note>` that says which to use for new integrations and why. If the `/v1` is deprecated, use `deprecated: true` and a `<Warning>` that links the `/v2` page instead.
+- Deprecated endpoints stay in their original section, after the endpoints that are not deprecated. Each `/v2` stays above its `/v1`.
+- When you move, rename, or delete a page, add a redirect from the old path in `site/docs.json` and fix every internal link.
 
 ### Media
 
-- Screenshots are in `images/`. An engineer who changes a pictured screen updates its screenshot in the same change. Capture from a test org, crop to the relevant area, and show no customer or internal names.
+- Screenshots are in `site/public/images/`. An engineer who changes a pictured screen updates its screenshot in the same change. Capture from a test org, crop to the relevant area, and show no customer or internal names.
 
 ### Tables
 
-- In tables, wrap a long identifier (12+ characters with `_`, `/`, or a dot between letters) in `<Code>` from `snippets/code.jsx` instead of backticks, so it breaks only at those separators. Write values that contain `<` or `>` as `<Code>{"MISSING_<PROVIDER>_INTEGRATION"}</Code>`.
+- In tables, wrap a long identifier (12+ characters with `_`, `/`, or a dot between letters) in `<Code>` (`site/components/Code.jsx`) instead of backticks, so it breaks only at those separators. Write a value that contains `<`, `>`, `{` or `}` in the `value` prop, as `<Code value={"MISSING_<PROVIDER>_INTEGRATION"} />`. SaturnDocs accepts only plain text between the tags.
 - Put one value in each cell.
 
 ## PR conventions

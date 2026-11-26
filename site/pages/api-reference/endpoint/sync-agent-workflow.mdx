@@ -1,0 +1,53 @@
+---
+title: "POST /v1/agents/{agent_id}/workflow/sync"
+description: "Sync the workflow of an agent."
+api: "POST https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/sync"
+playground: "none"
+---
+
+Pulls the latest [workflow](/test/simulations/reference#workflow) of one agent from its provider. This replaces the Bluejay edits that you did not push.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "agent_id", "type": "string", "required": true, "description": "Bluejay id of the agent to refresh (from GET /v1/all-agents); it must be linked to a supported provider."}]} />
+
+## Query parameters
+
+<FieldTable rows={[{"name": "branch_id", "type": "string or null", "required": false, "description": "Which upstream version to pull: an ElevenLabs branch id (from GET /v1/integrations/elevenlabs/agents/{bluejay_agent_id}/branches), a Bland pathway version number, or draft or a version id for Google CES. Omit for the provider's default; Retell and VAPI ignore it."}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string or null", "required": false, "description": "\"ok\" once the workflow was pulled and stored."}, {"name": "agent_id", "type": "string or null", "required": false, "description": "The agent_id you passed."}, {"name": "branch_id", "type": "string or integer or null", "required": false, "description": "The branch or version that was pulled, when one applies."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/agents/{agent_id}/workflow/sync \
+  --header 'X-API-Key: <api-key>'
+```
+
+## Example response
+
+```json 200
+{
+  "status": "<string>",
+  "agent_id": "<string>",
+  "branch_id": "<string>"
+}
+```
+
+{/* END GENERATED */}

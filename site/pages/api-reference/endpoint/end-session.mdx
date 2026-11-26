@@ -1,0 +1,81 @@
+---
+title: "POST /v1/sessions/{session_id}/end"
+description: "End Session"
+api: "POST https://api.getbluejay.ai/v1/sessions/{session_id}/end"
+playground: "none"
+---
+
+Mark the call done and queue the build of its conversation. Calling it again builds nothing new.
+
+{/* GENERATED: from the OpenAPI spec by scripts/generate_api_pages.py. Do not edit by hand. */}
+
+## Path parameters
+
+<FieldTable rows={[{"name": "session_id", "type": "string", "required": true, "description": ""}]} />
+
+## Headers
+
+<FieldTable rows={[{"name": "X-API-Key", "type": "string", "required": true, "description": "API key required to authenticate requests."}]} />
+
+## Request body
+
+<FieldTable rows={[{"name": "agent_id", "type": "string or null", "required": false, "description": "The Bluejay agent id. Give this or external_agent_id, unless the spans carry the agent."}, {"name": "external_agent_id", "type": "string or null", "required": false, "description": ""}, {"name": "start_time", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "end_time", "type": "string (date-time) or null", "required": false, "description": ""}, {"name": "audio", "type": "object or null", "required": false, "description": "", "children": [{"name": "chunk_count", "type": "integer", "required": true, "description": ""}, {"name": "duration_ms", "type": "integer or null", "required": false, "description": ""}, {"name": "start_offset_ms", "type": "integer", "required": false, "description": "Where the first chunk starts, in ms from the session start.", "default": 0}, {"name": "channels", "type": "integer", "required": false, "description": "", "default": 2}, {"name": "channel_map", "type": "object or null", "required": false, "description": "Which side each channel holds, e.g. {\"0\": \"USER\", \"1\": \"AGENT\"}.", "children": [{"name": "{key}", "type": "string", "required": false, "description": "Any key.", "children": []}]}, {"name": "sample_rate", "type": "integer or null", "required": false, "description": ""}, {"name": "source", "type": "string or null", "required": false, "description": "What captured the audio, e.g. livekit or pipecat."}]}, {"name": "direction", "type": "string or null", "required": false, "description": "inbound or outbound."}, {"name": "from_number", "type": "string or null", "required": false, "description": ""}, {"name": "to_number", "type": "string or null", "required": false, "description": ""}, {"name": "ended_by", "type": "string or null", "required": false, "description": "USER or AGENT."}, {"name": "user_id", "type": "string or null", "required": false, "description": ""}, {"name": "agent_version", "type": "string or null", "required": false, "description": ""}, {"name": "environment", "type": "string or null", "required": false, "description": ""}, {"name": "tags", "type": "string[]", "required": false, "description": ""}, {"name": "metadata", "type": "object", "required": false, "description": ""}, {"name": "simulation_result_id", "type": "string or null", "required": false, "description": ""}]} />
+
+## Response
+
+<FieldTable rows={[{"name": "status", "type": "string", "required": true, "description": "accepted: the build is queued. A build with nothing new since the last one changes nothing."}]} />
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `202` | Successful Response |
+| `422` | Validation Error |
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://api.getbluejay.ai/v1/sessions/{session_id}/end \
+  --header 'X-API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "agent_id": "<string>",
+    "external_agent_id": "<string>",
+    "start_time": "2026-01-01T00:00:00Z",
+    "end_time": "2026-01-01T00:00:00Z",
+    "audio": {
+      "chunk_count": 123,
+      "duration_ms": 123,
+      "start_offset_ms": 0,
+      "channels": 2,
+      "channel_map": {
+        "key": "<string>"
+      },
+      "sample_rate": 123,
+      "source": "<string>"
+    },
+    "direction": "<string>",
+    "from_number": "<string>",
+    "to_number": "<string>",
+    "ended_by": "<string>",
+    "user_id": "<string>",
+    "agent_version": "<string>",
+    "environment": "<string>",
+    "tags": [
+      "<string>"
+    ],
+    "metadata": {},
+    "simulation_result_id": "<string>"
+  }'
+```
+
+## Example response
+
+```json 202
+{
+  "status": "<string>"
+}
+```
+
+{/* END GENERATED */}

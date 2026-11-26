@@ -1,0 +1,62 @@
+---
+title: "Pipecat"
+description: "Capture Pipecat transcripts, recordings, and native pipeline spans."
+---
+
+Use the Pipecat integration to capture transcripts, audio, and spans. Bluejay builds the conversation when the pipeline ends.
+
+## Set up the SDK
+
+Set `BLUEJAY_API_KEY` as shown in the [quickstart](/sdk/overview), then install the Pipecat extra.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```bash title="Python"
+pip install "bluejay-sdk[pipecat]>=0.4.0"
+```
+
+```typescript title="TypeScript"
+// Pipecat is available through the Python SDK.
+```
+
+</CodeGroup>
+
+Create the client once at startup. In your existing pipeline, leave the user and assistant context aggregators in place. The tap uses their finalized turn events to write the transcript.
+
+<CodeGroup label="Python and TypeScript examples">
+
+```python title="Python"
+from bluejay import BluejayClient
+from pipecat.pipeline.pipeline import Pipeline
+from pipecat.pipeline.worker import PipelineWorker
+
+client = BluejayClient(tracing=True)
+
+# In your bot, after creating the transport, services, and aggregators:
+tap = client.instrument_pipecat(external_agent_id="support-voice")
+pipeline = Pipeline([
+    transport.input(), stt, user_aggregator, llm, tts,
+    transport.output(), tap, assistant_aggregator,
+])
+worker = PipelineWorker(
+    pipeline,
+    enable_tracing=True,
+    conversation_id=tap.session_id,
+)
+```
+
+```typescript title="TypeScript"
+// Pipecat is available through the Python SDK.
+```
+
+</CodeGroup>
+
+Use the external ID configured on your Bluejay agent. You can also pass `agent_id` with its Bluejay ID. The tap goes immediately after `transport.output()`. The worker flag makes Pipecat emit its native spans. Pass `record_audio=False` to the tap if you want spans and transcript without uploading audio.
+
+## Verify a call
+
+Place a call and end the pipeline. Open the conversation in [Logs](/monitor/logs) to inspect its transcript, audio, and trace. If you're using a realtime speech model, enable input transcription on the model to capture the caller's text.
+
+## Attach traces to a simulation
+
+If Bluejay starts your Pipecat Cloud bot, read `X-Simulation-Result-Id` from the start request body and pass it as `simulation_result_id` to `instrument_pipecat()`. See [Connect Pipecat](/integrations/pipecat) for the start request and [Run simulations](/sdk/simulations) to queue a test from Python.
