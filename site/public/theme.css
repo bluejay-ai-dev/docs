@@ -933,14 +933,8 @@ html:root[data-theme="dark"] {
     justify-content: center;
   }
 
-  /* Lets the search above show. The nav list scrolls on its own. */
-  #gs-sidebar {
-    overflow: visible;
-  }
-
   #gs-sidebar .gs-sidebar-search {
-    /* The sidebar starts below the header, so pull the search up under the logo. */
-    margin: -13px 1.75rem 0;
+    margin: 28px 1.75rem 0;
     padding-inline: 0.8125rem 0.75rem;
     border-radius: 0.75rem;
     font-size: 0.875rem;
@@ -980,6 +974,50 @@ html:root[data-theme="dark"] {
   [data-gs-toc] {
     top: calc(var(--gs-header-height) + 3rem);
     padding-inline: 0.5rem 4rem;
+  }
+}
+
+/* The header stays on one row at every desktop width, as it did on Mintlify.
+   SaturnDocs moves the tabs to a second row when the tabs and the buttons do not fit.
+   The sidebar then starts 41px lower. These rules make them fit.
+   The tabs keep their icons. "Try Bluejay" shows from 930px, and "Website" from 1024px. */
+@media (min-width: 930px) and (max-width: 1119.98px) {
+  html[data-gs-preset] {
+    --gs-header-inline-end: 1.6rem;
+  }
+}
+
+/* The tab padding is 5px at 1024px wide, and the usual 11.25px from 1094px. */
+@media (min-width: 1024px) and (max-width: 1119.98px) {
+  .gs-tabs-row > a {
+    padding-inline: clamp(5px, calc(5px + (100vw - 1024px) * 0.09), 11.25px);
+  }
+}
+
+/* The tab padding is 5px at 930px wide, and the usual 11.25px from 1014px. */
+@media (min-width: 930px) and (max-width: 1023.98px) {
+  .gs-header-link {
+    display: none;
+  }
+
+  .gs-tabs-row > a {
+    padding-inline: clamp(5px, calc(5px + (100vw - 930px) * 0.075), 11.25px);
+  }
+}
+
+/* Below 930px no button fits beside the tabs. The tab padding is 4.5px at 800px wide. */
+@media (min-width: 800px) and (max-width: 929.98px) {
+  html[data-gs-preset] {
+    --gs-header-inline-end: 0rem;
+  }
+
+  .gs-header-link,
+  .gs-header-cta {
+    display: none;
+  }
+
+  .gs-tabs-row > a {
+    padding-inline: clamp(4.5px, calc(4.5px + (100vw - 800px) * 0.075), 11.25px);
   }
 }
 
